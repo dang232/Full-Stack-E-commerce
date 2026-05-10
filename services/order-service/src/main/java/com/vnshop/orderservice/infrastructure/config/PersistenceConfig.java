@@ -5,12 +5,15 @@ import com.vnshop.orderservice.domain.Money;
 import com.vnshop.orderservice.domain.OrderItem;
 import com.vnshop.orderservice.domain.SubOrder;
 import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
+import com.vnshop.orderservice.domain.port.out.InvoicePdfRendererPort;
 import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.vnshop.orderservice.infrastructure.storage.DeterministicInvoicePdfRenderer;
 
 import java.util.List;
 
@@ -41,6 +44,11 @@ public class PersistenceConfig {
                 LOGGER.info("Stub payment request pending for order {} method {} amount {} {}", orderId, paymentMethod, amount.amount(), amount.currency());
             }
         };
+    }
+
+    @Bean
+    InvoicePdfRendererPort invoicePdfRendererPort() {
+        return new DeterministicInvoicePdfRenderer();
     }
 
     @Bean

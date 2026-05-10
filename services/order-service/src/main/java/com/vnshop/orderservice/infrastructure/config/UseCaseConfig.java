@@ -6,12 +6,16 @@ import com.vnshop.orderservice.application.CancelOrderUseCase;
 import com.vnshop.orderservice.application.CompleteReturnUseCase;
 import com.vnshop.orderservice.application.CreateOrderUseCase;
 import com.vnshop.orderservice.application.DisputeUseCase;
+import com.vnshop.orderservice.application.InvoiceUseCase;
 import com.vnshop.orderservice.application.RejectOrderUseCase;
 import com.vnshop.orderservice.application.RejectReturnUseCase;
 import com.vnshop.orderservice.application.RequestReturnUseCase;
 import com.vnshop.orderservice.application.ShipOrderUseCase;
 import com.vnshop.orderservice.domain.port.out.DisputeRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
+import com.vnshop.orderservice.domain.port.out.InvoicePdfRendererPort;
+import com.vnshop.orderservice.domain.port.out.InvoiceRepositoryPort;
+import com.vnshop.orderservice.domain.port.out.InvoiceStoragePort;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
@@ -20,6 +24,8 @@ import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.Clock;
 
 @Configuration
 public class UseCaseConfig {
@@ -89,5 +95,21 @@ public class UseCaseConfig {
     @Bean
     DisputeUseCase disputeUseCase(ReturnRepositoryPort returnRepositoryPort, DisputeRepositoryPort disputeRepositoryPort) {
         return new DisputeUseCase(returnRepositoryPort, disputeRepositoryPort);
+    }
+
+    @Bean
+    InvoiceUseCase invoiceUseCase(
+            OrderRepositoryPort orderRepositoryPort,
+            InvoiceRepositoryPort invoiceRepositoryPort,
+            InvoiceStoragePort invoiceStoragePort,
+            InvoicePdfRendererPort invoicePdfRendererPort,
+            Clock clock
+    ) {
+        return new InvoiceUseCase(orderRepositoryPort, invoiceRepositoryPort, invoiceStoragePort, invoicePdfRendererPort, clock);
+    }
+
+    @Bean
+    Clock clock() {
+        return Clock.systemUTC();
     }
 }
