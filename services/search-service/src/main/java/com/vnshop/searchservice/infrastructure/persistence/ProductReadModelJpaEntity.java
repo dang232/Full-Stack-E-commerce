@@ -1,0 +1,120 @@
+package com.vnshop.searchservice.infrastructure.persistence;
+
+import com.vnshop.searchservice.domain.ProductReadModel;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Map;
+
+@Entity
+@Table(schema = "search_svc", name = "product_read_models")
+public class ProductReadModelJpaEntity {
+    @Id
+    @Column(name = "product_id")
+    private String productId;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "description", length = 2000)
+    private String description;
+
+    @Column(name = "category_id")
+    private String categoryId;
+
+    @Column(name = "brand")
+    private String brand;
+
+    @Column(name = "status", nullable = false)
+    private String status;
+
+    @Column(name = "min_price")
+    private BigDecimal minPrice;
+
+    @Column(name = "max_price")
+    private BigDecimal maxPrice;
+
+    @Column(name = "variant_count", nullable = false)
+    private int variantCount;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    protected ProductReadModelJpaEntity() {
+    }
+
+    public ProductReadModelJpaEntity(String productId, String name, String description, String categoryId, String brand, String status, BigDecimal minPrice, BigDecimal maxPrice, int variantCount, Instant createdAt) {
+        this.productId = productId;
+        this.name = name;
+        this.description = description;
+        this.categoryId = categoryId;
+        this.brand = brand;
+        this.status = status;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
+        this.variantCount = variantCount;
+        this.createdAt = createdAt;
+    }
+
+    public static ProductReadModelJpaEntity fromDomain(ProductReadModel model) {
+        return new ProductReadModelJpaEntity(
+                model.productId(),
+                model.name(),
+                model.description(),
+                model.categoryId(),
+                model.brand(),
+                model.status(),
+                model.minPrice(),
+                model.maxPrice(),
+                model.variantCount(),
+                model.createdAt()
+        );
+    }
+
+    public static ProductReadModelJpaEntity fromEvent(String productId, Map<String, Object> payload) {
+        return new ProductReadModelJpaEntity(
+                productId,
+                stringValue(payload.get("name")),
+                stringValue(payload.get("description")),
+                stringValue(payload.get("categoryId")),
+                stringValue(payload.get("brand")),
+                stringValue(payload.getOrDefault("status", "DRAFT")),
+                decimalValue(payload.get("minPrice")),
+                decimalValue(payload.get("maxPrice")),
+                intValue(payload.get("variantCount")),
+                Instant.now()
+        );
+    }
+
+    public ProductReadModel toDomain() {
+        return new ProductReadModel(productId, name, description, categoryId, brand, status, minPrice, maxPrice, variantCount, createdAt);
+    }
+
+    private static String stringValue(Object value) {
+        return value == null ? null : value.toString();
+    }
+
+    private static BigDecimal decimalValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof BigDecimal decimal) {
+            return decimal;
+        }
+        return new BigDecimal(value.toString());
+    }
+
+    private static int intValue(Object value) {
+        if (value == null) {
+            return 0;
+        }
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return Integer.parseInt(value.toString());
+    }
+}
