@@ -1,0 +1,2179 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-api-gateway
+  labels:
+    app.kubernetes.io/name: vnshop-api-gateway
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-api-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-api-gateway
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: api-gateway
+        image: vnshop/api-gateway:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-api-gateway
+  labels:
+    app.kubernetes.io/name: vnshop-api-gateway
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: vnshop-api-gateway
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-api-gateway
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-api-gateway
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-api-gateway
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-api-gateway
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-api-gateway
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-api-gateway
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-user
+  labels:
+    app.kubernetes.io/name: vnshop-user
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-user
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-user
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: user
+        image: vnshop/user-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8081
+        env:
+        - name: SERVER_PORT
+          value: "8081"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=user_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-user
+  labels:
+    app.kubernetes.io/name: vnshop-user
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-user
+  ports:
+  - name: http
+    port: 8081
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-user
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-user
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-user
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-user
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-user
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-user
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8081
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-product
+  labels:
+    app.kubernetes.io/name: vnshop-product
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-product
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-product
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: product
+        image: vnshop/product-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8082
+        env:
+        - name: SERVER_PORT
+          value: "8082"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=product_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-product
+  labels:
+    app.kubernetes.io/name: vnshop-product
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-product
+  ports:
+  - name: http
+    port: 8082
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-product
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-product
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-product
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-product
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-product
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-product
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8082
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-inventory
+  labels:
+    app.kubernetes.io/name: vnshop-inventory
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-inventory
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-inventory
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: inventory
+        image: vnshop/inventory-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8083
+        env:
+        - name: SERVER_PORT
+          value: "8083"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=inventory_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-inventory
+  labels:
+    app.kubernetes.io/name: vnshop-inventory
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-inventory
+  ports:
+  - name: http
+    port: 8083
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-inventory
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-inventory
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-inventory
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-inventory
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-inventory
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-inventory
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8083
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-search
+  labels:
+    app.kubernetes.io/name: vnshop-search
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-search
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-search
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: search
+        image: vnshop/search-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8086
+        env:
+        - name: SERVER_PORT
+          value: "8086"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=search_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-search
+  labels:
+    app.kubernetes.io/name: vnshop-search
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-search
+  ports:
+  - name: http
+    port: 8086
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-search
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-search
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-search
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-search
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-search
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-search
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8086
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-cart
+  labels:
+    app.kubernetes.io/name: vnshop-cart
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-cart
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-cart
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: cart
+        image: vnshop/cart-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8084
+        env:
+        - name: SERVER_PORT
+          value: "8084"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=cart_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-cart
+  labels:
+    app.kubernetes.io/name: vnshop-cart
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-cart
+  ports:
+  - name: http
+    port: 8084
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-cart
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-cart
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-cart
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-cart
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-cart
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-cart
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8084
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-order
+  labels:
+    app.kubernetes.io/name: vnshop-order
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-order
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-order
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: order
+        image: vnshop/order-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8091
+        env:
+        - name: SERVER_PORT
+          value: "8091"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=order_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-order
+  labels:
+    app.kubernetes.io/name: vnshop-order
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-order
+  ports:
+  - name: http
+    port: 8091
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-order
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-order
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-order
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-order
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-order
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-order
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8091
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-payment
+  labels:
+    app.kubernetes.io/name: vnshop-payment
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-payment
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-payment
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: payment
+        image: vnshop/payment-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8092
+        env:
+        - name: SERVER_PORT
+          value: "8092"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=payment_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-payment
+  labels:
+    app.kubernetes.io/name: vnshop-payment
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-payment
+  ports:
+  - name: http
+    port: 8092
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-payment
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-payment
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-payment
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-payment
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-payment
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-payment
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8092
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-shipping
+  labels:
+    app.kubernetes.io/name: vnshop-shipping
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-shipping
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-shipping
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: shipping
+        image: vnshop/shipping-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8093
+        env:
+        - name: SERVER_PORT
+          value: "8093"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=shipping_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-shipping
+  labels:
+    app.kubernetes.io/name: vnshop-shipping
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-shipping
+  ports:
+  - name: http
+    port: 8093
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-shipping
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-shipping
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-shipping
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-shipping
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-shipping
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-shipping
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8093
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-notification
+  labels:
+    app.kubernetes.io/name: vnshop-notification
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-notification
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-notification
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: notification
+        image: vnshop/notification-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8087
+        env:
+        - name: PORT
+          value: "8087"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=notification_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-notification
+  labels:
+    app.kubernetes.io/name: vnshop-notification
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-notification
+  ports:
+  - name: http
+    port: 8087
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-notification
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-notification
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-notification
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-notification
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-notification
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-notification
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8087
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-coupon
+  labels:
+    app.kubernetes.io/name: vnshop-coupon
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-coupon
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-coupon
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: coupon
+        image: vnshop/coupon-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8088
+        env:
+        - name: SERVER_PORT
+          value: "8088"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=coupon_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-coupon
+  labels:
+    app.kubernetes.io/name: vnshop-coupon
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-coupon
+  ports:
+  - name: http
+    port: 8088
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-coupon
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-coupon
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-coupon
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-coupon
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-coupon
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-coupon
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8088
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-review
+  labels:
+    app.kubernetes.io/name: vnshop-review
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-review
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-review
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: review
+        image: vnshop/review-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8089
+        env:
+        - name: SERVER_PORT
+          value: "8089"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=review_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-review
+  labels:
+    app.kubernetes.io/name: vnshop-review
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-review
+  ports:
+  - name: http
+    port: 8089
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-review
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-review
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-review
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-review
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-review
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-review
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8089
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vnshop-seller-finance
+  labels:
+    app.kubernetes.io/name: vnshop-seller-finance
+    app.kubernetes.io/part-of: vnshop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-seller-finance
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vnshop-seller-finance
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      serviceAccountName: vnshop-workload
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: seller-finance
+        image: vnshop/seller-finance-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8090
+        env:
+        - name: SERVER_PORT
+          value: "8090"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=seller_finance_svc"
+        envFrom:
+        - configMapRef:
+            name: vnshop-app-config
+        - secretRef:
+            name: vnshop-app-secret
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vnshop-seller-finance
+  labels:
+    app.kubernetes.io/name: vnshop-seller-finance
+    app.kubernetes.io/part-of: vnshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vnshop-seller-finance
+  ports:
+  - name: http
+    port: 8090
+    targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vnshop-seller-finance
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vnshop-seller-finance
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vnshop-seller-finance
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-seller-finance
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vnshop-seller-finance
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vnshop-seller-finance
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vnshop-api-gateway
+    ports:
+    - protocol: TCP
+      port: 8090
+  egress:
+  - to:
+    - podSelector: {}
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 4318
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53

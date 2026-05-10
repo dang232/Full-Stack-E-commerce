@@ -1,0 +1,415 @@
+name: vnshop-staging
+
+x-staging-app: &staging-app
+  profiles: ["staging"]
+  mem_limit: 512m
+  cpus: 0.50
+
+x-staging-env: &staging-env
+  STAGING: "true"
+  SPRING_PROFILES_ACTIVE: staging
+  PAYMENT_MODE: stub
+  CARRIER_MODE: stub
+
+services:
+  postgres:
+    profiles: ["staging"]
+    image: postgres:17.9
+    container_name: vnshop-staging-postgres
+    mem_limit: 512m
+    cpus: 0.50
+    environment:
+      POSTGRES_DB: vnshop
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    ports:
+      - "5532:5432"
+    volumes:
+      - staging-postgres-data:/var/lib/postgresql/data
+      - ../../postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    profiles: ["staging"]
+    image: redis:8.6-alpine
+    container_name: vnshop-staging-redis
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    mem_limit: 384m
+    cpus: 0.25
+    ports:
+      - "6479:6379"
+    volumes:
+      - staging-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    profiles: ["staging"]
+    image: confluentinc/cp-kafka:8.2.0
+    container_name: vnshop-staging-kafka
+    mem_limit: 768m
+    cpus: 0.50
+    ports:
+      - "9192:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9192
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+    volumes:
+      - staging-kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  keycloak:
+    profiles: ["staging"]
+    image: quay.io/keycloak/keycloak:26.6
+    container_name: vnshop-staging-keycloak
+    command: ["start-dev"]
+    mem_limit: 512m
+    cpus: 0.50
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/vnshop
+      KC_DB_SCHEMA: keycloak
+      KC_DB_USERNAME: vnshop
+      KC_DB_PASSWORD: vnshop123
+      STAGING: "true"
+    ports:
+      - "8185:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3; grep -q '200' <&3"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+
+  elasticsearch:
+    profiles: ["staging"]
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.0
+    container_name: vnshop-staging-elasticsearch
+    mem_limit: 768m
+    cpus: 0.50
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms256m -Xmx256m
+      STAGING: "true"
+    ports:
+      - "9300:9200"
+    volumes:
+      - staging-elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health >/dev/null"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  api-gateway:
+    <<: *staging-app
+    build: ../../../services/api-gateway
+    container_name: vnshop-staging-api-gateway
+    ports:
+      - "8180:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8080
+      REDIS_HOST: redis
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  user-service:
+    <<: *staging-app
+    build: ../../../services/user-service
+    container_name: vnshop-staging-user-service
+    ports:
+      - "8181:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=user_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  product-service:
+    <<: *staging-app
+    build: ../../../services/product-service
+    container_name: vnshop-staging-product-service
+    ports:
+      - "8182:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=product_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  inventory-service:
+    <<: *staging-app
+    build: ../../../services/inventory-service
+    container_name: vnshop-staging-inventory-service
+    ports:
+      - "8183:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8083
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=inventory_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  cart-service:
+    <<: *staging-app
+    build: ../../../services/cart-service
+    container_name: vnshop-staging-cart-service
+    ports:
+      - "8184:8084"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8084
+      REDIS_HOST: redis
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  search-service:
+    <<: *staging-app
+    build: ../../../services/search-service
+    container_name: vnshop-staging-search-service
+    ports:
+      - "8186:8086"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8086
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=search_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  notification-service:
+    <<: *staging-app
+    build: ../../../services/notification-service
+    container_name: vnshop-staging-notification-service
+    ports:
+      - "8187:8087"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      DATABASE_URL: postgresql://vnshop:vnshop123@postgres:5432/vnshop?currentSchema=notification_svc
+      PORT: 8087
+
+  coupon-service:
+    <<: *staging-app
+    build: ../../../services/coupon-service
+    container_name: vnshop-staging-coupon-service
+    ports:
+      - "8188:8088"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8088
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=coupon_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  review-service:
+    <<: *staging-app
+    build: ../../../services/review-service
+    container_name: vnshop-staging-review-service
+    ports:
+      - "8189:8089"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8089
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=review_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  seller-finance-service:
+    <<: *staging-app
+    build: ../../../services/seller-finance-service
+    container_name: vnshop-staging-seller-finance-service
+    ports:
+      - "8190:8090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8090
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=seller_finance_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  order-service:
+    <<: *staging-app
+    build: ../../../services/order-service
+    container_name: vnshop-staging-order-service
+    ports:
+      - "8191:8091"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8091
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=order_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  payment-service:
+    <<: *staging-app
+    build: ../../../services/payment-service
+    container_name: vnshop-staging-payment-service
+    ports:
+      - "8192:8092"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=payment_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+  shipping-service:
+    <<: *staging-app
+    build: ../../../services/shipping-service
+    container_name: vnshop-staging-shipping-service
+    ports:
+      - "8193:8093"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *staging-env
+      SERVER_PORT: 8093
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=shipping_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      REDIS_HOST: redis
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+
+volumes:
+  staging-postgres-data:
+  staging-redis-data:
+  staging-kafka-data:
+  staging-elasticsearch-data:

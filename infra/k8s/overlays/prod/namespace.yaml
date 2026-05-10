@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vnshop-prod
+  labels:
+    app.kubernetes.io/part-of: vnshop
+    environment: prod

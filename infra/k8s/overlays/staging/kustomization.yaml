@@ -1,0 +1,154 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: vnshop-staging
+resources:
+- ../../base
+- namespace.yaml
+replicas:
+- name: vnshop-api-gateway
+  count: 2
+- name: vnshop-user
+  count: 2
+- name: vnshop-product
+  count: 2
+- name: vnshop-inventory
+  count: 2
+- name: vnshop-search
+  count: 2
+- name: vnshop-cart
+  count: 2
+- name: vnshop-order
+  count: 2
+- name: vnshop-payment
+  count: 2
+- name: vnshop-shipping
+  count: 2
+- name: vnshop-notification
+  count: 2
+- name: vnshop-coupon
+  count: 2
+- name: vnshop-review
+  count: 2
+- name: vnshop-seller-finance
+  count: 2
+images:
+- name: vnshop/api-gateway
+  newTag: staging
+- name: vnshop/user-service
+  newTag: staging
+- name: vnshop/product-service
+  newTag: staging
+- name: vnshop/inventory-service
+  newTag: staging
+- name: vnshop/search-service
+  newTag: staging
+- name: vnshop/cart-service
+  newTag: staging
+- name: vnshop/order-service
+  newTag: staging
+- name: vnshop/payment-service
+  newTag: staging
+- name: vnshop/shipping-service
+  newTag: staging
+- name: vnshop/notification-service
+  newTag: staging
+- name: vnshop/coupon-service
+  newTag: staging
+- name: vnshop/review-service
+  newTag: staging
+- name: vnshop/seller-finance-service
+  newTag: staging
+patchesStrategicMerge:
+- configmap-env.yaml
+patches:
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-api-gateway
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-user
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-product
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-inventory
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-search
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-cart
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-order
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-payment
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-shipping
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-notification
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-coupon
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-review
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6
+- target:
+    kind: HorizontalPodAutoscaler
+    name: vnshop-seller-finance
+  patch: |-
+    - op: replace
+      path: /spec/maxReplicas
+      value: 6

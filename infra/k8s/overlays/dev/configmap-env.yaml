@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vnshop-app-config
+data:
+  SPRING_PROFILES_ACTIVE: dev
+  NODE_ENV: development
