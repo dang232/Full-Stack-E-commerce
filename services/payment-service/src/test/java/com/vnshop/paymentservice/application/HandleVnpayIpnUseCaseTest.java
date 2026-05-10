@@ -1,8 +1,12 @@
 package com.vnshop.paymentservice.application;
 
+import com.vnshop.paymentservice.domain.JournalEntry;
+import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentStatus;
+import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
+import com.vnshop.paymentservice.application.ledger.LedgerService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -17,24 +21,28 @@ class HandleVnpayIpnUseCaseTest {
     @Test
     void updatesPendingVnpayPaymentAfterVerifiedIpnOnly() {
         CapturingPaymentRepository repository = new CapturingPaymentRepository(payment(PaymentStatus.PENDING, null));
-        HandleVnpayIpnUseCase useCase = new HandleVnpayIpnUseCase(repository);
+        CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
+        HandleVnpayIpnUseCase useCase = new HandleVnpayIpnUseCase(repository, new LedgerService(ledgerRepository));
 
         Payment updated = useCase.applyVerifiedResult("PAY-1", PaymentStatus.COMPLETED, "14123456");
 
         assertThat(updated.status()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(updated.transactionRef()).isEqualTo("14123456");
         assertThat(repository.savedPayments).hasSize(1);
+        assertThat(ledgerRepository.savedEntries).hasSize(2);
     }
 
     @Test
     void keepsAlreadyResolvedPaymentIdempotent() {
         CapturingPaymentRepository repository = new CapturingPaymentRepository(payment(PaymentStatus.COMPLETED, "14123456"));
-        HandleVnpayIpnUseCase useCase = new HandleVnpayIpnUseCase(repository);
+        CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
+        HandleVnpayIpnUseCase useCase = new HandleVnpayIpnUseCase(repository, new LedgerService(ledgerRepository));
 
         Payment existing = useCase.applyVerifiedResult("PAY-1", PaymentStatus.COMPLETED, "14123456");
 
         assertThat(existing.status()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(repository.savedPayments).isEmpty();
+        assertThat(ledgerRepository.savedEntries).isEmpty();
     }
 
     private static Payment payment(PaymentStatus status, String transactionRef) {
@@ -71,4 +79,32 @@ class HandleVnpayIpnUseCaseTest {
             return List.of();
         }
     }
+
+    private static final class CapturingLedgerRepository implements LedgerRepositoryPort {
+        private final List<LedgerEntry> savedEntries = new ArrayList<>();
+
+        @Override
+        public List<LedgerEntry> append(JournalEntry journalEntry) {
+            List<LedgerEntry> entries = journalEntry.postings().stream()
+                    .map(posting -> LedgerEntry.fromJournalPosting(journalEntry, posting))
+                    .toList();
+            savedEntries.addAll(entries);
+            return entries;
+        }
+
+        @Override
+        public List<LedgerEntry> findByOrderId(String orderId) {
+            return savedEntries.stream()
+                    .filter(entry -> entry.orderId().equals(orderId))
+                    .toList();
+        }
+
+        @Override
+        public List<LedgerEntry> findByJournalId(String journalId) {
+            return savedEntries.stream()
+                    .filter(entry -> entry.journalId().equals(journalId))
+                    .toList();
+        }
+    }
 }
+

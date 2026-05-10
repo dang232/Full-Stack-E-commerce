@@ -1,10 +1,11 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
+import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
-import com.vnshop.paymentservice.infrastructure.ledger.LedgerService;
+import com.vnshop.paymentservice.application.ledger.LedgerService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -108,12 +109,17 @@ class VnpayGatewayTest {
 
     private static final class NoopLedgerRepository implements LedgerRepositoryPort {
         @Override
-        public LedgerEntry save(LedgerEntry ledgerEntry) {
-            return ledgerEntry;
+        public List<LedgerEntry> append(JournalEntry journalEntry) {
+            return List.of();
         }
 
         @Override
         public List<LedgerEntry> findByOrderId(String orderId) {
+            return List.of();
+        }
+
+        @Override
+        public List<LedgerEntry> findByJournalId(String journalId) {
             return List.of();
         }
     }

@@ -5,26 +5,49 @@ import java.time.Instant;
 import java.util.Objects;
 
 public class LedgerEntry {
+    private final String journalId;
     private final String transactionId;
     private final String orderId;
-    private final String debitAccount;
-    private final String creditAccount;
+    private final String accountId;
+    private final LedgerPostingType postingType;
     private final BigDecimal amount;
     private final String currency;
     private final Instant timestamp;
-    private final String status;
     private final String description;
+    private final String reversesJournalId;
 
-    public LedgerEntry(String transactionId, String orderId, String debitAccount, String creditAccount, BigDecimal amount, String currency, Instant timestamp, String status, String description) {
+    public LedgerEntry(String journalId, String transactionId, String orderId, String accountId, LedgerPostingType postingType, BigDecimal amount, String currency, Instant timestamp, String description, String reversesJournalId) {
+        this.journalId = requireNonBlank(journalId, "journalId");
         this.transactionId = requireNonBlank(transactionId, "transactionId");
         this.orderId = requireNonBlank(orderId, "orderId");
-        this.debitAccount = requireNonBlank(debitAccount, "debitAccount");
-        this.creditAccount = requireNonBlank(creditAccount, "creditAccount");
+        this.accountId = requireNonBlank(accountId, "accountId");
+        this.postingType = Objects.requireNonNull(postingType, "postingType is required");
         this.amount = Objects.requireNonNull(amount, "amount is required");
+        if (amount.signum() <= 0) {
+            throw new IllegalArgumentException("amount must be positive");
+        }
         this.currency = requireNonBlank(currency, "currency");
         this.timestamp = Objects.requireNonNull(timestamp, "timestamp is required");
-        this.status = requireNonBlank(status, "status");
         this.description = description;
+        this.reversesJournalId = reversesJournalId;
+    }
+
+    public static LedgerEntry fromJournalPosting(JournalEntry journalEntry, LedgerPosting posting) {
+        return new LedgerEntry(
+                journalEntry.journalId(),
+                journalEntry.transactionId(),
+                journalEntry.orderId(),
+                posting.accountId(),
+                posting.type(),
+                posting.amount(),
+                posting.currency(),
+                journalEntry.postedAt(),
+                journalEntry.description(),
+                journalEntry.reversesJournalId());
+    }
+
+    public String journalId() {
+        return journalId;
     }
 
     public String transactionId() {
@@ -35,12 +58,12 @@ public class LedgerEntry {
         return orderId;
     }
 
-    public String debitAccount() {
-        return debitAccount;
+    public String accountId() {
+        return accountId;
     }
 
-    public String creditAccount() {
-        return creditAccount;
+    public LedgerPostingType postingType() {
+        return postingType;
     }
 
     public BigDecimal amount() {
@@ -55,12 +78,20 @@ public class LedgerEntry {
         return timestamp;
     }
 
-    public String status() {
-        return status;
-    }
-
     public String description() {
         return description;
+    }
+
+    public String reversesJournalId() {
+        return reversesJournalId;
+    }
+
+    public String debitAccount() {
+        return postingType == LedgerPostingType.DEBIT ? accountId : null;
+    }
+
+    public String creditAccount() {
+        return postingType == LedgerPostingType.CREDIT ? accountId : null;
     }
 
     private static String requireNonBlank(String value, String fieldName) {

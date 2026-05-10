@@ -2,7 +2,7 @@ package com.vnshop.paymentservice.infrastructure.gateway;
 
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentStatus;
-import com.vnshop.paymentservice.infrastructure.ledger.LedgerService;
+import com.vnshop.paymentservice.application.ledger.LedgerService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -3,6 +3,8 @@ package com.vnshop.paymentservice.infrastructure.config;
 import com.vnshop.paymentservice.application.GetPaymentStatusUseCase;
 import com.vnshop.paymentservice.application.HandleVnpayIpnUseCase;
 import com.vnshop.paymentservice.application.ProcessPaymentUseCase;
+import com.vnshop.paymentservice.application.ledger.LedgerService;
+import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoProperties;
@@ -15,8 +17,13 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties({VnpayProperties.class, MomoProperties.class})
 public class UseCaseConfig {
     @Bean
-    ProcessPaymentUseCase processPaymentUseCase(PaymentRepositoryPort paymentRepositoryPort, PaymentGatewayPort paymentGatewayPort) {
-        return new ProcessPaymentUseCase(paymentRepositoryPort, paymentGatewayPort);
+    LedgerService ledgerService(LedgerRepositoryPort ledgerRepositoryPort) {
+        return new LedgerService(ledgerRepositoryPort);
+    }
+
+    @Bean
+    ProcessPaymentUseCase processPaymentUseCase(PaymentRepositoryPort paymentRepositoryPort, PaymentGatewayPort paymentGatewayPort, LedgerService ledgerService) {
+        return new ProcessPaymentUseCase(paymentRepositoryPort, paymentGatewayPort, ledgerService);
     }
 
     @Bean
@@ -25,7 +32,7 @@ public class UseCaseConfig {
     }
 
     @Bean
-    HandleVnpayIpnUseCase handleVnpayIpnUseCase(PaymentRepositoryPort paymentRepositoryPort) {
-        return new HandleVnpayIpnUseCase(paymentRepositoryPort);
+    HandleVnpayIpnUseCase handleVnpayIpnUseCase(PaymentRepositoryPort paymentRepositoryPort, LedgerService ledgerService) {
+        return new HandleVnpayIpnUseCase(paymentRepositoryPort, ledgerService);
     }
 }

@@ -1,6 +1,8 @@
 package com.vnshop.paymentservice.infrastructure.reconciliation;
 
+import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
+import com.vnshop.paymentservice.domain.LedgerPostingType;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.ReconciliationIssue;
@@ -38,7 +40,7 @@ class ReconciliationWorkerTest {
     }
 
     private static LedgerEntry oneEntry(Payment payment) {
-        return new LedgerEntry(payment.transactionRef(), payment.orderId(), "buyer_wallet", "escrow", payment.amount(), "VND", Instant.now(), "POSTED", "partial");
+        return new LedgerEntry("JOURNAL-1", payment.transactionRef(), payment.orderId(), "payment_clearing", LedgerPostingType.DEBIT, payment.amount(), "VND", Instant.now(), "partial", null);
     }
 
     private record StaticPaymentRepository(List<Payment> completedPayments) implements PaymentRepositoryPort {
@@ -65,13 +67,20 @@ class ReconciliationWorkerTest {
 
     private record StaticLedgerRepository(List<LedgerEntry> entries) implements LedgerRepositoryPort {
         @Override
-        public LedgerEntry save(LedgerEntry ledgerEntry) {
-            return ledgerEntry;
+        public List<LedgerEntry> append(JournalEntry journalEntry) {
+            return List.of();
         }
 
         @Override
         public List<LedgerEntry> findByOrderId(String orderId) {
             return entries;
+        }
+
+        @Override
+        public List<LedgerEntry> findByJournalId(String journalId) {
+            return entries.stream()
+                    .filter(entry -> entry.journalId().equals(journalId))
+                    .toList();
         }
     }
 

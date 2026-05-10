@@ -3,7 +3,6 @@ package com.vnshop.paymentservice.infrastructure.gateway;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
-import com.vnshop.paymentservice.infrastructure.ledger.LedgerService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -16,12 +15,9 @@ import java.util.Objects;
 public class LivePaymentGateway implements PaymentGatewayPort {
     private final VnpayGateway vnpayGateway;
     private final MomoGateway momoGateway;
-    private final LedgerService ledgerService;
-
-    public LivePaymentGateway(VnpayGateway vnpayGateway, MomoGateway momoGateway, LedgerService ledgerService) {
+    public LivePaymentGateway(VnpayGateway vnpayGateway, MomoGateway momoGateway) {
         this.vnpayGateway = Objects.requireNonNull(vnpayGateway, "vnpayGateway is required");
         this.momoGateway = Objects.requireNonNull(momoGateway, "momoGateway is required");
-        this.ledgerService = Objects.requireNonNull(ledgerService, "ledgerService is required");
     }
 
     @Override
@@ -45,7 +41,6 @@ public class LivePaymentGateway implements PaymentGatewayPort {
 
     private GatewayPaymentResult completeCodPayment(Payment payment) {
         String transactionRef = "COD-" + payment.paymentId();
-        ledgerService.recordPayment(transactionRef, payment.orderId(), payment.amount());
         return new GatewayPaymentResult(PaymentStatus.COMPLETED, transactionRef);
     }
 }
