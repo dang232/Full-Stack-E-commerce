@@ -1,0 +1,122 @@
+package com.vnshop.reviewservice.infrastructure.storage;
+
+import com.vnshop.reviewservice.domain.port.out.ObjectStoragePort;
+import com.vnshop.reviewservice.domain.storage.ObjectMetadata;
+import com.vnshop.reviewservice.domain.storage.ObjectQuarantineState;
+import com.vnshop.reviewservice.domain.storage.ObjectStorageClass;
+import java.io.InputStream;
+import java.net.URI;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+
+@RequiredArgsConstructor
+public class S3ObjectStorageAdapter implements ObjectStoragePort {
+    static final String METADATA_STORAGE_CLASS = "storage-class";
+    static final String METADATA_SHA256 = "sha256";
+    static final String METADATA_QUARANTINE_STATE = "quarantine-state";
+    static final String METADATA_IMAGE_WIDTH = "image-width";
+    static final String METADATA_IMAGE_HEIGHT = "image-height";
+
+    private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
+    private final ObjectStorageProperties properties;
+
+    @Override
+    public void putObject(String key, InputStream content, ObjectMetadata metadata) {
+        PutObjectRequest request = putObjectRequest(key, metadata).build();
+        s3Client.putObject(request, RequestBody.fromInputStream(content, metadata.getContentLength()));
+    }
+
+    @Override
+    public URI getSignedUploadUrl(String key, ObjectMetadata metadata) {
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .putObjectRequest(putObjectRequest(key, metadata).build())
+                .signatureDuration(metadata.getStorageClass().uploadTtl())
+                .build();
+        return URI.create(s3Presigner.presignPutObject(presignRequest).url().toString());
+    }
+
+    @Override
+    public URI getSignedDownloadUrl(String key, ObjectStorageClass storageClass) {
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .getObjectRequest(GetObjectRequest.builder()
+                        .bucket(properties.getBucket())
+                        .key(key)
+                        .build())
+                .signatureDuration(storageClass.downloadTtl())
+                .build();
+        return URI.create(s3Presigner.presignGetObject(presignRequest).url().toString());
+    }
+
+    @Override
+    public void deleteObject(String key) {
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(properties.getBucket())
+                .key(key)
+                .build());
+    }
+
+    @Override
+    public Optional<ObjectMetadata> headObject(String key) {
+        try {
+            HeadObjectResponse response = s3Client.headObject(HeadObjectRequest.builder()
+                    .bucket(properties.getBucket())
+                    .key(key)
+                    .build());
+            return Optional.of(ObjectMetadata.builder()
+                    .key(key)
+                    .storageClass(ObjectStorageClass.valueOf(response.metadata().get(METADATA_STORAGE_CLASS)))
+                    .contentType(response.contentType())
+                    .contentLength(response.contentLength())
+                    .sha256Hex(response.metadata().get(METADATA_SHA256))
+                    .quarantineState(ObjectQuarantineState.valueOf(response.metadata().get(METADATA_QUARANTINE_STATE)))
+                    .imageWidth(parseInteger(response.metadata().get(METADATA_IMAGE_WIDTH)))
+                    .imageHeight(parseInteger(response.metadata().get(METADATA_IMAGE_HEIGHT)))
+                    .createdAt(response.lastModified() == null ? Instant.now() : response.lastModified())
+                    .build());
+        } catch (NoSuchKeyException ex) {
+            return Optional.empty();
+        }
+    }
+
+    private PutObjectRequest.Builder putObjectRequest(String key, ObjectMetadata metadata) {
+        return PutObjectRequest.builder()
+                .bucket(properties.getBucket())
+                .key(key)
+                .contentType(metadata.getContentType())
+                .contentLength(metadata.getContentLength())
+                .metadata(metadata(metadata));
+    }
+
+    private Map<String, String> metadata(ObjectMetadata metadata) {
+        Map<String, String> values = new HashMap<>();
+        values.put(METADATA_STORAGE_CLASS, metadata.getStorageClass().name());
+        values.put(METADATA_SHA256, metadata.getSha256Hex());
+        values.put(METADATA_QUARANTINE_STATE, metadata.getQuarantineState().name());
+        if (metadata.getImageWidth() != null) {
+            values.put(METADATA_IMAGE_WIDTH, metadata.getImageWidth().toString());
+        }
+        if (metadata.getImageHeight() != null) {
+            values.put(METADATA_IMAGE_HEIGHT, metadata.getImageHeight().toString());
+        }
+        return values;
+    }
+
+    private Integer parseInteger(String value) {
+        return value == null ? null : Integer.valueOf(value);
+    }
+}
