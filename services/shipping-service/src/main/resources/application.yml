@@ -1,0 +1,47 @@
+server:
+  port: 8093
+
+spring:
+  application:
+    name: shipping-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=shipping_svc
+    username: vnshop
+    password: vnshop
+  flyway:
+    enabled: true
+    schemas: shipping_svc
+    default-schema: shipping_svc
+  kafka:
+    bootstrap-servers: localhost:9092
+
+shipping:
+  carrier:
+    mode: ${CARRIER_MODE:stub}
+    ghn:
+      base-url: ${GHN_BASE_URL:https://dev-online-gateway.ghn.vn}
+      token: ${GHN_TOKEN:}
+      shop-id: ${GHN_SHOP_ID:}
+      service-type-id: ${GHN_SERVICE_TYPE_ID:2}
+    ghtk:
+      base-url: ${GHTK_BASE_URL:https://services.giaohangtietkiem.vn}
+      token: ${GHTK_TOKEN:}
+      partner-code: ${GHTK_PARTNER_CODE:}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces

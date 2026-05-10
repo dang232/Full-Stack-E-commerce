@@ -1,0 +1,70 @@
+package com.vnshop.orderservice.infrastructure.event;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vnshop.orderservice.domain.Order;
+import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
+import com.vnshop.orderservice.infrastructure.outbox.OutboxEvent;
+import com.vnshop.orderservice.infrastructure.outbox.OutboxEventJpaEntity;
+import com.vnshop.orderservice.infrastructure.outbox.OutboxEventRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+@Service
+public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderEventPublisherAdapter.class);
+    private static final String AGGREGATE_TYPE = "Order";
+
+    private final OutboxEventRepository repository;
+    private final ObjectMapper objectMapper;
+
+    public OrderEventPublisherAdapter(OutboxEventRepository repository, ObjectMapper objectMapper) {
+        this.repository = repository;
+        this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public void publishOrderCreated(Order order) {
+        publish("ORDER_CREATED", order);
+    }
+
+    @Override
+    public void publishOrderUpdated(Order order) {
+        publish("ORDER_UPDATED", order);
+    }
+
+    private void publish(String eventType, Order order) {
+        OrderEvent event = OrderEvent.fromDomain(eventType, order);
+        String payload = toJson(event);
+        OutboxEvent outboxEvent = OutboxEvent.pending(AGGREGATE_TYPE, order.id(), eventType, payload);
+        repository.save(OutboxEventJpaEntity.fromDomain(outboxEvent));
+        LOGGER.info("Order event {} staged in outbox for order {} buyer {}", eventType, order.id(), order.buyerId());
+    }
+
+    private String toJson(OrderEvent event) {
+        try {
+            return objectMapper.writeValueAsString(event);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Failed to serialize order event " + event.orderId(), exception);
+        }
+    }
+
+    public record OrderEvent(String eventType, String orderId, String orderNumber, String buyerId, String paymentStatus, java.util.List<SellerTotal> sellerTotals) {
+        static OrderEvent fromDomain(String eventType, Order order) {
+            return new OrderEvent(
+                    eventType,
+                    order.id(),
+                    order.orderNumber(),
+                    order.buyerId(),
+                    order.paymentStatus().name(),
+                    order.subOrders().stream()
+                            .map(subOrder -> new SellerTotal(subOrder.sellerId(), subOrder.itemsTotal().amount(), "STANDARD"))
+                            .toList()
+            );
+        }
+    }
+
+    public record SellerTotal(String sellerId, java.math.BigDecimal amount, String commissionTier) {
+    }
+}

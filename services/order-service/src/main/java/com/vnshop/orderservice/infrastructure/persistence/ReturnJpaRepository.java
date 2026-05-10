@@ -1,0 +1,37 @@
+package com.vnshop.orderservice.infrastructure.persistence;
+
+import com.vnshop.orderservice.domain.Return;
+import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public class ReturnJpaRepository implements ReturnRepositoryPort {
+    private final ReturnJpaSpringDataRepository springDataRepository;
+
+    public ReturnJpaRepository(ReturnJpaSpringDataRepository springDataRepository) {
+        this.springDataRepository = springDataRepository;
+    }
+
+    @Override
+    public Return save(Return orderReturn) {
+        return springDataRepository.save(ReturnJpaEntity.fromDomain(orderReturn)).toDomain();
+    }
+
+    @Override
+    public Optional<Return> findById(String returnId) {
+        return springDataRepository.findById(returnId).map(ReturnJpaEntity::toDomain);
+    }
+
+    @Override
+    public List<Return> findByBuyerId(String buyerId) {
+        return springDataRepository.findByBuyerId(buyerId).stream().map(ReturnJpaEntity::toDomain).toList();
+    }
+}
+
+interface ReturnJpaSpringDataRepository extends JpaRepository<ReturnJpaEntity, String> {
+    List<ReturnJpaEntity> findByBuyerId(String buyerId);
+}

@@ -1,0 +1,59 @@
+server:
+  port: 8092
+
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=payment_svc
+    username: vnshop
+    password: vnshop
+  flyway:
+    enabled: true
+    schemas: payment_svc
+    default-schema: payment_svc
+  kafka:
+    bootstrap-servers: localhost:9092
+
+payment:
+  mode: ${PAYMENT_MODE:stub}
+  vnpay:
+    pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    tmn-code: ${VNPAY_TMN_CODE:}
+    hash-secret: ${VNPAY_HASH_SECRET:}
+    return-url: ${VNPAY_RETURN_URL:http://localhost:8092/payment/vnpay/return}
+    ipn-url: ${VNPAY_IPN_URL:http://localhost:8092/payment/vnpay/ipn}
+    version: ${VNPAY_VERSION:2.1.0}
+    command: ${VNPAY_COMMAND:pay}
+    order-type: ${VNPAY_ORDER_TYPE:other}
+    locale: ${VNPAY_LOCALE:vn}
+    currency: ${VNPAY_CURRENCY:VND}
+    expire-minutes: ${VNPAY_EXPIRE_MINUTES:15}
+  momo:
+    create-endpoint: ${MOMO_CREATE_ENDPOINT:https://test-payment.momo.vn/v2/gateway/api/create}
+    query-dr-endpoint: ${MOMO_QUERY_DR_ENDPOINT:https://test-payment.momo.vn/v2/gateway/api/query}
+    partner-code: ${MOMO_PARTNER_CODE:}
+    access-key: ${MOMO_ACCESS_KEY:}
+    secret-key: ${MOMO_SECRET_KEY:}
+    redirect-url: ${MOMO_REDIRECT_URL:http://localhost:8092/payment/momo/return}
+    ipn-url: ${MOMO_IPN_URL:http://localhost:8092/payment/momo/ipn}
+    request-type: ${MOMO_REQUEST_TYPE:captureWallet}
+    lang: ${MOMO_LANG:vi}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces

@@ -1,0 +1,13 @@
+package com.vnshop.shippingservice.application;
+
+import com.vnshop.shippingservice.domain.port.out.CarrierGatewayPort;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class ShippingApplicationConfiguration {
+    @Bean
+    ShippingRateCalculator shippingRateCalculator(CarrierGatewayPort carrierGateway) {
+        return new ShippingRateCalculator(carrierGateway);
+    }
+}
