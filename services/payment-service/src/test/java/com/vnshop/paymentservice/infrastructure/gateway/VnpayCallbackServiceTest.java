@@ -1,53 +1,43 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
+import com.vnshop.paymentservice.application.ledger.LedgerService;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
-import com.vnshop.paymentservice.application.ledger.LedgerService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class MomoCallbackServiceTest {
-    private static final MomoProperties PROPERTIES = new MomoProperties(
-            "https://test-payment.momo.vn/v2/gateway/api/create",
-            "https://test-payment.momo.vn/v2/gateway/api/query",
-            "MOMOTEST",
-            "access-key",
+class VnpayCallbackServiceTest {
+    private static final VnpayProperties PROPERTIES = new VnpayProperties(
+            "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
+            "TESTTMN",
             "secret-key",
-            "https://shop.example/payment/momo/return",
-            "https://shop.example/payment/momo/ipn",
-            "captureWallet",
-            "vi"
+            "https://shop.example/payment/vnpay/return",
+            "https://shop.example/payment/vnpay/ipn",
+            "2.1.0",
+            "pay",
+            "other",
+            "vn",
+            "VND",
+            15
     );
-
-    @Test
-    void ipnUpdatesPendingMomoPaymentAndRecordsLedgerAfterValidSignature() {
-        CapturingPaymentRepository repository = new CapturingPaymentRepository(payment(PaymentStatus.PENDING, null));
-        CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
-        CapturingCallbackLogStore callbackLogStore = new CapturingCallbackLogStore();
-        CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
-        MomoCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
-
-        MomoCallbackService.MomoIpnResult result = service.handleIpn(MomoGatewayTest.ipn("PAY-1", 2812345678L, 0, 120000L));
-
-        assertThat(result.resultCode()).isEqualTo(0);
-        assertThat(repository.payment.status()).isEqualTo(PaymentStatus.COMPLETED);
-        assertThat(repository.payment.transactionRef()).isEqualTo("2812345678");
-        assertThat(repository.savedPayments).hasSize(1);
-        assertThat(ledgerRepository.savedEntries).hasSize(2);
-        assertThat(outbox.savedRecords).hasSize(1);
-        assertThat(outbox.savedRecords.get(0).transactionRef()).isEqualTo("2812345678");
-    }
 
     @Test
     void duplicateSignedIpnsAcknowledgeWithoutRepeatingStateChangeOrLedgerWrites() {
@@ -55,12 +45,12 @@ class MomoCallbackServiceTest {
         CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
         CapturingCallbackLogStore callbackLogStore = new CapturingCallbackLogStore();
         CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
-        MomoCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
-        MomoIpnRequest request = MomoGatewayTest.ipn("PAY-1", 2812345678L, 0, 120000L);
+        VnpayCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
+        Map<String, String> parameters = completedIpn("PAY-1", "14123456");
 
         for (int attempt = 0; attempt < 100; attempt++) {
-            MomoCallbackService.MomoIpnResult result = service.handleIpn(request);
-            assertThat(result.resultCode()).isEqualTo(0);
+            VnpayCallbackService.VnpayIpnResult result = service.handleIpn(parameters);
+            assertThat(result.responseCode()).isEqualTo("00");
         }
 
         assertThat(repository.savedPayments).hasSize(1);
@@ -68,21 +58,22 @@ class MomoCallbackServiceTest {
         assertThat(callbackLogStore.savedAttempts).hasSize(100);
         assertThat(callbackLogStore.savedAttempts).filteredOn(PaymentCallbackAttempt::duplicateReplay).hasSize(99);
         assertThat(outbox.savedRecords).hasSize(1);
+        assertThat(outbox.savedRecords.get(0).transactionRef()).isEqualTo("14123456");
     }
 
     @Test
-    void ipnRejectsTamperedSignatureWithoutStateChange() {
+    void invalidSignatureIsLoggedWithoutStateChange() {
         CapturingPaymentRepository repository = new CapturingPaymentRepository(payment(PaymentStatus.PENDING, null));
         CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
         CapturingCallbackLogStore callbackLogStore = new CapturingCallbackLogStore();
         CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
-        MomoCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
-        MomoIpnRequest signed = MomoGatewayTest.ipn("PAY-1", 2812345678L, 0, 120000L);
-        MomoIpnRequest tampered = new MomoIpnRequest(signed.partnerCode(), signed.accessKey(), signed.requestId(), 1L, signed.orderId(), signed.orderInfo(), signed.orderType(), signed.transId(), signed.resultCode(), signed.message(), signed.payType(), signed.responseTime(), signed.extraData(), signed.signature());
+        VnpayCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
+        Map<String, String> parameters = completedIpn("PAY-1", "14123456");
+        parameters.put("vnp_Amount", "1");
 
-        MomoCallbackService.MomoIpnResult result = service.handleIpn(tampered);
+        VnpayCallbackService.VnpayIpnResult result = service.handleIpn(parameters);
 
-        assertThat(result.resultCode()).isEqualTo(97);
+        assertThat(result.responseCode()).isEqualTo("97");
         assertThat(repository.payment.status()).isEqualTo(PaymentStatus.PENDING);
         assertThat(repository.savedPayments).isEmpty();
         assertThat(ledgerRepository.savedEntries).isEmpty();
@@ -92,40 +83,53 @@ class MomoCallbackServiceTest {
     }
 
     @Test
-    void gatewayReturnVerificationDoesNotMutatePayment() {
+    void returnVerificationDoesNotMutatePayment() {
         CapturingPaymentRepository repository = new CapturingPaymentRepository(payment(PaymentStatus.PENDING, null));
-        MomoGateway gateway = new MomoGateway(PROPERTIES, new CapturingMomoClient());
+        CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
+        VnpayCallbackService service = service(repository, ledgerRepository, new CapturingCallbackLogStore(), new CapturingPaymentCallbackOutbox());
 
-        MomoGateway.MomoVerification verification = gateway.verifyIpn(MomoGatewayTest.ipn("PAY-1", 2812345678L, 0, 120000L));
+        VnpayGateway.VnpayVerification verification = service.verifyReturn(completedIpn("PAY-1", "14123456"));
 
         assertThat(verification.validSignature()).isTrue();
-        assertThat(verification.status()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(repository.payment.status()).isEqualTo(PaymentStatus.PENDING);
         assertThat(repository.savedPayments).isEmpty();
+        assertThat(ledgerRepository.savedEntries).isEmpty();
     }
 
-    private static MomoCallbackService service(CapturingPaymentRepository repository, CapturingLedgerRepository ledgerRepository) {
-        return service(repository, ledgerRepository, new CapturingCallbackLogStore(), new CapturingPaymentCallbackOutbox());
+    private static VnpayCallbackService service(CapturingPaymentRepository repository, CapturingLedgerRepository ledgerRepository, CapturingCallbackLogStore callbackLogStore, CapturingPaymentCallbackOutbox outbox) {
+        return new VnpayCallbackService(repository, new LedgerService(ledgerRepository), gateway(), callbackLogStore, outbox);
     }
 
-    private static MomoCallbackService service(CapturingPaymentRepository repository, CapturingLedgerRepository ledgerRepository, CapturingCallbackLogStore callbackLogStore, CapturingPaymentCallbackOutbox outbox) {
-        return new MomoCallbackService(repository, new LedgerService(ledgerRepository), new MomoGateway(PROPERTIES, new CapturingMomoClient()), callbackLogStore, outbox);
+    private static VnpayGateway gateway() {
+        Clock clock = Clock.fixed(Instant.parse("2026-05-10T05:00:00Z"), ZoneId.of("Asia/Ho_Chi_Minh"));
+        return new VnpayGateway(PROPERTIES, new LedgerService(new CapturingLedgerRepository()), clock);
+    }
+
+    private static Map<String, String> completedIpn(String paymentId, String transactionNo) {
+        Map<String, String> parameters = queryParameters(gateway().createPaymentUrl(payment(PaymentStatus.PENDING, null), "203.0.113.10"));
+        parameters.put("vnp_TxnRef", paymentId);
+        parameters.put("vnp_ResponseCode", "00");
+        parameters.put("vnp_TransactionStatus", "00");
+        parameters.put("vnp_TransactionNo", transactionNo);
+        parameters.put("vnp_SecureHash", new VnpaySigner(PROPERTIES.hashSecret()).sign(parameters));
+        return parameters;
+    }
+
+    private static Map<String, String> queryParameters(String url) {
+        String query = url.substring(url.indexOf('?') + 1);
+        return Arrays.stream(query.split("&"))
+                .map(pair -> pair.split("=", 2))
+                .collect(Collectors.toMap(
+                        pair -> decode(pair[0]),
+                        pair -> pair.length == 2 ? decode(pair[1]) : ""));
+    }
+
+    private static String decode(String value) {
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
     private static Payment payment(PaymentStatus status, String transactionRef) {
-        return new Payment("PAY-1", "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), Payment.Method.MOMO, status, transactionRef, Instant.parse("2026-05-10T09:00:00Z"));
-    }
-
-    private static final class CapturingMomoClient implements MomoClient {
-        @Override
-        public MomoCreateResponse create(MomoCreateRequest request) {
-            return null;
-        }
-
-        @Override
-        public MomoQueryDrResponse query(MomoQueryDrRequest request) {
-            return null;
-        }
+        return new Payment("PAY-1", "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), Payment.Method.VNPAY, status, transactionRef, Instant.parse("2026-05-10T09:00:00Z"));
     }
 
     private static final class CapturingPaymentRepository implements PaymentRepositoryPort {

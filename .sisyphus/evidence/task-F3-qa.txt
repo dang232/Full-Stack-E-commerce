@@ -1,0 +1,32 @@
+Task F3 Real Manual QA evidence
+Date: 2026-05-10
+
+Scope:
+- Execute seller -> buyer -> fulfillment flow through gateway.
+- Test invalid product, duplicate order/idempotency, unauthorized access, invalid coupon, out-of-stock.
+
+Result: BLOCKED
+
+Fresh runtime checks:
+
+Command: docker info
+Result: blocked
+Key output:
+ERROR: Error response from daemon: Docker Desktop is unable to start
+Server:
+errors pretty printing info
+
+Command: docker compose ps
+Result: blocked
+Key output:
+Error response from daemon: Docker Desktop is unable to start
+
+Command: curl.exe -sS -I http://localhost:8080/actuator/health
+Result: blocked
+Key output:
+curl: (7) Failed to connect to localhost port 8080 after 2245 ms: Could not connect to server
+
+Conclusion:
+- F3 cannot be executed in this environment because runtime infrastructure is unavailable.
+- No gateway/service stack is listening on localhost:8080.
+- Do not mark F3 complete until Docker/container/cluster runtime is available and full curl QA passes.

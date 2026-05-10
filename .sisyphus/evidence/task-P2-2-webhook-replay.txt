@@ -1,0 +1,71 @@
+P2-2 Payment webhook idempotency + replay protection evidence
+
+Changed scope:
+- services/payment-service/src/main/java/com/vnshop/paymentservice/infrastructure/gateway/MomoCallbackService.java
+- services/payment-service/src/main/java/com/vnshop/paymentservice/infrastructure/gateway/VnpayCallbackService.java
+- services/payment-service/src/main/java/com/vnshop/paymentservice/infrastructure/gateway/PaymentCallbackAttempt.java
+- services/payment-service/src/main/java/com/vnshop/paymentservice/infrastructure/gateway/PaymentCallbackHasher.java
+- services/payment-service/src/main/java/com/vnshop/paymentservice/infrastructure/gateway/PaymentCallbackLogStore.java
+- services/payment-service/src/main/java/com/vnshop/paymentservice/infrastructure/persistence/PaymentCallbackLogJpaEntity.java
+- services/payment-service/src/main/java/com/vnshop/paymentservice/infrastructure/persistence/PaymentCallbackLogJpaRepository.java
+- services/payment-service/src/main/java/com/vnshop/paymentservice/infrastructure/web/PaymentController.java
+- services/payment-service/src/main/resources/db/migration/V5__payment_callback_idempotency.sql
+- services/payment-service/src/test/java/com/vnshop/paymentservice/infrastructure/gateway/MomoCallbackServiceTest.java
+- services/payment-service/src/test/java/com/vnshop/paymentservice/infrastructure/gateway/VnpayCallbackServiceTest.java
+
+Verification command:
+cmd /c "C:\Users\dangq\tools\apache-maven-3.9.15\bin\mvn.cmd -f services\payment-service\pom.xml -Djacoco.skip=true -Dtest=*Webhook*,*Callback*,*Ipn*,*Ledger* test & echo EXIT=%ERRORLEVEL%"
+
+Result:
+- BUILD SUCCESS
+- Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+- EXIT=0
+
+Verification command:
+cmd /c "C:\Users\dangq\tools\apache-maven-3.9.15\bin\mvn.cmd -f services\payment-service\pom.xml -Djacoco.skip=true -DskipTests compile & echo EXIT=%ERRORLEVEL%"
+
+Result:
+- BUILD SUCCESS
+- EXIT=0
+
+Boundary checks:
+- lsp_diagnostics attempted on changed Java files; blocked because jdtls is not installed.
+- grep for framework imports in services/payment-service/src/main/java/com/vnshop/paymentservice/domain returned no matches.
+- grep for framework imports in services/payment-service/src/main/java/com/vnshop/paymentservice/application returned no matches.
+
+Behavior pinned:
+- 100 identical signed MoMo IPNs produce one payment state transition, one ledger entry pair, and 99 duplicate/replay callback log rows.
+- 100 identical signed VNPay IPNs produce one payment state transition, one ledger entry pair, and 99 duplicate/replay callback log rows.
+- Invalid MoMo and VNPay signatures are logged as INVALID_SIGNATURE and do not mutate payment state or ledger.
+- VNPay return verification remains read-only and does not mutate payment state or ledger.
+- Callback log rows store provider, event id, payload hash, signature hash, headers, body, received timestamp, status, and duplicate/replay marker.
+
+Final rerun after migration immutability trigger addition:
+cmd /c "C:\Users\dangq\tools\apache-maven-3.9.15\bin\mvn.cmd -f services\payment-service\pom.xml -Djacoco.skip=true -Dtest=*Webhook*,*Callback*,*Ipn*,*Ledger* test & echo EXIT=%ERRORLEVEL%"
+- BUILD SUCCESS
+- Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+- EXIT=0
+
+cmd /c "C:\Users\dangq\tools\apache-maven-3.9.15\bin\mvn.cmd -f services\payment-service\pom.xml -Djacoco.skip=true -DskipTests compile & echo EXIT=%ERRORLEVEL%"
+- BUILD SUCCESS
+- EXIT=0
+
+Migration note:
+- V5__payment_callback_idempotency.sql adds payment_svc.payment_callback_logs plus BEFORE UPDATE/DELETE triggers that reject mutation.
+
+P2-2 outbox completion rerun:
+cmd /c "C:\Users\dangq\tools\apache-maven-3.9.15\bin\mvn.cmd -f services\payment-service\pom.xml -Djacoco.skip=true -Dtest=*Webhook*,*Callback*,*Ipn*,*Ledger* test & echo EXIT=%ERRORLEVEL%"
+- BUILD SUCCESS
+- Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+- EXIT=0
+
+cmd /c "C:\Users\dangq\tools\apache-maven-3.9.15\bin\mvn.cmd -f services\payment-service\pom.xml -Djacoco.skip=true -DskipTests compile & echo EXIT=%ERRORLEVEL%"
+- BUILD SUCCESS
+- EXIT=0
+
+Outbox behavior added:
+- V6__payment_callback_outbox.sql creates payment_svc.payment_callback_outbox with id, provider, payment_id, order_id, transaction_ref, status, amount, currency, callback_id, callback_event_id, payload_hash, created_at, published_at.
+- Valid first-time VNPay/MoMo terminal IPNs write exactly one outbox row in same transactional callback service path after signature verification and callback log save.
+- 100 duplicate signed callbacks write callback log attempts but keep one payment save, one ledger pair, and one outbox row.
+- Invalid signatures write callback log only: no payment save, no ledger, no outbox.
+- Java LSP remains blocked because jdtls is not installed; Maven compile/test used as source of truth.

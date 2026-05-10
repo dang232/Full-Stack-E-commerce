@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,8 +50,8 @@ public class PaymentController {
     }
 
     @GetMapping("/vnpay/ipn")
-    public VnpayIpnResponse vnpayIpn(@RequestParam Map<String, String> parameters) {
-        VnpayCallbackService.VnpayIpnResult result = requireVnpayCallbackService().handleIpn(parameters);
+    public VnpayIpnResponse vnpayIpn(@RequestParam Map<String, String> parameters, @RequestHeader Map<String, String> headers) {
+        VnpayCallbackService.VnpayIpnResult result = requireVnpayCallbackService().handleIpn(parameters, headers);
         return new VnpayIpnResponse(result.responseCode(), result.message());
     }
 
@@ -66,8 +67,8 @@ public class PaymentController {
     }
 
     @PostMapping("/momo/ipn")
-    public MomoIpnResponse momoIpn(@RequestBody MomoIpnRequest request) {
-        MomoCallbackService.MomoIpnResult result = requireMomoCallbackService().handleIpn(request);
+    public MomoIpnResponse momoIpn(@RequestBody MomoIpnRequest request, @RequestHeader Map<String, String> headers) {
+        MomoCallbackService.MomoIpnResult result = requireMomoCallbackService().handleIpn(request, headers);
         return new MomoIpnResponse(result.resultCode(), result.message());
     }
 
