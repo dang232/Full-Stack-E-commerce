@@ -1,0 +1,4 @@
+/services/notification-service/node_modules
+/.sisyphus
+.env.secrets
+/services/notification-service/dist
