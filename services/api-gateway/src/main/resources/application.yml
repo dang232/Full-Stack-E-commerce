@@ -1,0 +1,86 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8085/realms/vnshop}
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8085/realms/vnshop}
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: ${GATEWAY_OAUTH2_CLIENT_ID:api-gateway}
+            client-secret: ${GATEWAY_OAUTH2_CLIENT_SECRET:}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: openid,profile,email
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "*"
+            allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+            allowed-headers: "*"
+            allow-credentials: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      product-service:
+        base-config: default
+      search-service:
+        base-config: default
+      inventory-service:
+        base-config: default
+      user-service:
+        base-config: default
+      cart-service:
+        base-config: default
+      order-service:
+        base-config: default
+      payment-service:
+        base-config: default
+      shipping-service:
+        base-config: default
+      notification-service:
+        base-config: default
+      coupon-service:
+        base-config: default
+      review-service:
+        base-config: default
+      seller-finance-service:
+        base-config: default
