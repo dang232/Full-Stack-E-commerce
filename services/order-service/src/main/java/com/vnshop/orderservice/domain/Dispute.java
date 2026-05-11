@@ -1,28 +1,29 @@
 package com.vnshop.orderservice.domain;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class Dispute {
-    private final String disputeId;
+    private final UUID disputeId;
     private final String returnId;
     private final String buyerReason;
     private String sellerResponse;
     private String adminResolution;
     private DisputeStatus status;
 
-    public Dispute(String disputeId, String returnId, String buyerReason, String sellerResponse) {
+    public Dispute(UUID disputeId, String returnId, String buyerReason, String sellerResponse) {
         this(disputeId, returnId, buyerReason, sellerResponse, null, DisputeStatus.OPEN);
     }
 
     public Dispute(
-            String disputeId,
+            UUID disputeId,
             String returnId,
             String buyerReason,
             String sellerResponse,
             String adminResolution,
             DisputeStatus status
     ) {
-        requireNonBlank(disputeId, "disputeId");
+        Objects.requireNonNull(disputeId, "disputeId is required");
         requireNonBlank(returnId, "returnId");
         requireNonBlank(buyerReason, "buyerReason");
         this.disputeId = disputeId;
@@ -33,7 +34,7 @@ public class Dispute {
         this.status = Objects.requireNonNull(status, "status is required");
     }
 
-    public String disputeId() {
+    public UUID disputeId() {
         return disputeId;
     }
 

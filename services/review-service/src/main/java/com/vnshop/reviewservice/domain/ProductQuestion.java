@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class ProductQuestion {
-    private final String questionId;
+    private final UUID questionId;
     private final String productId;
     private final String buyerId;
     private final String question;
@@ -13,9 +13,9 @@ public class ProductQuestion {
     private final Instant answeredAt;
     private final Instant createdAt;
 
-    public ProductQuestion(String questionId, String productId, String buyerId, String question, String answer,
+    public ProductQuestion(UUID questionId, String productId, String buyerId, String question, String answer,
             Instant answeredAt, Instant createdAt) {
-        this.questionId = requireNonBlank(questionId, "questionId");
+        this.questionId = Objects.requireNonNull(questionId, "questionId is required");
         this.productId = requireNonBlank(productId, "productId");
         this.buyerId = requireNonBlank(buyerId, "buyerId");
         this.question = requireNonBlank(question, "question");
@@ -25,14 +25,14 @@ public class ProductQuestion {
     }
 
     public static ProductQuestion asked(String productId, String buyerId, String question) {
-        return new ProductQuestion(UUID.randomUUID().toString(), productId, buyerId, question, null, null, Instant.now());
+        return new ProductQuestion(UUID.randomUUID(), productId, buyerId, question, null, null, Instant.now());
     }
 
     public ProductQuestion withAnswer(String nextAnswer) {
         return new ProductQuestion(questionId, productId, buyerId, question, requireNonBlank(nextAnswer, "answer"), Instant.now(), createdAt);
     }
 
-    public String questionId() {
+    public UUID questionId() {
         return questionId;
     }
 

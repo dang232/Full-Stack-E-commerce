@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS order_svc.invoices (
-    id VARCHAR(255) PRIMARY KEY,
-    order_id VARCHAR(255) NOT NULL,
+    id uuid NOT NULL PRIMARY KEY,
+    order_id uuid NOT NULL,
     sub_order_id BIGINT NOT NULL UNIQUE,
     buyer_id VARCHAR(255) NOT NULL,
     seller_id VARCHAR(255) NOT NULL,

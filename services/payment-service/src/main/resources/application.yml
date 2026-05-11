@@ -14,6 +14,11 @@ spring:
     default-schema: payment_svc
   kafka:
     bootstrap-servers: localhost:9092
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/vnshop}
 
 payment:
   mode: ${PAYMENT_MODE:stub}

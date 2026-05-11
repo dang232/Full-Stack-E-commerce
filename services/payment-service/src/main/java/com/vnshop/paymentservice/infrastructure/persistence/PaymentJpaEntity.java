@@ -1,6 +1,8 @@
 package com.vnshop.paymentservice.infrastructure.persistence;
 
+import com.vnshop.paymentservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,14 +12,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(schema = "payment_svc", name = "payments")
-public class PaymentJpaEntity {
+public class PaymentJpaEntity extends BaseJpaEntity {
     @Id
-    @Column(name = "payment_id")
-    private String paymentId;
+    @Column(name = "payment_id", nullable = false, columnDefinition = "uuid")
+    private UUID paymentId;
 
     @Column(name = "order_id", nullable = false, unique = true)
     private String orderId;
@@ -30,7 +36,7 @@ public class PaymentJpaEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "method", nullable = false, length = 32)
-    private Payment.Method method;
+    private PaymentMethod method;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)
@@ -39,8 +45,6 @@ public class PaymentJpaEntity {
     @Column(name = "transaction_ref")
     private String transactionRef;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
 
     protected PaymentJpaEntity() {
     }
@@ -54,11 +58,10 @@ public class PaymentJpaEntity {
         entity.method = payment.method();
         entity.status = payment.status();
         entity.transactionRef = payment.transactionRef();
-        entity.createdAt = payment.createdAt();
         return entity;
     }
 
     public Payment toDomain() {
-        return new Payment(paymentId, orderId, buyerId, amount, method, status, transactionRef, createdAt);
+        return new Payment(paymentId, orderId, buyerId, amount, method, status, transactionRef, getCreatedAt());
     }
 }

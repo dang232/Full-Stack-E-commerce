@@ -1,5 +1,6 @@
 package com.vnshop.reviewservice.infrastructure.persistence;
 
+import com.vnshop.reviewservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.reviewservice.domain.Review;
 import com.vnshop.reviewservice.domain.ReviewStatus;
 import jakarta.persistence.Column;
@@ -14,16 +15,20 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "review_svc", name = "reviews")
-public class ReviewJpaEntity {
+@Getter
+@Setter
+public class ReviewJpaEntity extends BaseJpaEntity {
     @Id
-    @Column(name = "review_id")
-    private String reviewId;
+    @Column(name = "review_id", columnDefinition = "uuid")
+    private UUID reviewId;
 
     @Column(name = "product_id", nullable = false)
     private String productId;
@@ -56,8 +61,6 @@ public class ReviewJpaEntity {
     @Column(name = "status", nullable = false, length = 32)
     private ReviewStatus status;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
 
     protected ReviewJpaEntity() {
     }
@@ -74,12 +77,11 @@ public class ReviewJpaEntity {
         entity.verifiedPurchase = review.verifiedPurchase();
         entity.helpfulVotes = review.helpfulVotes();
         entity.status = review.status();
-        entity.createdAt = review.createdAt();
         return entity;
     }
 
     public Review toDomain() {
         return new Review(reviewId, productId, buyerId, orderId, rating, text, images, verifiedPurchase,
-                helpfulVotes, status, createdAt);
+                helpfulVotes, status, getCreatedAt());
     }
 }

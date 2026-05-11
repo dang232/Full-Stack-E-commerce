@@ -1,5 +1,6 @@
 package com.vnshop.productservice.infrastructure.persistence;
 
+import com.vnshop.productservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.productservice.domain.Money;
 import com.vnshop.productservice.domain.Product;
 import com.vnshop.productservice.domain.ProductImage;
@@ -19,13 +20,18 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "product_svc", name = "products")
-public class ProductJpaEntity {
+@Getter
+@Setter
+public class ProductJpaEntity extends BaseJpaEntity {
     @Id
-    @Column(name = "id")
-    private String id;
+    @Column(name = "id", columnDefinition = "uuid")
+    private UUID id;
 
     @Column(name = "seller_id", nullable = false)
     private String sellerId;

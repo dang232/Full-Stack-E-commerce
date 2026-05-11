@@ -1,9 +1,10 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
 import java.time.Instant;
+import java.util.UUID;
 
 public record PaymentCallbackAttempt(
-        String callbackId,
+        UUID callbackId,
         String provider,
         String eventId,
         String payloadHash,

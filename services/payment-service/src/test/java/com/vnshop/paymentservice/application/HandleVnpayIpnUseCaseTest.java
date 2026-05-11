@@ -3,6 +3,7 @@ package com.vnshop.paymentservice.application;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +26,7 @@ class HandleVnpayIpnUseCaseTest {
         CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
         HandleVnpayIpnUseCase useCase = new HandleVnpayIpnUseCase(repository, new LedgerService(ledgerRepository));
 
-        Payment updated = useCase.applyVerifiedResult("PAY-1", PaymentStatus.COMPLETED, "14123456");
+        Payment updated = useCase.applyVerifiedResult(paymentId(), PaymentStatus.COMPLETED, "14123456");
 
         assertThat(updated.status()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(updated.transactionRef()).isEqualTo("14123456");
@@ -38,7 +40,7 @@ class HandleVnpayIpnUseCaseTest {
         CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
         HandleVnpayIpnUseCase useCase = new HandleVnpayIpnUseCase(repository, new LedgerService(ledgerRepository));
 
-        Payment existing = useCase.applyVerifiedResult("PAY-1", PaymentStatus.COMPLETED, "14123456");
+        Payment existing = useCase.applyVerifiedResult(paymentId(), PaymentStatus.COMPLETED, "14123456");
 
         assertThat(existing.status()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(repository.savedPayments).isEmpty();
@@ -46,7 +48,11 @@ class HandleVnpayIpnUseCaseTest {
     }
 
     private static Payment payment(PaymentStatus status, String transactionRef) {
-        return new Payment("PAY-1", "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), Payment.Method.VNPAY, status, transactionRef, Instant.parse("2026-05-10T09:00:00Z"));
+        return new Payment(paymentId(), "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), PaymentMethod.VNPAY, status, transactionRef, Instant.parse("2026-05-10T09:00:00Z"));
+    }
+
+    private static UUID paymentId() {
+        return UUID.fromString("00000000-0000-0000-0000-000000000001");
     }
 
     private static final class CapturingPaymentRepository implements PaymentRepositoryPort {
@@ -65,7 +71,7 @@ class HandleVnpayIpnUseCaseTest {
         }
 
         @Override
-        public Optional<Payment> findById(String paymentId) {
+        public Optional<Payment> findById(UUID paymentId) {
             return payment.paymentId().equals(paymentId) ? Optional.of(payment) : Optional.empty();
         }
 
@@ -100,7 +106,7 @@ class HandleVnpayIpnUseCaseTest {
         }
 
         @Override
-        public List<LedgerEntry> findByJournalId(String journalId) {
+        public List<LedgerEntry> findByJournalId(UUID journalId) {
             return savedEntries.stream()
                     .filter(entry -> entry.journalId().equals(journalId))
                     .toList();

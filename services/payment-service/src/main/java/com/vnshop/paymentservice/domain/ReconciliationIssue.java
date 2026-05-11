@@ -3,19 +3,20 @@ package com.vnshop.paymentservice.domain;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 public class ReconciliationIssue {
     private final Long issueId;
-    private final String paymentId;
+    private final UUID paymentId;
     private final BigDecimal expectedAmount;
     private final BigDecimal actualAmount;
     private final String description;
     private final Instant detectedAt;
     private final boolean resolved;
 
-    public ReconciliationIssue(Long issueId, String paymentId, BigDecimal expectedAmount, BigDecimal actualAmount, String description, Instant detectedAt, boolean resolved) {
+    public ReconciliationIssue(Long issueId, UUID paymentId, BigDecimal expectedAmount, BigDecimal actualAmount, String description, Instant detectedAt, boolean resolved) {
         this.issueId = issueId;
-        this.paymentId = requireNonBlank(paymentId, "paymentId");
+        this.paymentId = Objects.requireNonNull(paymentId, "paymentId is required");
         this.expectedAmount = Objects.requireNonNull(expectedAmount, "expectedAmount is required");
         this.actualAmount = Objects.requireNonNull(actualAmount, "actualAmount is required");
         this.description = requireNonBlank(description, "description");
@@ -27,7 +28,7 @@ public class ReconciliationIssue {
         return issueId;
     }
 
-    public String paymentId() {
+    public UUID paymentId() {
         return paymentId;
     }
 

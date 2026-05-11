@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class PaymentJpaRepository implements PaymentRepositoryPort {
@@ -23,7 +24,7 @@ public class PaymentJpaRepository implements PaymentRepositoryPort {
     }
 
     @Override
-    public Optional<Payment> findById(String paymentId) {
+    public Optional<Payment> findById(UUID paymentId) {
         return springDataRepository.findById(paymentId).map(PaymentJpaEntity::toDomain);
     }
 
@@ -40,7 +41,7 @@ public class PaymentJpaRepository implements PaymentRepositoryPort {
     }
 }
 
-interface PaymentJpaSpringDataRepository extends JpaRepository<PaymentJpaEntity, String> {
+interface PaymentJpaSpringDataRepository extends JpaRepository<PaymentJpaEntity, UUID> {
     Optional<PaymentJpaEntity> findByOrderId(String orderId);
 
     List<PaymentJpaEntity> findByStatus(PaymentStatus status);

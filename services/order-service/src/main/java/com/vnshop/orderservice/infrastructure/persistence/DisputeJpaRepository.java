@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class DisputeJpaRepository implements DisputeRepositoryPort {
@@ -23,7 +24,7 @@ public class DisputeJpaRepository implements DisputeRepositoryPort {
     }
 
     @Override
-    public Optional<Dispute> findById(String disputeId) {
+    public Optional<Dispute> findById(UUID disputeId) {
         return springDataRepository.findById(disputeId).map(DisputeJpaEntity::toDomain);
     }
 
@@ -33,6 +34,6 @@ public class DisputeJpaRepository implements DisputeRepositoryPort {
     }
 }
 
-interface DisputeJpaSpringDataRepository extends JpaRepository<DisputeJpaEntity, String> {
+interface DisputeJpaSpringDataRepository extends JpaRepository<DisputeJpaEntity, UUID> {
     List<DisputeJpaEntity> findByStatus(DisputeStatus status);
 }

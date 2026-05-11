@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS review_svc;
 
 CREATE TABLE IF NOT EXISTS review_svc.reviews (
-    review_id VARCHAR(255) PRIMARY KEY,
+    review_id uuid PRIMARY KEY,
     product_id VARCHAR(255) NOT NULL,
     buyer_id VARCHAR(255) NOT NULL,
     order_id VARCHAR(255) NOT NULL,
@@ -14,14 +14,14 @@ CREATE TABLE IF NOT EXISTS review_svc.reviews (
 );
 
 CREATE TABLE IF NOT EXISTS review_svc.review_images (
-    review_id VARCHAR(255) NOT NULL REFERENCES review_svc.reviews (review_id) ON DELETE CASCADE,
+    review_id uuid NOT NULL REFERENCES review_svc.reviews (review_id) ON DELETE CASCADE,
     image_order INTEGER NOT NULL,
     image_url VARCHAR(1024) NOT NULL,
     PRIMARY KEY (review_id, image_order)
 );
 
 CREATE TABLE IF NOT EXISTS review_svc.product_questions (
-    question_id VARCHAR(255) PRIMARY KEY,
+    question_id uuid PRIMARY KEY,
     product_id VARCHAR(255) NOT NULL,
     buyer_id VARCHAR(255) NOT NULL,
     question VARCHAR(1000) NOT NULL,

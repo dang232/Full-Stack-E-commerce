@@ -1,5 +1,6 @@
 package com.vnshop.userservice.infrastructure.persistence;
 
+import com.vnshop.userservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.userservice.domain.BuyerProfile;
 import com.vnshop.userservice.domain.PhoneNumber;
 import jakarta.persistence.CascadeType;
@@ -13,10 +14,14 @@ import jakarta.persistence.Table;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "buyer_profiles", schema = "user_svc")
-public class BuyerProfileJpaEntity {
+@Getter
+@Setter
+public class BuyerProfileJpaEntity extends BaseJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -62,18 +67,6 @@ public class BuyerProfileJpaEntity {
                 avatarUrl,
                 addresses.stream().map(AddressJpaEntity::toDomain).toList()
         );
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getKeycloakId() {
-        return keycloakId;
-    }
-
-    void setId(Long id) {
-        this.id = id;
     }
 
     private void addAddress(AddressJpaEntity address) {

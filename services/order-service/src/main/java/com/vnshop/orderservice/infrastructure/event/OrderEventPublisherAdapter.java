@@ -37,7 +37,7 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
     private void publish(String eventType, Order order) {
         OrderEvent event = OrderEvent.fromDomain(eventType, order);
         String payload = toJson(event);
-        OutboxEvent outboxEvent = OutboxEvent.pending(AGGREGATE_TYPE, order.id(), eventType, payload);
+        OutboxEvent outboxEvent = OutboxEvent.pending(AGGREGATE_TYPE, order.id().toString(), eventType, payload);
         repository.save(OutboxEventJpaEntity.fromDomain(outboxEvent));
         LOGGER.info("Order event {} staged in outbox for order {} buyer {}", eventType, order.id(), order.buyerId());
     }
@@ -54,7 +54,7 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
         static OrderEvent fromDomain(String eventType, Order order) {
             return new OrderEvent(
                     eventType,
-                    order.id(),
+                    order.id().toString(),
                     order.orderNumber(),
                     order.buyerId(),
                     order.paymentStatus().name(),

@@ -9,6 +9,7 @@ import com.vnshop.sellerfinanceservice.domain.port.out.SellerWalletRepositoryPor
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class ProcessPayoutUseCase {
     private final SellerWalletRepositoryPort walletRepository;
@@ -51,6 +52,6 @@ public class ProcessPayoutUseCase {
         if (payoutId == null || payoutId.isBlank()) {
             throw new IllegalArgumentException("payoutId is required");
         }
-        return payoutRepository.findById(payoutId).orElseThrow(() -> new IllegalArgumentException("payout not found"));
+        return payoutRepository.findById(UUID.fromString(payoutId)).orElseThrow(() -> new IllegalArgumentException("payout not found"));
     }
 }

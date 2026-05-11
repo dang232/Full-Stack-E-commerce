@@ -1,5 +1,6 @@
 package com.vnshop.sellerfinanceservice.infrastructure.persistence;
 
+import com.vnshop.sellerfinanceservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.sellerfinanceservice.domain.Payout;
 import com.vnshop.sellerfinanceservice.domain.PayoutStatus;
 import jakarta.persistence.Column;
@@ -10,14 +11,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "seller_finance_svc", name = "payouts")
-public class PayoutJpaEntity {
+@Getter
+@Setter
+public class PayoutJpaEntity extends BaseJpaEntity {
     @Id
-    @Column(name = "payout_id")
-    private String payoutId;
+    @Column(name = "payout_id", nullable = false, columnDefinition = "uuid")
+    private UUID payoutId;
 
     @Column(name = "seller_id", nullable = false)
     private String sellerId;
@@ -29,8 +34,6 @@ public class PayoutJpaEntity {
     @Column(name = "status", nullable = false)
     private PayoutStatus status;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
 
     protected PayoutJpaEntity() {
     }
@@ -41,11 +44,10 @@ public class PayoutJpaEntity {
         entity.sellerId = payout.sellerId();
         entity.amount = payout.amount();
         entity.status = payout.status();
-        entity.createdAt = payout.createdAt();
         return entity;
     }
 
     Payout toDomain() {
-        return new Payout(payoutId, sellerId, amount, status, createdAt);
+        return new Payout(payoutId, sellerId, amount, status, getCreatedAt());
     }
 }

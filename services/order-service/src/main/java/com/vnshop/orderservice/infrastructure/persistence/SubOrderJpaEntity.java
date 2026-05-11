@@ -2,6 +2,7 @@ package com.vnshop.orderservice.infrastructure.persistence;
 
 import com.vnshop.orderservice.domain.FulfillmentStatus;
 import com.vnshop.orderservice.domain.SubOrder;
+import com.vnshop.orderservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
@@ -21,10 +22,14 @@ import jakarta.persistence.Table;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "order_svc", name = "sub_orders")
-public class SubOrderJpaEntity {
+@Getter
+@Setter
+public class SubOrderJpaEntity extends BaseJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -78,13 +83,6 @@ public class SubOrderJpaEntity {
         return entity;
     }
 
-    public Long id() {
-        return id;
-    }
-
-    public OrderJpaEntity order() {
-        return order;
-    }
 
     SubOrder toDomain() {
         return new SubOrder(

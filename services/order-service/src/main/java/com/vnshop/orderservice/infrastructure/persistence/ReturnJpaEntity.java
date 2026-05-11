@@ -2,6 +2,7 @@ package com.vnshop.orderservice.infrastructure.persistence;
 
 import com.vnshop.orderservice.domain.Return;
 import com.vnshop.orderservice.domain.ReturnStatus;
+import com.vnshop.orderservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,16 +11,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "order_svc", name = "returns")
-public class ReturnJpaEntity {
+@Getter
+@Setter
+public class ReturnJpaEntity extends BaseJpaEntity {
     @Id
-    @Column(name = "return_id")
-    private String returnId;
+    @Column(name = "return_id", columnDefinition = "uuid")
+    private UUID returnId;
 
-    @Column(name = "order_id", nullable = false)
-    private String orderId;
+    @Column(name = "order_id", nullable = false, columnDefinition = "uuid")
+    private UUID orderId;
 
     @Column(name = "sub_order_id", nullable = false)
     private Long subOrderId;
@@ -46,7 +52,7 @@ public class ReturnJpaEntity {
     static ReturnJpaEntity fromDomain(Return orderReturn) {
         ReturnJpaEntity entity = new ReturnJpaEntity();
         entity.returnId = orderReturn.returnId();
-        entity.orderId = orderReturn.orderId();
+        entity.orderId = UUID.fromString(orderReturn.orderId());
         entity.subOrderId = orderReturn.subOrderId();
         entity.buyerId = orderReturn.buyerId();
         entity.reason = orderReturn.reason();
@@ -57,6 +63,6 @@ public class ReturnJpaEntity {
     }
 
     Return toDomain() {
-        return new Return(returnId, orderId, subOrderId, buyerId, reason, status, requestedAt, resolvedAt);
+        return new Return(returnId, orderId.toString(), subOrderId, buyerId, reason, status, requestedAt, resolvedAt);
     }
 }

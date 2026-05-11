@@ -30,7 +30,7 @@ public class MomoGateway {
     public PaymentGatewayResult processPayment(Payment payment) {
         MomoCreateResponse response = createPayment(payment);
         if (response == null || response.resultCode() != 0 || response.payUrl() == null || response.payUrl().isBlank()) {
-            return new PaymentGatewayResult(PaymentStatus.FAILED, payment.paymentId());
+            return new PaymentGatewayResult(PaymentStatus.FAILED, payment.paymentId().toString());
         }
         return new PaymentGatewayResult(PaymentStatus.PENDING, response.payUrl());
     }
@@ -44,9 +44,9 @@ public class MomoGateway {
         MomoCreateRequest unsignedRequest = new MomoCreateRequest(
                 properties.partnerCode(),
                 properties.accessKey(),
-                payment.paymentId(),
+                payment.paymentId().toString(),
                 Long.parseLong(amount),
-                payment.paymentId(),
+                payment.paymentId().toString(),
                 "Payment for order " + payment.orderId(),
                 properties.redirectUrl(),
                 properties.ipnUrl(),

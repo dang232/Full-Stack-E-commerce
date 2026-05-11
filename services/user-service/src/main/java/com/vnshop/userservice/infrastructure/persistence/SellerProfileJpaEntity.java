@@ -1,6 +1,7 @@
 package com.vnshop.userservice.infrastructure.persistence;
 
 import com.vnshop.userservice.domain.Address;
+import com.vnshop.userservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.userservice.domain.SellerProfile;
 import com.vnshop.userservice.domain.Tier;
 import jakarta.persistence.Column;
@@ -9,10 +10,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "seller_profiles", schema = "user_svc")
-public class SellerProfileJpaEntity {
+@Getter
+@Setter
+public class SellerProfileJpaEntity extends BaseJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -67,7 +72,7 @@ public class SellerProfileJpaEntity {
                 sellerProfile.tier().name(),
                 sellerProfile.vacationMode()
         );
-        entity.setPickupAddress(sellerProfile.pickupAddress());
+        entity.applyPickupAddress(sellerProfile.pickupAddress());
         return entity;
     }
 
@@ -84,19 +89,7 @@ public class SellerProfileJpaEntity {
         );
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getKeycloakId() {
-        return keycloakId;
-    }
-
-    void setId(Long id) {
-        this.id = id;
-    }
-
-    private void setPickupAddress(Address pickupAddress) {
+    private void applyPickupAddress(Address pickupAddress) {
         if (pickupAddress == null) {
             return;
         }

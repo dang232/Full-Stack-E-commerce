@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.infrastructure.persistence;
 
+import com.vnshop.paymentservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.LedgerPostingType;
 import jakarta.persistence.Column;
@@ -12,18 +13,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(schema = "payment_svc", name = "ledger_entries")
-public class LedgerEntryJpaEntity {
+public class LedgerEntryJpaEntity extends BaseJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ledger_entry_id")
     private Long ledgerEntryId;
 
-    @Column(name = "journal_id", nullable = false)
-    private String journalId;
+    @Column(name = "journal_id", nullable = false, columnDefinition = "uuid")
+    private UUID journalId;
 
     @Column(name = "transaction_id", nullable = false)
     private String transactionId;
@@ -53,14 +58,12 @@ public class LedgerEntryJpaEntity {
     @Column(name = "currency", nullable = false, length = 3)
     private String currency;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
 
     @Column(name = "description", length = 1024)
     private String description;
 
-    @Column(name = "reverses_journal_id")
-    private String reversesJournalId;
+    @Column(name = "reverses_journal_id", columnDefinition = "uuid")
+    private UUID reversesJournalId;
 
     protected LedgerEntryJpaEntity() {
     }
@@ -77,13 +80,12 @@ public class LedgerEntryJpaEntity {
         entity.postingType = ledgerEntry.postingType();
         entity.amount = ledgerEntry.amount();
         entity.currency = ledgerEntry.currency();
-        entity.createdAt = ledgerEntry.timestamp();
         entity.description = ledgerEntry.description();
         entity.reversesJournalId = ledgerEntry.reversesJournalId();
         return entity;
     }
 
     public LedgerEntry toDomain() {
-        return new LedgerEntry(journalId, transactionId, orderId, accountId, postingType, amount, currency, createdAt, description, reversesJournalId);
+        return new LedgerEntry(journalId, transactionId, orderId, accountId, postingType, amount, currency, getCreatedAt(), description, reversesJournalId);
     }
 }

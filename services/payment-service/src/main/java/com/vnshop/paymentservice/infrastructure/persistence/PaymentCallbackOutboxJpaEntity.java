@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.infrastructure.persistence;
 
+import com.vnshop.paymentservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackOutboxRecord;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,10 +11,15 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(schema = "payment_svc", name = "payment_callback_outbox")
-public class PaymentCallbackOutboxJpaEntity {
+public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,8 +27,8 @@ public class PaymentCallbackOutboxJpaEntity {
     @Column(name = "provider", nullable = false, length = 32)
     private String provider;
 
-    @Column(name = "payment_id", nullable = false)
-    private String paymentId;
+    @Column(name = "payment_id", nullable = false, columnDefinition = "uuid")
+    private UUID paymentId;
 
     @Column(name = "order_id", nullable = false)
     private String orderId;
@@ -39,8 +45,8 @@ public class PaymentCallbackOutboxJpaEntity {
     @Column(name = "currency", nullable = false, length = 3)
     private String currency;
 
-    @Column(name = "callback_id", nullable = false)
-    private String callbackId;
+    @Column(name = "callback_id", nullable = false, columnDefinition = "uuid")
+    private UUID callbackId;
 
     @Column(name = "callback_event_id")
     private String callbackEventId;
@@ -48,8 +54,6 @@ public class PaymentCallbackOutboxJpaEntity {
     @Column(name = "payload_hash", nullable = false, length = 64)
     private String payloadHash;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
 
     @Column(name = "published_at")
     private Instant publishedAt;
@@ -70,12 +74,11 @@ public class PaymentCallbackOutboxJpaEntity {
         entity.callbackId = record.callbackId();
         entity.callbackEventId = record.callbackEventId();
         entity.payloadHash = record.payloadHash();
-        entity.createdAt = record.createdAt();
         entity.publishedAt = record.publishedAt();
         return entity;
     }
 
     PaymentCallbackOutboxRecord toRecord() {
-        return new PaymentCallbackOutboxRecord(id, provider, paymentId, orderId, transactionRef, status, amount, currency, callbackId, callbackEventId, payloadHash, createdAt, publishedAt);
+        return new PaymentCallbackOutboxRecord(id, provider, paymentId, orderId, transactionRef, status, amount, currency, callbackId, callbackEventId, payloadHash, getCreatedAt(), publishedAt);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class ReviewJpaRepository implements ReviewRepositoryPort {
@@ -42,12 +43,12 @@ public class ReviewJpaRepository implements ReviewRepositoryPort {
     }
 
     @Override
-    public Optional<Review> findReviewById(String reviewId) {
+    public Optional<Review> findReviewById(UUID reviewId) {
         return reviewRepository.findById(reviewId).map(ReviewJpaEntity::toDomain);
     }
 
     @Override
-    public Review moderate(String reviewId, ReviewStatus status) {
+    public Review moderate(UUID reviewId, ReviewStatus status) {
         Review review = findReviewById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("review not found: " + reviewId));
         return save(review.withStatus(status));
@@ -64,12 +65,12 @@ public class ReviewJpaRepository implements ReviewRepositoryPort {
     }
 
     @Override
-    public Optional<ProductQuestion> findQuestionById(String questionId) {
+    public Optional<ProductQuestion> findQuestionById(UUID questionId) {
         return questionRepository.findById(questionId).map(QuestionJpaEntity::toDomain);
     }
 }
 
-interface ReviewJpaSpringDataRepository extends JpaRepository<ReviewJpaEntity, String> {
+interface ReviewJpaSpringDataRepository extends JpaRepository<ReviewJpaEntity, UUID> {
     List<ReviewJpaEntity> findByProductId(String productId);
 
     List<ReviewJpaEntity> findByBuyerId(String buyerId);
@@ -77,6 +78,6 @@ interface ReviewJpaSpringDataRepository extends JpaRepository<ReviewJpaEntity, S
     List<ReviewJpaEntity> findByStatus(ReviewStatus status);
 }
 
-interface QuestionJpaSpringDataRepository extends JpaRepository<QuestionJpaEntity, String> {
+interface QuestionJpaSpringDataRepository extends JpaRepository<QuestionJpaEntity, UUID> {
     List<QuestionJpaEntity> findByProductId(String productId);
 }

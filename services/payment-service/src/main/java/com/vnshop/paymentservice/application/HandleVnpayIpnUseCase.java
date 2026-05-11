@@ -1,11 +1,13 @@
 package com.vnshop.paymentservice.application;
 
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
 import com.vnshop.paymentservice.application.ledger.LedgerService;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class HandleVnpayIpnUseCase {
     private final PaymentRepositoryPort paymentRepositoryPort;
@@ -16,13 +18,13 @@ public class HandleVnpayIpnUseCase {
         this.ledgerService = Objects.requireNonNull(ledgerService, "ledgerService is required");
     }
 
-    public Payment applyVerifiedResult(String paymentId, PaymentStatus paymentStatus, String transactionRef) {
+    public Payment applyVerifiedResult(UUID paymentId, PaymentStatus paymentStatus, String transactionRef) {
         if (paymentStatus == PaymentStatus.PENDING) {
             throw new IllegalArgumentException("VNPay IPN must resolve to a terminal payment status");
         }
         Payment payment = paymentRepositoryPort.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("payment not found: " + paymentId));
-        if (payment.method() != Payment.Method.VNPAY) {
+        if (payment.method() != PaymentMethod.VNPAY) {
             throw new IllegalArgumentException("payment is not VNPay: " + paymentId);
         }
         if (payment.status() != PaymentStatus.PENDING) {

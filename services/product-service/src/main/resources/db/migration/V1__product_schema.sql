@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS product_svc;
 
 CREATE TABLE IF NOT EXISTS product_svc.products (
-    id VARCHAR(255) PRIMARY KEY,
+    id uuid PRIMARY KEY,
     seller_id VARCHAR(255) NOT NULL,
     name VARCHAR(200) NOT NULL,
     description VARCHAR(2000),
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS product_svc.products (
 );
 
 CREATE TABLE IF NOT EXISTS product_svc.product_variants (
-    product_id VARCHAR(255) NOT NULL,
+    product_id uuid NOT NULL,
     sku VARCHAR(255) NOT NULL,
     name VARCHAR(255),
     price_amount NUMERIC(19, 0) NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS product_svc.product_variants (
 );
 
 CREATE TABLE IF NOT EXISTS product_svc.product_images (
-    product_id VARCHAR(255) NOT NULL,
+    product_id uuid NOT NULL,
     url VARCHAR(1024) NOT NULL,
     alt VARCHAR(255),
     sort_order INTEGER NOT NULL,

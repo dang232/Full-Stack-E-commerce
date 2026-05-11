@@ -6,6 +6,7 @@ import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 public class GetProductUseCase {
     private final ProductRepositoryPort productRepositoryPort;
@@ -14,7 +15,7 @@ public class GetProductUseCase {
         this.productRepositoryPort = Objects.requireNonNull(productRepositoryPort, "productRepositoryPort is required");
     }
 
-    public Optional<Product> findById(String productId) {
+    public Optional<Product> findById(UUID productId) {
         return productRepositoryPort.findById(productId);
     }
 

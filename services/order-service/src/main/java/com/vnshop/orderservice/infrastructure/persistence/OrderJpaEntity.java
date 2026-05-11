@@ -4,6 +4,7 @@ import com.vnshop.orderservice.domain.Address;
 import com.vnshop.orderservice.domain.Money;
 import com.vnshop.orderservice.domain.Order;
 import com.vnshop.orderservice.domain.PaymentStatus;
+import com.vnshop.orderservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
@@ -19,16 +20,20 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "order_svc", name = "orders")
-public class OrderJpaEntity {
+@Getter
+@Setter
+public class OrderJpaEntity extends BaseJpaEntity {
     @Id
-    @Column(name = "id")
-    private String id;
+    @Column(name = "id", columnDefinition = "uuid")
+    private UUID id;
 
     @Column(name = "order_number", nullable = false, unique = true)
     private String orderNumber;
@@ -77,9 +82,6 @@ public class OrderJpaEntity {
     @Column(name = "idempotency_key", nullable = false, unique = true)
     private String idempotencyKey;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<SubOrderJpaEntity> subOrders = new ArrayList<>();
 
@@ -99,7 +101,6 @@ public class OrderJpaEntity {
         entity.paymentMethod = order.paymentMethod();
         entity.paymentStatus = order.paymentStatus();
         entity.idempotencyKey = order.idempotencyKey();
-        entity.createdAt = Instant.now();
         entity.subOrders = order.subOrders().stream()
                 .map(subOrder -> SubOrderJpaEntity.fromDomain(subOrder, entity))
                 .toList();
@@ -122,13 +123,6 @@ public class OrderJpaEntity {
         );
     }
 
-    public String id() {
-        return id;
-    }
-
-    public String buyerId() {
-        return buyerId;
-    }
 
     @Embeddable
     public static class AddressEmbeddable {

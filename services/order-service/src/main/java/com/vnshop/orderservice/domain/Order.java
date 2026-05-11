@@ -4,13 +4,14 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Order {
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
     private static final DateTimeFormatter ORDER_DATE_FORMAT = DateTimeFormatter.BASIC_ISO_DATE;
 
-    private final String id;
+    private final UUID id;
     private final String orderNumber;
     private final String buyerId;
     private final Address shippingAddress;
@@ -23,13 +24,13 @@ public class Order {
     private PaymentStatus paymentStatus;
     private final String idempotencyKey;
 
-    public Order(String id, String buyerId, Address shippingAddress, List<SubOrder> subOrders, String idempotencyKey) {
+    public Order(UUID id, String buyerId, Address shippingAddress, List<SubOrder> subOrders, String idempotencyKey) {
         this(id, generateOrderNumber(), buyerId, shippingAddress, subOrders, Money.ZERO, Money.ZERO, Money.ZERO,
                 "COD", PaymentStatus.PENDING, idempotencyKey);
     }
 
     public Order(
-            String id,
+            UUID id,
             String orderNumber,
             String buyerId,
             Address shippingAddress,
@@ -41,7 +42,7 @@ public class Order {
             PaymentStatus paymentStatus,
             String idempotencyKey
     ) {
-        requireNonBlank(id, "id");
+        Objects.requireNonNull(id, "id is required");
         requireNonBlank(orderNumber, "orderNumber");
         requireNonBlank(buyerId, "buyerId");
         requireNonBlank(idempotencyKey, "idempotencyKey");
@@ -67,7 +68,7 @@ public class Order {
         return "VNS-" + LocalDate.now().format(ORDER_DATE_FORMAT) + "-" + String.format("%05d", sequence);
     }
 
-    public String id() {
+    public UUID id() {
         return id;
     }
 

@@ -34,7 +34,7 @@ public class RequestReturnUseCase {
         if (subOrder.carrier() == null || subOrder.trackingNumber() == null) {
             throw new IllegalStateException("return can be requested after shipment");
         }
-        return returnRepository.save(new Return(UUID.randomUUID().toString(), order.id(), subOrderId, buyerId, reason));
+        return returnRepository.save(new Return(UUID.randomUUID(), order.id().toString(), subOrderId, buyerId, reason));
     }
 
     private static void requireNonBlank(String value, String fieldName) {

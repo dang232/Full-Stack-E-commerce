@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class Review {
-    private final String reviewId;
+    private final UUID reviewId;
     private final String productId;
     private final String buyerId;
     private final String orderId;
@@ -18,9 +18,9 @@ public class Review {
     private final ReviewStatus status;
     private final Instant createdAt;
 
-    public Review(String reviewId, String productId, String buyerId, String orderId, int rating, String text,
+    public Review(UUID reviewId, String productId, String buyerId, String orderId, int rating, String text,
             List<String> images, boolean verifiedPurchase, int helpfulVotes, ReviewStatus status, Instant createdAt) {
-        this.reviewId = requireNonBlank(reviewId, "reviewId");
+        this.reviewId = Objects.requireNonNull(reviewId, "reviewId is required");
         this.productId = requireNonBlank(productId, "productId");
         this.buyerId = requireNonBlank(buyerId, "buyerId");
         this.orderId = requireNonBlank(orderId, "orderId");
@@ -35,7 +35,7 @@ public class Review {
 
     public static Review pending(String productId, String buyerId, String orderId, int rating, String text,
             List<String> images, boolean verifiedPurchase) {
-        return new Review(UUID.randomUUID().toString(), productId, buyerId, orderId, rating, text, images,
+        return new Review(UUID.randomUUID(), productId, buyerId, orderId, rating, text, images,
                 verifiedPurchase, 0, ReviewStatus.PENDING, Instant.now());
     }
 
@@ -49,7 +49,7 @@ public class Review {
                 helpfulVotes + 1, status, createdAt);
     }
 
-    public String reviewId() {
+    public UUID reviewId() {
         return reviewId;
     }
 

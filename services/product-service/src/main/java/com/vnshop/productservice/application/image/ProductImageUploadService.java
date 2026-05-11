@@ -32,7 +32,7 @@ public class ProductImageUploadService {
     private final ObjectValidationService objectValidationService;
 
     public ProductImageUploadResponse createUpload(ProductImageUploadRequest request) {
-        Product product = productRepositoryPort.findById(request.getProductId())
+        Product product = productRepositoryPort.findById(UUID.fromString(request.getProductId()))
                 .orElseThrow(() -> new IllegalArgumentException("product not found"));
         if (!product.sellerId().equals(request.getSellerId())) {
             throw new IllegalArgumentException("product not found");
@@ -167,14 +167,4 @@ public class ProductImageUploadService {
         }
     }
 
-    @lombok.Value
-    @lombok.Builder
-    public static class ProductImageActivationRequest {
-        String detectedContentType;
-        long contentLength;
-        String sha256Hex;
-        Integer imageWidth;
-        Integer imageHeight;
-        boolean avScanClean;
-    }
 }

@@ -12,12 +12,12 @@ import java.util.Map;
 public class FallbackController {
 
     @GetMapping("/fallback/{service}")
-    ResponseEntity<Map<String, Object>> fallback(@PathVariable String service) {
+    ResponseEntity<ApiResponse<Map<String, Object>>> fallback(@PathVariable String service) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-            .body(Map.of(
+            .body(ApiResponse.ok(Map.of(
                 "error", "Service temporarily unavailable",
                 "service", service,
                 "status", HttpStatus.SERVICE_UNAVAILABLE.value()
-            ));
+            )));
     }
 }

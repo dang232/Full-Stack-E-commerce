@@ -17,13 +17,13 @@ public class DisputeUseCase {
         this.disputeRepository = Objects.requireNonNull(disputeRepository, "disputeRepository is required");
     }
 
-    public Dispute open(String returnId, String buyerReason, String sellerResponse) {
+    public Dispute open(UUID returnId, String buyerReason, String sellerResponse) {
         Return orderReturn = returnRepository.findById(returnId)
                 .orElseThrow(() -> new IllegalArgumentException("return not found: " + returnId));
-        return disputeRepository.save(new Dispute(UUID.randomUUID().toString(), orderReturn.returnId(), buyerReason, sellerResponse));
+        return disputeRepository.save(new Dispute(UUID.randomUUID(), orderReturn.returnId().toString(), buyerReason, sellerResponse));
     }
 
-    public Dispute resolve(String disputeId, String adminResolution) {
+    public Dispute resolve(UUID disputeId, String adminResolution) {
         Dispute dispute = disputeRepository.findById(disputeId)
                 .orElseThrow(() -> new IllegalArgumentException("dispute not found: " + disputeId));
         dispute.resolve(adminResolution);

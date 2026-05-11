@@ -8,7 +8,6 @@ import com.vnshop.sellerfinanceservice.domain.port.out.SellerWalletRepositoryPor
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.UUID;
 
 public class RequestPayoutUseCase {
     private final SellerWalletRepositoryPort walletRepository;
@@ -24,7 +23,7 @@ public class RequestPayoutUseCase {
         SellerWallet wallet = walletRepository.findBySellerId(sellerId).orElseThrow(() -> new IllegalArgumentException("wallet not found"));
         wallet.reservePayout(amount);
         walletRepository.save(wallet);
-        Payout payout = Payout.pending(UUID.randomUUID().toString(), sellerId, amount, Instant.now());
+        Payout payout = Payout.pending(sellerId, amount, Instant.now());
         return payoutRepository.save(payout);
     }
 

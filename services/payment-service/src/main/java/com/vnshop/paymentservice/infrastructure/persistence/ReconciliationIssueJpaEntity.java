@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.infrastructure.persistence;
 
+import com.vnshop.paymentservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.paymentservice.domain.ReconciliationIssue;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,17 +11,22 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(schema = "payment_svc", name = "reconciliation_issues")
-public class ReconciliationIssueJpaEntity {
+public class ReconciliationIssueJpaEntity extends BaseJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "issue_id")
     private Long issueId;
 
-    @Column(name = "payment_id", nullable = false)
-    private String paymentId;
+    @Column(name = "payment_id", nullable = false, columnDefinition = "uuid")
+    private UUID paymentId;
 
     @Column(name = "expected_amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal expectedAmount;

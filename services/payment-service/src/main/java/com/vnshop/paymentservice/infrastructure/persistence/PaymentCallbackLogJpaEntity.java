@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.infrastructure.persistence;
 
+import com.vnshop.paymentservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackAttempt;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,13 +8,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(schema = "payment_svc", name = "payment_callback_logs")
-public class PaymentCallbackLogJpaEntity {
+public class PaymentCallbackLogJpaEntity extends BaseJpaEntity {
     @Id
-    @Column(name = "callback_id")
-    private String callbackId;
+    @Column(name = "callback_id", nullable = false, columnDefinition = "uuid")
+    private UUID callbackId;
 
     @Column(name = "provider", nullable = false, length = 32)
     private String provider;

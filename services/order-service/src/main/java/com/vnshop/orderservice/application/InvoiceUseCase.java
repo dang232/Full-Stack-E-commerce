@@ -42,7 +42,7 @@ public class InvoiceUseCase {
         this.clock = clock;
     }
 
-    public Invoice generate(String orderId, Long subOrderId) {
+    public Invoice generate(UUID orderId, Long subOrderId) {
         Order order = orderRepositoryPort.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderId));
         SubOrder subOrder = findSubOrder(order, subOrderId);
@@ -50,7 +50,7 @@ public class InvoiceUseCase {
                 .orElseGet(() -> createInvoice(order, subOrder));
     }
 
-    public URI signedDownloadUrl(String invoiceId, InvoiceRequester requester) {
+    public URI signedDownloadUrl(UUID invoiceId, InvoiceRequester requester) {
         Invoice invoice = invoiceRepositoryPort.findById(invoiceId)
                 .orElseThrow(() -> new IllegalArgumentException("invoice not found: " + invoiceId));
         if (!canAccess(invoice, requester)) {
@@ -62,7 +62,7 @@ public class InvoiceUseCase {
     private Invoice createInvoice(Order order, SubOrder subOrder) {
         byte[] pdf = invoicePdfRendererPort.render(order, subOrder, INVOICE_VERSION);
         String checksum = sha256Hex(pdf);
-        String id = UUID.randomUUID().toString();
+        UUID id = UUID.randomUUID();
         String objectKey = "invoices/%s/%s/%s.pdf".formatted(order.id(), subOrder.id(), UUID.randomUUID());
         Instant generatedAt = Instant.now(clock);
         invoiceStoragePort.putInvoicePdf(objectKey, pdf, checksum);

@@ -6,26 +6,24 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
-
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
     @ExceptionHandler(InvoiceAccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Map<String, ErrorResponse> forbidden(InvoiceAccessDeniedException exception) {
-        return error("invoice_access_denied", exception.getMessage());
+    public ApiResponse<Void> forbidden(InvoiceAccessDeniedException exception) {
+        return ApiResponse.error(exception.getMessage(), "INVOICE_ACCESS_DENIED");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, ErrorResponse> badRequest(IllegalArgumentException exception) {
-        return error("bad_request", exception.getMessage());
+    public ApiResponse<Void> badRequest(IllegalArgumentException exception) {
+        return ApiResponse.error(exception.getMessage(), "BAD_REQUEST");
     }
 
-    private Map<String, ErrorResponse> error(String code, String message) {
-        return Map.of("error", new ErrorResponse(code, message));
-    }
-
-    public record ErrorResponse(String code, String message) {
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiResponse<Void> internal(Exception exception) {
+        return ApiResponse.error("An unexpected error occurred", "INTERNAL_ERROR");
     }
 }

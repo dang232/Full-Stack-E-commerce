@@ -6,6 +6,7 @@ import com.vnshop.reviewservice.domain.port.out.ReviewRepositoryPort;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class ModerateReviewUseCase {
     private final ReviewRepositoryPort reviewRepositoryPort;
@@ -18,11 +19,11 @@ public class ModerateReviewUseCase {
         return reviewRepositoryPort.findByStatus(ReviewStatus.PENDING);
     }
 
-    public Review approve(String reviewId) {
+    public Review approve(UUID reviewId) {
         return reviewRepositoryPort.moderate(reviewId, ReviewStatus.APPROVED);
     }
 
-    public Review reject(String reviewId) {
+    public Review reject(UUID reviewId) {
         return reviewRepositoryPort.moderate(reviewId, ReviewStatus.REJECTED);
     }
 }

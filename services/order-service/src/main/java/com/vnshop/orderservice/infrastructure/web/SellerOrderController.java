@@ -1,99 +1,67 @@
 package com.vnshop.orderservice.infrastructure.web;
 
 import com.vnshop.orderservice.application.AcceptOrderUseCase;
+import com.vnshop.orderservice.application.ListPendingOrdersUseCase;
 import com.vnshop.orderservice.application.RejectOrderUseCase;
+import com.vnshop.orderservice.application.ShipOrderCommand;
 import com.vnshop.orderservice.application.ShipOrderUseCase;
-import com.vnshop.orderservice.domain.FulfillmentStatus;
-import com.vnshop.orderservice.infrastructure.persistence.OrderJpaRepository;
+import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/seller/orders")
 public class SellerOrderController {
-    private static final String USER_ID_HEADER = "X-User-Id";
-    private static final String SELLER_ID_HEADER = "X-Seller-Id";
-
-    private final OrderJpaRepository orderJpaRepository;
+    private final ListPendingOrdersUseCase listPendingOrdersUseCase;
     private final AcceptOrderUseCase acceptOrderUseCase;
     private final RejectOrderUseCase rejectOrderUseCase;
     private final ShipOrderUseCase shipOrderUseCase;
 
     public SellerOrderController(
-            OrderJpaRepository orderJpaRepository,
+            ListPendingOrdersUseCase listPendingOrdersUseCase,
             AcceptOrderUseCase acceptOrderUseCase,
             RejectOrderUseCase rejectOrderUseCase,
             ShipOrderUseCase shipOrderUseCase
     ) {
-        this.orderJpaRepository = orderJpaRepository;
+        this.listPendingOrdersUseCase = listPendingOrdersUseCase;
         this.acceptOrderUseCase = acceptOrderUseCase;
         this.rejectOrderUseCase = rejectOrderUseCase;
         this.shipOrderUseCase = shipOrderUseCase;
     }
 
     @GetMapping("/pending")
-    public List<OrderController.OrderResponse> pending(
-            @RequestHeader(name = USER_ID_HEADER, required = false) String userId,
-            @RequestHeader(name = SELLER_ID_HEADER, required = false) String sellerId
-    ) {
-        String currentSellerId = currentSellerId(userId, sellerId);
-        return orderJpaRepository.findBySellerIdAndFulfillmentStatus(currentSellerId, FulfillmentStatus.PENDING_ACCEPTANCE).stream()
-                .map(OrderController.OrderResponse::fromDomain)
-                .toList();
+    public ApiResponse<List<OrderResponse>> pending() {
+        return ApiResponse.ok(listPendingOrdersUseCase.listPendingBySeller(JwtPrincipalUtil.currentSellerId()).stream()
+                .map(OrderResponse::fromDomain)
+                .toList());
     }
 
     @PutMapping("/{subOrderId}/accept")
-    public OrderController.OrderResponse accept(
-            @PathVariable Long subOrderId,
-            @RequestHeader(name = USER_ID_HEADER, required = false) String userId,
-            @RequestHeader(name = SELLER_ID_HEADER, required = false) String sellerId
-    ) {
-        return OrderController.OrderResponse.fromDomain(acceptOrderUseCase.accept(orderIdFromSubOrderId(subOrderId), currentSellerId(userId, sellerId)));
+    public ApiResponse<OrderResponse> accept(@PathVariable Long subOrderId) {
+        String orderId = listPendingOrdersUseCase.orderIdFromSubOrderId(subOrderId);
+        return ApiResponse.ok(OrderResponse.fromDomain(acceptOrderUseCase.accept(UUID.fromString(orderId), JwtPrincipalUtil.currentSellerId())));
     }
 
     @PutMapping("/{subOrderId}/reject")
-    public OrderController.OrderResponse reject(
-            @PathVariable Long subOrderId,
-            @RequestHeader(name = USER_ID_HEADER, required = false) String userId,
-            @RequestHeader(name = SELLER_ID_HEADER, required = false) String sellerId
-    ) {
-        return OrderController.OrderResponse.fromDomain(rejectOrderUseCase.reject(orderIdFromSubOrderId(subOrderId), currentSellerId(userId, sellerId)));
+    public ApiResponse<OrderResponse> reject(@PathVariable Long subOrderId) {
+        String orderId = listPendingOrdersUseCase.orderIdFromSubOrderId(subOrderId);
+        return ApiResponse.ok(OrderResponse.fromDomain(rejectOrderUseCase.reject(UUID.fromString(orderId), JwtPrincipalUtil.currentSellerId())));
     }
 
     @PutMapping("/{subOrderId}/ship")
-    public OrderController.OrderResponse ship(
+    public ApiResponse<OrderResponse> ship(
             @PathVariable Long subOrderId,
-            @RequestHeader(name = USER_ID_HEADER, required = false) String userId,
-            @RequestHeader(name = SELLER_ID_HEADER, required = false) String sellerId,
             @Valid @RequestBody ShipRequest request
     ) {
-        return OrderController.OrderResponse.fromDomain(shipOrderUseCase.ship(orderIdFromSubOrderId(subOrderId), currentSellerId(userId, sellerId), request.carrier(), request.trackingNumber()));
-    }
-
-    private String orderIdFromSubOrderId(Long subOrderId) {
-        return orderJpaRepository.findOrderIdBySubOrderId(subOrderId)
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found: " + subOrderId));
-    }
-
-    private static String currentSellerId(String userId, String sellerId) {
-        if (sellerId != null && !sellerId.isBlank()) {
-            return sellerId;
-        }
-        if (userId != null && !userId.isBlank()) {
-            return userId;
-        }
-        throw new IllegalArgumentException("seller id is required");
-    }
-
-    public record ShipRequest(@NotBlank String carrier, @NotBlank String trackingNumber) {
+        String orderId = listPendingOrdersUseCase.orderIdFromSubOrderId(subOrderId);
+        return ApiResponse.ok(OrderResponse.fromDomain(shipOrderUseCase.ship(UUID.fromString(orderId), JwtPrincipalUtil.currentSellerId(), request.carrier(), request.trackingNumber())));
     }
 }

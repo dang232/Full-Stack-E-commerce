@@ -5,6 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -12,6 +14,7 @@ import java.util.Map;
 
 @Entity
 @Table(schema = "search_svc", name = "product_read_models")
+@Getter @Setter
 public class ProductReadModelJpaEntity {
     @Id
     @Column(name = "product_id")

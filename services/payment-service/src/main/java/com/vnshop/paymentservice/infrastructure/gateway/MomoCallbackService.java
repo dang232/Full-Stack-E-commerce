@@ -1,8 +1,10 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
+import com.vnshop.paymentservice.application.LedgerPaymentCommand;
 import com.vnshop.paymentservice.application.ledger.LedgerService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -52,12 +54,12 @@ public class MomoCallbackService {
             return MomoIpnResult.invalidSignature();
         }
 
-        Payment payment = paymentRepositoryPort.findById(verification.paymentId()).orElse(null);
+        Payment payment = paymentRepositoryPort.findById(UUID.fromString(verification.paymentId())).orElse(null);
         if (payment == null) {
             callbackLogStore.save(attempt(request, headers, payloadHash, signatureHash, "PAYMENT_NOT_FOUND", false));
             return MomoIpnResult.paymentNotFound();
         }
-        if (payment.method() != Payment.Method.MOMO) {
+        if (payment.method() != PaymentMethod.MOMO) {
             callbackLogStore.save(attempt(request, headers, payloadHash, signatureHash, "PAYMENT_NOT_FOUND", false));
             return MomoIpnResult.paymentNotFound();
         }
@@ -69,7 +71,7 @@ public class MomoCallbackService {
         Payment updatedPayment = payment.withResult(verification.status(), verification.transactionNo());
         paymentRepositoryPort.save(updatedPayment);
         if (verification.status() == PaymentStatus.COMPLETED) {
-            ledgerService.recordPayment(verification.transactionNo(), payment.orderId(), payment.amount());
+            ledgerService.recordPayment(new LedgerPaymentCommand(verification.transactionNo(), payment.orderId(), payment.amount()));
         }
         PaymentCallbackAttempt savedAttempt = callbackLogStore.save(attempt(request, headers, payloadHash, signatureHash, verification.status() == PaymentStatus.COMPLETED ? "PROCESSED" : "FAILED", false));
         outbox.save(PaymentCallbackOutboxRecord.pending("MOMO", payment.paymentId(), payment.orderId(), verification.transactionNo(), verification.status().name(), payment.amount(), savedAttempt.callbackId(), savedAttempt.eventId(), savedAttempt.payloadHash()));
@@ -78,7 +80,7 @@ public class MomoCallbackService {
 
     private PaymentCallbackAttempt attempt(MomoIpnRequest request, Map<String, String> headers, String payloadHash, String signatureHash, String processingStatus, boolean duplicateReplay) {
         return new PaymentCallbackAttempt(
-                UUID.randomUUID().toString(),
+                UUID.randomUUID(),
                 "MOMO",
                 String.valueOf(request.transId()),
                 payloadHash,

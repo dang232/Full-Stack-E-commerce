@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class ReturnJpaRepository implements ReturnRepositoryPort {
@@ -22,7 +23,7 @@ public class ReturnJpaRepository implements ReturnRepositoryPort {
     }
 
     @Override
-    public Optional<Return> findById(String returnId) {
+    public Optional<Return> findById(UUID returnId) {
         return springDataRepository.findById(returnId).map(ReturnJpaEntity::toDomain);
     }
 
@@ -32,6 +33,6 @@ public class ReturnJpaRepository implements ReturnRepositoryPort {
     }
 }
 
-interface ReturnJpaSpringDataRepository extends JpaRepository<ReturnJpaEntity, String> {
+interface ReturnJpaSpringDataRepository extends JpaRepository<ReturnJpaEntity, UUID> {
     List<ReturnJpaEntity> findByBuyerId(String buyerId);
 }

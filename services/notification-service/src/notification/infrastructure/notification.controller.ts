@@ -3,6 +3,7 @@ import { SendNotificationUseCase } from '../application/send-notification.use-ca
 import { NotificationType } from '../domain/notification-type.enum';
 import { NOTIFICATION_REPOSITORY } from '../domain/notification.repository';
 import type { NotificationRepository } from '../domain/notification.repository';
+import { ApiResponse } from './api-response';
 
 @Controller('notifications')
 export class NotificationController {
@@ -23,7 +24,7 @@ export class NotificationController {
       throw new BadRequestException('userId query param or x-user-id header is required');
     }
 
-    return this.repository.findByUserId(userId);
+    return ApiResponse.ok(await this.repository.findByUserId(userId));
   }
 
   @Get(':id')
@@ -34,7 +35,7 @@ export class NotificationController {
       throw new NotFoundException('Notification not found');
     }
 
-    return notification;
+    return ApiResponse.ok(notification);
   }
 
   @Post('test')
@@ -48,12 +49,12 @@ export class NotificationController {
       throw new BadRequestException('userId query param or x-user-id header is required');
     }
 
-    return this.sendNotificationUseCase.send({
+    return ApiResponse.ok(await this.sendNotificationUseCase.send({
       type: NotificationType.ORDER_CREATED,
       userId,
       title: 'Test notification',
       body: 'This is a test notification.',
       data: { source: 'manual-test' },
-    });
+    }));
   }
 }

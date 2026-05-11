@@ -13,12 +13,12 @@ public class RegisterSellerUseCase {
         this.userRepositoryPort = Objects.requireNonNull(userRepositoryPort, "userRepositoryPort is required");
     }
 
-    public SellerProfile register(String keycloakId, String shopName, String bankName, String bankAccount) {
+    public SellerProfile register(RegisterSellerCommand command) {
         SellerProfile sellerProfile = new SellerProfile(
-                keycloakId,
-                shopName,
-                bankName,
-                bankAccount,
+                command.keycloakId(),
+                command.shopName(),
+                command.bankName(),
+                command.bankAccount(),
                 null,
                 false,
                 Tier.STANDARD,

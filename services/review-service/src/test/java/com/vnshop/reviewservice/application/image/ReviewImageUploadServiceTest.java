@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class ReviewImageUploadServiceTest {
@@ -39,12 +40,12 @@ class ReviewImageUploadServiceTest {
 
     @Test
     void createsSignedUploadUrlAndPendingMetadataForValidReviewImage() {
-        reviewRepository.save(review("review-1", "buyer-1"));
+        reviewRepository.save(review(UUID.fromString("00000000-0000-0000-0000-000000000101"), "buyer-1"));
 
         ReviewImageUploadResponse response = service.createUpload(validRequest().build());
 
         assertThat(response.getUploadUrl()).isEqualTo(URI.create("https://storage.test/" + response.getObjectKey()));
-        assertThat(response.getObjectKey()).startsWith("reviews/review-1/images/").endsWith(".webp");
+        assertThat(response.getObjectKey()).startsWith("reviews/00000000-0000-0000-0000-000000000101/images/").endsWith(".webp");
         assertThat(response.getChecksumSha256()).isEqualTo("b".repeat(64));
         assertThat(response.getQuarantineState()).isEqualTo("PENDING_VALIDATION");
         ObjectMetadata metadata = metadataRepository.saved.get(response.getObjectKey());
@@ -57,7 +58,7 @@ class ReviewImageUploadServiceTest {
 
     @Test
     void rejectsInvalidMetadataBeforeIssuingUploadUrl() {
-        reviewRepository.save(review("review-1", "buyer-1"));
+        reviewRepository.save(review(UUID.fromString("00000000-0000-0000-0000-000000000101"), "buyer-1"));
 
         assertThatThrownBy(() -> service.createUpload(validRequest()
                 .fileName("payload.exe")
@@ -80,10 +81,10 @@ class ReviewImageUploadServiceTest {
 
     @Test
     void activatesMetadataOnlyWhenPostUploadSignalsMatch() {
-        reviewRepository.save(review("review-1", "buyer-1"));
+        reviewRepository.save(review(UUID.fromString("00000000-0000-0000-0000-000000000101"), "buyer-1"));
         ReviewImageUploadResponse response = service.createUpload(validRequest().build());
 
-        ObjectMetadata activated = service.activate(response.getObjectKey(), ReviewImageUploadService.ReviewImageActivationRequest.builder()
+        ObjectMetadata activated = service.activate(response.getObjectKey(), ReviewImageActivationRequest.builder()
                 .detectedContentType("image/webp")
                 .contentLength(2048)
                 .sha256Hex("b".repeat(64))
@@ -98,7 +99,7 @@ class ReviewImageUploadServiceTest {
 
     private ReviewImageUploadRequest.ReviewImageUploadRequestBuilder validRequest() {
         return ReviewImageUploadRequest.builder()
-                .reviewId("review-1")
+                .reviewId("00000000-0000-0000-0000-000000000101")
                 .buyerId("buyer-1")
                 .fileName("proof.webp")
                 .declaredContentType("image/webp")
@@ -109,13 +110,13 @@ class ReviewImageUploadServiceTest {
                 .imageHeight(600);
     }
 
-    private Review review(String reviewId, String buyerId) {
+    private Review review(UUID reviewId, String buyerId) {
         return new Review(reviewId, "product-1", buyerId, "order-1", 5, "Great", List.of(), true, 0,
                 ReviewStatus.PENDING, Instant.now());
     }
 
     private static final class FakeReviewRepository implements ReviewRepositoryPort {
-        private final Map<String, Review> reviews = new HashMap<>();
+        private final Map<UUID, Review> reviews = new HashMap<>();
 
         @Override
         public Review save(Review review) {
@@ -139,12 +140,12 @@ class ReviewImageUploadServiceTest {
         }
 
         @Override
-        public Optional<Review> findReviewById(String reviewId) {
+        public Optional<Review> findReviewById(UUID reviewId) {
             return Optional.ofNullable(reviews.get(reviewId));
         }
 
         @Override
-        public Review moderate(String reviewId, ReviewStatus status) {
+        public Review moderate(UUID reviewId, ReviewStatus status) {
             return reviews.get(reviewId).withStatus(status);
         }
 
@@ -159,7 +160,7 @@ class ReviewImageUploadServiceTest {
         }
 
         @Override
-        public Optional<ProductQuestion> findQuestionById(String questionId) {
+        public Optional<ProductQuestion> findQuestionById(UUID questionId) {
             return Optional.empty();
         }
     }

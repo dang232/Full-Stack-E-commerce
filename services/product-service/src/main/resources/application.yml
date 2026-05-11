@@ -16,6 +16,11 @@ spring:
     enabled: true
     schemas: product_svc
     default-schema: product_svc
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/vnshop}
 
 springdoc:
   api-docs:

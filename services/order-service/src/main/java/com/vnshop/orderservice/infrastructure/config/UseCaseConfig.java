@@ -5,12 +5,22 @@ import com.vnshop.orderservice.application.ApproveReturnUseCase;
 import com.vnshop.orderservice.application.CancelOrderUseCase;
 import com.vnshop.orderservice.application.CompleteReturnUseCase;
 import com.vnshop.orderservice.application.CreateOrderUseCase;
+import com.vnshop.orderservice.application.DisputeQueryUseCase;
+import com.vnshop.orderservice.application.GetDashboardUseCase;
 import com.vnshop.orderservice.application.DisputeUseCase;
 import com.vnshop.orderservice.application.InvoiceUseCase;
+import com.vnshop.orderservice.application.ListOpenDisputesUseCase;
+import com.vnshop.orderservice.application.ListOrdersUseCase;
+import com.vnshop.orderservice.application.ListPendingOrdersUseCase;
+import com.vnshop.orderservice.application.ListReturnsUseCase;
+import com.vnshop.orderservice.application.OrderQueryUseCase;
 import com.vnshop.orderservice.application.RejectOrderUseCase;
 import com.vnshop.orderservice.application.RejectReturnUseCase;
 import com.vnshop.orderservice.application.RequestReturnUseCase;
+import com.vnshop.orderservice.application.SellerOrderQueryUseCase;
 import com.vnshop.orderservice.application.ShipOrderUseCase;
+import com.vnshop.orderservice.application.ViewOrderUseCase;
+import com.vnshop.orderservice.domain.port.out.DashboardAnalyticsPort;
 import com.vnshop.orderservice.domain.port.out.DisputeRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
 import com.vnshop.orderservice.domain.port.out.InvoicePdfRendererPort;
@@ -38,6 +48,51 @@ public class UseCaseConfig {
             OrderEventPublisherPort orderEventPublisherPort
     ) {
         return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort);
+    }
+
+    @Bean
+    OrderQueryUseCase orderQueryUseCase(OrderRepositoryPort orderRepositoryPort) {
+        return new OrderQueryUseCase(orderRepositoryPort);
+    }
+
+    @Bean
+    SellerOrderQueryUseCase sellerOrderQueryUseCase(OrderRepositoryPort orderRepositoryPort) {
+        return new SellerOrderQueryUseCase(orderRepositoryPort);
+    }
+
+    @Bean
+    DisputeQueryUseCase disputeQueryUseCase(DisputeRepositoryPort disputeRepositoryPort) {
+        return new DisputeQueryUseCase(disputeRepositoryPort);
+    }
+
+    @Bean
+    GetDashboardUseCase getDashboardUseCase(DashboardAnalyticsPort analytics) {
+        return new GetDashboardUseCase(analytics);
+    }
+
+    @Bean
+    ListOpenDisputesUseCase listOpenDisputesUseCase(DisputeRepositoryPort disputeRepositoryPort) {
+        return new ListOpenDisputesUseCase(disputeRepositoryPort);
+    }
+
+    @Bean
+    ListOrdersUseCase listOrdersUseCase(OrderRepositoryPort orderRepositoryPort) {
+        return new ListOrdersUseCase(orderRepositoryPort);
+    }
+
+    @Bean
+    ListPendingOrdersUseCase listPendingOrdersUseCase(OrderRepositoryPort orderRepositoryPort) {
+        return new ListPendingOrdersUseCase(orderRepositoryPort);
+    }
+
+    @Bean
+    ListReturnsUseCase listReturnsUseCase(ReturnRepositoryPort returnRepositoryPort) {
+        return new ListReturnsUseCase(returnRepositoryPort);
+    }
+
+    @Bean
+    ViewOrderUseCase viewOrderUseCase(OrderRepositoryPort orderRepositoryPort) {
+        return new ViewOrderUseCase(orderRepositoryPort);
     }
 
     @Bean

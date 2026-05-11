@@ -3,6 +3,7 @@ package com.vnshop.paymentservice.infrastructure.gateway;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,7 +40,7 @@ class MomoCallbackServiceTest {
         CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
         MomoCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
 
-        MomoCallbackService.MomoIpnResult result = service.handleIpn(MomoGatewayTest.ipn("PAY-1", 2812345678L, 0, 120000L));
+        MomoCallbackService.MomoIpnResult result = service.handleIpn(MomoGatewayTest.ipn(paymentId().toString(), 2812345678L, 0, 120000L));
 
         assertThat(result.resultCode()).isEqualTo(0);
         assertThat(repository.payment.status()).isEqualTo(PaymentStatus.COMPLETED);
@@ -56,7 +58,7 @@ class MomoCallbackServiceTest {
         CapturingCallbackLogStore callbackLogStore = new CapturingCallbackLogStore();
         CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
         MomoCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
-        MomoIpnRequest request = MomoGatewayTest.ipn("PAY-1", 2812345678L, 0, 120000L);
+        MomoIpnRequest request = MomoGatewayTest.ipn(paymentId().toString(), 2812345678L, 0, 120000L);
 
         for (int attempt = 0; attempt < 100; attempt++) {
             MomoCallbackService.MomoIpnResult result = service.handleIpn(request);
@@ -77,7 +79,7 @@ class MomoCallbackServiceTest {
         CapturingCallbackLogStore callbackLogStore = new CapturingCallbackLogStore();
         CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
         MomoCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
-        MomoIpnRequest signed = MomoGatewayTest.ipn("PAY-1", 2812345678L, 0, 120000L);
+        MomoIpnRequest signed = MomoGatewayTest.ipn(paymentId().toString(), 2812345678L, 0, 120000L);
         MomoIpnRequest tampered = new MomoIpnRequest(signed.partnerCode(), signed.accessKey(), signed.requestId(), 1L, signed.orderId(), signed.orderInfo(), signed.orderType(), signed.transId(), signed.resultCode(), signed.message(), signed.payType(), signed.responseTime(), signed.extraData(), signed.signature());
 
         MomoCallbackService.MomoIpnResult result = service.handleIpn(tampered);
@@ -96,7 +98,7 @@ class MomoCallbackServiceTest {
         CapturingPaymentRepository repository = new CapturingPaymentRepository(payment(PaymentStatus.PENDING, null));
         MomoGateway gateway = new MomoGateway(PROPERTIES, new CapturingMomoClient());
 
-        MomoGateway.MomoVerification verification = gateway.verifyIpn(MomoGatewayTest.ipn("PAY-1", 2812345678L, 0, 120000L));
+        MomoGateway.MomoVerification verification = gateway.verifyIpn(MomoGatewayTest.ipn(paymentId().toString(), 2812345678L, 0, 120000L));
 
         assertThat(verification.validSignature()).isTrue();
         assertThat(verification.status()).isEqualTo(PaymentStatus.COMPLETED);
@@ -113,7 +115,11 @@ class MomoCallbackServiceTest {
     }
 
     private static Payment payment(PaymentStatus status, String transactionRef) {
-        return new Payment("PAY-1", "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), Payment.Method.MOMO, status, transactionRef, Instant.parse("2026-05-10T09:00:00Z"));
+        return new Payment(paymentId(), "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), PaymentMethod.MOMO, status, transactionRef, Instant.parse("2026-05-10T09:00:00Z"));
+    }
+
+    private static UUID paymentId() {
+        return UUID.fromString("00000000-0000-0000-0000-000000000001");
     }
 
     private static final class CapturingMomoClient implements MomoClient {
@@ -144,7 +150,7 @@ class MomoCallbackServiceTest {
         }
 
         @Override
-        public Optional<Payment> findById(String paymentId) {
+        public Optional<Payment> findById(UUID paymentId) {
             return payment.paymentId().equals(paymentId) ? Optional.of(payment) : Optional.empty();
         }
 
@@ -208,7 +214,7 @@ class MomoCallbackServiceTest {
         }
 
         @Override
-        public List<LedgerEntry> findByJournalId(String journalId) {
+        public List<LedgerEntry> findByJournalId(UUID journalId) {
             return List.of();
         }
     }

@@ -6,6 +6,7 @@ import com.vnshop.inventoryservice.domain.FlashSaleReservation;
 import com.vnshop.inventoryservice.domain.port.out.FlashSaleReservationPort;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +23,7 @@ class ReserveFlashSaleUseCaseTest {
 		assertThat(reservation.getProductId()).isEqualTo("product-1");
 		assertThat(reservation.getBuyerId()).isEqualTo("buyer-1");
 		assertThat(reservation.getQuantity()).isEqualTo(2);
-		assertThat(reservation.getReservationId()).isNotBlank();
+		assertThat(reservation.getReservationId()).isNotNull();
 		assertThat(reservation.getExpiresAt()).isAfter(reservation.getReservedAt());
 	}
 
@@ -34,13 +35,13 @@ class ReserveFlashSaleUseCaseTest {
 		FlashSaleReservation reservation = useCase.reserve("product-1", "buyer-1", 2);
 
 		assertThat(reservation.getStatus()).isEqualTo(FlashSaleReservation.Status.REJECTED);
-		assertThat(reservation.getReservationId()).isEqualTo("SOLD_OUT");
+		assertThat(reservation.getReservationId()).isNull();
 	}
 
 	private static final class InMemoryFlashSaleReservationPort implements FlashSaleReservationPort {
 		private final boolean reserveResult;
 		private final long stock;
-		private final Map<String, FlashSaleReservation> reservations = new ConcurrentHashMap<>();
+		private final Map<UUID, FlashSaleReservation> reservations = new ConcurrentHashMap<>();
 
 		private InMemoryFlashSaleReservationPort(boolean reserveResult, long stock) {
 			this.reserveResult = reserveResult;
@@ -48,7 +49,7 @@ class ReserveFlashSaleUseCaseTest {
 		}
 
 		@Override
-		public boolean reserve(String productId, String buyerId, int quantity, String reservationId) {
+		public boolean reserve(String productId, String buyerId, int quantity, UUID reservationId) {
 			return reserveResult;
 		}
 
@@ -58,12 +59,12 @@ class ReserveFlashSaleUseCaseTest {
 		}
 
 		@Override
-		public Optional<FlashSaleReservation> findById(String reservationId) {
+		public Optional<FlashSaleReservation> findById(UUID reservationId) {
 			return Optional.ofNullable(reservations.get(reservationId));
 		}
 
 		@Override
-		public void release(String reservationId) {
+		public void release(UUID reservationId) {
 		}
 
 		@Override

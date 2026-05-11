@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,13 +43,13 @@ class InvoiceUseCaseTest {
         FakeInvoiceStorage storage = new FakeInvoiceStorage();
         InvoiceUseCase useCase = useCase(orderRepository, invoiceRepository, storage);
 
-        Invoice invoice = useCase.generate("order-1", 11L);
+        Invoice invoice = useCase.generate(UUID.fromString("00000000-0000-0000-0000-000000000001"), 11L);
 
-        assertThat(invoice.orderId()).isEqualTo("order-1");
+        assertThat(invoice.orderId()).isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         assertThat(invoice.subOrderId()).isEqualTo(11L);
         assertThat(invoice.buyerId()).isEqualTo("buyer-a");
         assertThat(invoice.sellerId()).isEqualTo("seller-a");
-        assertThat(invoice.objectKey()).startsWith("invoices/order-1/11/").endsWith(".pdf");
+        assertThat(invoice.objectKey()).startsWith("invoices/00000000-0000-0000-0000-000000000001/11/").endsWith(".pdf");
         assertThat(invoice.objectKey()).doesNotContain("buyer-a");
         assertThat(invoice.checksumSha256()).isEqualTo(sha256Hex(PDF_BYTES));
         assertThat(invoice.version()).isEqualTo(1);
@@ -93,7 +94,7 @@ class InvoiceUseCaseTest {
 
     private static Order order(String buyerId, String sellerId) {
         return new Order(
-                "order-1",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
                 "VNS-20260510-00001",
                 buyerId,
                 new Address("1 Main", null, "District", "City"),
@@ -117,7 +118,7 @@ class InvoiceUseCaseTest {
     }
 
     private static Invoice invoice(String buyerId, String sellerId, String objectKey) {
-        return new Invoice("invoice-1", "order-1", 11L, buyerId, sellerId, objectKey, sha256Hex(PDF_BYTES), 1, GENERATED_AT);
+        return new Invoice(UUID.fromString("00000000-0000-0000-0000-000000000010"), UUID.fromString("00000000-0000-0000-0000-000000000001"), 11L, buyerId, sellerId, objectKey, sha256Hex(PDF_BYTES), 1, GENERATED_AT);
     }
 
     private static String sha256Hex(byte[] content) {
@@ -141,7 +142,7 @@ class InvoiceUseCaseTest {
         }
 
         @Override
-        public Optional<Order> findById(String orderId) {
+        public Optional<Order> findById(UUID orderId) {
             return order.id().equals(orderId) ? Optional.of(order) : Optional.empty();
         }
 
@@ -164,6 +165,16 @@ class InvoiceUseCaseTest {
         public Optional<Order> findBySubOrderId(Long subOrderId) {
             return Optional.empty();
         }
+
+        @Override
+        public Optional<String> findOrderIdBySubOrderId(Long subOrderId) {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<Order> findBySellerIdAndFulfillmentStatus(String sellerId, com.vnshop.orderservice.domain.FulfillmentStatus status) {
+            return List.of();
+        }
     }
 
     private static final class FakeInvoiceRepository implements InvoiceRepositoryPort {
@@ -180,7 +191,7 @@ class InvoiceUseCaseTest {
         }
 
         @Override
-        public Optional<Invoice> findById(String invoiceId) {
+        public Optional<Invoice> findById(UUID invoiceId) {
             return invoices.stream().filter(invoice -> invoice.id().equals(invoiceId)).findFirst();
         }
 

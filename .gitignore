@@ -2,3 +2,5 @@
 /.sisyphus
 .env.secrets
 /services/notification-service/dist
+/services/cart-service/node_modules
+/services/cart-service/dist

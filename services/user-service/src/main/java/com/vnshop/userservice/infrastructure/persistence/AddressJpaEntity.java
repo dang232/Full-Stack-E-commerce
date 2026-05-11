@@ -1,6 +1,7 @@
 package com.vnshop.userservice.infrastructure.persistence;
 
 import com.vnshop.userservice.domain.Address;
+import com.vnshop.userservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,10 +11,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "addresses", schema = "user_svc")
-public class AddressJpaEntity {
+@Getter
+@Setter
+public class AddressJpaEntity extends BaseJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -61,7 +66,4 @@ public class AddressJpaEntity {
         return new Address(street, ward, district, city, isDefault);
     }
 
-    void setBuyerProfile(BuyerProfileJpaEntity buyerProfile) {
-        this.buyerProfile = buyerProfile;
-    }
 }

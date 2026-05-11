@@ -3,9 +3,10 @@ package com.vnshop.paymentservice.domain;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 public class LedgerEntry {
-    private final String journalId;
+    private final UUID journalId;
     private final String transactionId;
     private final String orderId;
     private final String accountId;
@@ -14,10 +15,10 @@ public class LedgerEntry {
     private final String currency;
     private final Instant timestamp;
     private final String description;
-    private final String reversesJournalId;
+    private final UUID reversesJournalId;
 
-    public LedgerEntry(String journalId, String transactionId, String orderId, String accountId, LedgerPostingType postingType, BigDecimal amount, String currency, Instant timestamp, String description, String reversesJournalId) {
-        this.journalId = requireNonBlank(journalId, "journalId");
+    public LedgerEntry(UUID journalId, String transactionId, String orderId, String accountId, LedgerPostingType postingType, BigDecimal amount, String currency, Instant timestamp, String description, UUID reversesJournalId) {
+        this.journalId = Objects.requireNonNull(journalId, "journalId is required");
         this.transactionId = requireNonBlank(transactionId, "transactionId");
         this.orderId = requireNonBlank(orderId, "orderId");
         this.accountId = requireNonBlank(accountId, "accountId");
@@ -46,7 +47,7 @@ public class LedgerEntry {
                 journalEntry.reversesJournalId());
     }
 
-    public String journalId() {
+    public UUID journalId() {
         return journalId;
     }
 
@@ -82,7 +83,7 @@ public class LedgerEntry {
         return description;
     }
 
-    public String reversesJournalId() {
+    public UUID reversesJournalId() {
         return reversesJournalId;
     }
 

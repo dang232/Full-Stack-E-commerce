@@ -9,16 +9,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public record JournalEntry(
-        String journalId,
+        UUID journalId,
         String transactionId,
         String orderId,
         Instant postedAt,
         String description,
-        String reversesJournalId,
+        UUID reversesJournalId,
         List<LedgerPosting> postings
 ) {
     public JournalEntry {
-        journalId = requireNonBlank(journalId, "journalId");
+        journalId = Objects.requireNonNull(journalId, "journalId is required");
         transactionId = requireNonBlank(transactionId, "transactionId");
         orderId = requireNonBlank(orderId, "orderId");
         postedAt = Objects.requireNonNull(postedAt, "postedAt is required");
@@ -30,14 +30,14 @@ public record JournalEntry(
     }
 
     public static JournalEntry posted(String transactionId, String orderId, String description, List<LedgerPosting> postings) {
-        return new JournalEntry(UUID.randomUUID().toString(), transactionId, orderId, Instant.now(), description, null, postings);
+        return new JournalEntry(UUID.randomUUID(), transactionId, orderId, Instant.now(), description, null, postings);
     }
 
     public JournalEntry reversal(String reversalTransactionId, String description) {
         List<LedgerPosting> reversedPostings = postings.stream()
                 .map(LedgerPosting::reverse)
                 .toList();
-        return new JournalEntry(UUID.randomUUID().toString(), reversalTransactionId, orderId, Instant.now(), description, journalId, reversedPostings);
+        return new JournalEntry(UUID.randomUUID(), reversalTransactionId, orderId, Instant.now(), description, journalId, reversedPostings);
     }
 
     private static void validateBalancedByCurrency(List<LedgerPosting> postings) {

@@ -2,9 +2,10 @@ package com.vnshop.orderservice.domain;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Return {
-    private final String returnId;
+    private final UUID returnId;
     private final String orderId;
     private final Long subOrderId;
     private final String buyerId;
@@ -13,12 +14,12 @@ public class Return {
     private final Instant requestedAt;
     private Instant resolvedAt;
 
-    public Return(String returnId, String orderId, Long subOrderId, String buyerId, String reason) {
+    public Return(UUID returnId, String orderId, Long subOrderId, String buyerId, String reason) {
         this(returnId, orderId, subOrderId, buyerId, reason, ReturnStatus.REQUESTED, Instant.now(), null);
     }
 
     public Return(
-            String returnId,
+            UUID returnId,
             String orderId,
             Long subOrderId,
             String buyerId,
@@ -27,7 +28,7 @@ public class Return {
             Instant requestedAt,
             Instant resolvedAt
     ) {
-        requireNonBlank(returnId, "returnId");
+        Objects.requireNonNull(returnId, "returnId is required");
         requireNonBlank(orderId, "orderId");
         requireNonBlank(buyerId, "buyerId");
         requireNonBlank(reason, "reason");
@@ -41,7 +42,7 @@ public class Return {
         this.resolvedAt = resolvedAt;
     }
 
-    public String returnId() {
+    public UUID returnId() {
         return returnId;
     }
 

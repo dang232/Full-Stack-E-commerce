@@ -49,3 +49,7 @@
 
 ## 2026-05-10T20:46+07:00 - P2-1 boundary fix
 - LSP diagnostics remain blocked by missing jdtls; Maven ledger tests and compile passed after boundary move.
+
+## 2026-05-10T23:40+07:00 - F3 QA blockers
+- Docker/gateway runtime unavailable, so seller->buyer->fulfillment curl scenarios could not run.
+- Maven tests failing in no-infra environment: user-service, inventory-service, search-service, order-service, coupon-service, seller-finance-service context/infrastructure errors; product-service test compilation/API drift errors.

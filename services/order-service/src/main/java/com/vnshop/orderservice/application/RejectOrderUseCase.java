@@ -7,6 +7,7 @@ import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class RejectOrderUseCase {
     private final OrderRepositoryPort orderRepository;
@@ -23,17 +24,17 @@ public class RejectOrderUseCase {
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
     }
 
-    public Order reject(String orderId, String sellerId) {
+    public Order reject(UUID orderId, String sellerId) {
         Order order = findOrder(orderId);
         findSellerSubOrder(order, sellerId).reject();
-        inventoryReservationPort.release(order.id());
+        inventoryReservationPort.release(order.id().toString());
         Order savedOrder = orderRepository.save(order);
         orderEventPublisherPort.publishOrderUpdated(savedOrder);
         return savedOrder;
     }
 
-    private Order findOrder(String orderId) {
-        requireNonBlank(orderId, "orderId");
+    private Order findOrder(UUID orderId) {
+        Objects.requireNonNull(orderId, "orderId is required");
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderId));
     }

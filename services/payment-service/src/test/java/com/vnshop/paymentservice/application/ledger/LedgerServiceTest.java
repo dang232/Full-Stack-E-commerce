@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -118,7 +119,7 @@ class LedgerServiceTest {
         }
 
         @Override
-        public List<LedgerEntry> findByJournalId(String journalId) {
+        public List<LedgerEntry> findByJournalId(UUID journalId) {
             return savedEntries.stream()
                     .filter(entry -> entry.journalId().equals(journalId))
                     .toList();

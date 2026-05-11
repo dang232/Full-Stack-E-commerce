@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS order_svc;
 
 CREATE TABLE IF NOT EXISTS order_svc.orders (
-    id VARCHAR(255) PRIMARY KEY,
+    id uuid NOT NULL PRIMARY KEY,
     order_number VARCHAR(255) NOT NULL UNIQUE,
     buyer_id VARCHAR(255) NOT NULL,
     shipping_street VARCHAR(255) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS order_svc.orders (
 
 CREATE TABLE IF NOT EXISTS order_svc.sub_orders (
     id BIGSERIAL PRIMARY KEY,
-    order_id VARCHAR(255) NOT NULL,
+    order_id uuid NOT NULL,
     seller_id VARCHAR(255) NOT NULL,
     fulfillment_status VARCHAR(32) NOT NULL,
     shipping_cost_amount NUMERIC(19, 0) NOT NULL,

@@ -6,17 +6,17 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class Payment {
-    private final String paymentId;
+    private final UUID paymentId;
     private final String orderId;
     private final String buyerId;
     private final BigDecimal amount;
-    private final Method method;
+    private final PaymentMethod method;
     private final PaymentStatus status;
     private final String transactionRef;
     private final Instant createdAt;
 
-    public Payment(String paymentId, String orderId, String buyerId, BigDecimal amount, Method method, PaymentStatus status, String transactionRef, Instant createdAt) {
-        this.paymentId = requireNonBlank(paymentId, "paymentId");
+    public Payment(UUID paymentId, String orderId, String buyerId, BigDecimal amount, PaymentMethod method, PaymentStatus status, String transactionRef, Instant createdAt) {
+        this.paymentId = Objects.requireNonNull(paymentId, "paymentId is required");
         this.orderId = requireNonBlank(orderId, "orderId");
         this.buyerId = requireNonBlank(buyerId, "buyerId");
         this.amount = Objects.requireNonNull(amount, "amount is required");
@@ -26,15 +26,15 @@ public class Payment {
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
     }
 
-    public static Payment pending(String orderId, String buyerId, BigDecimal amount, Method method) {
-        return new Payment(UUID.randomUUID().toString(), orderId, buyerId, amount, method, PaymentStatus.PENDING, null, Instant.now());
+    public static Payment pending(String orderId, String buyerId, BigDecimal amount, PaymentMethod method) {
+        return new Payment(UUID.randomUUID(), orderId, buyerId, amount, method, PaymentStatus.PENDING, null, Instant.now());
     }
 
     public Payment withResult(PaymentStatus status, String transactionRef) {
         return new Payment(paymentId, orderId, buyerId, amount, method, status, transactionRef, createdAt);
     }
 
-    public String paymentId() {
+    public UUID paymentId() {
         return paymentId;
     }
 
@@ -50,7 +50,7 @@ public class Payment {
         return amount;
     }
 
-    public Method method() {
+    public PaymentMethod method() {
         return method;
     }
 
@@ -71,11 +71,5 @@ public class Payment {
             throw new IllegalArgumentException(fieldName + " is required");
         }
         return value;
-    }
-
-    public enum Method {
-        COD,
-        VNPAY,
-        MOMO
     }
 }

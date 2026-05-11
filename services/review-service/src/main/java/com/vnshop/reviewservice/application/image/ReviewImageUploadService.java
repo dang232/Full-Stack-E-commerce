@@ -15,9 +15,7 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
 @RequiredArgsConstructor
 public class ReviewImageUploadService {
@@ -30,7 +28,7 @@ public class ReviewImageUploadService {
     private final ObjectValidationService objectValidationService;
 
     public ReviewImageUploadResponse createUpload(ReviewImageUploadRequest request) {
-        Review review = reviewRepositoryPort.findReviewById(request.getReviewId())
+        Review review = reviewRepositoryPort.findReviewById(UUID.fromString(request.getReviewId()))
                 .orElseThrow(() -> new IllegalArgumentException("review not found"));
         if (!review.buyerId().equals(request.getBuyerId())) {
             throw new IllegalArgumentException("review not found");
@@ -165,14 +163,4 @@ public class ReviewImageUploadService {
         }
     }
 
-    @Value
-    @Builder
-    public static class ReviewImageActivationRequest {
-        String detectedContentType;
-        long contentLength;
-        String sha256Hex;
-        Integer imageWidth;
-        Integer imageHeight;
-        boolean avScanClean;
-    }
 }

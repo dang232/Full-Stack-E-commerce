@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="KubernetesApiProvider"><![CDATA[{}]]></component>
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/services/user-service/pom.xml" />
+        <option value="$PROJECT_DIR$/services/shipping-service/pom.xml" />
+        <option value="$PROJECT_DIR$/services/order-service/pom.xml" />
+        <option value="$PROJECT_DIR$/services/api-gateway/pom.xml" />
+        <option value="$PROJECT_DIR$/services/cart-service/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_26" project-jdk-name="26" project-jdk-type="JavaSDK" />
+</project>

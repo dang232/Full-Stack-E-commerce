@@ -1,6 +1,7 @@
 package com.vnshop.inventoryservice.domain;
 
 import java.time.Instant;
+import java.util.UUID;
 
 public class FlashSaleReservation {
 	public enum Status {
@@ -9,7 +10,7 @@ public class FlashSaleReservation {
 		EXPIRED
 	}
 
-	private String reservationId;
+	private UUID reservationId;
 	private String productId;
 	private String buyerId;
 	private int quantity;
@@ -20,7 +21,7 @@ public class FlashSaleReservation {
 	public FlashSaleReservation() {
 	}
 
-	public FlashSaleReservation(String reservationId, String productId, String buyerId, int quantity, Status status,
+	public FlashSaleReservation(UUID reservationId, String productId, String buyerId, int quantity, Status status,
 			Instant reservedAt, Instant expiresAt) {
 		this.reservationId = reservationId;
 		this.productId = productId;
@@ -31,11 +32,11 @@ public class FlashSaleReservation {
 		this.expiresAt = expiresAt;
 	}
 
-	public String getReservationId() {
+	public UUID getReservationId() {
 		return reservationId;
 	}
 
-	public void setReservationId(String reservationId) {
+	public void setReservationId(UUID reservationId) {
 		this.reservationId = reservationId;
 	}
 

@@ -1,5 +1,6 @@
 package com.vnshop.sellerfinanceservice.infrastructure.persistence;
 
+import com.vnshop.sellerfinanceservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.sellerfinanceservice.domain.SellerWallet;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,10 +9,14 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "seller_finance_svc", name = "seller_wallets")
-public class SellerWalletJpaEntity {
+@Getter
+@Setter
+public class SellerWalletJpaEntity extends BaseJpaEntity {
     @Id
     @Column(name = "seller_id")
     private String sellerId;

@@ -4,6 +4,7 @@ import com.vnshop.paymentservice.application.ledger.LedgerService;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
@@ -20,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +48,7 @@ class VnpayCallbackServiceTest {
         CapturingCallbackLogStore callbackLogStore = new CapturingCallbackLogStore();
         CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
         VnpayCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
-        Map<String, String> parameters = completedIpn("PAY-1", "14123456");
+        Map<String, String> parameters = completedIpn(paymentId().toString(), "14123456");
 
         for (int attempt = 0; attempt < 100; attempt++) {
             VnpayCallbackService.VnpayIpnResult result = service.handleIpn(parameters);
@@ -68,7 +70,7 @@ class VnpayCallbackServiceTest {
         CapturingCallbackLogStore callbackLogStore = new CapturingCallbackLogStore();
         CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
         VnpayCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
-        Map<String, String> parameters = completedIpn("PAY-1", "14123456");
+        Map<String, String> parameters = completedIpn(paymentId().toString(), "14123456");
         parameters.put("vnp_Amount", "1");
 
         VnpayCallbackService.VnpayIpnResult result = service.handleIpn(parameters);
@@ -88,7 +90,7 @@ class VnpayCallbackServiceTest {
         CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
         VnpayCallbackService service = service(repository, ledgerRepository, new CapturingCallbackLogStore(), new CapturingPaymentCallbackOutbox());
 
-        VnpayGateway.VnpayVerification verification = service.verifyReturn(completedIpn("PAY-1", "14123456"));
+        VnpayGateway.VnpayVerification verification = service.verifyReturn(completedIpn(paymentId().toString(), "14123456"));
 
         assertThat(verification.validSignature()).isTrue();
         assertThat(repository.payment.status()).isEqualTo(PaymentStatus.PENDING);
@@ -129,7 +131,11 @@ class VnpayCallbackServiceTest {
     }
 
     private static Payment payment(PaymentStatus status, String transactionRef) {
-        return new Payment("PAY-1", "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), Payment.Method.VNPAY, status, transactionRef, Instant.parse("2026-05-10T09:00:00Z"));
+        return new Payment(paymentId(), "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), PaymentMethod.VNPAY, status, transactionRef, Instant.parse("2026-05-10T09:00:00Z"));
+    }
+
+    private static UUID paymentId() {
+        return UUID.fromString("00000000-0000-0000-0000-000000000001");
     }
 
     private static final class CapturingPaymentRepository implements PaymentRepositoryPort {
@@ -148,7 +154,7 @@ class VnpayCallbackServiceTest {
         }
 
         @Override
-        public Optional<Payment> findById(String paymentId) {
+        public Optional<Payment> findById(UUID paymentId) {
             return payment.paymentId().equals(paymentId) ? Optional.of(payment) : Optional.empty();
         }
 
@@ -212,7 +218,7 @@ class VnpayCallbackServiceTest {
         }
 
         @Override
-        public List<LedgerEntry> findByJournalId(String journalId) {
+        public List<LedgerEntry> findByJournalId(UUID journalId) {
             return List.of();
         }
     }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class PayoutJpaRepository implements PayoutRepositoryPort {
@@ -23,7 +24,7 @@ public class PayoutJpaRepository implements PayoutRepositoryPort {
     }
 
     @Override
-    public Optional<Payout> findById(String payoutId) {
+    public Optional<Payout> findById(UUID payoutId) {
         return repository.findById(payoutId).map(PayoutJpaEntity::toDomain);
     }
 
@@ -37,7 +38,7 @@ public class PayoutJpaRepository implements PayoutRepositoryPort {
         return repository.findBySellerId(sellerId).stream().map(PayoutJpaEntity::toDomain).toList();
     }
 
-    interface PayoutSpringDataRepository extends JpaRepository<PayoutJpaEntity, String> {
+    interface PayoutSpringDataRepository extends JpaRepository<PayoutJpaEntity, UUID> {
         List<PayoutJpaEntity> findByStatus(PayoutStatus status);
 
         List<PayoutJpaEntity> findBySellerId(String sellerId);

@@ -10,6 +10,7 @@ import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 public class UpdateProductUseCase {
     private final ProductRepositoryPort productRepositoryPort;
@@ -22,7 +23,7 @@ public class UpdateProductUseCase {
 
     public Product update(
             String sellerId,
-            String productId,
+            UUID productId,
             String name,
             String description,
             String categoryId,
@@ -46,7 +47,7 @@ public class UpdateProductUseCase {
         }
         Product saved = productRepositoryPort.save(updated);
         productEventPublisherPort.publish(new ProductEvent(
-                saved.productId(),
+                saved.productId().toString(),
                 ProductEvent.EventType.UPDATED,
                 null,
                 Map.of("sellerId", saved.sellerId(), "status", saved.status().name())

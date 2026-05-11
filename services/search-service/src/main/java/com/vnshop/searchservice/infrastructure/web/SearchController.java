@@ -1,7 +1,7 @@
 package com.vnshop.searchservice.infrastructure.web;
 
-import com.vnshop.searchservice.domain.ProductReadModel;
-import com.vnshop.searchservice.infrastructure.persistence.ProductReadModelRepository;
+import com.vnshop.searchservice.application.SearchProductResponse;
+import com.vnshop.searchservice.application.SearchProductsUseCase;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,25 +13,25 @@ import java.util.List;
 @RestController
 @RequestMapping
 public class SearchController {
-    private final ProductReadModelRepository productReadModelRepository;
+    private final SearchProductsUseCase searchProductsUseCase;
 
-    public SearchController(ProductReadModelRepository productReadModelRepository) {
-        this.productReadModelRepository = productReadModelRepository;
+    public SearchController(SearchProductsUseCase searchProductsUseCase) {
+        this.searchProductsUseCase = searchProductsUseCase;
     }
 
     @GetMapping("/search")
-    public List<ProductReadModel> search(
+    public ApiResponse<List<SearchProductResponse>> search(
             @RequestParam(name = "q", required = false) String query,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice
     ) {
-        return productReadModelRepository.search(query, category, brand, minPrice, maxPrice);
+        return ApiResponse.ok(searchProductsUseCase.search(query, category, brand, minPrice, maxPrice));
     }
 
     @GetMapping("/categories")
-    public List<String> categories() {
-        return productReadModelRepository.findDistinctCategories();
+    public ApiResponse<List<String>> categories() {
+        return ApiResponse.ok(searchProductsUseCase.categories());
     }
 }

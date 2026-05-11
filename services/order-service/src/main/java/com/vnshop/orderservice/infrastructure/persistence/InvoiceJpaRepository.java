@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class InvoiceJpaRepository implements InvoiceRepositoryPort {
@@ -21,7 +22,7 @@ public class InvoiceJpaRepository implements InvoiceRepositoryPort {
     }
 
     @Override
-    public Optional<Invoice> findById(String invoiceId) {
+    public Optional<Invoice> findById(UUID invoiceId) {
         return springDataRepository.findById(invoiceId).map(InvoiceJpaEntity::toDomain);
     }
 
@@ -31,6 +32,6 @@ public class InvoiceJpaRepository implements InvoiceRepositoryPort {
     }
 }
 
-interface InvoiceJpaSpringDataRepository extends JpaRepository<InvoiceJpaEntity, String> {
+interface InvoiceJpaSpringDataRepository extends JpaRepository<InvoiceJpaEntity, UUID> {
     Optional<InvoiceJpaEntity> findBySubOrderId(Long subOrderId);
 }

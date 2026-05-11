@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class ProductImageUploadServiceTest {
@@ -35,12 +36,12 @@ class ProductImageUploadServiceTest {
 
     @Test
     void createsSignedUploadUrlAndPendingMetadataForValidProductImage() {
-        productRepository.save(product("product-1", "seller-1"));
+        productRepository.save(product(UUID.fromString("00000000-0000-0000-0000-000000000001"), "seller-1"));
 
         ProductImageUploadResponse response = service.createUpload(validRequest().build());
 
         assertThat(response.getUploadUrl()).isEqualTo(URI.create("https://storage.test/" + response.getObjectKey()));
-        assertThat(response.getObjectKey()).startsWith("products/product-1/images/").endsWith(".png");
+        assertThat(response.getObjectKey()).startsWith("products/00000000-0000-0000-0000-000000000001/images/").endsWith(".png");
         assertThat(response.getChecksumSha256()).isEqualTo("a".repeat(64));
         assertThat(response.getQuarantineState()).isEqualTo("PENDING_VALIDATION");
         ObjectMetadata metadata = metadataRepository.saved.get(response.getObjectKey());
@@ -52,7 +53,7 @@ class ProductImageUploadServiceTest {
 
     @Test
     void rejectsInvalidMetadataBeforeIssuingUploadUrl() {
-        productRepository.save(product("product-1", "seller-1"));
+        productRepository.save(product(UUID.fromString("00000000-0000-0000-0000-000000000001"), "seller-1"));
 
         assertThatThrownBy(() -> service.createUpload(validRequest()
                 .fileName("payload.exe")
@@ -75,7 +76,7 @@ class ProductImageUploadServiceTest {
 
     private ProductImageUploadRequest.ProductImageUploadRequestBuilder validRequest() {
         return ProductImageUploadRequest.builder()
-                .productId("product-1")
+                .productId("00000000-0000-0000-0000-000000000001")
                 .sellerId("seller-1")
                 .fileName("front.png")
                 .declaredContentType("image/png")
@@ -86,12 +87,12 @@ class ProductImageUploadServiceTest {
                 .imageHeight(600);
     }
 
-    private Product product(String productId, String sellerId) {
+    private Product product(UUID productId, String sellerId) {
         return new Product(productId, sellerId, "Phone", "Fast phone", "phones", "VNShop", null, null);
     }
 
     private static final class FakeProductRepository implements ProductRepositoryPort {
-        private final Map<String, Product> products = new HashMap<>();
+        private final Map<UUID, Product> products = new HashMap<>();
 
         @Override
         public Product save(Product product) {
@@ -100,7 +101,7 @@ class ProductImageUploadServiceTest {
         }
 
         @Override
-        public Optional<Product> findById(String productId) {
+        public Optional<Product> findById(UUID productId) {
             return Optional.ofNullable(products.get(productId));
         }
 

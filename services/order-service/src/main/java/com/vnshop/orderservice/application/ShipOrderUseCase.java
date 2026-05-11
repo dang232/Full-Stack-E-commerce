@@ -6,6 +6,7 @@ import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class ShipOrderUseCase {
     private final OrderRepositoryPort orderRepository;
@@ -16,20 +17,20 @@ public class ShipOrderUseCase {
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
     }
 
-    public Order ship(String orderId, String sellerId, String carrier, String trackingNumber) {
-        requireNonBlank(carrier, "carrier");
-        requireNonBlank(trackingNumber, "trackingNumber");
-        Order order = findOrder(orderId);
-        SubOrder subOrder = findSellerSubOrder(order, sellerId);
+    public Order ship(ShipOrderCommand command) {
+        requireNonBlank(command.carrier(), "carrier");
+        requireNonBlank(command.trackingNumber(), "trackingNumber");
+        Order order = findOrder(command.orderId());
+        SubOrder subOrder = findSellerSubOrder(order, command.sellerId());
         subOrder.pack();
-        subOrder.ship(carrier, trackingNumber);
+        subOrder.ship(command.carrier(), command.trackingNumber());
         Order savedOrder = orderRepository.save(order);
         orderEventPublisherPort.publishOrderUpdated(savedOrder);
         return savedOrder;
     }
 
-    private Order findOrder(String orderId) {
-        requireNonBlank(orderId, "orderId");
+    private Order findOrder(UUID orderId) {
+        Objects.requireNonNull(orderId, "orderId is required");
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderId));
     }

@@ -11,7 +11,7 @@ public class Product {
     private static final int MAX_VARIANTS = 50;
     private static final int MAX_IMAGES = 10;
 
-    private final String productId;
+    private final UUID productId;
     private final String sellerId;
     private String name;
     private String description;
@@ -22,7 +22,7 @@ public class Product {
     private final List<ProductImage> images;
 
     public Product(
-            String productId,
+            UUID productId,
             String sellerId,
             String name,
             String description,
@@ -31,7 +31,7 @@ public class Product {
             List<ProductVariant> variants,
             List<ProductImage> images
     ) {
-        this.productId = productId == null || productId.isBlank() ? UUID.randomUUID().toString() : productId;
+        this.productId = productId == null ? UUID.randomUUID() : productId;
         this.sellerId = sellerId;
         this.name = requireValidName(name);
         this.description = requireValidDescription(description);
@@ -54,7 +54,7 @@ public class Product {
         }
     }
 
-    public String productId() {
+    public UUID productId() {
         return productId;
     }
 

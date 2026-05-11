@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,7 +31,7 @@ public class RedisLuaFlashSaleGateway implements FlashSaleReservationPort {
 	}
 
 	@Override
-	public boolean reserve(String productId, String buyerId, int quantity, String reservationId) {
+	public boolean reserve(String productId, String buyerId, int quantity, UUID reservationId) {
 		Long result = redisTemplate.execute(
 				flashReserveScript,
 				List.of(stockKey(productId), waitingSetKey(productId)),
@@ -45,8 +46,9 @@ public class RedisLuaFlashSaleGateway implements FlashSaleReservationPort {
 
 	@Override
 	public void save(FlashSaleReservation reservation) {
+		String reservationId = reservation.getReservationId().toString();
 		String key = reservationKey(reservation.getReservationId());
-		redisTemplate.opsForHash().put(key, "reservationId", reservation.getReservationId());
+		redisTemplate.opsForHash().put(key, "reservationId", reservationId);
 		redisTemplate.opsForHash().put(key, "productId", reservation.getProductId());
 		redisTemplate.opsForHash().put(key, "buyerId", reservation.getBuyerId());
 		redisTemplate.opsForHash().put(key, "quantity", Integer.toString(reservation.getQuantity()));
@@ -54,11 +56,11 @@ public class RedisLuaFlashSaleGateway implements FlashSaleReservationPort {
 		redisTemplate.opsForHash().put(key, "reservedAt", reservation.getReservedAt().toString());
 		redisTemplate.opsForHash().put(key, "expiresAt", reservation.getExpiresAt().toString());
 		redisTemplate.expire(key, RESERVATION_TTL);
-		redisTemplate.opsForZSet().add(EXPIRATION_INDEX, reservation.getReservationId(), reservation.getExpiresAt().toEpochMilli());
+		redisTemplate.opsForZSet().add(EXPIRATION_INDEX, reservationId, reservation.getExpiresAt().toEpochMilli());
 	}
 
 	@Override
-	public Optional<FlashSaleReservation> findById(String reservationId) {
+	public Optional<FlashSaleReservation> findById(UUID reservationId) {
 		String key = reservationKey(reservationId);
 		if (Boolean.FALSE.equals(redisTemplate.hasKey(key))) {
 			return Optional.empty();
@@ -83,13 +85,14 @@ public class RedisLuaFlashSaleGateway implements FlashSaleReservationPort {
 	}
 
 	@Override
-	public void release(String reservationId) {
+	public void release(UUID reservationId) {
 		findById(reservationId).ifPresent(reservation -> {
+			String reservationIdValue = reservationId.toString();
 			redisTemplate.execute(
 					flashReleaseScript,
 					List.of(stockKey(reservation.getProductId()), reservationKey(reservationId)),
 					Integer.toString(reservation.getQuantity()));
-			redisTemplate.opsForZSet().remove(EXPIRATION_INDEX, reservationId);
+			redisTemplate.opsForZSet().remove(EXPIRATION_INDEX, reservationIdValue);
 			waitingRoomService.leave(reservation.getProductId(), reservation.getBuyerId());
 		});
 	}
@@ -106,7 +109,9 @@ public class RedisLuaFlashSaleGateway implements FlashSaleReservationPort {
 		if (dueReservations == null || dueReservations.isEmpty()) {
 			return;
 		}
-		dueReservations.forEach(this::release);
+		dueReservations.stream()
+				.map(UUID::fromString)
+				.forEach(this::release);
 	}
 
 	private String hashValue(String key, String field) {
@@ -122,7 +127,7 @@ public class RedisLuaFlashSaleGateway implements FlashSaleReservationPort {
 		return "flash:waiting:" + productId;
 	}
 
-	private String reservationKey(String reservationId) {
+	private String reservationKey(UUID reservationId) {
 		return "flash:reservation:" + reservationId;
 	}
 }

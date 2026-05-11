@@ -1,5 +1,6 @@
 package com.vnshop.apigateway.infrastructure.filter;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ public class CorrelationIdFilter implements WebFilter {
     public static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    public @NonNull Mono<Void> filter(ServerWebExchange exchange, @NonNull WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String correlationId = request.getHeaders().getFirst(CORRELATION_ID_HEADER);
 

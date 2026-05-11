@@ -7,6 +7,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @org.springframework.stereotype.Repository
 public class LedgerEntryJpaRepository implements LedgerRepositoryPort {
@@ -36,7 +37,7 @@ public class LedgerEntryJpaRepository implements LedgerRepositoryPort {
     }
 
     @Override
-    public List<LedgerEntry> findByJournalId(String journalId) {
+    public List<LedgerEntry> findByJournalId(UUID journalId) {
         return springDataRepository.findByJournalId(journalId).stream()
                 .map(LedgerEntryJpaEntity::toDomain)
                 .toList();
@@ -48,5 +49,5 @@ interface LedgerEntrySpringDataRepository extends Repository<LedgerEntryJpaEntit
 
     List<LedgerEntryJpaEntity> findByOrderId(String orderId);
 
-    List<LedgerEntryJpaEntity> findByJournalId(String journalId);
+    List<LedgerEntryJpaEntity> findByJournalId(UUID journalId);
 }

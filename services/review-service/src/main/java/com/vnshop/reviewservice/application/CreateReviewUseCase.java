@@ -13,9 +13,9 @@ public class CreateReviewUseCase {
         this.reviewRepositoryPort = Objects.requireNonNull(reviewRepositoryPort, "reviewRepositoryPort is required");
     }
 
-    public Review create(String productId, String buyerId, String orderId, int rating, String text, List<String> images) {
-        boolean verifiedPurchase = buyerIdMatchesOrderHistory(buyerId, orderId);
-        return reviewRepositoryPort.save(Review.pending(productId, buyerId, orderId, rating, text, images, verifiedPurchase));
+    public Review create(CreateReviewCommand command) {
+        boolean verifiedPurchase = buyerIdMatchesOrderHistory(command.buyerId(), command.orderId());
+        return reviewRepositoryPort.save(Review.pending(command.productId(), command.buyerId(), command.orderId(), command.rating(), command.text(), command.images(), verifiedPurchase));
     }
 
     private boolean buyerIdMatchesOrderHistory(String buyerId, String orderId) {

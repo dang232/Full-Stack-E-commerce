@@ -1,22 +1,28 @@
 package com.vnshop.orderservice.infrastructure.persistence;
 
 import com.vnshop.orderservice.domain.Invoice;
+import com.vnshop.orderservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "order_svc", name = "invoices")
-public class InvoiceJpaEntity {
+@Getter
+@Setter
+public class InvoiceJpaEntity extends BaseJpaEntity {
     @Id
-    @Column(name = "id")
-    private String id;
+    @Column(name = "id", columnDefinition = "uuid")
+    private UUID id;
 
-    @Column(name = "order_id", nullable = false)
-    private String orderId;
+    @Column(name = "order_id", nullable = false, columnDefinition = "uuid")
+    private UUID orderId;
 
     @Column(name = "sub_order_id", nullable = false, unique = true)
     private Long subOrderId;

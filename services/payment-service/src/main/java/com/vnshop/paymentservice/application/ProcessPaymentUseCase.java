@@ -1,6 +1,7 @@
 package com.vnshop.paymentservice.application;
 
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
@@ -20,8 +21,8 @@ public class ProcessPaymentUseCase {
         this.ledgerService = Objects.requireNonNull(ledgerService, "ledgerService is required");
     }
 
-    public Payment process(String orderId, String buyerId, BigDecimal amount, Payment.Method method) {
-        Payment pendingPayment = Payment.pending(orderId, buyerId, amount, method);
+    public Payment process(ProcessPaymentCommand command) {
+        Payment pendingPayment = Payment.pending(command.orderId(), command.buyerId(), command.amount(), command.method());
         PaymentGatewayPort.GatewayPaymentResult result = paymentGatewayPort.processPayment(pendingPayment);
         Payment savedPayment = paymentRepositoryPort.save(pendingPayment.withResult(result.status(), result.transactionRef()));
         if (savedPayment.status() == PaymentStatus.COMPLETED) {

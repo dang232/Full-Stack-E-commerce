@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.application.ledger;
 
+import com.vnshop.paymentservice.application.LedgerPaymentCommand;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.LedgerPosting;
@@ -24,25 +25,25 @@ public class LedgerService {
 
     public List<LedgerEntry> recordPayment(Payment payment) {
         Objects.requireNonNull(payment, "payment is required");
-        return recordPayment(payment.transactionRef(), payment.orderId(), payment.amount());
+        return recordPayment(new LedgerPaymentCommand(payment.transactionRef(), payment.orderId(), payment.amount()));
     }
 
-    public List<LedgerEntry> recordPayment(String transactionId, String orderId, BigDecimal amount) {
-        return ledgerRepositoryPort.append(paymentJournal(transactionId, orderId, amount));
+    public List<LedgerEntry> recordPayment(LedgerPaymentCommand command) {
+        return ledgerRepositoryPort.append(paymentJournal(command));
     }
 
-    public JournalEntry paymentJournal(String transactionId, String orderId, BigDecimal amount) {
-        Objects.requireNonNull(amount, "amount is required");
-        if (amount.signum() <= 0) {
+    public JournalEntry paymentJournal(LedgerPaymentCommand command) {
+        Objects.requireNonNull(command.amount(), "amount is required");
+        if (command.amount().signum() <= 0) {
             throw new IllegalArgumentException("amount must be positive");
         }
         return JournalEntry.posted(
-                transactionId,
-                orderId,
+                command.transactionId(),
+                command.orderId(),
                 "Payment captured",
                 List.of(
-                        new LedgerPosting(PAYMENT_CLEARING, LedgerPostingType.DEBIT, amount, CURRENCY),
-                        new LedgerPosting(BUYER_CASH, LedgerPostingType.CREDIT, amount, CURRENCY)
+                        new LedgerPosting(PAYMENT_CLEARING, LedgerPostingType.DEBIT, command.amount(), CURRENCY),
+                        new LedgerPosting(BUYER_CASH, LedgerPostingType.CREDIT, command.amount(), CURRENCY)
                 ));
     }
 

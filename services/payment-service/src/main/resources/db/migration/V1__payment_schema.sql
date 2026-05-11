@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS payment_svc;
 
 CREATE TABLE IF NOT EXISTS payment_svc.payments (
-    payment_id VARCHAR(255) PRIMARY KEY,
+    payment_id uuid NOT NULL PRIMARY KEY,
     order_id VARCHAR(255) NOT NULL UNIQUE,
     buyer_id VARCHAR(255) NOT NULL,
     amount NUMERIC(19, 2) NOT NULL,

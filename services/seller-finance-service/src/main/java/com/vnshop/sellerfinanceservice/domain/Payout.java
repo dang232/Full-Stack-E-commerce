@@ -3,16 +3,17 @@ package com.vnshop.sellerfinanceservice.domain;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Payout {
-    private final String payoutId;
+    private final UUID payoutId;
     private final String sellerId;
     private final BigDecimal amount;
     private PayoutStatus status;
     private final Instant createdAt;
 
-    public Payout(String payoutId, String sellerId, BigDecimal amount, PayoutStatus status, Instant createdAt) {
-        requireNonBlank(payoutId, "payoutId");
+    public Payout(UUID payoutId, String sellerId, BigDecimal amount, PayoutStatus status, Instant createdAt) {
+        Objects.requireNonNull(payoutId, "payoutId is required");
         requireNonBlank(sellerId, "sellerId");
         Objects.requireNonNull(amount, "amount is required");
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -25,11 +26,11 @@ public class Payout {
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
     }
 
-    public static Payout pending(String payoutId, String sellerId, BigDecimal amount, Instant createdAt) {
-        return new Payout(payoutId, sellerId, amount, PayoutStatus.PENDING, createdAt);
+    public static Payout pending(String sellerId, BigDecimal amount, Instant createdAt) {
+        return new Payout(UUID.randomUUID(), sellerId, amount, PayoutStatus.PENDING, createdAt);
     }
 
-    public String payoutId() {
+    public UUID payoutId() {
         return payoutId;
     }
 

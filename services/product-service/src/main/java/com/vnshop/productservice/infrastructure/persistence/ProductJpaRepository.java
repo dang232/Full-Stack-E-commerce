@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class ProductJpaRepository implements ProductRepositoryPort {
@@ -24,7 +25,7 @@ public class ProductJpaRepository implements ProductRepositoryPort {
     }
 
     @Override
-    public Optional<Product> findById(String productId) {
+    public Optional<Product> findById(UUID productId) {
         return springDataRepository.findById(productId).map(ProductJpaEntity::toDomain);
     }
 
@@ -49,7 +50,7 @@ public class ProductJpaRepository implements ProductRepositoryPort {
     }
 }
 
-interface ProductJpaSpringDataRepository extends JpaRepository<ProductJpaEntity, String> {
+interface ProductJpaSpringDataRepository extends JpaRepository<ProductJpaEntity, UUID> {
     List<ProductJpaEntity> findBySellerId(String sellerId);
 
     List<ProductJpaEntity> findByCategoryId(String categoryId);

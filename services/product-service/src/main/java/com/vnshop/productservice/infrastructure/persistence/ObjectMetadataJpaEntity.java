@@ -1,5 +1,6 @@
 package com.vnshop.productservice.infrastructure.persistence;
 
+import com.vnshop.productservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.productservice.domain.storage.ObjectMetadata;
 import com.vnshop.productservice.domain.storage.ObjectQuarantineState;
 import com.vnshop.productservice.domain.storage.ObjectStorageClass;
@@ -7,7 +8,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ObjectMetadataJpaEntity {
+public class ObjectMetadataJpaEntity extends BaseJpaEntity {
     @Id
     @Column(name = "object_key", length = 1024)
     private String key;
@@ -49,8 +49,6 @@ public class ObjectMetadataJpaEntity {
     @Column(name = "owner_id", nullable = false)
     private String ownerId;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
 
     static ObjectMetadataJpaEntity fromDomain(ObjectMetadata metadata) {
         ObjectMetadataJpaEntity entity = new ObjectMetadataJpaEntity();
@@ -64,7 +62,6 @@ public class ObjectMetadataJpaEntity {
         entity.imageHeight = metadata.getImageHeight();
         entity.ownerType = "PRODUCT";
         entity.ownerId = productIdFromKey(metadata.getKey());
-        entity.createdAt = metadata.getCreatedAt();
         return entity;
     }
 
@@ -78,7 +75,7 @@ public class ObjectMetadataJpaEntity {
                 .quarantineState(ObjectQuarantineState.valueOf(quarantineState))
                 .imageWidth(imageWidth)
                 .imageHeight(imageHeight)
-                .createdAt(createdAt)
+                .createdAt(getCreatedAt())
                 .build();
     }
 

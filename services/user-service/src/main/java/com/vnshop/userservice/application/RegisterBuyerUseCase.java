@@ -14,12 +14,12 @@ public class RegisterBuyerUseCase {
         this.userRepositoryPort = Objects.requireNonNull(userRepositoryPort, "userRepositoryPort is required");
     }
 
-    public BuyerProfile register(String keycloakId, String name, String phone, String avatarUrl) {
+    public BuyerProfile register(RegisterBuyerCommand command) {
         BuyerProfile buyerProfile = new BuyerProfile(
-                keycloakId,
-                name,
-                new PhoneNumber(phone),
-                avatarUrl,
+                command.keycloakId(),
+                command.name(),
+                new PhoneNumber(command.phone()),
+                command.avatarUrl(),
                 List.of()
         );
         return userRepositoryPort.saveBuyer(buyerProfile);

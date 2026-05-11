@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS seller_finance_svc.seller_wallets (
 );
 
 CREATE TABLE IF NOT EXISTS seller_finance_svc.payouts (
-    payout_id VARCHAR(255) PRIMARY KEY,
+    payout_id uuid NOT NULL PRIMARY KEY,
     seller_id VARCHAR(255) NOT NULL,
     amount NUMERIC(19, 2) NOT NULL,
     status VARCHAR(32) NOT NULL,

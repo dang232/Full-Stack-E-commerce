@@ -1,10 +1,8 @@
 package com.vnshop.orderservice.infrastructure.web;
 
 import com.vnshop.orderservice.application.DisputeUseCase;
-import com.vnshop.orderservice.domain.DisputeStatus;
-import com.vnshop.orderservice.domain.port.out.DisputeRepositoryPort;
+import com.vnshop.orderservice.application.ListOpenDisputesUseCase;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,30 +11,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/admin/disputes")
 public class AdminDisputeController {
     private final DisputeUseCase disputeUseCase;
-    private final DisputeRepositoryPort disputeRepositoryPort;
+    private final ListOpenDisputesUseCase listOpenDisputesUseCase;
 
-    public AdminDisputeController(DisputeUseCase disputeUseCase, DisputeRepositoryPort disputeRepositoryPort) {
+    public AdminDisputeController(DisputeUseCase disputeUseCase, ListOpenDisputesUseCase listOpenDisputesUseCase) {
         this.disputeUseCase = disputeUseCase;
-        this.disputeRepositoryPort = disputeRepositoryPort;
+        this.listOpenDisputesUseCase = listOpenDisputesUseCase;
     }
 
     @GetMapping("/open")
-    public List<ReturnController.DisputeResponse> open() {
-        return disputeRepositoryPort.findByStatus(DisputeStatus.OPEN.name()).stream()
-                .map(ReturnController.DisputeResponse::fromDomain)
-                .toList();
+    public ApiResponse<List<DisputeResponse>> open() {
+        return ApiResponse.ok(listOpenDisputesUseCase.listOpen().stream()
+                .map(DisputeResponse::fromDomain)
+                .toList());
     }
 
     @PostMapping("/{disputeId}/resolve")
-    public ReturnController.DisputeResponse resolve(@PathVariable String disputeId, @Valid @RequestBody ResolveDisputeRequest request) {
-        return ReturnController.DisputeResponse.fromDomain(disputeUseCase.resolve(disputeId, request.adminResolution()));
-    }
-
-    public record ResolveDisputeRequest(@NotBlank String adminResolution) {
+    public ApiResponse<DisputeResponse> resolve(@PathVariable UUID disputeId, @Valid @RequestBody ResolveDisputeRequest request) {
+        return ApiResponse.ok(DisputeResponse.fromDomain(disputeUseCase.resolve(disputeId, request.adminResolution())));
     }
 }

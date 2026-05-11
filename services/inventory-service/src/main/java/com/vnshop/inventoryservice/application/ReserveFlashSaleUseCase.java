@@ -7,9 +7,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
-import org.springframework.stereotype.Service;
 
-@Service
 public class ReserveFlashSaleUseCase {
 	private static final Duration RESERVATION_TTL = Duration.ofMinutes(15);
 
@@ -25,15 +23,15 @@ public class ReserveFlashSaleUseCase {
 		this.clock = clock;
 	}
 
-	public FlashSaleReservation reserve(String productId, String buyerId, int quantity) {
+	public FlashSaleReservation reserve(ReserveFlashSaleCommand command) {
 		Instant reservedAt = clock.instant();
-		String reservationId = UUID.randomUUID().toString();
-		boolean reserved = reservationPort.reserve(productId, buyerId, quantity, reservationId);
+		UUID reservationId = UUID.randomUUID();
+		boolean reserved = reservationPort.reserve(command.productId(), command.buyerId(), command.quantity(), reservationId);
 		FlashSaleReservation reservation = new FlashSaleReservation(
-				reserved ? reservationId : "SOLD_OUT",
-				productId,
-				buyerId,
-				quantity,
+				reserved ? reservationId : null,
+				command.productId(),
+				command.buyerId(),
+				command.quantity(),
 				reserved ? Status.RESERVED : Status.REJECTED,
 				reservedAt,
 				reservedAt.plus(RESERVATION_TTL));
@@ -43,7 +41,7 @@ public class ReserveFlashSaleUseCase {
 		return reservation;
 	}
 
-	public void release(String reservationId) {
+	public void release(UUID reservationId) {
 		reservationPort.release(reservationId);
 	}
 

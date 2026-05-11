@@ -71,7 +71,7 @@ public class VnpayGateway {
         parameters.put("vnp_TmnCode", properties.tmnCode());
         parameters.put("vnp_Amount", toVnpayAmount(payment.amount()));
         parameters.put("vnp_CurrCode", properties.currency());
-        parameters.put("vnp_TxnRef", payment.paymentId());
+        parameters.put("vnp_TxnRef", payment.paymentId().toString());
         parameters.put("vnp_OrderInfo", "Payment for order " + payment.orderId());
         parameters.put("vnp_OrderType", properties.orderType());
         parameters.put("vnp_Locale", properties.locale());

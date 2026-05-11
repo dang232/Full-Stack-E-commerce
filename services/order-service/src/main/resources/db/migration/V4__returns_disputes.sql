@@ -11,8 +11,8 @@ ALTER TABLE order_svc.order_items
     ALTER COLUMN seller_id SET NOT NULL;
 
 CREATE TABLE IF NOT EXISTS order_svc.returns (
-    return_id VARCHAR(255) PRIMARY KEY,
-    order_id VARCHAR(255) NOT NULL,
+    return_id uuid NOT NULL PRIMARY KEY,
+    order_id uuid NOT NULL,
     sub_order_id BIGINT NOT NULL,
     buyer_id VARCHAR(255) NOT NULL,
     reason VARCHAR(2048) NOT NULL,
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS order_svc.returns (
 );
 
 CREATE TABLE IF NOT EXISTS order_svc.disputes (
-    dispute_id VARCHAR(255) PRIMARY KEY,
-    return_id VARCHAR(255) NOT NULL,
+    dispute_id uuid NOT NULL PRIMARY KEY,
+    return_id uuid NOT NULL,
     buyer_reason VARCHAR(2048) NOT NULL,
     seller_response VARCHAR(2048),
     admin_resolution VARCHAR(2048),

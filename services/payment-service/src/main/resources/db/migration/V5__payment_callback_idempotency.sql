@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS payment_svc.payment_callback_logs (
-    callback_id VARCHAR(255) PRIMARY KEY,
+    callback_id uuid NOT NULL PRIMARY KEY,
     provider VARCHAR(32) NOT NULL,
     event_id VARCHAR(255),
     payload_hash VARCHAR(64) NOT NULL,

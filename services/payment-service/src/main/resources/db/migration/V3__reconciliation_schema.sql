@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS payment_svc.reconciliation_issues (
     issue_id BIGSERIAL PRIMARY KEY,
-    payment_id VARCHAR(255) NOT NULL,
+    payment_id uuid NOT NULL,
     expected_amount NUMERIC(19, 2) NOT NULL,
     actual_amount NUMERIC(19, 2) NOT NULL,
     description VARCHAR(1024) NOT NULL,

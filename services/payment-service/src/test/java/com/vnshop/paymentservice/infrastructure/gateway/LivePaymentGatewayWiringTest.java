@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -81,7 +82,7 @@ class LivePaymentGatewayWiringTest {
         }
 
         @Override
-        public List<LedgerEntry> findByJournalId(String journalId) {
+        public List<LedgerEntry> findByJournalId(UUID journalId) {
             return List.of();
         }
     }

@@ -30,3 +30,43 @@ Conclusion:
 - F3 cannot be executed in this environment because runtime infrastructure is unavailable.
 - No gateway/service stack is listening on localhost:8080.
 - Do not mark F3 complete until Docker/container/cluster runtime is available and full curl QA passes.
+
+# F3 Real Manual QA - 2026-05-10 23:40:08 +07:00
+## Environment
+- Java: java version "26.0.1" 2026-04-21; Java(TM) SE Runtime Environment (build 26.0.1+8-34)
+- Node: v24.15.0
+- npm: 11.12.1
+- Docker: UNAVAILABLE (Docker Desktop cannot start in this environment; no gateway/service stack available)
+
+## Commands Run
+- Java services: `services/{service}/mvnw.cmd -q test -f services/{service}/pom.xml`; failing tests retried with `-DskipTests=false -Dspring.profiles.active=test`; packaging verified with `services/{service}/mvnw.cmd -q -DskipTests package -f services/{service}/pom.xml`
+- notification-service: `npm install`, `npm test -- --runInBand`, `npm run build`
+
+## Test Results
+| Service | Test Result | Tests Run | Failures | Errors | Build | Notes |
+|---------|-------------|-----------|----------|--------|-------|-------|
+| api-gateway | PASS | 0 | 0 | 0 | PASS | No surefire reports; Maven test exit 0. |
+| user-service | FAIL | 1 | 0 | 1 | PASS | `UserServiceApplicationTests.contextLoads` fails; PostgreSQL `localhost:5432` connection refused via Flyway/JPA. Retry with `spring.profiles.active=test` also failed. |
+| product-service | FAIL | 6 | 0 | 5 | PASS | Test compilation/API drift errors in product image/object tests, including missing constructor/methods such as `ProductImageUploadService(...)`, `ObjectValidationPolicy.builder()`, and response getters. Retry with `spring.profiles.active=test` also failed. |
+| inventory-service | FAIL | 3 | 0 | 1 | PASS | Spring context/infrastructure-dependent test error; retry with `spring.profiles.active=test` also failed. |
+| search-service | FAIL | 1 | 0 | 1 | PASS | `SearchServiceApplicationTests.contextLoads` fails on unavailable PostgreSQL/Flyway/JPA runtime. Retry with `spring.profiles.active=test` also failed. |
+| cart-service | PASS | 1 | 0 | 0 | PASS | Maven test exit 0. |
+| order-service | FAIL | 5 | 0 | 1 | PASS | Spring context/infrastructure-dependent test error; retry with `spring.profiles.active=test` also failed. |
+| payment-service | PASS | 29 | 0 | 0 | PASS | Maven test exit 0. |
+| shipping-service | PASS | 5 | 0 | 0 | PASS | Maven test exit 0. |
+| coupon-service | FAIL | 1 | 0 | 1 | PASS | `CouponServiceApplicationTests.contextLoads` fails on unavailable PostgreSQL/Flyway/JPA runtime. Retry with `spring.profiles.active=test` also failed. |
+| review-service | PASS | 6 | 0 | 0 | PASS | Maven test exit 0. |
+| seller-finance-service | FAIL | 2 | 0 | 1 | PASS | Spring context/infrastructure-dependent test error; retry with `spring.profiles.active=test` also failed. |
+| notification-service | PASS | 1 | 0 | 0 | PASS | `npm install` exit 0; Jest: 1 suite passed, 1 test passed; `nest build` exit 0. |
+
+## Curl/Integration Gate
+BLOCKED: No Docker/gateway runtime. The following F3 scenarios could not be executed:
+- [ ] Full seller->buyer->fulfillment flow through gateway (needs Docker: api-gateway + all services + Keycloak + PostgreSQL)
+- [ ] Invalid product rejection (needs Docker: api-gateway + product-service)
+- [ ] Duplicate order idempotency (needs Docker: api-gateway + order-service)
+- [ ] Unauthorized access rejection (needs Docker: api-gateway + Keycloak)
+- [ ] Invalid coupon rejection (needs Docker: api-gateway + coupon-service)
+- [ ] Out-of-stock rejection (needs Docker: api-gateway + inventory-service)
+
+## Verdict
+DETAILED_FAILURE_REPORT: Build packaging passed for all 13 services, and non-infra/unit tests passed where runnable. Overall F3 QA is NOT PASS because 7 Maven test suites failed: 6 appear infrastructure/context-load dependent in this no-PostgreSQL environment, and product-service has test compilation/API drift failures independent of Docker. Gateway curl scenarios remain blocked by unavailable Docker/gateway runtime.

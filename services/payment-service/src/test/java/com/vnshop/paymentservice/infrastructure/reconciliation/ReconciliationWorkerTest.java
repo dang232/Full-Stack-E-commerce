@@ -4,6 +4,7 @@ import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.LedgerPostingType;
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.ReconciliationIssue;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
@@ -16,6 +17,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +25,7 @@ class ReconciliationWorkerTest {
     @Test
     void recordsIssueWhenCompletedPaymentDoesNotHaveTwoMatchingLedgerEntries() {
         CapturingIssueRepository issueRepository = new CapturingIssueRepository();
-        Payment payment = new Payment("PAY-1", "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), Payment.Method.COD, PaymentStatus.COMPLETED, "TX-1", Instant.now());
+        Payment payment = new Payment(paymentId(), "ORDER-1", "BUYER-1", new BigDecimal("120000.00"), PaymentMethod.COD, PaymentStatus.COMPLETED, "TX-1", Instant.now());
         ReconciliationWorker worker = new ReconciliationWorker(
                 new StaticPaymentRepository(List.of(payment)),
                 new StaticLedgerRepository(List.of(oneEntry(payment))),
@@ -33,14 +35,18 @@ class ReconciliationWorkerTest {
 
         assertThat(issueRepository.savedIssues).hasSize(1);
         ReconciliationIssue issue = issueRepository.savedIssues.get(0);
-        assertThat(issue.paymentId()).isEqualTo("PAY-1");
+        assertThat(issue.paymentId()).isEqualTo(paymentId());
         assertThat(issue.expectedAmount()).isEqualByComparingTo(new BigDecimal("240000.00"));
         assertThat(issue.actualAmount()).isEqualByComparingTo(new BigDecimal("120000.00"));
         assertThat(issue.resolved()).isFalse();
     }
 
     private static LedgerEntry oneEntry(Payment payment) {
-        return new LedgerEntry("JOURNAL-1", payment.transactionRef(), payment.orderId(), "payment_clearing", LedgerPostingType.DEBIT, payment.amount(), "VND", Instant.now(), "partial", null);
+        return new LedgerEntry(UUID.fromString("00000000-0000-0000-0000-000000000101"), payment.transactionRef(), payment.orderId(), "payment_clearing", LedgerPostingType.DEBIT, payment.amount(), "VND", Instant.now(), "partial", null);
+    }
+
+    private static UUID paymentId() {
+        return UUID.fromString("00000000-0000-0000-0000-000000000001");
     }
 
     private record StaticPaymentRepository(List<Payment> completedPayments) implements PaymentRepositoryPort {
@@ -50,7 +56,7 @@ class ReconciliationWorkerTest {
         }
 
         @Override
-        public Optional<Payment> findById(String paymentId) {
+        public Optional<Payment> findById(UUID paymentId) {
             return Optional.empty();
         }
 
@@ -77,7 +83,7 @@ class ReconciliationWorkerTest {
         }
 
         @Override
-        public List<LedgerEntry> findByJournalId(String journalId) {
+        public List<LedgerEntry> findByJournalId(UUID journalId) {
             return entries.stream()
                     .filter(entry -> entry.journalId().equals(journalId))
                     .toList();

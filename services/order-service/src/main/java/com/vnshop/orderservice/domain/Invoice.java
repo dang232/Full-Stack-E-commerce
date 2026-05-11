@@ -2,10 +2,11 @@ package com.vnshop.orderservice.domain;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 public record Invoice(
-        String id,
-        String orderId,
+        UUID id,
+        UUID orderId,
         Long subOrderId,
         String buyerId,
         String sellerId,
@@ -15,8 +16,8 @@ public record Invoice(
         Instant generatedAt
 ) {
     public Invoice {
-        requireNonBlank(id, "id");
-        requireNonBlank(orderId, "orderId");
+        Objects.requireNonNull(id, "id is required");
+        Objects.requireNonNull(orderId, "orderId is required");
         Objects.requireNonNull(subOrderId, "subOrderId is required");
         requireNonBlank(buyerId, "buyerId");
         requireNonBlank(sellerId, "sellerId");

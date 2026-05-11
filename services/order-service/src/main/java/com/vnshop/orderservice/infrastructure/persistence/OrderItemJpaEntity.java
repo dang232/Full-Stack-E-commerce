@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.infrastructure.persistence;
 
 import com.vnshop.orderservice.domain.OrderItem;
+import com.vnshop.orderservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
@@ -13,10 +14,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(schema = "order_svc", name = "order_items")
-public class OrderItemJpaEntity {
+@Getter
+@Setter
+public class OrderItemJpaEntity extends BaseJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

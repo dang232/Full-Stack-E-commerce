@@ -1,6 +1,7 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
 import com.vnshop.paymentservice.domain.Payment;
+import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -28,14 +28,14 @@ public class RefundRequestPublisherAdapter implements RefundRequestPort {
     @Override
     public void requestRefund(Return orderReturn, Money amount) {
         RefundRequestedEvent event = new RefundRequestedEvent(
-                orderReturn.returnId(),
-                orderReturn.orderId(),
+                orderReturn.returnId().toString(),
+                orderReturn.orderId().toString(),
                 orderReturn.subOrderId(),
                 orderReturn.buyerId(),
                 amount.amount().toPlainString(),
                 amount.currency()
         );
-        repository.save(OutboxEventJpaEntity.fromDomain(OutboxEvent.pending("Return", orderReturn.returnId(), EVENT_TYPE, toJson(event))));
+        repository.save(OutboxEventJpaEntity.fromDomain(OutboxEvent.pending("Return", orderReturn.returnId().toString(), EVENT_TYPE, toJson(event))));
         LOGGER.info("Refund event staged for return {} order {}", orderReturn.returnId(), orderReturn.orderId());
     }
 

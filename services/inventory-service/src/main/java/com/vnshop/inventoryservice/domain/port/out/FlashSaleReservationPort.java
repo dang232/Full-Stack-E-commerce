@@ -6,16 +6,16 @@ import java.util.UUID;
 
 public interface FlashSaleReservationPort {
 	default boolean reserve(String productId, String buyerId, int quantity) {
-		return reserve(productId, buyerId, quantity, UUID.randomUUID().toString());
+		return reserve(productId, buyerId, quantity, UUID.randomUUID());
 	}
 
-	boolean reserve(String productId, String buyerId, int quantity, String reservationId);
+	boolean reserve(String productId, String buyerId, int quantity, UUID reservationId);
 
 	void save(FlashSaleReservation reservation);
 
-	Optional<FlashSaleReservation> findById(String reservationId);
+	Optional<FlashSaleReservation> findById(UUID reservationId);
 
-	void release(String reservationId);
+	void release(UUID reservationId);
 
 	long getStock(String productId);
 }

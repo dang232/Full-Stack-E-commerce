@@ -1,11 +1,11 @@
 ALTER TABLE payment_svc.ledger_entries
-    ADD COLUMN IF NOT EXISTS journal_id VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS journal_id uuid,
     ADD COLUMN IF NOT EXISTS account_id VARCHAR(255),
     ADD COLUMN IF NOT EXISTS posting_type VARCHAR(16),
-    ADD COLUMN IF NOT EXISTS reverses_journal_id VARCHAR(255);
+    ADD COLUMN IF NOT EXISTS reverses_journal_id uuid;
 
 UPDATE payment_svc.ledger_entries
-SET journal_id = transaction_id,
+SET journal_id = gen_random_uuid(),
     account_id = debit_account,
     posting_type = 'DEBIT'
 WHERE journal_id IS NULL;

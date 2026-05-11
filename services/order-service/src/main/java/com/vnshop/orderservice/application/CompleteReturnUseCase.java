@@ -9,6 +9,7 @@ import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
 import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class CompleteReturnUseCase {
     private final ReturnRepositoryPort returnRepository;
@@ -21,10 +22,10 @@ public class CompleteReturnUseCase {
         this.refundRequestPort = Objects.requireNonNull(refundRequestPort, "refundRequestPort is required");
     }
 
-    public Return complete(String returnId) {
+    public Return complete(UUID returnId) {
         Return orderReturn = returnRepository.findById(returnId)
                 .orElseThrow(() -> new IllegalArgumentException("return not found: " + returnId));
-        Order order = orderRepository.findById(orderReturn.orderId())
+        Order order = orderRepository.findById(UUID.fromString(orderReturn.orderId()))
                 .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderReturn.orderId()));
         Money refundAmount = order.subOrders().stream()
                 .filter(subOrder -> orderReturn.subOrderId().equals(subOrder.id()))

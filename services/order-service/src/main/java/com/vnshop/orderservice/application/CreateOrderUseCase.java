@@ -38,32 +38,32 @@ public class CreateOrderUseCase {
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
     }
 
-    public Order create(String buyerId, Address shippingAddress, List<OrderItem> items, String idempotencyKey) {
-        requireNonBlank(buyerId, "buyerId");
-        requireNonBlank(idempotencyKey, "idempotencyKey");
-        Objects.requireNonNull(shippingAddress, "shippingAddress is required");
-        if (items == null || items.isEmpty()) {
+    public Order create(CreateOrderCommand command) {
+        requireNonBlank(command.buyerId(), "buyerId");
+        requireNonBlank(command.idempotencyKey(), "idempotencyKey");
+        Objects.requireNonNull(command.shippingAddress(), "shippingAddress is required");
+        if (command.items() == null || command.items().isEmpty()) {
             throw new IllegalArgumentException("items must not be empty");
         }
 
-        return orderRepository.findByIdempotencyKey(idempotencyKey)
-                .orElseGet(() -> createNewOrder(buyerId, shippingAddress, items, idempotencyKey));
+        return orderRepository.findByIdempotencyKey(command.idempotencyKey())
+                .orElseGet(() -> createNewOrder(command.buyerId(), command.shippingAddress(), command.items(), command.idempotencyKey()));
     }
 
     private Order createNewOrder(String buyerId, Address shippingAddress, List<OrderItem> items, String idempotencyKey) {
         List<OrderItem> itemSnapshot = List.copyOf(items);
         List<SubOrder> subOrders = splitBySeller(itemSnapshot);
-        Order order = new Order(UUID.randomUUID().toString(), buyerId, shippingAddress, subOrders, idempotencyKey);
+        Order order = new Order(UUID.randomUUID(), buyerId, shippingAddress, subOrders, idempotencyKey);
 
         boolean inventoryReserved = false;
         boolean paymentRequested = false;
         try {
-            inventoryReservationPort.reserve(order.id(), itemSnapshot);
+            inventoryReservationPort.reserve(order.id().toString(), itemSnapshot);
             inventoryReserved = true;
-            paymentRequestPort.requestPayment(order.id(), order.paymentMethod(), order.finalAmount());
+            paymentRequestPort.requestPayment(order.id().toString(), order.paymentMethod(), order.finalAmount());
             paymentRequested = true;
             for (SubOrder subOrder : order.subOrders()) {
-                shippingRequestPort.requestShipping(order.id(), subOrder, shippingAddress);
+                shippingRequestPort.requestShipping(order.id().toString(), subOrder, shippingAddress);
             }
             Order savedOrder = orderRepository.save(order);
             orderEventPublisherPort.publishOrderCreated(savedOrder);
@@ -84,9 +84,9 @@ public class CreateOrderUseCase {
         return List.copyOf(subOrders);
     }
 
-    private void compensate(String orderId, boolean inventoryReserved, boolean paymentRequested) {
+    private void compensate(UUID orderId, boolean inventoryReserved, boolean paymentRequested) {
         if (inventoryReserved) {
-            inventoryReservationPort.release(orderId);
+            inventoryReservationPort.release(orderId.toString());
         }
         if (paymentRequested) {
             orderRepository.findById(orderId).ifPresent(Order::markPaymentFailed);

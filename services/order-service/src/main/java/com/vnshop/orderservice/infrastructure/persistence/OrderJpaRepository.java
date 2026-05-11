@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class OrderJpaRepository implements OrderRepositoryPort {
@@ -30,7 +31,7 @@ public class OrderJpaRepository implements OrderRepositoryPort {
     }
 
     @Override
-    public Optional<Order> findById(String orderId) {
+    public Optional<Order> findById(UUID orderId) {
         return springDataRepository.findById(orderId).map(OrderJpaEntity::toDomain);
     }
 
@@ -55,7 +56,7 @@ public class OrderJpaRepository implements OrderRepositoryPort {
     }
 
     public Optional<String> findOrderIdBySubOrderId(Long subOrderId) {
-        return springDataRepository.findOrderIdBySubOrderId(subOrderId);
+        return springDataRepository.findOrderIdBySubOrderId(subOrderId).map(UUID::toString);
     }
 
     public List<Order> findBySellerIdAndFulfillmentStatus(String sellerId, com.vnshop.orderservice.domain.FulfillmentStatus status) {
@@ -108,7 +109,7 @@ public class OrderJpaRepository implements OrderRepositoryPort {
     }
 }
 
-interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEntity, String> {
+interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEntity, UUID> {
     Optional<OrderJpaEntity> findByOrderNumber(String orderNumber);
 
     Optional<OrderJpaEntity> findByIdempotencyKey(String idempotencyKey);
@@ -116,7 +117,7 @@ interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEntity, Str
     List<OrderJpaEntity> findByBuyerId(String buyerId);
 
     @Query("select subOrder.order.id from SubOrderJpaEntity subOrder where subOrder.id = :subOrderId")
-    Optional<String> findOrderIdBySubOrderId(@Param("subOrderId") Long subOrderId);
+    Optional<UUID> findOrderIdBySubOrderId(@Param("subOrderId") Long subOrderId);
 
     @Query("select subOrder.order from SubOrderJpaEntity subOrder where subOrder.id = :subOrderId")
     Optional<OrderJpaEntity> findBySubOrderId(@Param("subOrderId") Long subOrderId);

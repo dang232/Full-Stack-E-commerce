@@ -12,7 +12,7 @@ public class AskQuestionUseCase {
         this.reviewRepositoryPort = Objects.requireNonNull(reviewRepositoryPort, "reviewRepositoryPort is required");
     }
 
-    public ProductQuestion ask(String productId, String buyerId, String question) {
-        return reviewRepositoryPort.saveQuestion(ProductQuestion.asked(productId, buyerId, question));
+    public ProductQuestion ask(AskQuestionCommand command) {
+        return reviewRepositoryPort.saveQuestion(ProductQuestion.asked(command.productId(), command.buyerId(), command.question()));
     }
 }

@@ -6,6 +6,7 @@ import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class CancelOrderUseCase {
     private final OrderRepositoryPort orderRepository;
@@ -22,13 +23,13 @@ public class CancelOrderUseCase {
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
     }
 
-    public Order cancel(String orderId, String buyerId) {
-        requireNonBlank(orderId, "orderId");
-        requireNonBlank(buyerId, "buyerId");
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderId));
-        if (!order.buyerId().equals(buyerId)) {
-            throw new IllegalArgumentException("order does not belong to buyer: " + buyerId);
+    public Order cancel(CancelOrderCommand command) {
+        Objects.requireNonNull(command.id(), "orderId is required");
+        requireNonBlank(command.buyerId(), "buyerId");
+        Order order = orderRepository.findById(command.id())
+                .orElseThrow(() -> new IllegalArgumentException("order not found: " + command.id()));
+        if (!order.buyerId().equals(command.buyerId())) {
+            throw new IllegalArgumentException("order does not belong to buyer: " + command.buyerId());
         }
         order.subOrders().forEach(subOrder -> {
             if (subOrder.fulfillmentStatus().name().equals("PENDING_ACCEPTANCE")
@@ -36,7 +37,7 @@ public class CancelOrderUseCase {
                 subOrder.cancel();
             }
         });
-        inventoryReservationPort.release(order.id());
+        inventoryReservationPort.release(order.id().toString());
         order.markPaymentFailed();
         Order savedOrder = orderRepository.save(order);
         orderEventPublisherPort.publishOrderUpdated(savedOrder);
