@@ -1,9 +1,6 @@
 package com.vnshop.orderservice.infrastructure.admin;
 
 import com.vnshop.orderservice.application.GetDashboardUseCase;
-import com.vnshop.orderservice.domain.DashboardSummary;
-import com.vnshop.orderservice.domain.RevenueTimeSeries;
-import com.vnshop.orderservice.domain.TopItem;
 import com.vnshop.orderservice.infrastructure.web.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,22 +18,22 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/summary")
-    public ApiResponse<DashboardSummary> summary() {
-        return ApiResponse.ok(getDashboardUseCase.summary());
+    public ApiResponse<DashboardSummaryResponse> summary() {
+        return ApiResponse.ok(DashboardSummaryResponse.fromDomain(getDashboardUseCase.summary()));
     }
 
     @GetMapping("/revenue")
-    public ApiResponse<RevenueTimeSeries> revenue() {
-        return ApiResponse.ok(getDashboardUseCase.revenue());
+    public ApiResponse<RevenueTimeSeriesResponse> revenue() {
+        return ApiResponse.ok(RevenueTimeSeriesResponse.fromDomain(getDashboardUseCase.revenue()));
     }
 
     @GetMapping("/top-products")
-    public ApiResponse<List<TopItem>> topProducts() {
-        return ApiResponse.ok(getDashboardUseCase.topProducts());
+    public ApiResponse<List<TopItemResponse>> topProducts() {
+        return ApiResponse.ok(getDashboardUseCase.topProducts().stream().map(TopItemResponse::fromDomain).toList());
     }
 
     @GetMapping("/top-sellers")
-    public ApiResponse<List<TopItem>> topSellers() {
-        return ApiResponse.ok(getDashboardUseCase.topSellers());
+    public ApiResponse<List<TopItemResponse>> topSellers() {
+        return ApiResponse.ok(getDashboardUseCase.topSellers().stream().map(TopItemResponse::fromDomain).toList());
     }
 }

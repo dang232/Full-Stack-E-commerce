@@ -62,6 +62,12 @@ public class SellerOrderController {
             @Valid @RequestBody ShipRequest request
     ) {
         String orderId = listPendingOrdersUseCase.orderIdFromSubOrderId(subOrderId);
-        return ApiResponse.ok(OrderResponse.fromDomain(shipOrderUseCase.ship(UUID.fromString(orderId), JwtPrincipalUtil.currentSellerId(), request.carrier(), request.trackingNumber())));
+        ShipOrderCommand command = new ShipOrderCommand(
+                UUID.fromString(orderId),
+                JwtPrincipalUtil.currentSellerId(),
+                request.carrier(),
+                request.trackingNumber()
+        );
+        return ApiResponse.ok(OrderResponse.fromDomain(shipOrderUseCase.ship(command)));
     }
 }
