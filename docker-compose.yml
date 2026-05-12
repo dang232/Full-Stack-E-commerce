@@ -274,8 +274,9 @@ services:
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: always_on
 
+  # DEPRECATED - migrated to order-service/product-service
   coupon-service:
-    profiles: ["apps"]
+    profiles: ["deprecated"]
     build: ./services/coupon-service
     container_name: vnshop-coupon-service
     ports:
@@ -297,8 +298,9 @@ services:
       KEYCLOAK_ISSUER_URI: http://keycloak:8085/realms/vnshop
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
+  # DEPRECATED - migrated to order-service/product-service
   review-service:
-    profiles: ["apps"]
+    profiles: ["deprecated"]
     build: ./services/review-service
     container_name: vnshop-review-service
     ports:
@@ -320,8 +322,9 @@ services:
       KEYCLOAK_ISSUER_URI: http://keycloak:8085/realms/vnshop
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
+  # DEPRECATED - migrated to order-service/product-service
   seller-finance-service:
-    profiles: ["apps"]
+    profiles: ["deprecated"]
     build: ./services/seller-finance-service
     container_name: vnshop-seller-finance-service
     ports:

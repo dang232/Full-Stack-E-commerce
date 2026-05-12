@@ -78,9 +78,5 @@ resilience4j:
         base-config: default
       notification-service:
         base-config: default
-      coupon-service:
-        base-config: default
-      review-service:
-        base-config: default
-      seller-finance-service:
-        base-config: default
+      # DEPRECATED - standalone coupon/review/seller-finance routes migrated to order-service/product-service.
+      # Rollback: restore matching RouteConfig targets before re-enabling these circuit breakers.
