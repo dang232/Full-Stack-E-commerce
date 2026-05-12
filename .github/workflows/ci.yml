@@ -19,13 +19,13 @@ jobs:
           - product-service
           - inventory-service
           - search-service
-          - cart-service
           - order-service
           - payment-service
           - shipping-service
-          - coupon-service
-          - review-service
-          - seller-finance-service
+        # Deprecated (migrated to order-service / product-service):
+        # - coupon-service
+        # - review-service
+        # - seller-finance-service
     defaults:
       run:
         working-directory: services/${{ matrix.service }}
@@ -115,6 +115,40 @@ jobs:
           path: services/notification-service/coverage
           if-no-files-found: ignore
 
+  cart:
+    name: Cart service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/cart-service
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: services/cart-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload cart coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cart-service-coverage
+          path: services/cart-service/coverage
+          if-no-files-found: ignore
+
   lint-check:
     name: Lint check
     runs-on: ubuntu-latest
@@ -144,6 +178,7 @@ jobs:
     needs:
       - build
       - notification
+      - cart
     if: always()
     steps:
       - name: Download coverage reports
@@ -154,5 +189,5 @@ jobs:
       - name: Summarize coverage artifacts
         run: |
           find coverage-reports -maxdepth 3 -type f | sort
-          echo "Java services enforce 80% instruction coverage through jacoco:check during mvn verify."
-          echo "Notification service enforces 80% global coverage through Jest coverageThreshold."
+          echo "Java services enforce 90% instruction coverage through jacoco:check during mvn verify."
+          echo "Notification and cart services enforce 90% global coverage through Jest coverageThreshold."
