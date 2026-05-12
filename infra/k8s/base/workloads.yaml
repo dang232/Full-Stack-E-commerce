@@ -1679,6 +1679,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vnshop-coupon
+  annotations:
+    vnshop.io/deprecated: "true"
+    vnshop.io/deprecation-note: "DEPRECATED - migrated to order-service/product-service"
   labels:
     app.kubernetes.io/name: vnshop-coupon
     app.kubernetes.io/part-of: vnshop
@@ -1847,6 +1850,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vnshop-review
+  annotations:
+    vnshop.io/deprecated: "true"
+    vnshop.io/deprecation-note: "DEPRECATED - migrated to order-service/product-service"
   labels:
     app.kubernetes.io/name: vnshop-review
     app.kubernetes.io/part-of: vnshop
@@ -2015,6 +2021,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vnshop-seller-finance
+  annotations:
+    vnshop.io/deprecated: "true"
+    vnshop.io/deprecation-note: "DEPRECATED - migrated to order-service/product-service"
   labels:
     app.kubernetes.io/name: vnshop-seller-finance
     app.kubernetes.io/part-of: vnshop

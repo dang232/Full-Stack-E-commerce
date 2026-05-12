@@ -2,7 +2,6 @@ package com.vnshop.orderservice.infrastructure.persistence;
 
 import com.vnshop.orderservice.domain.Invoice;
 import com.vnshop.orderservice.domain.port.out.InvoiceRepositoryPort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -30,8 +29,4 @@ public class InvoiceJpaRepository implements InvoiceRepositoryPort {
     public Optional<Invoice> findBySubOrderId(Long subOrderId) {
         return springDataRepository.findBySubOrderId(subOrderId).map(InvoiceJpaEntity::toDomain);
     }
-}
-
-interface InvoiceJpaSpringDataRepository extends JpaRepository<InvoiceJpaEntity, UUID> {
-    Optional<InvoiceJpaEntity> findBySubOrderId(Long subOrderId);
 }

@@ -1,10 +1,10 @@
 package com.vnshop.reviewservice.infrastructure.web;
 
 import com.vnshop.reviewservice.application.image.ReviewImageActivationRequest;
+import com.vnshop.reviewservice.application.image.ReviewImageActivationResponse;
 import com.vnshop.reviewservice.application.image.ReviewImageUploadRequest;
 import com.vnshop.reviewservice.application.image.ReviewImageUploadResponse;
 import com.vnshop.reviewservice.application.image.ReviewImageUploadService;
-import com.vnshop.reviewservice.domain.storage.ObjectMetadata;
 import com.vnshop.reviewservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class ReviewImageUploadController {
 
     @PostMapping("/activate")
     public ApiResponse<ReviewImageActivatedResponse> activate(@Valid @RequestBody ReviewImageActivateRequest request) {
-        ObjectMetadata metadata = reviewImageUploadService.activate(request.objectKey(), ReviewImageActivationRequest.builder()
+        ReviewImageActivationResponse response = reviewImageUploadService.activate(request.objectKey(), ReviewImageActivationRequest.builder()
                 .detectedContentType(request.detectedContentType())
                 .contentLength(request.contentLength())
                 .sha256Hex(request.sha256Hex())
@@ -49,7 +49,7 @@ public class ReviewImageUploadController {
                 .imageHeight(request.imageHeight())
                 .avScanClean(request.avScanClean())
                 .build());
-        return ApiResponse.ok(ReviewImageActivatedResponse.fromDomain(metadata));
+        return ApiResponse.ok(ReviewImageActivatedResponse.fromApplication(response));
     }
 
 }

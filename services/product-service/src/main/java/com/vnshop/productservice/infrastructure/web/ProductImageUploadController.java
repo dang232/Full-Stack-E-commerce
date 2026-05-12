@@ -1,10 +1,10 @@
 package com.vnshop.productservice.infrastructure.web;
 
 import com.vnshop.productservice.application.image.ProductImageActivationRequest;
+import com.vnshop.productservice.application.image.ProductImageActivationResponse;
 import com.vnshop.productservice.application.image.ProductImageUploadRequest;
 import com.vnshop.productservice.application.image.ProductImageUploadResponse;
 import com.vnshop.productservice.application.image.ProductImageUploadService;
-import com.vnshop.productservice.domain.storage.ObjectMetadata;
 import com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil;
 import com.vnshop.productservice.infrastructure.web.ActivateImageRequest;
 import com.vnshop.productservice.infrastructure.web.ActivatedImageResponse;
@@ -45,7 +45,7 @@ public class ProductImageUploadController {
 
     @PostMapping("/activate")
     public ApiResponse<ActivatedImageResponse> activate(@Valid @RequestBody ActivateImageRequest request) {
-        ObjectMetadata metadata = productImageUploadService.activate(request.objectKey(), ProductImageActivationRequest.builder()
+        ProductImageActivationResponse response = productImageUploadService.activate(request.objectKey(), ProductImageActivationRequest.builder()
                 .detectedContentType(request.detectedContentType())
                 .contentLength(request.contentLength())
                 .sha256Hex(request.sha256Hex())
@@ -53,7 +53,7 @@ public class ProductImageUploadController {
                 .imageHeight(request.imageHeight())
                 .avScanClean(request.avScanClean())
                 .build());
-        return ApiResponse.ok(ActivatedImageResponse.fromDomain(metadata));
+        return ApiResponse.ok(ActivatedImageResponse.fromApplication(response));
     }
 
 }

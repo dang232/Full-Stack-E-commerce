@@ -3,7 +3,6 @@ package com.vnshop.paymentservice.infrastructure.persistence;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -39,10 +38,4 @@ public class PaymentJpaRepository implements PaymentRepositoryPort {
                 .map(PaymentJpaEntity::toDomain)
                 .toList();
     }
-}
-
-interface PaymentJpaSpringDataRepository extends JpaRepository<PaymentJpaEntity, UUID> {
-    Optional<PaymentJpaEntity> findByOrderId(String orderId);
-
-    List<PaymentJpaEntity> findByStatus(PaymentStatus status);
 }

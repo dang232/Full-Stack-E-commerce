@@ -1,9 +1,7 @@
-import { ProductNotFoundException } from '../domain/cart.exceptions';
+import { ProductNotFoundException } from '../domain/product-not-found.exception';
 import { Money } from '../domain/money';
-import {
-  ProductClientPort,
-  ProductSnapshot,
-} from '../application/product-client.port';
+import type { ProductClientPort } from '../application/product-client.port';
+import type { ProductSnapshot } from '../application/product-snapshot';
 
 interface ProductServiceResponse {
   id?: string;

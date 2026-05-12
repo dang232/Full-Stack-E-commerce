@@ -1,4 +1,4 @@
-import { InvalidCartOperationException } from './cart.exceptions';
+import { InvalidCartOperationException } from './invalid-cart-operation.exception';
 import { Money } from './money';
 
 export class CartItem {

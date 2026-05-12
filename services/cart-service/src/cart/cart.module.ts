@@ -3,19 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { AddToCartUseCase } from './application/add-to-cart.use-case';
 import { ClearCartUseCase } from './application/clear-cart.use-case';
-import {
-  ProductClientPort,
-  PRODUCT_CLIENT,
-} from './application/product-client.port';
+import type { ProductClientPort } from './application/product-client.port';
+import { PRODUCT_CLIENT } from './application/product-client.token';
 import { RemoveCartItemUseCase } from './application/remove-cart-item.use-case';
 import { UpdateCartItemUseCase } from './application/update-cart-item.use-case';
 import { ViewCartUseCase } from './application/view-cart.use-case';
-import { CART_REPOSITORY, CartRepository } from './domain/cart.repository';
+import type { CartRepository } from './domain/cart.repository';
+import { CART_REPOSITORY } from './domain/cart-repository.token';
 import { CartController } from './infrastructure/cart.controller';
 import { CartRedisRepository } from './infrastructure/cart.redis-repository';
 import { ProductHttpClientAdapter } from './infrastructure/product-http-client.adapter';
-
-export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
+import { REDIS_CLIENT } from './redis-client.token';
 
 @Module({
   controllers: [CartController],

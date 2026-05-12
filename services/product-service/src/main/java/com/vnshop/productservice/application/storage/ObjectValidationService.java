@@ -24,34 +24,34 @@ public class ObjectValidationService {
     }
 
     private void validateChecksum(ObjectValidationRequest request, List<String> failures) {
-        if (request.getExpectedSha256Hex() == null || !request.getExpectedSha256Hex().equalsIgnoreCase(request.getMetadata().getSha256Hex())) {
+        if (request.expectedSha256Hex() == null || !request.expectedSha256Hex().equalsIgnoreCase(request.metadata().getSha256Hex())) {
             failures.add("checksum_mismatch");
         }
     }
 
     private void validateMimeMagicBytes(ObjectValidationRequest request, List<String> failures) {
-        if (!policy.getAllowedContentTypes().contains(request.getDetectedContentType())) {
+        if (!policy.getAllowedContentTypes().contains(request.detectedContentType())) {
             failures.add("mime_magic_bytes_rejected");
         }
     }
 
     private void validateAvHook(ObjectValidationRequest request, List<String> failures) {
-        if (!request.isAvScanClean()) {
+        if (!request.avScanClean()) {
             failures.add("av_scan_required_or_failed");
         }
     }
 
     private void validateSize(ObjectValidationRequest request, List<String> failures) {
-        if (request.getMetadata().getContentLength() > policy.getMaxBytes()) {
+        if (request.metadata().getContentLength() > policy.getMaxBytes()) {
             failures.add("object_too_large");
         }
     }
 
     private void validateImageDimensions(ObjectValidationRequest request, List<String> failures) {
-        if (policy.getMaxImageWidth() != null && request.getMetadata().getImageWidth() != null && request.getMetadata().getImageWidth() > policy.getMaxImageWidth()) {
+        if (policy.getMaxImageWidth() != null && request.metadata().getImageWidth() != null && request.metadata().getImageWidth() > policy.getMaxImageWidth()) {
             failures.add("image_width_too_large");
         }
-        if (policy.getMaxImageHeight() != null && request.getMetadata().getImageHeight() != null && request.getMetadata().getImageHeight() > policy.getMaxImageHeight()) {
+        if (policy.getMaxImageHeight() != null && request.metadata().getImageHeight() != null && request.metadata().getImageHeight() > policy.getMaxImageHeight()) {
             failures.add("image_height_too_large");
         }
     }

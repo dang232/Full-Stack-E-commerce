@@ -1,13 +1,4 @@
-import { Money } from '../domain/money';
-
-export const PRODUCT_CLIENT = Symbol('PRODUCT_CLIENT');
-
-export interface ProductSnapshot {
-  productId: string;
-  productName: string;
-  productImage: string;
-  unitPrice: Money;
-}
+import type { ProductSnapshot } from './product-snapshot';
 
 export interface ProductClientPort {
   getSnapshot(productId: string): Promise<ProductSnapshot>;

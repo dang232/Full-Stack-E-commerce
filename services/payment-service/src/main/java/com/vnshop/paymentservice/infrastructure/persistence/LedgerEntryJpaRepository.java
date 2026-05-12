@@ -3,7 +3,6 @@ package com.vnshop.paymentservice.infrastructure.persistence;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
-import org.springframework.data.repository.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -42,12 +41,4 @@ public class LedgerEntryJpaRepository implements LedgerRepositoryPort {
                 .map(LedgerEntryJpaEntity::toDomain)
                 .toList();
     }
-}
-
-interface LedgerEntrySpringDataRepository extends Repository<LedgerEntryJpaEntity, Long> {
-    List<LedgerEntryJpaEntity> saveAll(Iterable<LedgerEntryJpaEntity> ledgerEntries);
-
-    List<LedgerEntryJpaEntity> findByOrderId(String orderId);
-
-    List<LedgerEntryJpaEntity> findByJournalId(UUID journalId);
 }

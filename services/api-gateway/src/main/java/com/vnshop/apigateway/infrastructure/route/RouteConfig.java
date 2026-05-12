@@ -14,6 +14,7 @@ public class RouteConfig {
 
     private static final String PRODUCT_SERVICE = "http://localhost:8082";
     private static final String USER_SERVICE = "http://localhost:8081";
+    private static final String ORDER_SERVICE = "http://localhost:8091";
 
     @Bean
     RedisRateLimiter redisRateLimiter() {
@@ -48,7 +49,7 @@ public class RouteConfig {
                 .uri("http://localhost:8084"))
             .route("orders", route -> route.path("/orders/**")
                 .filters(filters -> rateLimited(filters, "order-service", tokenRelay, redisRateLimiter, userKeyResolver))
-                .uri("http://localhost:8091"))
+                .uri(ORDER_SERVICE))
             .route("payment", route -> route.path("/payment/**")
                 .filters(filters -> rateLimited(filters, "payment-service", tokenRelay, redisRateLimiter, userKeyResolver))
                 .uri("http://localhost:8092"))
@@ -59,14 +60,14 @@ public class RouteConfig {
                 .filters(filters -> resilient(filters, "notification-service", tokenRelay))
                 .uri("http://localhost:8087"))
             .route("coupons", route -> route.path("/coupons/**")
-                .filters(filters -> resilient(filters, "coupon-service", tokenRelay))
-                .uri("http://localhost:8088"))
+                .filters(filters -> resilient(filters, "order-service", tokenRelay))
+                .uri(ORDER_SERVICE))
             .route("reviews", route -> route.path("/reviews/**")
-                .filters(filters -> resilient(filters, "review-service", tokenRelay))
-                .uri("http://localhost:8089"))
+                .filters(filters -> resilient(filters, "product-service", tokenRelay))
+                .uri(PRODUCT_SERVICE))
             .route("seller-finance", route -> route.path("/seller-finance/**")
-                .filters(filters -> resilient(filters, "seller-finance-service", tokenRelay))
-                .uri("http://localhost:8090"))
+                .filters(filters -> resilient(filters, "order-service", tokenRelay))
+                .uri(ORDER_SERVICE))
             .route("admin", route -> route.path("/admin/**")
                 .filters(filters -> resilient(filters, "user-service", tokenRelay))
                 .uri(USER_SERVICE))

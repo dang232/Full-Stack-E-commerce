@@ -32,9 +32,9 @@ public class ProductImageUploadService {
     private final ObjectValidationService objectValidationService;
 
     public ProductImageUploadResponse createUpload(ProductImageUploadRequest request) {
-        Product product = productRepositoryPort.findById(UUID.fromString(request.getProductId()))
+        Product product = productRepositoryPort.findById(UUID.fromString(request.productId()))
                 .orElseThrow(() -> new IllegalArgumentException("product not found"));
-        if (!product.sellerId().equals(request.getSellerId())) {
+        if (!product.sellerId().equals(request.sellerId())) {
             throw new IllegalArgumentException("product not found");
         }
 
@@ -58,40 +58,43 @@ public class ProductImageUploadService {
                 .build();
     }
 
-    public ObjectMetadata activate(String objectKey, ProductImageActivationRequest request) {
+    public ProductImageActivationResponse activate(String objectKey, ProductImageActivationRequest request) {
         ObjectMetadata metadata = objectMetadataRepositoryPort.findByKey(objectKey)
                 .orElseThrow(() -> new IllegalArgumentException("object metadata not found"));
         ObjectValidationResult result = objectValidationService.validate(ObjectValidationRequest.builder()
                 .metadata(metadata.toBuilder()
-                        .contentLength(request.getContentLength())
-                        .sha256Hex(request.getSha256Hex())
-                        .imageWidth(request.getImageWidth())
-                        .imageHeight(request.getImageHeight())
+                        .contentLength(request.contentLength())
+                        .sha256Hex(request.sha256Hex())
+                        .imageWidth(request.imageWidth())
+                        .imageHeight(request.imageHeight())
                         .build())
                 .expectedSha256Hex(metadata.getSha256Hex())
-                .detectedContentType(request.getDetectedContentType())
-                .avScanClean(request.isAvScanClean())
+                .detectedContentType(request.detectedContentType())
+                .avScanClean(request.avScanClean())
                 .build());
         ObjectMetadata activated = metadata.toBuilder()
-                .contentLength(request.getContentLength())
-                .sha256Hex(request.getSha256Hex())
-                .imageWidth(request.getImageWidth())
-                .imageHeight(request.getImageHeight())
+                .contentLength(request.contentLength())
+                .sha256Hex(request.sha256Hex())
+                .imageWidth(request.imageWidth())
+                .imageHeight(request.imageHeight())
                 .quarantineState(result.active() ? ObjectQuarantineState.ACTIVE : ObjectQuarantineState.REJECTED)
                 .build();
         objectMetadataRepositoryPort.save(activated);
         if (!result.active()) {
             throw new ProductImageValidationException(result.getFailures());
         }
-        return activated;
+        return new ProductImageActivationResponse(
+                activated.getKey(),
+                activated.getSha256Hex(),
+                activated.getQuarantineState().name());
     }
 
     private ObjectValidationResult validate(ProductImageUploadRequest request, ObjectMetadata metadata) {
         ProductImageValidationFailures failures = new ProductImageValidationFailures();
-        validateExtension(request.getFileName(), failures);
-        validateDeclaredContentType(request.getDeclaredContentType(), failures);
-        validateChecksumShape(request.getSha256Hex(), failures);
-        if (request.getImageWidth() == null || request.getImageHeight() == null) {
+        validateExtension(request.fileName(), failures);
+        validateDeclaredContentType(request.declaredContentType(), failures);
+        validateChecksumShape(request.sha256Hex(), failures);
+        if (request.imageWidth() == null || request.imageHeight() == null) {
             failures.add("image_dimensions_required");
         }
         if (!failures.empty()) {
@@ -99,8 +102,8 @@ public class ProductImageUploadService {
         }
         return objectValidationService.validate(ObjectValidationRequest.builder()
                 .metadata(metadata)
-                .expectedSha256Hex(request.getSha256Hex())
-                .detectedContentType(request.getDetectedContentType())
+                .expectedSha256Hex(request.sha256Hex())
+                .detectedContentType(request.detectedContentType())
                 .avScanClean(true)
                 .build());
     }
@@ -109,18 +112,18 @@ public class ProductImageUploadService {
         return ObjectMetadata.builder()
                 .key(key)
                 .storageClass(ObjectStorageClass.PRODUCT_IMAGE)
-                .contentType(request.getDetectedContentType())
-                .contentLength(request.getContentLength())
-                .sha256Hex(request.getSha256Hex())
+                .contentType(request.detectedContentType())
+                .contentLength(request.contentLength())
+                .sha256Hex(request.sha256Hex())
                 .quarantineState(ObjectQuarantineState.PENDING_VALIDATION)
-                .imageWidth(request.getImageWidth())
-                .imageHeight(request.getImageHeight())
+                .imageWidth(request.imageWidth())
+                .imageHeight(request.imageHeight())
                 .createdAt(Instant.now())
                 .build();
     }
 
     private String objectKey(ProductImageUploadRequest request) {
-        return "products/%s/images/%s.%s".formatted(request.getProductId(), UUID.randomUUID(), extension(request.getFileName()));
+        return "products/%s/images/%s.%s".formatted(request.productId(), UUID.randomUUID(), extension(request.fileName()));
     }
 
     private void validateExtension(String fileName, ProductImageValidationFailures failures) {

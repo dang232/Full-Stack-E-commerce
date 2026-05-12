@@ -147,6 +147,11 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.13</version>
+				<configuration>
+					<excludes>
+						<exclude>**/*Application.class</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -155,7 +160,7 @@
 					</execution>
 					<execution>
 						<id>report</id>
-						<phase>verify</phase>
+						<phase>test</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
@@ -169,12 +174,17 @@
 						<configuration>
 							<rules>
 								<rule>
-									<element>BUNDLE</element>
+									<element>PACKAGE</element>
 									<limits>
 										<limit>
-											<counter>INSTRUCTION</counter>
+											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.80</minimum>
+											<minimum>0.90</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.90</minimum>
 										</limit>
 									</limits>
 								</rule>

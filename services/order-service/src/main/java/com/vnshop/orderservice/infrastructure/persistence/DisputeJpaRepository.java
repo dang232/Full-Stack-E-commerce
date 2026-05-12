@@ -3,7 +3,6 @@ package com.vnshop.orderservice.infrastructure.persistence;
 import com.vnshop.orderservice.domain.Dispute;
 import com.vnshop.orderservice.domain.DisputeStatus;
 import com.vnshop.orderservice.domain.port.out.DisputeRepositoryPort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -32,8 +31,4 @@ public class DisputeJpaRepository implements DisputeRepositoryPort {
     public List<Dispute> findByStatus(String status) {
         return springDataRepository.findByStatus(DisputeStatus.valueOf(status)).stream().map(DisputeJpaEntity::toDomain).toList();
     }
-}
-
-interface DisputeJpaSpringDataRepository extends JpaRepository<DisputeJpaEntity, UUID> {
-    List<DisputeJpaEntity> findByStatus(DisputeStatus status);
 }

@@ -28,7 +28,7 @@ class ObjectValidationServiceTest {
                 .avScanClean(true)
                 .build());
 
-        assertThat(result.getQuarantineState()).isEqualTo(ObjectQuarantineState.ACTIVE);
+        assertThat(result.quarantineState()).isEqualTo(ObjectQuarantineState.ACTIVE);
         assertThat(result.active()).isTrue();
         assertThat(result.getFailures()).isEmpty();
     }
@@ -42,7 +42,7 @@ class ObjectValidationServiceTest {
                 .avScanClean(false)
                 .build());
 
-        assertThat(result.getQuarantineState()).isEqualTo(ObjectQuarantineState.REJECTED);
+        assertThat(result.quarantineState()).isEqualTo(ObjectQuarantineState.REJECTED);
         assertThat(result.getFailures()).containsExactly(
                 "checksum_mismatch",
                 "mime_magic_bytes_rejected",

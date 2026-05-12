@@ -1,8 +1,16 @@
 package com.vnshop.orderservice.infrastructure.idempotency;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProcessedEventRepository extends JpaRepository<ProcessedEvent, String> {
+public class ProcessedEventRepository {
+    private final ProcessedEventSpringDataRepository springDataRepository;
+
+    public ProcessedEventRepository(ProcessedEventSpringDataRepository springDataRepository) {
+        this.springDataRepository = springDataRepository;
+    }
+
+    public ProcessedEvent save(ProcessedEvent event) {
+        return springDataRepository.save(event);
+    }
 }

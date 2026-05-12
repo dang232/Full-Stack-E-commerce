@@ -23,7 +23,16 @@ public class ReserveFlashSaleUseCase {
 		this.clock = clock;
 	}
 
-	public FlashSaleReservation reserve(ReserveFlashSaleCommand command) {
+	public ReserveFlashSaleResult reserve(ReserveFlashSaleCommand command) {
+		FlashSaleReservation reservation = reserveReservation(command);
+		String reservationId = reservation.getReservationId() == null ? null : reservation.getReservationId().toString();
+		return new ReserveFlashSaleResult(
+				reservationId,
+				reservation.getStatus().name(),
+				reservation.getExpiresAt().toString());
+	}
+
+	FlashSaleReservation reserveReservation(ReserveFlashSaleCommand command) {
 		Instant reservedAt = clock.instant();
 		UUID reservationId = UUID.randomUUID();
 		boolean reserved = reservationPort.reserve(command.productId(), command.buyerId(), command.quantity(), reservationId);

@@ -1,9 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiResponse } from './notification/infrastructure/api-response';
 
 @Controller()
 export class AppController {
   @Get('health')
-  health(): { status: string } {
-    return { status: 'ok' };
+  health(): ApiResponse<{ status: string }> {
+    return ApiResponse.ok({ status: 'ok' });
   }
 }

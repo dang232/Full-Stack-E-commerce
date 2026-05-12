@@ -1,6 +1,7 @@
 import { Cart } from '../domain/cart';
 import { CartRepository } from '../domain/cart.repository';
-import { CartResponse, toCartResponse } from './cart.response';
+import { toCartResponse } from './cart-response.mapper';
+import type { CartResponse } from './cart.response';
 
 export class ViewCartUseCase {
   constructor(private readonly cartRepository: CartRepository) {}

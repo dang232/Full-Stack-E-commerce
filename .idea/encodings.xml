@@ -4,6 +4,10 @@
     <file url="file://$PROJECT_DIR$/services/api-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/cart-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/order-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/product-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/review-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/search-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/seller-finance-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/shipping-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/services/user-service/src/main/java" charset="UTF-8" />
   </component>

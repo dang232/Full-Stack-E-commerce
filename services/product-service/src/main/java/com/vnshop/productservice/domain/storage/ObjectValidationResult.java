@@ -10,6 +10,14 @@ public class ObjectValidationResult {
     ObjectQuarantineState quarantineState;
     List<String> failures;
 
+    public ObjectQuarantineState quarantineState() {
+        return quarantineState;
+    }
+
+    public List<String> failures() {
+        return failures;
+    }
+
     public boolean active() {
         return quarantineState == ObjectQuarantineState.ACTIVE;
     }

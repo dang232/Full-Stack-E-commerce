@@ -1,8 +1,6 @@
 import { Cart } from './cart';
-import {
-  CartItemLimitExceededException,
-  CartItemNotFoundException,
-} from './cart.exceptions';
+import { CartItemLimitExceededException } from './cart-item-limit-exceeded.exception';
+import { CartItemNotFoundException } from './cart-item-not-found.exception';
 import { CartItem } from './cart-item';
 import { Money } from './money';
 
