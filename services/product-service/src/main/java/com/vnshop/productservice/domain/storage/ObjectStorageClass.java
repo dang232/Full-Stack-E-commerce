@@ -4,6 +4,7 @@ import java.time.Duration;
 
 public enum ObjectStorageClass {
     PRODUCT_IMAGE(Duration.ofMinutes(15), Duration.ofMinutes(15)),
+    REVIEW_IMAGE(Duration.ofMinutes(15), Duration.ofMinutes(15)),
     SELLER_DOCUMENT(Duration.ofMinutes(15), Duration.ofMinutes(5)),
     INVOICE(Duration.ofMinutes(15), Duration.ofMinutes(5)),
     EXPORT(Duration.ofMinutes(15), Duration.ofMinutes(15));

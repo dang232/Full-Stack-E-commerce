@@ -3,6 +3,8 @@ import { NotificationStatus } from '../domain/notification-status.enum';
 import { NotificationType } from '../domain/notification-type.enum';
 import { NotificationRepository } from '../domain/notification.repository';
 
+export const TEST_NOTIFICATION_TYPE = NotificationType.ORDER_CREATED;
+
 export interface NotificationChannel {
   name: string;
   send(notification: Notification): Promise<void>;

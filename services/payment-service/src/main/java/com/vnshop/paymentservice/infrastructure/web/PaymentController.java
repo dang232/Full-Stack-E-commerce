@@ -1,9 +1,9 @@
 package com.vnshop.paymentservice.infrastructure.web;
 
 import com.vnshop.paymentservice.application.GetPaymentStatusUseCase;
+import com.vnshop.paymentservice.application.PaymentMethodInput;
 import com.vnshop.paymentservice.application.ProcessPaymentCommand;
 import com.vnshop.paymentservice.application.ProcessPaymentUseCase;
-import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoCallbackService;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoIpnRequest;
 import com.vnshop.paymentservice.infrastructure.gateway.VnpayCallbackService;
@@ -37,12 +37,12 @@ public class PaymentController {
 
     @PostMapping("/cod/confirm")
     public ApiResponse<PaymentResponse> confirmCod(@Valid @RequestBody PaymentRequest request) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethod.COD))));
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.COD))));
     }
 
     @PostMapping("/vnpay/create")
     public ApiResponse<PaymentResponse> createVnpay(@Valid @RequestBody PaymentRequest request) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethod.VNPAY))));
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.VNPAY))));
     }
 
     @GetMapping("/vnpay/ipn")
@@ -59,7 +59,7 @@ public class PaymentController {
 
     @PostMapping("/momo/create")
     public ApiResponse<PaymentResponse> createMomo(@Valid @RequestBody PaymentRequest request) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethod.MOMO))));
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.MOMO))));
     }
 
     @PostMapping("/momo/ipn")

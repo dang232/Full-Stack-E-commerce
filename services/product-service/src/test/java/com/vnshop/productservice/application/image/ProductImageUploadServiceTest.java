@@ -40,11 +40,11 @@ class ProductImageUploadServiceTest {
 
         ProductImageUploadResponse response = service.createUpload(validRequest().build());
 
-        assertThat(response.getUploadUrl()).isEqualTo(URI.create("https://storage.test/" + response.getObjectKey()));
-        assertThat(response.getObjectKey()).startsWith("products/00000000-0000-0000-0000-000000000001/images/").endsWith(".png");
-        assertThat(response.getChecksumSha256()).isEqualTo("a".repeat(64));
-        assertThat(response.getQuarantineState()).isEqualTo("PENDING_VALIDATION");
-        ObjectMetadata metadata = metadataRepository.saved.get(response.getObjectKey());
+        assertThat(response.uploadUrl()).isEqualTo(URI.create("https://storage.test/" + response.objectKey()));
+        assertThat(response.objectKey()).startsWith("products/00000000-0000-0000-0000-000000000001/images/").endsWith(".png");
+        assertThat(response.checksumSha256()).isEqualTo("a".repeat(64));
+        assertThat(response.quarantineState()).isEqualTo("PENDING_VALIDATION");
+        ObjectMetadata metadata = metadataRepository.saved.get(response.objectKey());
         assertThat(metadata.getQuarantineState()).isEqualTo(ObjectQuarantineState.PENDING_VALIDATION);
         assertThat(metadata.getSha256Hex()).isEqualTo("a".repeat(64));
         assertThat(metadata.getContentType()).isEqualTo("image/png");

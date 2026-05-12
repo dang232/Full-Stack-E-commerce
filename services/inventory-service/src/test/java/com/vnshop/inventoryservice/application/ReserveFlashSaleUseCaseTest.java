@@ -17,7 +17,7 @@ class ReserveFlashSaleUseCaseTest {
 		var port = new InMemoryFlashSaleReservationPort(true, 5);
 		var useCase = new ReserveFlashSaleUseCase(port);
 
-		FlashSaleReservation reservation = useCase.reserve("product-1", "buyer-1", 2);
+		FlashSaleReservation reservation = useCase.reserveReservation(new ReserveFlashSaleCommand("product-1", "buyer-1", 2));
 
 		assertThat(reservation.getStatus()).isEqualTo(FlashSaleReservation.Status.RESERVED);
 		assertThat(reservation.getProductId()).isEqualTo("product-1");
@@ -32,7 +32,7 @@ class ReserveFlashSaleUseCaseTest {
 		var port = new InMemoryFlashSaleReservationPort(false, 0);
 		var useCase = new ReserveFlashSaleUseCase(port);
 
-		FlashSaleReservation reservation = useCase.reserve("product-1", "buyer-1", 2);
+		FlashSaleReservation reservation = useCase.reserveReservation(new ReserveFlashSaleCommand("product-1", "buyer-1", 2));
 
 		assertThat(reservation.getStatus()).isEqualTo(FlashSaleReservation.Status.REJECTED);
 		assertThat(reservation.getReservationId()).isNull();

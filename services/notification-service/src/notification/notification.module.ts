@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { FindNotificationByIdUseCase } from './application/find-notification-by-id.use-case';
+import { FindUserNotificationsUseCase } from './application/find-user-notifications.use-case';
 import { KafkaNotificationConsumer } from './application/kafka-notification.consumer';
 import { NotificationChannel, SendNotificationUseCase } from './application/send-notification.use-case';
 import { NOTIFICATION_REPOSITORY, NotificationRepository } from './domain/notification.repository';
@@ -28,6 +30,18 @@ export const NOTIFICATION_CHANNELS = Symbol('NOTIFICATION_CHANNELS');
     {
       provide: NOTIFICATION_REPOSITORY,
       useClass: NotificationTypeOrmRepository,
+    },
+    {
+      provide: FindUserNotificationsUseCase,
+      useFactory: (repository: NotificationRepository): FindUserNotificationsUseCase =>
+        new FindUserNotificationsUseCase(repository),
+      inject: [NOTIFICATION_REPOSITORY],
+    },
+    {
+      provide: FindNotificationByIdUseCase,
+      useFactory: (repository: NotificationRepository): FindNotificationByIdUseCase =>
+        new FindNotificationByIdUseCase(repository),
+      inject: [NOTIFICATION_REPOSITORY],
     },
     {
       provide: SendNotificationUseCase,

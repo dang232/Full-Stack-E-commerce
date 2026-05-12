@@ -4,7 +4,6 @@ import com.vnshop.reviewservice.domain.ProductQuestion;
 import com.vnshop.reviewservice.domain.Review;
 import com.vnshop.reviewservice.domain.ReviewStatus;
 import com.vnshop.reviewservice.domain.port.out.ReviewRepositoryPort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -68,16 +67,4 @@ public class ReviewJpaRepository implements ReviewRepositoryPort {
     public Optional<ProductQuestion> findQuestionById(UUID questionId) {
         return questionRepository.findById(questionId).map(QuestionJpaEntity::toDomain);
     }
-}
-
-interface ReviewJpaSpringDataRepository extends JpaRepository<ReviewJpaEntity, UUID> {
-    List<ReviewJpaEntity> findByProductId(String productId);
-
-    List<ReviewJpaEntity> findByBuyerId(String buyerId);
-
-    List<ReviewJpaEntity> findByStatus(ReviewStatus status);
-}
-
-interface QuestionJpaSpringDataRepository extends JpaRepository<QuestionJpaEntity, UUID> {
-    List<QuestionJpaEntity> findByProductId(String productId);
 }

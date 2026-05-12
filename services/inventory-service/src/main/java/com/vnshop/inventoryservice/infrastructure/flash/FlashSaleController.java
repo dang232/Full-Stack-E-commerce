@@ -1,8 +1,8 @@
 package com.vnshop.inventoryservice.infrastructure.flash;
 
 import com.vnshop.inventoryservice.application.ReserveFlashSaleCommand;
+import com.vnshop.inventoryservice.application.ReserveFlashSaleResult;
 import com.vnshop.inventoryservice.application.ReserveFlashSaleUseCase;
-import com.vnshop.inventoryservice.domain.FlashSaleReservation;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,13 +23,12 @@ public class FlashSaleController {
 
 	@PostMapping("/reserve")
 	public ApiResponse<ReserveFlashSaleResponse> reserve(@Valid @RequestBody ReserveFlashSaleRequest request) {
-		FlashSaleReservation reservation = reserveFlashSaleUseCase.reserve(
+		ReserveFlashSaleResult result = reserveFlashSaleUseCase.reserve(
 				new ReserveFlashSaleCommand(request.productId(), request.buyerId(), request.quantity()));
-		String reservationId = reservation.getReservationId() == null ? null : reservation.getReservationId().toString();
 		return ApiResponse.ok(new ReserveFlashSaleResponse(
-				reservationId,
-				reservation.getStatus().name(),
-				reservation.getExpiresAt().toString()));
+				result.reservationId(),
+				result.status(),
+				result.expiresAt()));
 	}
 
 	@GetMapping("/stock/{productId}")

@@ -27,6 +27,12 @@ spring:
 vnshop:
   idempotency:
     ttl: 24h
+  commission:
+    tiers:
+      STANDARD: "0.10"
+      VERIFIED: "0.08"
+      PREFERRED: "0.05"
+      MALL: "0.03"
 
 springdoc:
   api-docs:

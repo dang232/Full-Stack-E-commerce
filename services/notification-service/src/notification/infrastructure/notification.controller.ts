@@ -1,15 +1,14 @@
-import { BadRequestException, Controller, Get, Headers, Inject, NotFoundException, Param, Post, Query } from '@nestjs/common';
-import { SendNotificationUseCase } from '../application/send-notification.use-case';
-import { NotificationType } from '../domain/notification-type.enum';
-import { NOTIFICATION_REPOSITORY } from '../domain/notification.repository';
-import type { NotificationRepository } from '../domain/notification.repository';
+import { BadRequestException, Controller, Get, Headers, NotFoundException, Param, Post, Query } from '@nestjs/common';
+import { FindNotificationByIdUseCase } from '../application/find-notification-by-id.use-case';
+import { FindUserNotificationsUseCase } from '../application/find-user-notifications.use-case';
+import { SendNotificationUseCase, TEST_NOTIFICATION_TYPE } from '../application/send-notification.use-case';
 import { ApiResponse } from './api-response';
 
 @Controller('notifications')
 export class NotificationController {
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY)
-    private readonly repository: NotificationRepository,
+    private readonly findUserNotificationsUseCase: FindUserNotificationsUseCase,
+    private readonly findNotificationByIdUseCase: FindNotificationByIdUseCase,
     private readonly sendNotificationUseCase: SendNotificationUseCase,
   ) {}
 
@@ -24,12 +23,12 @@ export class NotificationController {
       throw new BadRequestException('userId query param or x-user-id header is required');
     }
 
-    return ApiResponse.ok(await this.repository.findByUserId(userId));
+    return ApiResponse.ok(await this.findUserNotificationsUseCase.execute(userId));
   }
 
   @Get(':id')
   async findById(@Param('id') id: string) {
-    const notification = await this.repository.findById(id);
+    const notification = await this.findNotificationByIdUseCase.execute(id);
 
     if (!notification) {
       throw new NotFoundException('Notification not found');
@@ -50,7 +49,7 @@ export class NotificationController {
     }
 
     return ApiResponse.ok(await this.sendNotificationUseCase.send({
-      type: NotificationType.ORDER_CREATED,
+      type: TEST_NOTIFICATION_TYPE,
       userId,
       title: 'Test notification',
       body: 'This is a test notification.',

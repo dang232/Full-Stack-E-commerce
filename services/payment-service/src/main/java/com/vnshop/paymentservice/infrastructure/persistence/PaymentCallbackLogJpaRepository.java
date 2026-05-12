@@ -2,7 +2,6 @@ package com.vnshop.paymentservice.infrastructure.persistence;
 
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackAttempt;
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackLogStore;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,10 +29,4 @@ public class PaymentCallbackLogJpaRepository implements PaymentCallbackLogStore 
     public PaymentCallbackAttempt save(PaymentCallbackAttempt attempt) {
         return springDataRepository.save(PaymentCallbackLogJpaEntity.fromAttempt(attempt)).toAttempt();
     }
-}
-
-interface PaymentCallbackLogSpringDataRepository extends JpaRepository<PaymentCallbackLogJpaEntity, String> {
-    Optional<PaymentCallbackLogJpaEntity> findFirstByProviderAndEventIdAndSignatureHashAndProcessingStatusIn(String provider, String eventId, String signatureHash, List<String> processingStatuses);
-
-    Optional<PaymentCallbackLogJpaEntity> findFirstByProviderAndPayloadHashAndSignatureHashAndProcessingStatusIn(String provider, String payloadHash, String signatureHash, List<String> processingStatuses);
 }

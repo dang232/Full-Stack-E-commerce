@@ -21,7 +21,7 @@ public class UpdateProductUseCase {
         this.productEventPublisherPort = Objects.requireNonNull(productEventPublisherPort, "productEventPublisherPort is required");
     }
 
-    public Product update(
+    public ProductResponse update(
             String sellerId,
             UUID productId,
             String name,
@@ -52,6 +52,6 @@ public class UpdateProductUseCase {
                 null,
                 Map.of("sellerId", saved.sellerId(), "status", saved.status().name())
         ));
-        return saved;
+        return ProductResponse.fromDomain(saved);
     }
 }

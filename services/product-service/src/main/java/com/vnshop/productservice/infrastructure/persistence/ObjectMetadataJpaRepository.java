@@ -4,7 +4,6 @@ import com.vnshop.productservice.domain.port.out.ObjectMetadataRepositoryPort;
 import com.vnshop.productservice.domain.storage.ObjectMetadata;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -20,8 +19,5 @@ public class ObjectMetadataJpaRepository implements ObjectMetadataRepositoryPort
     @Override
     public Optional<ObjectMetadata> findByKey(String key) {
         return repository.findById(key).map(ObjectMetadataJpaEntity::toDomain);
-    }
-
-    interface ObjectMetadataJpaSpringDataRepository extends JpaRepository<ObjectMetadataJpaEntity, String> {
     }
 }

@@ -7,6 +7,8 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="api-gateway" />
+        <module name="seller-finance-service" />
+        <module name="search-service" />
       </profile>
       <profile name="Annotation profile for OrderService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -14,10 +16,30 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
         </processorPath>
         <module name="order-service" />
         <module name="user-service" />
         <module name="shipping-service" />
+      </profile>
+      <profile name="Annotation profile for ProductService" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+        </processorPath>
+        <module name="review-service" />
+      </profile>
+      <profile name="Annotation profile for product-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+        </processorPath>
+        <module name="product-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -29,6 +51,10 @@
       <module name="api-gateway" options="-parameters" />
       <module name="cart-service" options="-parameters" />
       <module name="order-service" options="-parameters" />
+      <module name="product-service" options="-parameters" />
+      <module name="review-service" options="-parameters" />
+      <module name="search-service" options="-parameters" />
+      <module name="seller-finance-service" options="-parameters" />
       <module name="shipping-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>

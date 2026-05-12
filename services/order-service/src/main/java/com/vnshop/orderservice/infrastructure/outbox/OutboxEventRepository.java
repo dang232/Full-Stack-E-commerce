@@ -2,8 +2,21 @@ package com.vnshop.orderservice.infrastructure.outbox;
 
 import java.util.List;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface OutboxEventRepository extends JpaRepository<OutboxEventJpaEntity, Long> {
-    List<OutboxEventJpaEntity> findByStatusOrderByCreatedAt(OutboxEvent.Status status, Pageable pageable);
+@Repository
+public class OutboxEventRepository {
+    private final OutboxEventSpringDataRepository springDataRepository;
+
+    public OutboxEventRepository(OutboxEventSpringDataRepository springDataRepository) {
+        this.springDataRepository = springDataRepository;
+    }
+
+    public OutboxEventJpaEntity save(OutboxEventJpaEntity event) {
+        return springDataRepository.save(event);
+    }
+
+    public List<OutboxEventJpaEntity> findByStatusOrderByCreatedAt(OutboxEvent.Status status, Pageable pageable) {
+        return springDataRepository.findByStatusOrderByCreatedAt(status, pageable);
+    }
 }

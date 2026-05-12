@@ -22,12 +22,20 @@ public class ProcessPaymentUseCase {
     }
 
     public Payment process(ProcessPaymentCommand command) {
-        Payment pendingPayment = Payment.pending(command.orderId(), command.buyerId(), command.amount(), command.method());
+        Payment pendingPayment = Payment.pending(command.orderId(), command.buyerId(), command.amount(), toDomain(command.method()));
         PaymentGatewayPort.GatewayPaymentResult result = paymentGatewayPort.processPayment(pendingPayment);
         Payment savedPayment = paymentRepositoryPort.save(pendingPayment.withResult(result.status(), result.transactionRef()));
         if (savedPayment.status() == PaymentStatus.COMPLETED) {
             ledgerService.recordPayment(savedPayment);
         }
         return savedPayment;
+    }
+
+    private PaymentMethod toDomain(PaymentMethodInput method) {
+        return switch (method) {
+            case COD -> PaymentMethod.COD;
+            case VNPAY -> PaymentMethod.VNPAY;
+            case MOMO -> PaymentMethod.MOMO;
+        };
     }
 }

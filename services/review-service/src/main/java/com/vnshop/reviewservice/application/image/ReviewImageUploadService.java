@@ -54,7 +54,7 @@ public class ReviewImageUploadService {
                 .build();
     }
 
-    public ObjectMetadata activate(String objectKey, ReviewImageActivationRequest request) {
+    public ReviewImageActivationResponse activate(String objectKey, ReviewImageActivationRequest request) {
         ObjectMetadata metadata = objectMetadataRepositoryPort.findByKey(objectKey)
                 .orElseThrow(() -> new IllegalArgumentException("object metadata not found"));
         ObjectValidationResult result = objectValidationService.validate(ObjectValidationRequest.builder()
@@ -79,7 +79,10 @@ public class ReviewImageUploadService {
         if (!result.active()) {
             throw new ReviewImageValidationException(result.getFailures());
         }
-        return activated;
+        return new ReviewImageActivationResponse(
+                activated.getKey(),
+                activated.getQuarantineState().name(),
+                activated.getSha256Hex());
     }
 
     private ObjectValidationResult validate(ReviewImageUploadRequest request, ObjectMetadata metadata) {

@@ -6,7 +6,7 @@ import java.net.URI;
 public record UploadUrlResponse(String objectKey, URI uploadUrl, String checksumSha256, String quarantineState,
         long expiresInSeconds) {
     static UploadUrlResponse fromApplication(ProductImageUploadResponse response) {
-        return new UploadUrlResponse(response.getObjectKey(), response.getUploadUrl(), response.getChecksumSha256(),
-                response.getQuarantineState(), response.getExpiresInSeconds());
+        return new UploadUrlResponse(response.objectKey(), response.uploadUrl(), response.checksumSha256(),
+                response.quarantineState(), response.expiresInSeconds());
     }
 }

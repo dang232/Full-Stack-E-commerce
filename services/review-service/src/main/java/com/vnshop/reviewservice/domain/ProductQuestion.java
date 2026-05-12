@@ -1,9 +1,13 @@
 package com.vnshop.reviewservice.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
-
+@Getter
+@Setter
 public class ProductQuestion {
     private final UUID questionId;
     private final String productId;

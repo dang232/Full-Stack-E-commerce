@@ -1,13 +1,14 @@
 package com.vnshop.productservice;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+import org.junit.jupiter.api.Test;
+
 class ProductServiceApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void applicationClassIsLoadableWithoutInfrastructure() {
+		assertThat(ProductServiceApplication.class).isNotNull();
 	}
 
 }

@@ -2,8 +2,6 @@ package com.vnshop.paymentservice.infrastructure.persistence;
 
 import com.vnshop.paymentservice.domain.ReconciliationIssue;
 import com.vnshop.paymentservice.domain.port.out.ReconciliationIssueRepositoryPort;
-import org.springframework.data.repository.Repository;
-
 @org.springframework.stereotype.Repository
 public class ReconciliationIssueJpaRepository implements ReconciliationIssueRepositoryPort {
     private final ReconciliationIssueSpringDataRepository springDataRepository;
@@ -16,8 +14,4 @@ public class ReconciliationIssueJpaRepository implements ReconciliationIssueRepo
     public ReconciliationIssue save(ReconciliationIssue issue) {
         return springDataRepository.save(ReconciliationIssueJpaEntity.fromDomain(issue)).toDomain();
     }
-}
-
-interface ReconciliationIssueSpringDataRepository extends Repository<ReconciliationIssueJpaEntity, Long> {
-    ReconciliationIssueJpaEntity save(ReconciliationIssueJpaEntity issue);
 }

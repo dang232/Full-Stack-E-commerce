@@ -28,4 +28,9 @@ public record Money(BigDecimal amount, String currency) {
         Objects.requireNonNull(other, "other is required");
         return new Money(amount.add(other.amount), currency);
     }
+
+    public Money subtract(Money other) {
+        Objects.requireNonNull(other, "other is required");
+        return new Money(amount.subtract(other.amount), currency);
+    }
 }

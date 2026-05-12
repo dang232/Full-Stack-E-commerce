@@ -3,10 +3,6 @@ package com.vnshop.orderservice.infrastructure.persistence;
 import com.vnshop.orderservice.domain.Order;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -107,56 +103,4 @@ public class OrderJpaRepository implements OrderRepositoryPort {
             this(id, name, BigDecimal.valueOf(value.longValue()));
         }
     }
-}
-
-interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEntity, UUID> {
-    Optional<OrderJpaEntity> findByOrderNumber(String orderNumber);
-
-    Optional<OrderJpaEntity> findByIdempotencyKey(String idempotencyKey);
-
-    List<OrderJpaEntity> findByBuyerId(String buyerId);
-
-    @Query("select subOrder.order.id from SubOrderJpaEntity subOrder where subOrder.id = :subOrderId")
-    Optional<UUID> findOrderIdBySubOrderId(@Param("subOrderId") Long subOrderId);
-
-    @Query("select subOrder.order from SubOrderJpaEntity subOrder where subOrder.id = :subOrderId")
-    Optional<OrderJpaEntity> findBySubOrderId(@Param("subOrderId") Long subOrderId);
-
-    @Query("select distinct subOrder.order from SubOrderJpaEntity subOrder where subOrder.sellerId = :sellerId and subOrder.fulfillmentStatus = :status")
-    List<OrderJpaEntity> findBySellerIdAndFulfillmentStatus(
-            @Param("sellerId") String sellerId,
-            @Param("status") com.vnshop.orderservice.domain.FulfillmentStatus status
-    );
-
-    long countByCreatedAtBetween(Instant startInclusive, Instant endInclusive);
-
-    @Query("select coalesce(sum(order.finalAmount.amount), 0) from OrderJpaEntity order where order.createdAt between :startInclusive and :endInclusive")
-    BigDecimal sumRevenueByCreatedAtBetween(
-            @Param("startInclusive") Instant startInclusive,
-            @Param("endInclusive") Instant endInclusive
-    );
-
-    @Query("select count(distinct order.buyerId) from OrderJpaEntity order where order.createdAt between :startInclusive and :endInclusive")
-    long countDistinctBuyerIdByCreatedAtBetween(
-            @Param("startInclusive") Instant startInclusive,
-            @Param("endInclusive") Instant endInclusive
-    );
-
-    @Query("select count(distinct subOrder.sellerId) from SubOrderJpaEntity subOrder where subOrder.order.createdAt between :startInclusive and :endInclusive")
-    long countDistinctSellerIdByCreatedAtBetween(
-            @Param("startInclusive") Instant startInclusive,
-            @Param("endInclusive") Instant endInclusive
-    );
-
-    @Query("select new com.vnshop.orderservice.infrastructure.persistence.OrderJpaRepository$RevenueByDate(cast(order.createdAt as LocalDate), coalesce(sum(order.finalAmount.amount), 0)) from OrderJpaEntity order where order.createdAt between :startInclusive and :endInclusive group by cast(order.createdAt as LocalDate) order by cast(order.createdAt as LocalDate)")
-    List<OrderJpaRepository.RevenueByDate> revenueByDateBetween(
-            @Param("startInclusive") Instant startInclusive,
-            @Param("endInclusive") Instant endInclusive
-    );
-
-    @Query("select new com.vnshop.orderservice.infrastructure.persistence.OrderJpaRepository$TopMetric(item.productId, min(item.name), sum(item.quantity)) from OrderItemJpaEntity item group by item.productId order by sum(item.quantity) desc")
-    List<OrderJpaRepository.TopMetric> topProducts(Pageable pageable);
-
-    @Query("select new com.vnshop.orderservice.infrastructure.persistence.OrderJpaRepository$TopMetric(subOrder.sellerId, subOrder.sellerId, coalesce(sum(subOrder.order.finalAmount.amount), 0)) from SubOrderJpaEntity subOrder group by subOrder.sellerId order by coalesce(sum(subOrder.order.finalAmount.amount), 0) desc")
-    List<OrderJpaRepository.TopMetric> topSellers(Pageable pageable);
 }
