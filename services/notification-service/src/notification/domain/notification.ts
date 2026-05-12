@@ -37,7 +37,9 @@ export class Notification {
     this.createdAt = properties.createdAt;
   }
 
-  static create(properties: Omit<NotificationProperties, 'id' | 'status' | 'createdAt'>): Notification {
+  static create(
+    properties: Omit<NotificationProperties, 'id' | 'status' | 'createdAt'>,
+  ): Notification {
     return new Notification({
       ...properties,
       id: randomUUID(),

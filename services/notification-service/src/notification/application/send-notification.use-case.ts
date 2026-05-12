@@ -32,7 +32,8 @@ export class SendNotificationUseCase {
       title: input.title,
       body: input.body,
       data: input.data ?? {},
-      channels: input.channels ?? this.channelAdapters.map((channel) => channel.name),
+      channels:
+        input.channels ?? this.channelAdapters.map((channel) => channel.name),
     });
 
     const savedNotification = await this.repository.save(notification);

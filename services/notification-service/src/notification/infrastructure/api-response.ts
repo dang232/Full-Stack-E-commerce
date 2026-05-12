@@ -8,7 +8,8 @@ export class ApiResponse<T> {
   static ok<T>(data: T): ApiResponse<T>;
   static ok<T>(message: string, data: T): ApiResponse<T>;
   static ok<T>(messageOrData: string | T, maybeData?: T): ApiResponse<T> {
-    const hasMessage = typeof messageOrData === 'string' && arguments.length === 2;
+    const hasMessage =
+      typeof messageOrData === 'string' && arguments.length === 2;
     return {
       success: true,
       message: hasMessage ? messageOrData : 'Success',
@@ -19,6 +20,12 @@ export class ApiResponse<T> {
   }
 
   static error(message: string, errorCode: string): ApiResponse<null> {
-    return { success: false, message, data: null, errorCode, timestamp: new Date().toISOString() };
+    return {
+      success: false,
+      message,
+      data: null,
+      errorCode,
+      timestamp: new Date().toISOString(),
+    };
   }
 }

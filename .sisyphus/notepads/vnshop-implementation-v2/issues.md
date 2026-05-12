@@ -58,3 +58,7 @@
 - REJECT: coverage boundary violated. Product service JaCoCo check has <skip>true</skip>; user/order/product POMs exclude **/*Application.class, which violates no bootstrap/generated coverage exclusions.
 - Evidence dir exists with task-F4-scope.txt, but existing F4 evidence says PASS and conflicts with current audit findings.
 - rg unavailable in PowerShell environment; used glob/grep/git diff fallbacks.
+
+- 2026-05-12: Notification CI coverage now uses Jest package coverageThreshold instead of inline JSON CLI args, but 
+pm run test:cov fails because services/notification-service has no src/*.spec.ts files; only test/app.e2e-spec.ts exists under e2e config.
+- 2026-05-12: ESLint require-await in mock specs: use functions returning Promise.resolve(value) instead of async functions. ESLint unsafe-any on typed mocks: use Pick<T, "method"> interfaces or explicit return types. Prettier formatting in spec/TS: run npx prettier --write after edits. Void unused params in channel adapters with void notification plus awaited Promise.resolve().

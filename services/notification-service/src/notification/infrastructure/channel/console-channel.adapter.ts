@@ -8,6 +8,9 @@ export class ConsoleChannelAdapter implements NotificationChannel {
   private readonly logger = new Logger(ConsoleChannelAdapter.name);
 
   async send(notification: Notification): Promise<void> {
-    this.logger.log(`${notification.type} notification for ${notification.userId}: ${notification.title}`);
+    this.logger.log(
+      `${notification.type} notification for ${notification.userId}: ${notification.title}`,
+    );
+    await Promise.resolve();
   }
 }
