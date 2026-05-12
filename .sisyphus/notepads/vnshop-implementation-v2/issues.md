@@ -53,3 +53,8 @@
 ## 2026-05-10T23:40+07:00 - F3 QA blockers
 - Docker/gateway runtime unavailable, so seller->buyer->fulfillment curl scenarios could not run.
 - Maven tests failing in no-infra environment: user-service, inventory-service, search-service, order-service, coupon-service, seller-finance-service context/infrastructure errors; product-service test compilation/API drift errors.
+
+## 2026-05-12 F4 scope fidelity audit
+- REJECT: coverage boundary violated. Product service JaCoCo check has <skip>true</skip>; user/order/product POMs exclude **/*Application.class, which violates no bootstrap/generated coverage exclusions.
+- Evidence dir exists with task-F4-scope.txt, but existing F4 evidence says PASS and conflicts with current audit findings.
+- rg unavailable in PowerShell environment; used glob/grep/git diff fallbacks.
