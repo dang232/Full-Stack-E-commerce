@@ -21,7 +21,7 @@ services:
     environment:
       POSTGRES_DB: vnshop
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
     ports:
       - "5532:5432"
     volumes:
@@ -89,12 +89,12 @@ services:
     cpus: 0.50
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/vnshop
       KC_DB_SCHEMA: keycloak
       KC_DB_USERNAME: vnshop
-      KC_DB_PASSWORD: vnshop123
+      KC_DB_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       STAGING: "true"
     ports:
       - "8185:8080"
@@ -163,7 +163,7 @@ services:
       SERVER_PORT: 8081
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=user_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -186,7 +186,7 @@ services:
       SERVER_PORT: 8082
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=product_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -209,7 +209,7 @@ services:
       SERVER_PORT: 8083
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=inventory_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -247,7 +247,7 @@ services:
       SERVER_PORT: 8086
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=search_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -267,7 +267,7 @@ services:
         condition: service_healthy
     environment:
       <<: *staging-env
-      DATABASE_URL: postgresql://vnshop:vnshop123@postgres:5432/vnshop?currentSchema=notification_svc
+      DATABASE_URL: postgresql://vnshop:${DATASOURCE_PASSWORD:-vnshop123}@postgres:5432/vnshop?currentSchema=notification_svc
       PORT: 8087
 
   coupon-service:
@@ -288,7 +288,7 @@ services:
       SERVER_PORT: 8088
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=coupon_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -311,7 +311,7 @@ services:
       SERVER_PORT: 8089
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=review_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -334,7 +334,7 @@ services:
       SERVER_PORT: 8090
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=seller_finance_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -357,7 +357,7 @@ services:
       SERVER_PORT: 8091
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=order_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -380,7 +380,7 @@ services:
       SERVER_PORT: 8092
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=payment_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
@@ -403,7 +403,7 @@ services:
       SERVER_PORT: 8093
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=shipping_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD:-vnshop123}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
