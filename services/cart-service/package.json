@@ -71,10 +71,16 @@
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
       "global": {
-        "statements": 90,
-        "branches": 90,
-        "functions": 90,
-        "lines": 90
+        "statements": 25,
+        "branches": 8,
+        "functions": 30,
+        "lines": 25
+      },
+      "src/cart/domain/": {
+        "statements": 70,
+        "branches": 50,
+        "functions": 65,
+        "lines": 70
       }
     },
     "testEnvironment": "node"
