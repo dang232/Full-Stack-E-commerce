@@ -60,6 +60,108 @@ VNShop is a portfolio backend for a Vietnamese multi-seller marketplace inspired
            +---------------+    +---------------+    +---------------+
 ```
 
+## Project Status
+
+Fast read. Details live in [`.sisyphus/STATUS.md`](.sisyphus/STATUS.md).
+
+### Completed Work
+
+Architecture alignment from current status and recent commits:
+
+- Coupon ownership moved from standalone `coupon-service` to `order-service`.
+- Review and question ownership moved from standalone `review-service` to `product-service`.
+- Seller finance ownership moved from standalone `seller-finance-service` to `order-service` and `user-service`.
+- Deprecated services are removed from the runtime app profile and gateway routes.
+
+Infrastructure and quality work now in place:
+
+- `cart-service` has a Dockerfile and health endpoint.
+- CI matrix no longer treats deprecated services as active app jobs.
+- Coverage gates are configured for changed services: JaCoCo for Java services and Jest for cart.
+- Java DTOs touched by the migration use `record` style.
+
+Documentation now in place:
+
+- [`.sisyphus/STATUS.md`](.sisyphus/STATUS.md) tracks service health, feature coverage, non-functional coverage, blocked items, and roadmap.
+- Deprecated standalone services include deprecation notes with rollback context.
+
+### Remaining Work
+
+This list summarizes the high-signal gaps. Use [`.sisyphus/STATUS.md`](.sisyphus/STATUS.md) for the full feature matrix and audit detail.
+
+- Search and payment runtime ownership needs a final decision. Analysis docs describe Search as NestJS, while the current implementation and service table still show Java services.
+- Deprecated service deletion still needs explicit approval. Runtime routing has moved, but source trees remain for safety.
+- Data migration scripts are not implemented. Before deleting deprecated services, existing coupon, review, and finance data needs a planned move into owning services.
+- System rollback procedures are not fully documented. Per-service rollback notes exist, but there is no end to end route, data, and deployment runbook.
+- Several feature and NFR gaps remain open in the status audit, including guest cart, return/refund, carrier tracking, admin dashboards, multilingual support, and broader coverage gates.
+
+### Phase View
+
+```mermaid
+timeline
+  title VNShop delivery phases
+  section Wave 1 Architecture Alignment
+    Coupon to Order Service : done
+    Review to Product Service : done
+    Finance to Order and User Services : done
+    Cart Dockerfile and health endpoint : done
+  section Wave 2 Parity and Data
+    Contract parity checks : todo
+    Data migration scripts : todo
+    Deprecated service deletion approval : todo
+  section Wave 3 Runtime Verification
+    Full Docker Compose QA : todo
+    Context tests with PostgreSQL running : todo
+    More service coverage gates : todo
+  section Wave 4 Product Completion
+    Missing FR items from status audit : todo
+    Missing NFR items from status audit : todo
+    Operations runbooks : todo
+  section Final Verification
+    End to end buyer, seller, and admin flows : todo
+    README and status freeze : todo
+```
+
+### Service Ownership
+
+```mermaid
+flowchart TB
+  GW[api-gateway]
+  KC[Keycloak]
+
+  U[user-service]
+  P[product-service]
+  O[order-service]
+  I[inventory-service]
+  C[cart-service]
+
+  S[search-service]
+  N[notification-service]
+  PAY[payment-service]
+  SHIP[shipping-service]
+
+  GW --> KC
+  GW --> U
+  GW --> P
+  GW --> O
+  GW --> I
+  GW --> C
+  GW --> S
+  GW --> N
+  GW --> PAY
+  GW --> SHIP
+
+  U --> SellerProfile[Seller profile and user-side finance data]
+  P --> Catalog[Catalog, variants, reviews, questions]
+  O --> Commerce[Orders, checkout, coupons, commissions, payouts]
+  I --> Stock[Stock and reservations]
+  C --> Cart[Redis cart snapshots]
+  S --> Search[Search index and exports]
+  N --> Notify[Email, SMS, push, in-app]
+  PAY --> Payments[Payment intents and reconciliation]
+  SHIP --> Shipping[Shipment creation and tracking]
+```
+
 ### Service-to-Port Table
 
 | Service | Port | Runtime profile | Notes |
@@ -247,11 +349,7 @@ infra/                  # K8s, Prometheus, Alertmanager, etc.
 
 ## Status
 
-See [`.sisyphus/STATUS.md`](.sisyphus/STATUS.md) for current project status.
-
-As of 2026-05-12, the requirements audit reports 119 tracked features with 71% total feature coverage. Architecture alignment is active: coupon, review, and seller-finance contexts were folded into their owning services, DTOs were standardized as Java records, JPA adapter conventions were enforced, and coverage gates were configured for the main Java services plus cart-service.
-
-Known gaps called out by the status doc include product variants, guest cart, return/refund flow, real carrier tracking, admin dashboard, product image gallery, multilingual support, and digital invoice support.
+Use [Project Status](#project-status) for the README summary. Use [`.sisyphus/STATUS.md`](.sisyphus/STATUS.md) for the detailed service health table, feature matrix, non-functional audit, blocked items, and roadmap.
 
 ## How to Contribute
 
