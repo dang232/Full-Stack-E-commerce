@@ -2,14 +2,10 @@ import { Cart } from '../domain/cart';
 import { CartItem } from '../domain/cart-item';
 import { CartExpirationPolicy } from '../domain/cart-expiration-policy';
 import { CartRepository } from '../domain/cart.repository';
-import { ProductClientPort } from './product-client.port';
-import { CartResponse, toCartResponse } from './cart.response';
-
-export interface AddToCartCommand {
-  userId: string;
-  productId: string;
-  quantity: number;
-}
+import type { AddToCartCommand } from './add-to-cart.command';
+import type { ProductClientPort } from './product-client.port';
+import { toCartResponse } from './cart-response.mapper';
+import type { CartResponse } from './cart.response';
 
 export class AddToCartUseCase {
   constructor(

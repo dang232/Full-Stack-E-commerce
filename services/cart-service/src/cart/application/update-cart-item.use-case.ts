@@ -1,13 +1,9 @@
 import { Cart } from '../domain/cart';
 import { CartExpirationPolicy } from '../domain/cart-expiration-policy';
 import { CartRepository } from '../domain/cart.repository';
-import { CartResponse, toCartResponse } from './cart.response';
-
-export interface UpdateCartItemCommand {
-  userId: string;
-  productId: string;
-  quantity: number;
-}
+import type { UpdateCartItemCommand } from './update-cart-item.command';
+import { toCartResponse } from './cart-response.mapper';
+import type { CartResponse } from './cart.response';
 
 export class UpdateCartItemUseCase {
   constructor(private readonly cartRepository: CartRepository) {}

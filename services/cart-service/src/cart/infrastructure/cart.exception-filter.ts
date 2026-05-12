@@ -6,7 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { CartDomainException } from '../domain/cart.exceptions';
+import { CartDomainException } from '../domain/cart-domain.exception';
 import { ApiResponse } from './api-response';
 
 @Catch()

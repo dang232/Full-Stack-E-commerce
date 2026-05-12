@@ -1,7 +1,5 @@
-import {
-  CurrencyMismatchException,
-  InvalidCartOperationException,
-} from './cart.exceptions';
+import { CurrencyMismatchException } from './currency-mismatch.exception';
+import { InvalidCartOperationException } from './invalid-cart-operation.exception';
 
 export class Money {
   private constructor(

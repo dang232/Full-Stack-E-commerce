@@ -1,12 +1,9 @@
 import { Cart } from '../domain/cart';
 import { CartExpirationPolicy } from '../domain/cart-expiration-policy';
 import { CartRepository } from '../domain/cart.repository';
-import { CartResponse, toCartResponse } from './cart.response';
-
-export interface RemoveCartItemCommand {
-  userId: string;
-  productId: string;
-}
+import type { RemoveCartItemCommand } from './remove-cart-item.command';
+import { toCartResponse } from './cart-response.mapper';
+import type { CartResponse } from './cart.response';
 
 export class RemoveCartItemUseCase {
   constructor(private readonly cartRepository: CartRepository) {}

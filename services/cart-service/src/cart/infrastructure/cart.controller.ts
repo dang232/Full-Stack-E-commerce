@@ -18,7 +18,8 @@ import { ViewCartUseCase } from '../application/view-cart.use-case';
 import type { CartResponse } from '../application/cart.response';
 import { ApiResponse } from './api-response';
 import { CartExceptionFilter } from './cart.exception-filter';
-import type { AddCartItemRequest, UpdateCartItemRequest } from './cart.dto';
+import type { AddCartItemRequest } from './add-cart-item.request';
+import type { UpdateCartItemRequest } from './update-cart-item.request';
 
 @Controller('cart')
 @UseFilters(CartExceptionFilter)
