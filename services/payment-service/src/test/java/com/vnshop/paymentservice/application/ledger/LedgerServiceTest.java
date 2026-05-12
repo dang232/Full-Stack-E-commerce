@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.application.ledger;
 
+import com.vnshop.paymentservice.application.LedgerPaymentCommand;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.LedgerPosting;
@@ -23,7 +24,7 @@ class LedgerServiceTest {
         CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
         LedgerService ledgerService = new LedgerService(ledgerRepository);
 
-        JournalEntry journalEntry = ledgerService.paymentJournal("TX-1", "ORDER-1", new BigDecimal("120000.00"));
+        JournalEntry journalEntry = ledgerService.paymentJournal(new LedgerPaymentCommand("TX-1", "ORDER-1", new BigDecimal("120000.00")));
         List<LedgerEntry> savedEntries = ledgerRepository.append(journalEntry);
 
         assertThat(savedEntries).hasSize(2);
@@ -52,7 +53,7 @@ class LedgerServiceTest {
     void reversalCreatesInverseEntriesAndOriginalRemainsUnchanged() {
         CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
         LedgerService ledgerService = new LedgerService(ledgerRepository);
-        JournalEntry original = ledgerService.paymentJournal("TX-3", "ORDER-3", new BigDecimal("50000.00"));
+        JournalEntry original = ledgerService.paymentJournal(new LedgerPaymentCommand("TX-3", "ORDER-3", new BigDecimal("50000.00")));
         List<LedgerEntry> originalRows = ledgerRepository.append(original);
 
         List<LedgerEntry> reversalRows = ledgerService.reverseJournal(original, "REV-TX-3");
