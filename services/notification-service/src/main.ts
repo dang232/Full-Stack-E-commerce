@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { startTracing } from './tracing';
 
 async function bootstrap() {
+  await startTracing();
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
     .setTitle('Notification Service')

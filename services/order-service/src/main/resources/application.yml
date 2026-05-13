@@ -5,7 +5,7 @@ spring:
   application:
     name: order-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=order_svc
+    url: jdbc:postgresql://localhost:5435/vnshop_order?currentSchema=order_svc
     username: vnshop
     password: vnshop
   flyway:
@@ -56,3 +56,26 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0

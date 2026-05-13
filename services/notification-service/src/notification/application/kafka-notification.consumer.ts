@@ -1,5 +1,6 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Ctx, KafkaContext, MessagePattern, Payload } from '@nestjs/microservices';
+import { context, propagation, trace } from '@opentelemetry/api';
 import { NotificationType } from '../domain/notification-type.enum';
 import { SendNotificationUseCase } from './send-notification.use-case';
 
@@ -21,49 +22,83 @@ export class KafkaNotificationConsumer {
   @MessagePattern('order.created')
   async handleOrderCreated(
     @Payload() payload: OrderEventPayload,
+    @Ctx() kafkaContext: KafkaContext,
   ): Promise<void> {
-    await this.notifyOrderParticipants(
-      payload,
-      NotificationType.ORDER_CREATED,
-      'Order created',
-      'Your order has been created.',
+    await this.runWithKafkaTraceContext(kafkaContext, 'order.created', () =>
+      this.notifyOrderParticipants(
+        payload,
+        NotificationType.ORDER_CREATED,
+        'Order created',
+        'Your order has been created.',
+      ),
     );
   }
 
   @MessagePattern('order.cancelled')
   async handleOrderCancelled(
     @Payload() payload: OrderEventPayload,
+    @Ctx() kafkaContext: KafkaContext,
   ): Promise<void> {
-    await this.notifyOrderParticipants(
-      payload,
-      NotificationType.ORDER_CANCELLED,
-      'Order cancelled',
-      'An order has been cancelled.',
+    await this.runWithKafkaTraceContext(kafkaContext, 'order.cancelled', () =>
+      this.notifyOrderParticipants(
+        payload,
+        NotificationType.ORDER_CANCELLED,
+        'Order cancelled',
+        'An order has been cancelled.',
+      ),
     );
   }
 
   @MessagePattern('order.shipped')
   async handleOrderShipped(
     @Payload() payload: OrderEventPayload,
+    @Ctx() kafkaContext: KafkaContext,
   ): Promise<void> {
-    await this.notifyOrderParticipants(
-      payload,
-      NotificationType.ORDER_SHIPPED,
-      'Order shipped',
-      'Your order has shipped.',
+    await this.runWithKafkaTraceContext(kafkaContext, 'order.shipped', () =>
+      this.notifyOrderParticipants(
+        payload,
+        NotificationType.ORDER_SHIPPED,
+        'Order shipped',
+        'Your order has shipped.',
+      ),
     );
   }
 
   @MessagePattern('shipment.updated')
   async handleShipmentUpdated(
     @Payload() payload: OrderEventPayload,
+    @Ctx() kafkaContext: KafkaContext,
   ): Promise<void> {
-    await this.notifyOrderParticipants(
-      payload,
-      NotificationType.ORDER_SHIPPED,
-      'Shipment updated',
-      'Your shipment status has changed.',
+    await this.runWithKafkaTraceContext(kafkaContext, 'shipment.updated', () =>
+      this.notifyOrderParticipants(
+        payload,
+        NotificationType.ORDER_SHIPPED,
+        'Shipment updated',
+        'Your shipment status has changed.',
+      ),
     );
+  }
+
+  private async runWithKafkaTraceContext(
+    kafkaContext: KafkaContext,
+    topic: string,
+    handler: () => Promise<void>,
+  ): Promise<void> {
+    const message = kafkaContext.getMessage();
+    const extractedContext = propagation.extract(
+      context.active(),
+      message.headers,
+    );
+
+    return trace
+      .getTracer('notification-service')
+      .startActiveSpan(`kafka.${topic}.notification`, {}, extractedContext, async (span) => {
+        try {
+          await context.with(extractedContext, handler);
+        } finally {
+          span.end();
+        }
+      });
   }
 
   private async notifyOrderParticipants(

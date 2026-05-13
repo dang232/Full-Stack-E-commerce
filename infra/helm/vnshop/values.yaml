@@ -1,0 +1,34 @@
+replicaCount: 2
+
+image:
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 768Mi
+
+services:
+  apiGateway:
+    port: 8080
+  user:
+    port: 8081
+  product:
+    port: 8082
+  inventory:
+    port: 8083
+  cart:
+    port: 8084
+  search:
+    port: 8086
+  notification:
+    port: 8087
+  shipping:
+    port: 8088
+  payment:
+    port: 6001
+  order:
+    port: 8091

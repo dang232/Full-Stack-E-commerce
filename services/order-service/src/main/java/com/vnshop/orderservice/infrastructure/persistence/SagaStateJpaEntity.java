@@ -1,0 +1,51 @@
+package com.vnshop.orderservice.infrastructure.persistence;
+
+import com.vnshop.orderservice.domain.saga.SagaState;
+import com.vnshop.orderservice.domain.saga.SagaStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.Instant;
+
+@Entity
+@Table(schema = "order_svc", name = "saga_state")
+@Getter @Setter
+public class SagaStateJpaEntity {
+    @Id
+    @Column(name = "saga_id", length = 36, nullable = false)
+    private String sagaId;
+
+    @Column(name = "order_id", length = 36, nullable = false)
+    private String orderId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "current_step", length = 30, nullable = false)
+    private SagaStatus currentStep;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    protected SagaStateJpaEntity() {}
+
+    public SagaState toDomain() {
+        return new SagaState(sagaId, orderId, currentStep, createdAt, updatedAt);
+    }
+
+    public static SagaStateJpaEntity fromDomain(SagaState state) {
+        var entity = new SagaStateJpaEntity();
+        entity.setSagaId(state.sagaId());
+        entity.setOrderId(state.orderId());
+        entity.setCurrentStep(state.currentStep());
+        entity.setCreatedAt(state.createdAt());
+        entity.setUpdatedAt(state.updatedAt());
+        return entity;
+    }
+}

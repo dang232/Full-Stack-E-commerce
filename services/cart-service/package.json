@@ -24,6 +24,9 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.75.0",
+    "@opentelemetry/exporter-jaeger": "^2.7.1",
+    "@opentelemetry/sdk-node": "^0.217.0",
     "ioredis": "^5.10.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

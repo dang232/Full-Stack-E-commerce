@@ -1,6 +1,8 @@
 package com.vnshop.orderservice.infrastructure.outbox;
 
+import io.opentelemetry.api.trace.Span;
 import java.util.List;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -49,7 +51,9 @@ public class OutboxPublisher {
 
     private void publishEvent(KafkaTemplate<String, Object> kafkaTemplate, OutboxEventJpaEntity event) {
         try {
-            kafkaTemplate.send(TOPIC, event.getAggregateId(), event.toDomain());
+            ProducerRecord<String, Object> record = new ProducerRecord<>(TOPIC, event.getAggregateId(), event.toDomain());
+            record.headers().add("traceparent", ("00-" + Span.current().getSpanContext().getTraceId() + "-" + Span.current().getSpanContext().getSpanId() + "-01").getBytes());
+            kafkaTemplate.send(record);
             event.markPublished();
         } catch (RuntimeException exception) {
             LOGGER.warn("Outbox publish failed for event {} aggregate {}", event.getId(), event.getAggregateId(), exception);

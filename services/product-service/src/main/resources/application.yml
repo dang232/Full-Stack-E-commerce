@@ -5,7 +5,7 @@ spring:
   application:
     name: product-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=product_svc
+    url: jdbc:postgresql://localhost:5434/vnshop_product?currentSchema=product_svc
     username: vnshop
     password: vnshop
   data:
@@ -16,6 +16,9 @@ spring:
     enabled: true
     schemas: product_svc
     default-schema: product_svc
+  jpa:
+    hibernate:
+      ddl-auto: validate
   security:
     oauth2:
       resourceserver:
@@ -39,3 +42,26 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0

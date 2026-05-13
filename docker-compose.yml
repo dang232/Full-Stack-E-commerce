@@ -1,9 +1,10 @@
 name: vnshop
 
 services:
-  postgres:
+  postgres-legacy:
+    profiles: ["legacy"]
     image: postgres:17.9
-    container_name: vnshop-postgres
+    container_name: vnshop-postgres-legacy
     environment:
       POSTGRES_DB: vnshop
       POSTGRES_USER: vnshop
@@ -11,10 +12,159 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-legacy-data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-keycloak:
+    image: postgres:17.9
+    container_name: vnshop-postgres-keycloak
+    environment:
+      POSTGRES_DB: vnshop_keycloak
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    volumes:
+      - postgres-keycloak-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-user:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-user
+    environment:
+      POSTGRES_DB: vnshop_user
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-product:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-product
+    environment:
+      POSTGRES_DB: vnshop_product
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-product-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_product"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-order:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-order
+    environment:
+      POSTGRES_DB: vnshop_order
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_order"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-payment:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-payment
+    environment:
+      POSTGRES_DB: vnshop_payment
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-payment-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_payment"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-inventory:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-inventory
+    environment:
+      POSTGRES_DB: vnshop_inventory
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres-inventory-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_inventory"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-search:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-search
+    environment:
+      POSTGRES_DB: vnshop_search
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres-search-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_search"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-shipping:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-shipping
+    environment:
+      POSTGRES_DB: vnshop_shipping
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: vnshop123
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres-shipping-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_shipping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -68,14 +218,14 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/vnshop
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/vnshop_keycloak
       KC_DB_SCHEMA: keycloak
       KC_DB_USERNAME: vnshop
       KC_DB_PASSWORD: vnshop123
     ports:
       - "8085:8080"
     depends_on:
-      postgres:
+      postgres-keycloak:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3; grep -q '200' <&3"]
@@ -101,11 +251,11 @@ services:
       retries: 10
 
   jaeger:
-    image: jaegertracing/all-in-one:1.66
+    image: jaegertracing/all-in-one:1.71
     container_name: vnshop-jaeger
     ports:
       - "16686:16686"
-      - "4317:4317"
+      - "14250:14250"
       - "4318:4318"
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
@@ -155,7 +305,7 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      postgres:
+      postgres-user:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -163,7 +313,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8081
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=user_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/vnshop_user?currentSchema=user_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -178,7 +328,7 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      postgres:
+      postgres-product:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -186,7 +336,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8082
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=product_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/vnshop_product?currentSchema=product_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -201,7 +351,7 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      postgres:
+      postgres-inventory:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -209,7 +359,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8083
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=inventory_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-inventory:5432/vnshop_inventory?currentSchema=inventory_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -239,7 +389,7 @@ services:
     ports:
       - "8086:8086"
     depends_on:
-      postgres:
+      postgres-search:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -247,7 +397,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8086
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=search_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-search:5432/vnshop_search?currentSchema=search_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -256,20 +406,20 @@ services:
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   notification-service:
-    profiles: ["apps"]
+    profiles: ["legacy"]
     build: ./services/notification-service
     container_name: vnshop-notification-service
     ports:
       - "8087:8087"
     depends_on:
-      postgres:
+      postgres-legacy:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://vnshop:vnshop123@postgres:5432/vnshop?currentSchema=notification_svc
+      DATABASE_URL: postgresql://vnshop:vnshop123@postgres-legacy:5432/vnshop?currentSchema=notification_svc
       PORT: 8087
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: always_on
@@ -282,7 +432,7 @@ services:
     ports:
       - "8088:8088"
     depends_on:
-      postgres:
+      postgres-legacy:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -290,7 +440,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8088
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=coupon_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=coupon_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -306,7 +456,7 @@ services:
     ports:
       - "8089:8089"
     depends_on:
-      postgres:
+      postgres-legacy:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -314,7 +464,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8089
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=review_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=review_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -330,7 +480,7 @@ services:
     ports:
       - "8090:8090"
     depends_on:
-      postgres:
+      postgres-legacy:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -338,7 +488,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8090
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=seller_finance_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=seller_finance_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -353,7 +503,7 @@ services:
     ports:
       - "8091:8091"
     depends_on:
-      postgres:
+      postgres-order:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -361,7 +511,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8091
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=order_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/vnshop_order?currentSchema=order_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -376,7 +526,7 @@ services:
     ports:
       - "8092:8092"
     depends_on:
-      postgres:
+      postgres-payment:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -384,7 +534,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8092
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=payment_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/vnshop_payment?currentSchema=payment_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -399,7 +549,7 @@ services:
     ports:
       - "8093:8093"
     depends_on:
-      postgres:
+      postgres-shipping:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -407,7 +557,7 @@ services:
         condition: service_healthy
     environment:
       SERVER_PORT: 8093
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vnshop?currentSchema=shipping_svc
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-shipping:5432/vnshop_shipping?currentSchema=shipping_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
@@ -416,7 +566,15 @@ services:
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
 volumes:
-  postgres-data:
+  postgres-legacy-data:
+  postgres-keycloak-data:
+  postgres-user-data:
+  postgres-product-data:
+  postgres-order-data:
+  postgres-payment-data:
+  postgres-inventory-data:
+  postgres-search-data:
+  postgres-shipping-data:
   redis-data:
   kafka-data:
   elasticsearch-data:

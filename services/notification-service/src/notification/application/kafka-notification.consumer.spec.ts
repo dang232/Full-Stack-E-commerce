@@ -1,3 +1,4 @@
+import { KafkaContext } from '@nestjs/microservices';
 import { KafkaNotificationConsumer } from './kafka-notification.consumer';
 import {
   SendNotificationInput,
@@ -8,6 +9,9 @@ import { NotificationType } from '../domain/notification-type.enum';
 describe('KafkaNotificationConsumer', () => {
   let sentInputs: SendNotificationInput[];
   let consumer: KafkaNotificationConsumer;
+  const kafkaContext = {
+    getMessage: () => ({ headers: {} }),
+  } as unknown as KafkaContext;
 
   beforeEach(() => {
     sentInputs = [];
@@ -21,12 +25,15 @@ describe('KafkaNotificationConsumer', () => {
   });
 
   it('notifies buyer and seller on order created', async () => {
-    await consumer.handleOrderCreated({
-      orderId: 'order-1',
-      buyerId: 'buyer-1',
-      sellerId: 'seller-1',
-      status: 'CREATED',
-    });
+    await consumer.handleOrderCreated(
+      {
+        orderId: 'order-1',
+        buyerId: 'buyer-1',
+        sellerId: 'seller-1',
+        status: 'CREATED',
+      },
+      kafkaContext,
+    );
 
     expect(sentInputs).toHaveLength(2);
     expect(sentInputs.map((input) => input.userId)).toEqual([
@@ -42,7 +49,7 @@ describe('KafkaNotificationConsumer', () => {
   });
 
   it('notifies only present participants', async () => {
-    await consumer.handleOrderCancelled({ buyerId: 'buyer-1' });
+    await consumer.handleOrderCancelled({ buyerId: 'buyer-1' }, kafkaContext);
 
     expect(sentInputs).toHaveLength(1);
     expect(sentInputs[0]).toMatchObject({
@@ -54,12 +61,15 @@ describe('KafkaNotificationConsumer', () => {
   });
 
   it('maps shipped and shipment updated events', async () => {
-    await consumer.handleOrderShipped({ sellerId: 'seller-1' });
-    await consumer.handleShipmentUpdated({
-      buyerId: 'buyer-2',
-      shipmentId: 'shipment-1',
-      status: 'IN_TRANSIT',
-    });
+    await consumer.handleOrderShipped({ sellerId: 'seller-1' }, kafkaContext);
+    await consumer.handleShipmentUpdated(
+      {
+        buyerId: 'buyer-2',
+        shipmentId: 'shipment-1',
+        status: 'IN_TRANSIT',
+      },
+      kafkaContext,
+    );
 
     expect(sentInputs).toEqual([
       expect.objectContaining({
@@ -83,7 +93,7 @@ describe('KafkaNotificationConsumer', () => {
   });
 
   it('does nothing when event has no recipients', async () => {
-    await consumer.handleOrderCreated({ orderId: 'order-1' });
+    await consumer.handleOrderCreated({ orderId: 'order-1' }, kafkaContext);
 
     expect(sentInputs).toEqual([]);
   });

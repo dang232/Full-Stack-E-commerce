@@ -5,7 +5,7 @@ spring:
   application:
     name: inventory-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=inventory_svc
+    url: jdbc:postgresql://localhost:5437/vnshop_inventory?currentSchema=inventory_svc
     username: vnshop
     password: vnshop
   data:
@@ -16,6 +16,9 @@ spring:
     enabled: true
     schemas: inventory_svc
     default-schema: inventory_svc
+  jpa:
+    hibernate:
+      ddl-auto: validate
   kafka:
     bootstrap-servers: localhost:9092
   security:
@@ -41,3 +44,26 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0

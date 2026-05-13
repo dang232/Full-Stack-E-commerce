@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1778612400178" clover="3.2.0">
+  <project timestamp="1778612400178" name="All files">
+    <metrics statements="108" coveredstatements="108" conditionals="75" coveredconditionals="61" methods="32" coveredmethods="32" elements="215" coveredelements="201" complexity="0" loc="108" ncloc="108" packages="5" files="10" classes="10"/>
+    <package name="src">
+      <metrics statements="5" coveredstatements="5" conditionals="4" coveredconditionals="3" methods="1" coveredmethods="1"/>
+      <file name="app.controller.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\app.controller.ts">
+        <metrics statements="5" coveredstatements="5" conditionals="4" coveredconditionals="3" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="7" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="8" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.notification.application">
+      <metrics statements="51" coveredstatements="51" conditionals="43" coveredconditionals="33" methods="21" coveredmethods="21"/>
+      <file name="find-notification-by-id.use-case.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\application\find-notification-by-id.use-case.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+      </file>
+      <file name="find-user-notifications.use-case.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\application\find-user-notifications.use-case.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+      </file>
+      <file name="kafka-notification.consumer.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\application\kafka-notification.consumer.ts">
+        <metrics statements="29" coveredstatements="29" conditionals="36" coveredconditionals="27" methods="14" coveredmethods="14"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="19" count="4" type="cond" truecount="3" falsecount="1"/>
+        <line num="23" count="1" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="28" count="2" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="42" count="1" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="53" count="1" type="stmt"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="58" count="1" type="stmt"/>
+        <line num="68" count="1" type="stmt"/>
+        <line num="72" count="1" type="stmt"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="87" count="5" type="stmt"/>
+        <line num="88" count="5" type="stmt"/>
+        <line num="93" count="5" type="stmt"/>
+        <line num="96" count="5" type="stmt"/>
+        <line num="97" count="5" type="stmt"/>
+        <line num="99" count="5" type="stmt"/>
+        <line num="110" count="5" type="stmt"/>
+        <line num="111" count="10" type="stmt"/>
+        <line num="114" count="5" type="stmt"/>
+        <line num="116" count="5" type="stmt"/>
+      </file>
+      <file name="send-notification.use-case.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\application\send-notification.use-case.ts">
+        <metrics statements="16" coveredstatements="16" conditionals="7" coveredconditionals="6" methods="3" coveredmethods="3"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="6" count="3" type="stmt"/>
+        <line num="22" count="3" type="stmt"/>
+        <line num="24" count="5" type="stmt"/>
+        <line num="25" count="5" type="cond" truecount="0" falsecount="1"/>
+        <line num="29" count="5" type="stmt"/>
+        <line num="36" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="39" count="5" type="stmt"/>
+        <line num="41" count="5" type="stmt"/>
+        <line num="42" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="4" type="stmt"/>
+        <line num="47" count="5" type="stmt"/>
+        <line num="48" count="5" type="stmt"/>
+        <line num="50" count="5" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.notification.domain">
+      <metrics statements="13" coveredstatements="13" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+      <file name="notification.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\domain\notification.ts">
+        <metrics statements="13" coveredstatements="13" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+        <line num="1" count="6" type="stmt"/>
+        <line num="2" count="6" type="stmt"/>
+        <line num="17" count="6" type="stmt"/>
+        <line num="29" count="10" type="stmt"/>
+        <line num="30" count="10" type="stmt"/>
+        <line num="31" count="10" type="stmt"/>
+        <line num="32" count="10" type="stmt"/>
+        <line num="33" count="10" type="stmt"/>
+        <line num="34" count="10" type="stmt"/>
+        <line num="35" count="10" type="stmt"/>
+        <line num="36" count="10" type="stmt"/>
+        <line num="37" count="10" type="stmt"/>
+        <line num="43" count="6" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.notification.infrastructure">
+      <metrics statements="28" coveredstatements="28" conditionals="28" coveredconditionals="25" methods="6" coveredmethods="6"/>
+      <file name="api-response.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\infrastructure\api-response.ts">
+        <metrics statements="4" coveredstatements="4" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="12" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="13" count="9" type="stmt"/>
+        <line num="23" count="1" type="stmt"/>
+      </file>
+      <file name="notification.controller.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\infrastructure\notification.controller.ts">
+        <metrics statements="24" coveredstatements="24" conditionals="22" coveredconditionals="19" methods="4" coveredmethods="4"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="13" count="1" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="22" count="8" type="cond" truecount="6" falsecount="2"/>
+        <line num="23" count="8" type="cond" truecount="3" falsecount="1"/>
+        <line num="24" count="8" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="32" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="34" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="40" count="2" type="stmt"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="47" count="2" type="stmt"/>
+        <line num="49" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="53" count="1" type="stmt"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="61" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="63" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="64" count="1" type="stmt"/>
+        <line num="69" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.notification.infrastructure.channel">
+      <metrics statements="11" coveredstatements="11" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+      <file name="console-channel.adapter.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\infrastructure\channel\console-channel.adapter.ts">
+        <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+      </file>
+      <file name="email-channel.adapter.ts" path="C:\Users\dangq\OneDrive\Documents\GitHub\Full-Stack-E-commerce\services\notification-service\src\notification\infrastructure\channel\email-channel.adapter.ts">
+        <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

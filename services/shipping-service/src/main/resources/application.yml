@@ -5,13 +5,16 @@ spring:
   application:
     name: shipping-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=shipping_svc
+    url: jdbc:postgresql://localhost:5439/vnshop_shipping?currentSchema=shipping_svc
     username: vnshop
     password: vnshop
   flyway:
     enabled: true
     schemas: shipping_svc
     default-schema: shipping_svc
+  jpa:
+    hibernate:
+      ddl-auto: validate
   kafka:
     bootstrap-servers: localhost:9092
 
@@ -45,3 +48,26 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0

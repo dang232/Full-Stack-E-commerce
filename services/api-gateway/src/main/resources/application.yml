@@ -51,6 +51,17 @@ management:
     tracing:
       endpoint: http://localhost:4318/v1/traces
 
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
 resilience4j:
   circuitbreaker:
     configs:
@@ -80,3 +91,15 @@ resilience4j:
         base-config: default
       # DEPRECATED - standalone coupon/review/seller-finance routes migrated to order-service/product-service.
       # Rollback: restore matching RouteConfig targets before re-enabling these circuit breakers.
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0
