@@ -1,6 +1,8 @@
 package com.vnshop.orderservice.infrastructure.outbox;
 
 import io.opentelemetry.api.trace.Span;
+import jakarta.annotation.PostConstruct;
+import java.time.Instant;
 import java.util.List;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -16,20 +18,32 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class OutboxPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(OutboxPublisher.class);
-    private static final String TOPIC = "order-events";
 
     private final OutboxEventRepository repository;
     private final ObjectProvider<KafkaTemplate<String, Object>> kafkaTemplateProvider;
     private final int batchSize;
+    private final int maxAttempts;
+    private final long sendTimeoutMs;
 
     public OutboxPublisher(
             OutboxEventRepository repository,
             ObjectProvider<KafkaTemplate<String, Object>> kafkaTemplateProvider,
-            @Value("${outbox.publisher.batch-size:50}") int batchSize
+            @Value("${outbox.publisher.batch-size:50}") int batchSize,
+            @Value("${outbox.publisher.max-attempts:8}") int maxAttempts,
+            @Value("${outbox.publisher.send-timeout-ms:5000}") long sendTimeoutMs
     ) {
         this.repository = repository;
         this.kafkaTemplateProvider = kafkaTemplateProvider;
         this.batchSize = batchSize;
+        this.maxAttempts = maxAttempts;
+        this.sendTimeoutMs = sendTimeoutMs;
+    }
+
+    @PostConstruct
+    void warnIfKafkaTemplateMissing() {
+        if (kafkaTemplateProvider.getIfAvailable() == null) {
+            LOGGER.warn("OutboxPublisher started without a KafkaTemplate bean — outbox events will accumulate as PENDING until Kafka is configured.");
+        }
     }
 
     @Scheduled(fixedDelayString = "${outbox.publisher.poll-interval-ms:1000}")
@@ -40,8 +54,8 @@ public class OutboxPublisher {
             return;
         }
 
-        List<OutboxEventJpaEntity> events = repository.findByStatusOrderByCreatedAt(
-                OutboxEvent.Status.PENDING,
+        List<OutboxEventJpaEntity> events = repository.findDuePendingEvents(
+                Instant.now(),
                 PageRequest.of(0, batchSize)
         );
         for (OutboxEventJpaEntity event : events) {
@@ -49,14 +63,46 @@ public class OutboxPublisher {
         }
     }
 
+    static String topicFor(String eventType) {
+        return eventType.toLowerCase().replace('_', '.');
+    }
+
+    int getMaxAttempts() {
+        return maxAttempts;
+    }
+
     private void publishEvent(KafkaTemplate<String, Object> kafkaTemplate, OutboxEventJpaEntity event) {
         try {
-            ProducerRecord<String, Object> record = new ProducerRecord<>(TOPIC, event.getAggregateId(), event.toDomain());
+            String topic = topicFor(event.getEventType());
+            ProducerRecord<String, Object> record = new ProducerRecord<>(topic, event.getAggregateId(), event.toDomain());
             record.headers().add("traceparent", ("00-" + Span.current().getSpanContext().getTraceId() + "-" + Span.current().getSpanContext().getSpanId() + "-01").getBytes());
-            kafkaTemplate.send(record);
+            kafkaTemplate.send(record).get(sendTimeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
             event.markPublished();
-        } catch (RuntimeException exception) {
-            LOGGER.warn("Outbox publish failed for event {} aggregate {}", event.getId(), event.getAggregateId(), exception);
+            LOGGER.debug("Outbox event {} published to {}", event.getId(), topic);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            event.recordFailure(maxAttempts, new RuntimeException("Send interrupted", e));
+            LOGGER.warn("Outbox publish interrupted for event {} (attempt {})", event.getId(), event.getAttemptCount());
+        } catch (java.util.concurrent.TimeoutException e) {
+            event.recordFailure(maxAttempts, e);
+            LOGGER.warn("Outbox publish timed out for event {} (attempt {})", event.getId(), event.getAttemptCount());
+        } catch (java.util.concurrent.ExecutionException e) {
+            Exception failure = e.getCause() instanceof Exception exception ? exception : e;
+            event.recordFailure(maxAttempts, failure);
+            LOGGER.warn("Outbox publish failed for event {} (attempt {}): {}",
+                    event.getId(), event.getAttemptCount(), failure.getMessage());
+        } catch (RuntimeException e) {
+            event.recordFailure(maxAttempts, e);
+            LOGGER.warn("Outbox publish failed for event {} (attempt {}): {}", event.getId(), event.getAttemptCount(), e.getMessage());
+        }
+
+        // Persist explicitly so we don't depend on JPA dirty checking
+        // surviving future refactors of the transaction boundary.
+        repository.save(event);
+
+        if (event.getStatus() == OutboxEvent.Status.DEAD) {
+            LOGGER.error("Outbox event {} moved to DEAD after {} attempts. aggregate={} type={}",
+                    event.getId(), event.getAttemptCount(), event.getAggregateId(), event.getEventType());
         }
     }
 }

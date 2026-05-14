@@ -1,5 +1,6 @@
 package com.vnshop.orderservice.infrastructure.outbox;
 
+import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -16,7 +17,11 @@ public class OutboxEventRepository {
         return springDataRepository.save(event);
     }
 
-    public List<OutboxEventJpaEntity> findByStatusOrderByCreatedAt(OutboxEvent.Status status, Pageable pageable) {
-        return springDataRepository.findByStatusOrderByCreatedAt(status, pageable);
+    public List<OutboxEventJpaEntity> findDuePendingEvents(Instant now, Pageable pageable) {
+        return springDataRepository.findByStatusAndNextAttemptAtLessThanEqualOrderByCreatedAt(
+                OutboxEvent.Status.PENDING,
+                now,
+                pageable
+        );
     }
 }
