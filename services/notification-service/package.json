@@ -25,6 +25,7 @@
     "@nestjs/microservices": "^11.1.19",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.1",
+    "kafkajs": "^2.2.4",
     "@opentelemetry/auto-instrumentations-node": "^0.75.0",
     "@opentelemetry/exporter-jaeger": "^2.7.1",
     "@opentelemetry/sdk-node": "^0.217.0",
