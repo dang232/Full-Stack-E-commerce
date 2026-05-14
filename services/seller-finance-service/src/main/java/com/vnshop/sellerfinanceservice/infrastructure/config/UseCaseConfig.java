@@ -1,6 +1,7 @@
 package com.vnshop.sellerfinanceservice.infrastructure.config;
 
 import com.vnshop.sellerfinanceservice.application.CreditWalletUseCase;
+import com.vnshop.sellerfinanceservice.application.GetSellerPayoutsUseCase;
 import com.vnshop.sellerfinanceservice.application.ListPayoutsUseCase;
 import com.vnshop.sellerfinanceservice.application.ProcessPayoutUseCase;
 import com.vnshop.sellerfinanceservice.application.RequestPayoutUseCase;
@@ -31,6 +32,11 @@ public class UseCaseConfig {
     @Bean
     ListPayoutsUseCase listPayoutsUseCase(PayoutRepositoryPort payoutRepositoryPort) {
         return new ListPayoutsUseCase(payoutRepositoryPort);
+    }
+
+    @Bean
+    GetSellerPayoutsUseCase getSellerPayoutsUseCase(PayoutRepositoryPort payoutRepositoryPort) {
+        return new GetSellerPayoutsUseCase(payoutRepositoryPort);
     }
 
     @Bean

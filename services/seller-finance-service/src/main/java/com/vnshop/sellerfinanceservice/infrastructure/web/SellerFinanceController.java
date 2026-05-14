@@ -56,6 +56,7 @@ public class SellerFinanceController {
     @PostMapping("/credits")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreditResponse> credit(@Valid @RequestBody CreditRequest request) {
+        // TODO: Wire request.idempotencyKey() into persisted credit dedupe once seller finance idempotency store exists.
         CreditWalletUseCase.CreditWalletResult result = creditWalletUseCase.credit(JwtPrincipalUtil.currentSellerId(), request.orderAmount(), request.tier());
         return ApiResponse.ok(new CreditResponse(WalletResponse.fromDomain(result.wallet()), result.commission(), result.sellerNet()));
     }
