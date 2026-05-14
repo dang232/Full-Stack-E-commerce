@@ -8,6 +8,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.Instant;
@@ -33,6 +34,10 @@ public class SagaStateJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     protected SagaStateJpaEntity() {}
 
     public SagaState toDomain() {
@@ -47,5 +52,11 @@ public class SagaStateJpaEntity {
         entity.setCreatedAt(state.createdAt());
         entity.setUpdatedAt(state.updatedAt());
         return entity;
+    }
+
+    public void applyDomain(SagaState state) {
+        this.orderId = state.orderId();
+        this.currentStep = state.currentStep();
+        this.updatedAt = state.updatedAt();
     }
 }

@@ -1,19 +1,20 @@
 package com.vnshop.orderservice.application.saga;
 
+import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
 import com.vnshop.orderservice.domain.saga.SagaState;
 import com.vnshop.orderservice.domain.saga.SagaStatus;
-import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
 import com.vnshop.orderservice.infrastructure.outbox.OutboxEvent;
 import com.vnshop.orderservice.infrastructure.outbox.OutboxEventJpaEntity;
 import com.vnshop.orderservice.infrastructure.outbox.OutboxEventRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SagaOrchestrator {
@@ -22,10 +23,16 @@ public class SagaOrchestrator {
 
     private final SagaStateRepository sagaStateRepository;
     private final OutboxEventRepository outboxEventRepository;
+    private final long compensationTimeoutMs;
 
-    public SagaOrchestrator(SagaStateRepository sagaStateRepository, OutboxEventRepository outboxEventRepository) {
+    public SagaOrchestrator(
+            SagaStateRepository sagaStateRepository,
+            OutboxEventRepository outboxEventRepository,
+            @Value("${saga.compensation-timeout-ms:300000}") long compensationTimeoutMs
+    ) {
         this.sagaStateRepository = sagaStateRepository;
         this.outboxEventRepository = outboxEventRepository;
+        this.compensationTimeoutMs = compensationTimeoutMs;
     }
 
     @Transactional
@@ -60,7 +67,7 @@ public class SagaOrchestrator {
                 "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"PAYMENT_CHARGE\"}")
         ));
 
-        LOG.info("Saga {} step: INVENTORY_RESERVED → PAYMENT_CHARGED", sagaId);
+        LOG.info("Saga {} step: INVENTORY_RESERVED -> PAYMENT_CHARGED", sagaId);
     }
 
     @Transactional
@@ -79,7 +86,7 @@ public class SagaOrchestrator {
                 "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"SHIPPING_CREATE\"}")
         ));
 
-        LOG.info("Saga {} step: PAYMENT_CHARGED → SHIPPING_CREATED", sagaId);
+        LOG.info("Saga {} step: PAYMENT_CHARGED -> SHIPPING_CREATED", sagaId);
     }
 
     @Transactional
@@ -117,9 +124,51 @@ public class SagaOrchestrator {
                 "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"failedStep\":\"" + failedStep + "\"}")
         ));
 
+        LOG.warn("Saga {} compensation requested at step: {}", sagaId, failedStep);
+    }
+
+    /**
+     * Called when a downstream service confirms its compensation work has completed
+     * (e.g. inventory release, payment refund, shipping cancellation). Promotes a
+     * COMPENSATING saga directly to FAILED so listeners and dashboards see a real
+     * terminal state without waiting for the timeout finalizer.
+     *
+     * <p>Wire downstream confirmation Kafka events here (e.g. {@code inventory.released},
+     * {@code payment.refunded}, {@code shipping.cancelled}). Until those exist, the
+     * timeout finalizer remains the only fallback.
+     */
+    @Transactional
+    public void onCompensationCompleted(String sagaId, String confirmingStep) {
+        Optional<SagaState> opt = sagaStateRepository.findBySagaId(sagaId);
+        if (opt.isEmpty()) {
+            LOG.warn("Saga {} not found for compensation confirmation from {}", sagaId, confirmingStep);
+            return;
+        }
+        markCompensationFailed(opt.get(), "COMPENSATION_CONFIRMED:" + confirmingStep);
+    }
+
+    @Scheduled(fixedDelayString = "${saga.compensation-finalizer-interval-ms:60000}")
+    @Transactional
+    public void failTimedOutCompensations() {
+        Instant cutoff = Instant.now().minusMillis(compensationTimeoutMs);
+        for (SagaState saga : sagaStateRepository.findCompensatingUpdatedBefore(cutoff)) {
+            markCompensationFailed(saga, "COMPENSATION_TIMEOUT");
+        }
+    }
+
+    void markCompensationFailed(SagaState current, String reason) {
+        if (current.currentStep() != SagaStatus.COMPENSATING) {
+            return;
+        }
+
         SagaState failed = new SagaState(current.sagaId(), current.orderId(), SagaStatus.FAILED, current.createdAt(), Instant.now());
         sagaStateRepository.save(failed);
 
-        LOG.warn("Saga {} compensated and FAILED at step: {}", sagaId, failedStep);
+        outboxEventRepository.save(OutboxEventJpaEntity.fromDomain(
+                OutboxEvent.pending(AGGREGATE_TYPE, current.sagaId(), "SAGA_FAILED",
+                        "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + current.sagaId() + "\",\"reason\":\"" + reason + "\"}")
+        ));
+
+        LOG.error("Saga {} marked FAILED after compensation timeout", current.sagaId());
     }
 }
