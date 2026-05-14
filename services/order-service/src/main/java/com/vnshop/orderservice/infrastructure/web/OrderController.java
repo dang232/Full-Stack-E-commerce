@@ -4,8 +4,8 @@ import com.vnshop.orderservice.application.CancelOrderCommand;
 import com.vnshop.orderservice.application.CancelOrderUseCase;
 import com.vnshop.orderservice.application.CreateOrderCommand;
 import com.vnshop.orderservice.application.CreateOrderUseCase;
-import com.vnshop.orderservice.application.ListOrdersUseCase;
 import com.vnshop.orderservice.application.ViewOrderUseCase;
+import com.vnshop.orderservice.application.query.OrderQueryHandler;
 import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,14 +29,14 @@ public class OrderController {
 
     private final CreateOrderUseCase createOrderUseCase;
     private final CancelOrderUseCase cancelOrderUseCase;
-    private final ListOrdersUseCase listOrdersUseCase;
+    private final OrderQueryHandler orderQueryHandler;
     private final ViewOrderUseCase viewOrderUseCase;
 
     public OrderController(CreateOrderUseCase createOrderUseCase, CancelOrderUseCase cancelOrderUseCase,
-            ListOrdersUseCase listOrdersUseCase, ViewOrderUseCase viewOrderUseCase) {
+            OrderQueryHandler orderQueryHandler, ViewOrderUseCase viewOrderUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.cancelOrderUseCase = cancelOrderUseCase;
-        this.listOrdersUseCase = listOrdersUseCase;
+        this.orderQueryHandler = orderQueryHandler;
         this.viewOrderUseCase = viewOrderUseCase;
     }
 
@@ -50,9 +50,9 @@ public class OrderController {
     }
 
     @GetMapping
-    public ApiResponse<List<OrderResponse>> list() {
-        return ApiResponse.ok(listOrdersUseCase.listByBuyerId(JwtPrincipalUtil.currentUserId()).stream()
-                .map(OrderResponse::fromDomain).toList());
+    public ApiResponse<List<OrderListItemResponse>> list() {
+        return ApiResponse.ok(orderQueryHandler.findByBuyerId(JwtPrincipalUtil.currentUserId()).stream()
+                .map(OrderListItemResponse::fromProjection).toList());
     }
 
     @GetMapping("/{id}")

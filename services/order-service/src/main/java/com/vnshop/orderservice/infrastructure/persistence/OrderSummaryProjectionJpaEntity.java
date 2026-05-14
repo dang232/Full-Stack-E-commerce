@@ -39,7 +39,7 @@ public class OrderSummaryProjectionJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected OrderSummaryProjectionJpaEntity() {}
+    public OrderSummaryProjectionJpaEntity() {}
 
     public OrderSummaryProjection toDomain() {
         return new OrderSummaryProjection(orderId, buyerId, sellerId, status, totalAmount, itemCount, createdAt, updatedAt);
