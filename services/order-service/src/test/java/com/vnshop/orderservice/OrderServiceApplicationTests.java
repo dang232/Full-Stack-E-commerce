@@ -1,6 +1,8 @@
 package com.vnshop.orderservice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vnshop.orderservice.application.projection.OrderProjector;
+import com.vnshop.orderservice.application.query.OrderQueryHandler;
 import com.vnshop.orderservice.domain.coupon.CouponRepository;
 import com.vnshop.orderservice.domain.coupon.CouponUsageRepository;
 import com.vnshop.orderservice.domain.finance.port.out.PayoutRepositoryPort;
@@ -28,6 +30,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 		"spring.autoconfigure.exclude=org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration,org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration"
 })
 class OrderServiceApplicationTests {
+
+	@MockitoBean
+	private OrderProjector orderProjector;
+
+	@MockitoBean
+	private OrderQueryHandler orderQueryHandler;
 
 	@MockitoBean
 	private OrderJpaRepository orderJpaRepository;
