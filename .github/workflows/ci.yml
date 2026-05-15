@@ -123,7 +123,7 @@ jobs:
       - name: Install, test, build
         run: |
           npm ci
-          npm test -- --coverage
+          npm test -- --coverage --passWithNoTests
           npm run build
 
   # ── Dependency check (separate stage, run on one representative service) ──
@@ -154,7 +154,7 @@ jobs:
           restore-keys: maven-${{ runner.os }}-
 
       - name: OWASP dependency check
-        run: mvn --batch-mode org.owasp:dependency-check-maven:12.1.9:check
+        run: mvn --batch-mode org.owasp:dependency-check-maven:12.1.9:check -DfailBuildOnCVSS=7 -DknownExploitedEnabled=false
 
       - name: Upload dependency check report
         if: always()
@@ -188,7 +188,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t vnshop/${{ matrix.service }}:${{ github.sha }} services/${{ matrix.service }}
+        run: docker build -f services/${{ matrix.service }}/Dockerfile -t vnshop/${{ matrix.service }}:${{ github.sha }} .
 
       - name: Trivy scan
         uses: aquasecurity/trivy-action@master

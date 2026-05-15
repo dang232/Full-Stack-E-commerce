@@ -5,7 +5,7 @@ import { AppModule } from './app.module';
 import { startTracing } from './tracing';
 
 async function bootstrap() {
-  await startTracing();
+  startTracing();
   const app = await NestFactory.create(AppModule);
 
   // —— Kafka transport ——————————————————————

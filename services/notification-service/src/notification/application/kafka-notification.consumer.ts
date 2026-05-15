@@ -1,5 +1,10 @@
 import { Controller } from '@nestjs/common';
-import { Ctx, KafkaContext, MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  Ctx,
+  KafkaContext,
+  MessagePattern,
+  Payload,
+} from '@nestjs/microservices';
 import { context, propagation, trace } from '@opentelemetry/api';
 import { NotificationType } from '../domain/notification-type.enum';
 import { SendNotificationUseCase } from './send-notification.use-case';
@@ -92,13 +97,18 @@ export class KafkaNotificationConsumer {
 
     return trace
       .getTracer('notification-service')
-      .startActiveSpan(`kafka.${topic}.notification`, {}, extractedContext, async (span) => {
-        try {
-          await context.with(extractedContext, handler);
-        } finally {
-          span.end();
-        }
-      });
+      .startActiveSpan(
+        `kafka.${topic}.notification`,
+        {},
+        extractedContext,
+        async (span) => {
+          try {
+            await context.with(extractedContext, handler);
+          } finally {
+            span.end();
+          }
+        },
+      );
   }
 
   private async notifyOrderParticipants(

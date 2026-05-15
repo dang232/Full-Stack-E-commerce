@@ -9,7 +9,7 @@ const sdk = new NodeSDK({
   instrumentations: [getNodeAutoInstrumentations()],
 });
 
-export async function startTracing() {
-  await sdk.start();
+export function startTracing() {
+  sdk.start();
   console.log('OpenTelemetry tracing started (Jaeger exporter)');
 }
