@@ -1,0 +1,127 @@
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { Toaster } from "sonner";
+import { FormDialog, type FormField } from "./form-dialog";
+
+const baseFields: FormField[] = [
+  { key: "reason", label: "Lý do từ chối", type: "textarea", required: true },
+];
+
+function renderDialog(props: Partial<React.ComponentProps<typeof FormDialog>> = {}) {
+  const onClose = vi.fn();
+  const onSubmit = vi.fn();
+  const utils = render(
+    <>
+      <Toaster />
+      <FormDialog
+        open
+        title="Test dialog"
+        submitLabel="Gửi"
+        fields={baseFields}
+        onClose={onClose}
+        onSubmit={onSubmit}
+        {...props}
+      />
+    </>,
+  );
+  return { ...utils, onClose, onSubmit };
+}
+
+describe("FormDialog", () => {
+  it("renders nothing when closed", () => {
+    const { container } = render(
+      <FormDialog
+        open={false}
+        title="Hidden"
+        submitLabel="x"
+        fields={baseFields}
+        onClose={() => undefined}
+        onSubmit={() => undefined}
+      />,
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("renders title, fields, and submit label when open", () => {
+    renderDialog({ title: "Yêu cầu trả hàng", submitLabel: "Gửi yêu cầu" });
+    expect(screen.getByText("Yêu cầu trả hàng")).toBeInTheDocument();
+    expect(screen.getByText("Lý do từ chối")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gửi yêu cầu" })).toBeInTheDocument();
+  });
+
+  it("calls onClose when the close button is clicked", () => {
+    const { onClose } = renderDialog();
+    const closeBtn = screen
+      .getAllByRole("button")
+      .find((b) => b.className.includes("rounded-full"));
+    expect(closeBtn).toBeDefined();
+    fireEvent.click(closeBtn!);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onClose when the Huỷ button is clicked", () => {
+    const { onClose } = renderDialog();
+    fireEvent.click(screen.getByRole("button", { name: "Huỷ" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call onSubmit when a required field is empty", () => {
+    const { onSubmit } = renderDialog();
+    fireEvent.click(screen.getByRole("button", { name: "Gửi" }));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("submits trimmed values when all required fields are filled", () => {
+    const { onSubmit } = renderDialog({
+      fields: [
+        {
+          key: "reason",
+          label: "Lý do từ chối",
+          type: "textarea",
+          placeholder: "Nội dung không phù hợp...",
+          required: true,
+        },
+      ],
+    });
+    const textarea = screen.getByPlaceholderText("Nội dung không phù hợp...") as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: "  Hết hàng  " } });
+    fireEvent.click(screen.getByRole("button", { name: "Gửi" }));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledWith({ reason: "Hết hàng" });
+  });
+
+  it("treats fields with required:false as optional and still submits", () => {
+    const { onSubmit } = renderDialog({
+      fields: [
+        { key: "resolution", label: "Quyết định", required: true, type: "textarea" },
+        { key: "amount", label: "Số tiền", required: false, type: "number" },
+      ],
+    });
+    const textareas = screen.getAllByRole("textbox");
+    // First textbox is the textarea, second is the optional number input.
+    fireEvent.change(textareas[0], { target: { value: "Hoàn 50%" } });
+    fireEvent.click(screen.getByRole("button", { name: "Gửi" }));
+    expect(onSubmit).toHaveBeenCalledWith({ resolution: "Hoàn 50%", amount: "" });
+  });
+
+  it("disables the submit button while isSubmitting is true", () => {
+    renderDialog({ isSubmitting: true });
+    const submitBtn = screen.getByRole("button", { name: /Đang xử lý/ });
+    expect(submitBtn).toBeDisabled();
+  });
+
+  it("renders helper text under fields when provided", () => {
+    renderDialog({
+      fields: [
+        {
+          key: "amount",
+          label: "Số tiền",
+          required: false,
+          type: "number",
+          helper: "Để trống nếu không hoàn tiền.",
+        },
+      ],
+    });
+    expect(screen.getByText("Để trống nếu không hoàn tiền.")).toBeInTheDocument();
+  });
+});

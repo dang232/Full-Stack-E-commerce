@@ -1,0 +1,239 @@
+import { useEffect, useMemo } from "react";
+import { useNavigate } from "react-router";
+import { useQueries } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "motion/react";
+import { Heart, ShoppingCart, Star, Trash2, Share2, Filter, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "../hooks/use-auth";
+import { useCart } from "../hooks/use-cart";
+import { useWishlist } from "../hooks/use-wishlist";
+import { productById } from "../lib/api/endpoints/products";
+import { formatPrice } from "../components/vnshop-data";
+import { ApiError } from "../lib/api/envelope";
+import { ImageWithFallback } from "../components/image-with-fallback";
+
+export function WishlistPage() {
+  const navigate = useNavigate();
+  const { ready, authenticated } = useAuth();
+  const wishlist = useWishlist();
+  const { addItem } = useCart();
+
+  // Hydrate Zustand from localStorage on mount.
+  useEffect(() => {
+    // useWishlist already calls hydrate() on mount.
+  }, []);
+
+  const queries = useQueries({
+    queries: wishlist.ids.map((id) => ({
+      queryKey: ["catalog", "products", "detail", id],
+      queryFn: () => productById(id),
+      retry: false,
+      staleTime: 5 * 60_000,
+    })),
+  });
+
+  const products = useMemo(
+    () =>
+      queries
+        .map((q, i) => ({ id: wishlist.ids[i], data: q.data, error: q.error }))
+        .filter((p) => !!p.data),
+    [queries, wishlist.ids],
+  );
+
+  const handleAddToCart = (productId: string) => {
+    if (!authenticated) {
+      toast.info("Hãy đăng nhập để thêm vào giỏ hàng");
+      return;
+    }
+    addItem(
+      { productId, quantity: 1 },
+      {
+        onSuccess: () => toast.success("Đã thêm vào giỏ"),
+        onError: (err) =>
+          toast.error(err instanceof ApiError ? err.message : "Không thể thêm vào giỏ"),
+      },
+    );
+  };
+
+  const handleAddAll = () => {
+    if (!authenticated) {
+      toast.info("Hãy đăng nhập để thêm vào giỏ hàng");
+      return;
+    }
+    products.forEach((p) => addItem({ productId: p.id, quantity: 1 }));
+    toast.success(`Đã thêm ${products.length} sản phẩm vào giỏ`);
+  };
+
+  if (!ready) return null;
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1
+            className="text-2xl font-bold text-gray-800"
+            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+          >
+            Yêu thích của tôi
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">{wishlist.count} sản phẩm</p>
+        </div>
+        <div className="flex gap-2">
+          <button className="p-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
+            <Share2 size={18} />
+          </button>
+          <button className="p-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
+            <Filter size={18} />
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2">
+        <AlertCircle size={14} className="shrink-0 mt-0.5" />
+        <p>
+          Danh sách yêu thích đang được lưu trên trình duyệt này. Tính năng đồng bộ giữa các thiết
+          bị sẽ sớm có (BE-8).
+        </p>
+      </div>
+
+      {wishlist.count === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="py-24 text-center bg-white rounded-2xl"
+        >
+          <Heart size={64} className="mx-auto mb-5 text-gray-200" />
+          <h2 className="text-xl font-bold text-gray-500 mb-3">Chưa có sản phẩm yêu thích</h2>
+          <p className="text-sm text-gray-400 mb-8 max-w-xs mx-auto">
+            Nhấn vào ❤️ trên sản phẩm để lưu vào danh sách yêu thích của bạn
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
+            style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+          >
+            Khám phá ngay
+          </button>
+        </motion.div>
+      ) : (
+        <>
+          <div className="flex gap-3 mb-6">
+            <button
+              onClick={handleAddAll}
+              disabled={products.length === 0}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm shadow disabled:opacity-50"
+              style={{ background: "#FF6200" }}
+            >
+              <ShoppingCart size={16} /> Thêm tất cả vào giỏ
+            </button>
+            <button
+              onClick={() => {
+                wishlist.clear();
+                toast.info("Đã xoá toàn bộ danh sách yêu thích");
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm border border-gray-200 bg-white text-gray-600 hover:border-red-300 hover:text-red-500 transition-colors"
+            >
+              <Trash2 size={16} /> Xóa tất cả
+            </button>
+          </div>
+
+          <AnimatePresence>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {products.map(({ id, data: p }, i) => {
+                if (!p) return null;
+                const original = p.originalPrice;
+                const discount =
+                  original && p.price && original > p.price
+                    ? Math.round(((original - p.price) / original) * 100)
+                    : null;
+                return (
+                  <motion.div
+                    key={id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
+                  >
+                    <div
+                      className="relative overflow-hidden cursor-pointer bg-gray-100"
+                      style={{ aspectRatio: "1" }}
+                      onClick={() => navigate(`/product/${id}`)}
+                    >
+                      <ImageWithFallback
+                        src={p.image ?? ""}
+                        alt={p.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {discount !== null && (
+                        <span
+                          className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[10px] font-bold"
+                          style={{ background: "#FF6200" }}
+                        >
+                          -{discount}%
+                        </span>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          wishlist.toggle(id);
+                          toast.info("Đã xoá khỏi yêu thích");
+                        }}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-white"
+                      >
+                        <Heart size={14} fill="#FF6200" className="text-[#FF6200]" />
+                      </button>
+                    </div>
+                    <div className="p-3">
+                      <button
+                        onClick={() => navigate(`/product/${id}`)}
+                        className="text-sm font-medium text-gray-800 line-clamp-2 text-left hover:underline"
+                      >
+                        {p.name}
+                      </button>
+                      {(p.rating !== undefined || p.reviewCount !== undefined) && (
+                        <div className="flex items-center gap-1 mt-1 mb-2">
+                          <Star size={11} fill="#F59E0B" className="text-amber-400" />
+                          <span className="text-xs text-gray-600">{p.rating ?? 0}</span>
+                          <span className="text-xs text-gray-400">
+                            ({(p.reviewCount ?? 0).toLocaleString()})
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1 mb-3">
+                        <span className="font-bold text-sm" style={{ color: "#FF6200" }}>
+                          {formatPrice(p.price ?? 0)}
+                        </span>
+                        {original && (
+                          <span className="text-xs text-gray-400 line-through">
+                            {formatPrice(original)}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleAddToCart(id)}
+                        className="w-full py-2 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
+                        style={{ background: "#00BFB3" }}
+                      >
+                        <ShoppingCart size={13} /> Thêm vào giỏ
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </AnimatePresence>
+
+          {queries.some((q) => q.isLoading) && (
+            <p className="text-xs text-gray-400 text-center mt-6">Đang tải sản phẩm...</p>
+          )}
+          {queries.some((q) => q.error instanceof ApiError && (q.error as ApiError).status === 404) && (
+            <p className="text-xs text-amber-600 text-center mt-6">
+              Một số sản phẩm yêu thích không còn tồn tại — bạn có thể xoá chúng khỏi danh sách.
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

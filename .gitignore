@@ -5,3 +5,11 @@
 /services/cart-service/node_modules
 /services/cart-service/dist
 /.omc
+/fe/node_modules
+/fe/dist
+/fe/.env
+/fe/.env.local
+/fe/coverage
+/fe/*.tsbuildinfo
+/fe/**/*.tsbuildinfo
+.claude/settings.local.json
