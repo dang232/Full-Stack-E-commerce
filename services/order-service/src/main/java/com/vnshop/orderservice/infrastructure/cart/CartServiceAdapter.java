@@ -5,10 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.orderservice.domain.checkout.CartItemSnapshot;
 import com.vnshop.orderservice.domain.checkout.CartSnapshot;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,10 +28,12 @@ public class CartServiceAdapter implements CartRepositoryPort {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final CircuitBreaker circuitBreaker;
     private final String cartUrl;
 
     public CartServiceAdapter(
             ObjectMapper objectMapper,
+            @Qualifier("cartServiceCircuitBreaker") CircuitBreaker circuitBreaker,
             @Value("${vnshop.cart-service.base-url:http://cart-service:8084}") String baseUrl,
             @Value("${vnshop.cart-service.connect-timeout-ms:1000}") long connectTimeoutMs,
             @Value("${vnshop.cart-service.read-timeout-ms:2000}") long readTimeoutMs
@@ -38,11 +43,21 @@ public class CartServiceAdapter implements CartRepositoryPort {
         factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
         this.restTemplate = new RestTemplate(factory);
         this.objectMapper = objectMapper;
+        this.circuitBreaker = circuitBreaker;
         this.cartUrl = baseUrl + "/cart";
     }
 
     @Override
     public CartSnapshot findByCartId(String cartId) {
+        try {
+            return circuitBreaker.executeSupplier(() -> fetchCart(cartId));
+        } catch (CallNotPermittedException e) {
+            throw new CartUnavailableException(
+                    "Cart service circuit breaker is OPEN — refusing call until recovery window elapses", e);
+        }
+    }
+
+    private CartSnapshot fetchCart(String cartId) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("x-user-id", cartId);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -77,6 +92,7 @@ public class CartServiceAdapter implements CartRepositoryPort {
 
         } catch (HttpStatusCodeException e) {
             if (e.getStatusCode().value() == 404) {
+                // 404 is "no cart yet" — a normal empty result, not a CB-tripping failure.
                 return new CartSnapshot(cartId, List.of());
             }
             throw new CartUnavailableException(
