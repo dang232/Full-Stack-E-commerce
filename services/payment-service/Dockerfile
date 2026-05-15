@@ -3,6 +3,7 @@ WORKDIR /workspace
 COPY pom.xml .
 RUN mvn dependency:go-offline
 COPY src ./src
+COPY ../../proto ../proto
 RUN mvn package -DskipTests
 
 FROM eclipse-temurin:25-jre-alpine AS runner
