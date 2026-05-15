@@ -299,6 +299,7 @@ services:
       REDIS_HOST: redis
       KEYCLOAK_ISSUER_URI: http://keycloak:8085/realms/vnshop
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      GATEWAY_CORS_ALLOWED_ORIGINS: ${GATEWAY_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
 
   frontend:
     profiles: ["apps"]

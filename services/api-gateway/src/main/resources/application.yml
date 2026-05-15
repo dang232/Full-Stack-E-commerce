@@ -30,10 +30,14 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "*"
+            # Comma-separated list. Default covers the local SPA dev/preview ports.
+            # In production set GATEWAY_CORS_ALLOWED_ORIGINS to the canonical origin(s).
+            allowed-origins: ${GATEWAY_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
             allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
             allowed-headers: "*"
+            exposed-headers: X-Correlation-Id
             allow-credentials: false
+            max-age: 3600
 
 springdoc:
   swagger-ui:

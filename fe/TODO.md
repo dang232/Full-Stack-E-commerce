@@ -99,7 +99,7 @@ Last updated: 2026-05-16.
 | BE-4 | SSE/WebSocket on `/notifications/stream` | Real-time bell |
 | BE-5 | Cart-service circuit breaker | Cart degradation |
 | BE-6 | ~~Seed Keycloak `vnshop-web` public client~~ | **DONE** — added to dev + prod realm imports, compose now mounts realm and runs `start-dev --import-realm` |
-| BE-7 | Gateway CORS env-driven | Production hardening |
+| BE-7 | ~~Gateway CORS env-driven~~ | **DONE** — `allowed-origins` now reads `GATEWAY_CORS_ALLOWED_ORIGINS` (default localhost:3000,5173). `X-Correlation-Id` exposed for trace pivots. |
 | BE-8 | `GET/POST/DELETE /users/me/wishlist` | Wishlist cross-device sync |
 | BE-9 | Rotate the leaked Supabase anon key | Security hygiene |
 | BE-10 | Invoice download URL (F102) | Order-detail "Download invoice" |
