@@ -1,4 +1,4 @@
-FROM maven:3.9.11-eclipse-temurin-25-alpine AS builder
+FROM maven:3.9.11-eclipse-temurin-25 AS builder
 WORKDIR /workspace
 COPY services/order-service/pom.xml .
 RUN mvn dependency:go-offline
