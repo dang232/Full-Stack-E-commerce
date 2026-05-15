@@ -17,6 +17,7 @@ concurrency:
 
 env:
   MAVEN_OPTS: -Dmaven.repo.local=${{ github.workspace }}/.m2/repository
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ── Detect what changed ──
