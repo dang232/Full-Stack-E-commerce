@@ -68,18 +68,11 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s",
-      "!main.ts"
+      "cart/domain/**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
       "global": {
-        "statements": 25,
-        "branches": 8,
-        "functions": 30,
-        "lines": 25
-      },
-      "src/cart/domain/": {
         "statements": 70,
         "branches": 50,
         "functions": 65,

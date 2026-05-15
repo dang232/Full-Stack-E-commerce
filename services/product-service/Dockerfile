@@ -1,8 +1,8 @@
 FROM maven:3.9.11-eclipse-temurin-25-alpine AS builder
 WORKDIR /workspace
-COPY pom.xml .
+COPY services/product-service/pom.xml .
 RUN mvn dependency:go-offline
-COPY src ./src
+COPY services/product-service/src ./src
 RUN mvn package -DskipTests
 
 FROM eclipse-temurin:25-jre-alpine AS runner
