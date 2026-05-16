@@ -1,5 +1,5 @@
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { FindNotificationByIdUseCase } from './application/find-notification-by-id.use-case';
 import { FindUserNotificationsUseCase } from './application/find-user-notifications.use-case';
 import { KafkaNotificationConsumer } from './application/kafka-notification.consumer';
@@ -14,13 +14,13 @@ import {
 import { ConsoleChannelAdapter } from './infrastructure/channel/console-channel.adapter';
 import { EmailChannelAdapter } from './infrastructure/channel/email-channel.adapter';
 import { NotificationController } from './infrastructure/notification.controller';
-import { NotificationTypeOrmEntity } from './infrastructure/notification.typeorm-entity';
-import { NotificationTypeOrmRepository } from './infrastructure/notification.typeorm-repository';
+import { NotificationMikroOrmEntity } from './infrastructure/notification.mikro-orm-entity';
+import { NotificationMikroOrmRepository } from './infrastructure/notification.mikro-orm-repository';
 
 export const NOTIFICATION_CHANNELS = Symbol('NOTIFICATION_CHANNELS');
 
 @Module({
-  imports: [TypeOrmModule.forFeature([NotificationTypeOrmEntity])],
+  imports: [MikroOrmModule.forFeature([NotificationMikroOrmEntity])],
   controllers: [NotificationController, KafkaNotificationConsumer],
   providers: [
     ConsoleChannelAdapter,
@@ -35,7 +35,7 @@ export const NOTIFICATION_CHANNELS = Symbol('NOTIFICATION_CHANNELS');
     },
     {
       provide: NOTIFICATION_REPOSITORY,
-      useClass: NotificationTypeOrmRepository,
+      useClass: NotificationMikroOrmRepository,
     },
     {
       provide: FindUserNotificationsUseCase,
