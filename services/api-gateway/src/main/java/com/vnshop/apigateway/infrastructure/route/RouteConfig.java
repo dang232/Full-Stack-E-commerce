@@ -85,6 +85,12 @@ public class RouteConfig {
             .route("inventory", route -> route.path("/inventory/**")
                 .filters(filters -> resilient(filters, "inventory-service"))
                 .uri(inventoryServiceUri))
+            // Seller-owned product CRUD + image upload routes live on product-service.
+            // Must precede the broader /sellers/** route below (which targets user-service
+            // for seller profile/onboarding endpoints).
+            .route("seller-products", route -> route.path("/sellers/me/products/**")
+                .filters(filters -> resilient(filters, "product-service"))
+                .uri(productServiceUri))
             .route("users", route -> route.path("/users/**", "/sellers/**")
                 .filters(filters -> resilient(filters, "user-service"))
                 .uri(userServiceUri))
