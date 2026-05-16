@@ -6,6 +6,8 @@ import com.vnshop.productservice.application.GetProductUseCase;
 import com.vnshop.productservice.application.UpdateProductUseCase;
 import com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil;
 import com.vnshop.productservice.application.ProductResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,11 +65,12 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    public ApiResponse<List<ProductResponse>> findProducts(@RequestParam(required = false) String categoryId, @RequestParam(required = false) String q) {
-        if (categoryId != null && !categoryId.isBlank()) {
-            return ApiResponse.ok(getProductUseCase.findByCategory(categoryId));
-        }
-        return ApiResponse.ok(getProductUseCase.searchByName(q == null ? "" : q));
+    public ApiResponse<Page<ProductResponse>> findProducts(
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) String q,
+            Pageable pageable
+    ) {
+        return ApiResponse.ok(getProductUseCase.findCatalog(categoryId, q, pageable));
     }
 
     @GetMapping("/products/{id}")

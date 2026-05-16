@@ -1,6 +1,8 @@
 package com.vnshop.searchservice.application;
 
 import com.vnshop.searchservice.infrastructure.persistence.ProductReadModelRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,6 +19,11 @@ public class SearchProductsUseCase {
         return productReadModelRepository.search(query, category, brand, minPrice, maxPrice).stream()
                 .map(SearchProductResponse::fromDomain)
                 .toList();
+    }
+
+    public Page<SearchProductResponse> searchPaged(String query, String category, String brand, BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
+        return productReadModelRepository.searchPaged(query, category, brand, minPrice, maxPrice, pageable)
+                .map(SearchProductResponse::fromDomain);
     }
 
     public List<String> categories() {

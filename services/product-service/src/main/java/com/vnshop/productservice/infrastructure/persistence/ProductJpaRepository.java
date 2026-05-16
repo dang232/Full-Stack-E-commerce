@@ -2,6 +2,8 @@ package com.vnshop.productservice.infrastructure.persistence;
 
 import com.vnshop.productservice.domain.Product;
 import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -44,5 +46,13 @@ public class ProductJpaRepository implements ProductRepositoryPort {
     @Override
     public List<String> findDistinctCategories() {
         return springDataRepository.findDistinctCategories();
+    }
+
+    @Override
+    public Page<Product> findCatalog(String categoryId, String q, Pageable pageable) {
+        String normalizedCategory = (categoryId == null || categoryId.isBlank()) ? null : categoryId;
+        String normalizedQuery = (q == null || q.isBlank()) ? null : q;
+        return springDataRepository.findCatalog(normalizedCategory, normalizedQuery, pageable)
+                .map(ProductJpaEntity::toDomain);
     }
 }

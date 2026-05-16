@@ -124,6 +124,12 @@ class ProductImageUploadServiceTest {
         public java.util.List<String> findDistinctCategories() {
             return java.util.List.of();
         }
+
+        @Override
+        public org.springframework.data.domain.Page<Product> findCatalog(
+                String categoryId, String q, org.springframework.data.domain.Pageable pageable) {
+            return org.springframework.data.domain.Page.empty(pageable);
+        }
     }
 
     private static final class FakeObjectStorage implements ObjectStoragePort {

@@ -14,7 +14,7 @@ public record OrderListItemResponse(
         Instant createdAt,
         Instant updatedAt
 ) {
-    static OrderListItemResponse fromProjection(OrderSummaryProjection projection) {
+    public static OrderListItemResponse fromProjection(OrderSummaryProjection projection) {
         return new OrderListItemResponse(
                 projection.orderId(),
                 projection.buyerId(),
