@@ -6,6 +6,7 @@ import com.vnshop.paymentservice.application.ProcessPaymentUseCase;
 import com.vnshop.paymentservice.application.ledger.LedgerService;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
+import com.vnshop.paymentservice.domain.port.out.PaymentIdempotencyKeyRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoProperties;
 import com.vnshop.paymentservice.infrastructure.gateway.VnpayProperties;
@@ -22,8 +23,13 @@ public class UseCaseConfig {
     }
 
     @Bean
-    ProcessPaymentUseCase processPaymentUseCase(PaymentRepositoryPort paymentRepositoryPort, PaymentGatewayPort paymentGatewayPort, LedgerService ledgerService) {
-        return new ProcessPaymentUseCase(paymentRepositoryPort, paymentGatewayPort, ledgerService);
+    ProcessPaymentUseCase processPaymentUseCase(
+            PaymentRepositoryPort paymentRepositoryPort,
+            PaymentGatewayPort paymentGatewayPort,
+            LedgerService ledgerService,
+            PaymentIdempotencyKeyRepositoryPort paymentIdempotencyKeyRepository
+    ) {
+        return new ProcessPaymentUseCase(paymentRepositoryPort, paymentGatewayPort, ledgerService, paymentIdempotencyKeyRepository);
     }
 
     @Bean

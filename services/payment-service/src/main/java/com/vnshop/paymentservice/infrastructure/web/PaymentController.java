@@ -23,6 +23,8 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/payment")
 public class PaymentController {
+    private static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
+
     private final ProcessPaymentUseCase processPaymentUseCase;
     private final GetPaymentStatusUseCase getPaymentStatusUseCase;
     private final Optional<VnpayCallbackService> vnpayCallbackService;
@@ -36,13 +38,19 @@ public class PaymentController {
     }
 
     @PostMapping("/cod/confirm")
-    public ApiResponse<PaymentResponse> confirmCod(@Valid @RequestBody PaymentRequest request) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.COD))));
+    public ApiResponse<PaymentResponse> confirmCod(
+            @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
+            @Valid @RequestBody PaymentRequest request
+    ) {
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.COD, idempotencyKey))));
     }
 
     @PostMapping("/vnpay/create")
-    public ApiResponse<PaymentResponse> createVnpay(@Valid @RequestBody PaymentRequest request) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.VNPAY))));
+    public ApiResponse<PaymentResponse> createVnpay(
+            @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
+            @Valid @RequestBody PaymentRequest request
+    ) {
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.VNPAY, idempotencyKey))));
     }
 
     @GetMapping("/vnpay/ipn")
@@ -58,8 +66,11 @@ public class PaymentController {
     }
 
     @PostMapping("/momo/create")
-    public ApiResponse<PaymentResponse> createMomo(@Valid @RequestBody PaymentRequest request) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.MOMO))));
+    public ApiResponse<PaymentResponse> createMomo(
+            @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
+            @Valid @RequestBody PaymentRequest request
+    ) {
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.MOMO, idempotencyKey))));
     }
 
     @PostMapping("/momo/ipn")

@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.infrastructure.web;
 
+import com.vnshop.paymentservice.application.IdempotencyKeyConflictException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -12,6 +13,12 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> badRequest(IllegalArgumentException exception) {
         return ApiResponse.error(exception.getMessage(), "BAD_REQUEST");
+    }
+
+    @ExceptionHandler(IdempotencyKeyConflictException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public ApiResponse<Void> idempotencyKeyConflict(IdempotencyKeyConflictException exception) {
+        return ApiResponse.error(exception.getMessage(), "IDEMPOTENCY_KEY_CONFLICT");
     }
 
     @ExceptionHandler(IllegalStateException.class)
