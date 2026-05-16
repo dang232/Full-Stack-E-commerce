@@ -7,7 +7,7 @@ export const moneySchema = z
   })
   .passthrough();
 
-export const pageSchema = <T extends z.ZodTypeAny>(item: T) =>
+export const pageSchema = <T extends z.ZodType>(item: T) =>
   z
     .object({
       content: z.array(item),

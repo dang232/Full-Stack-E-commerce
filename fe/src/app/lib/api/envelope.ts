@@ -1,13 +1,15 @@
 import { z } from "zod";
 
-export const apiResponseSchema = <T extends z.ZodTypeAny>(data: T) =>
+export const apiResponseSchema = <T extends z.ZodType>(
+  data: T,
+): z.ZodType<ApiResponse<z.infer<T>>> =>
   z.object({
     success: z.boolean(),
     message: z.string(),
     data,
     errorCode: z.string().nullable(),
     timestamp: z.string(),
-  });
+  }) as unknown as z.ZodType<ApiResponse<z.infer<T>>>;
 
 export interface ApiResponse<T> {
   success: boolean;
