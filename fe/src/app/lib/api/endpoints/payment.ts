@@ -20,14 +20,18 @@ const paymentStatusSchema = z
   .passthrough();
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 
-export const codConfirm = (body: { orderId: string }) =>
-  api.post("/payment/cod/confirm", paymentStatusSchema, body);
+export const codConfirm = (body: { orderId: string }, idempotencyKey?: string) =>
+  api.post("/payment/cod/confirm", paymentStatusSchema, body, { idempotencyKey });
 
-export const vnpayCreate = (body: { orderId: string; returnUrl?: string }) =>
-  api.post("/payment/vnpay/create", initiatePaymentSchema, body);
+export const vnpayCreate = (
+  body: { orderId: string; returnUrl?: string },
+  idempotencyKey?: string,
+) => api.post("/payment/vnpay/create", initiatePaymentSchema, body, { idempotencyKey });
 
-export const momoCreate = (body: { orderId: string; returnUrl?: string }) =>
-  api.post("/payment/momo/create", initiatePaymentSchema, body);
+export const momoCreate = (
+  body: { orderId: string; returnUrl?: string },
+  idempotencyKey?: string,
+) => api.post("/payment/momo/create", initiatePaymentSchema, body, { idempotencyKey });
 
 export const paymentStatus = (orderId: string) =>
   api.get(`/payment/status/${encodeURIComponent(orderId)}`, paymentStatusSchema);

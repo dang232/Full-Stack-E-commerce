@@ -319,14 +319,20 @@ export function CheckoutPage() {
         try {
           const init =
             selectedPaymentId === "VNPAY"
-              ? await vnpayCreate({
-                  orderId: order.id,
-                  returnUrl: `${window.location.origin}/payment/return/vnpay`,
-                })
-              : await momoCreate({
-                  orderId: order.id,
-                  returnUrl: `${window.location.origin}/payment/return/momo`,
-                });
+              ? await vnpayCreate(
+                  {
+                    orderId: order.id,
+                    returnUrl: `${window.location.origin}/payment/return/vnpay`,
+                  },
+                  idempotencyKeyRef.current,
+                )
+              : await momoCreate(
+                  {
+                    orderId: order.id,
+                    returnUrl: `${window.location.origin}/payment/return/momo`,
+                  },
+                  idempotencyKeyRef.current,
+                );
           window.location.href = init.redirectUrl;
           return;
         } catch (err) {
@@ -339,7 +345,7 @@ export function CheckoutPage() {
         }
       } else if (selectedPaymentId === "COD") {
         try {
-          await codConfirm({ orderId: order.id });
+          await codConfirm({ orderId: order.id }, idempotencyKeyRef.current);
         } catch {
           // COD confirmation is best-effort; buyer will see status update later.
         }
