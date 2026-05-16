@@ -9,6 +9,7 @@ import { products, categories, type Product } from "../components/vnshop-data";
 import { useProducts } from "../hooks/use-products";
 import { useResettableState } from "../hooks/use-resettable-state";
 import { useSearch } from "../hooks/use-search";
+import { useSearchFacets } from "../hooks/use-search-facets";
 import { formatPrice } from "../lib/format";
 
 function ProductListItem({ product }: { product: Product }) {
@@ -231,12 +232,13 @@ export function SearchPage() {
   const [sortBy, setSortBy] = useState("popular");
   const [minRating, setMinRating] = useState(0);
   const [freeShipOnly, setFreeShipOnly] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
 
   // Filter signature drives a key-based remount of the result window so
   // pagination resets without an effect.
-  const filterSignature = `${query}|${selectedCat}|${priceMin}|${priceMax}|${minRating}|${freeShipOnly}|${sortBy}|${isFlash}`;
+  const filterSignature = `${query}|${selectedCat}|${selectedBrand}|${priceMin}|${priceMax}|${minRating}|${freeShipOnly}|${sortBy}|${isFlash}`;
   const [pageSize, setPageSize] = useResettableState(20, filterSignature);
 
   // Helper: replace `cat` in the URL while preserving other params.
@@ -252,11 +254,12 @@ export function SearchPage() {
   // Backend search runs when there's a query OR a category. Empty results are kept
   // (the user really did search and got nothing back). We only fall through to the local
   // catalog when search wasn't enabled or the backend failed outright.
-  const searchEnabled = !!(query || selectedCat);
+  const searchEnabled = !!(query || selectedCat || selectedBrand);
   const search = useSearch(
     {
       q: query || undefined,
       category: selectedCat || undefined,
+      brand: selectedBrand || undefined,
       minPrice: priceMin ? Number(priceMin) * 1000 : undefined,
       maxPrice: priceMax ? Number(priceMax) * 1000 : undefined,
       sort: sortBy === "popular" ? undefined : sortBy,
@@ -264,6 +267,17 @@ export function SearchPage() {
     },
     searchEnabled,
   );
+
+  // BE-driven facet counts for the sidebar. Only fetched when there's
+  // something to facet against; the hook short-circuits otherwise.
+  const { facets } = useSearchFacets({
+    q: query || undefined,
+    category: selectedCat || undefined,
+    brand: selectedBrand || undefined,
+    minPrice: priceMin ? Number(priceMin) * 1000 : undefined,
+    maxPrice: priceMax ? Number(priceMax) * 1000 : undefined,
+    enabled: searchEnabled,
+  });
 
   const { data: localCatalog = products } = useProducts();
   const usedBackend = searchEnabled && !search.error && !search.isLoading;
@@ -327,6 +341,7 @@ export function SearchPage() {
     setPriceMax("");
     setMinRating(0);
     setFreeShipOnly(false);
+    setSelectedBrand("");
     setSearchParams({});
   };
 
@@ -335,9 +350,14 @@ export function SearchPage() {
     if (localQuery.trim()) setSearchParams({ q: localQuery.trim() });
   };
 
-  const activeFilterCount = [selectedCat, priceMin, priceMax, minRating > 0, freeShipOnly].filter(
-    Boolean,
-  ).length;
+  const activeFilterCount = [
+    selectedCat,
+    selectedBrand,
+    priceMin,
+    priceMax,
+    minRating > 0,
+    freeShipOnly,
+  ].filter(Boolean).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -538,6 +558,44 @@ export function SearchPage() {
                 <span className="text-gray-700">Miễn phí vận chuyển</span>
               </button>
             </div>
+
+            {/* Brand facets — driven by /search/facets so options reflect the
+                current query/category/price filters. Hidden when there are no
+                brand results to show. */}
+            {facets.brands.length > 0 ? (
+              <div className="mt-5 pt-5 border-t border-gray-100">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Thương hiệu</p>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {facets.brands.slice(0, 15).map((entry) => {
+                    const isSelected = selectedBrand === entry.key;
+                    return (
+                      <button
+                        key={entry.key}
+                        onClick={() => setSelectedBrand(isSelected ? "" : entry.key)}
+                        className="w-full flex items-center justify-between text-sm py-1"
+                        style={{ color: isSelected ? "#00BFB3" : "#4b5563" }}
+                      >
+                        <span className="flex items-center gap-2">
+                          <div
+                            className="w-4 h-4 rounded border-2 flex items-center justify-center shrink-0"
+                            style={{
+                              borderColor: isSelected ? "#00BFB3" : "#d1d5db",
+                              background: isSelected ? "#00BFB3" : "transparent",
+                            }}
+                          >
+                            {isSelected ? (
+                              <span className="text-white text-[10px] font-bold">✓</span>
+                            ) : null}
+                          </div>
+                          <span className="truncate">{entry.key}</span>
+                        </span>
+                        <span className="text-xs text-gray-400 shrink-0 ml-2">{entry.count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </div>
         </aside>
 
@@ -612,6 +670,17 @@ export function SearchPage() {
                 >
                   {categories.find((c) => c.id === selectedCat)?.label}
                   <button onClick={() => setCategory("")}>
+                    <X size={12} />
+                  </button>
+                </span>
+              ) : null}
+              {selectedBrand ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#00BFB3" }}
+                >
+                  {selectedBrand}
+                  <button onClick={() => setSelectedBrand("")}>
                     <X size={12} />
                   </button>
                 </span>
