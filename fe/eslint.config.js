@@ -6,7 +6,7 @@ import globals from "globals";
 
 export default tseslint.config(
   {
-    ignores: ["dist", "node_modules", "coverage", "*.tsbuildinfo"],
+    ignores: ["dist", "node_modules", "coverage", "*.tsbuildinfo", "playwright-report", "test-results", "e2e"],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],

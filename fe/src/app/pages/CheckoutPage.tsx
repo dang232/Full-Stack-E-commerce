@@ -1,12 +1,12 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import {
   MapPin, Truck, CreditCard, CheckCircle, ChevronRight,
-  ArrowLeft, Plus, Shield, Package, AlertCircle, LogIn,
+  ArrowLeft, Plus, Shield, Package, AlertCircle, LogIn, Check,
 } from "lucide-react";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
@@ -17,6 +17,7 @@ import {
   shippingOptions as fetchShippingOptions,
 } from "../lib/api/endpoints/checkout";
 import { placeOrder } from "../lib/api/endpoints/orders";
+import { validateCouponCode } from "../lib/api/endpoints/coupons";
 import { codConfirm, momoCreate, vnpayCreate } from "../lib/api/endpoints/payment";
 import { myProfile } from "../lib/api/endpoints/users";
 import { formatPrice } from "../lib/format";
@@ -127,6 +128,8 @@ export function CheckoutPage() {
   const selectedShippingId = shippingChoice || shippingOptions[0]?.id || "";
   const [selectedPaymentId, setSelectedPaymentId] = useState<PaymentOption["id"]>("VNPAY");
   const [note, setNote] = useState("");
+  const [couponInput, setCouponInput] = useState<string>("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
 
@@ -141,10 +144,12 @@ export function CheckoutPage() {
       "calculate",
       cartItems.map((i) => `${i.productId}:${i.quantity}`).join(","),
       addresses[selectedAddressIndex]?.line1,
+      appliedCoupon,
     ],
     queryFn: () =>
       calculateCheckout({
         items: cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        couponCode: appliedCoupon ?? undefined,
       }),
     enabled: cartItems.length > 0,
     retry: false,
@@ -164,6 +169,33 @@ export function CheckoutPage() {
     profile?.username ||
     profile?.email ||
     "Khách hàng";
+
+  const couponMutation = useMutation({
+    mutationFn: validateCouponCode,
+    onSuccess: (result, variables) => {
+      if (result.valid) {
+        setAppliedCoupon(variables.code);
+        setCouponInput("");
+        return;
+      }
+      toast.error(result.message || "Mã giảm giá không hợp lệ");
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : "Mã giảm giá không hợp lệ");
+    },
+  });
+
+  const handleApplyCoupon = () => {
+    const code = couponInput.trim();
+    if (!code || couponMutation.isPending) return;
+    couponMutation.mutate({ code, orderAmount: subtotal });
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    couponMutation.reset();
+  };
 
   if (!ready) {
     return (
@@ -221,6 +253,7 @@ export function CheckoutPage() {
           paymentMethod: selectedPaymentId,
           notes: note || undefined,
           shippingChoices: shipping ? [{ sellerId: "_", code: shipping.id }] : undefined,
+          couponCode: appliedCoupon ?? undefined,
         },
         idempotencyKeyRef.current,
       );
@@ -709,6 +742,63 @@ export function CheckoutPage() {
                 <p className="text-xs text-gray-400">+{cartItems.length - 3} sản phẩm khác</p>
               )}
             </div>
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-gray-600 mb-2">Mã giảm giá</label>
+              <AnimatePresence mode="wait">
+                {!appliedCoupon ? (
+                  <motion.div
+                    key="input"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                      placeholder="Nhập mã giảm giá"
+                      className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#00BFB3] bg-white transition-colors"
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={!couponInput.trim() || couponMutation.isPending}
+                      className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                      style={{ background: "#00BFB3" }}
+                    >
+                      Áp dụng
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="applied"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex items-center justify-between"
+                  >
+                    <div
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium"
+                      style={{ background: "rgba(0,191,179,0.08)", color: "#00BFB3" }}
+                    >
+                      <Check size={14} />
+                      <span>Đã áp dụng: {appliedCoupon}</span>
+                      {discount > 0 && <span className="ml-1">-{formatPrice(discount)}</span>}
+                    </div>
+                    <button
+                      onClick={handleRemoveCoupon}
+                      className="px-3 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+                    >
+                      Bỏ
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <div className="border-t border-gray-100 pt-3 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tạm tính</span>
@@ -723,7 +813,7 @@ export function CheckoutPage() {
               {discount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Giảm giá</span>
-                  <span style={{ color: "#00BFB3" }}>-{formatPrice(discount)}</span>
+                  <span style={{ color: "#FF6200" }}>-{formatPrice(discount)}</span>
                 </div>
               )}
               <div className="flex justify-between font-black text-base pt-2 border-t border-gray-100">

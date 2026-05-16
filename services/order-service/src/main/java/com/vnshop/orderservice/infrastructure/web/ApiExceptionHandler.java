@@ -2,6 +2,8 @@ package com.vnshop.orderservice.infrastructure.web;
 
 import com.vnshop.orderservice.domain.InvoiceAccessDeniedException;
 import com.vnshop.orderservice.domain.coupon.CouponException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     @ExceptionHandler(InvoiceAccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
@@ -36,6 +40,9 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> internal(Exception exception) {
+        // Log the full stack so operators can pinpoint the failing query/code path —
+        // the generic INTERNAL_ERROR response leaves callers blind otherwise.
+        log.error("Unhandled exception bubbled to ApiExceptionHandler", exception);
         return ApiResponse.error("An unexpected error occurred", "INTERNAL_ERROR");
     }
 }

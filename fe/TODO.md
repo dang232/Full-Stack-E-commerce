@@ -1,6 +1,6 @@
 # VNShop Frontend — Outstanding Work
 
-Last updated: 2026-05-16.
+Last updated: 2026-05-16 (post-FE-PLAN audit pass).
 
 ## Done
 
@@ -65,6 +65,13 @@ Last updated: 2026-05-16.
 - [x] **`use-search` error semantics fixed** — was hiding 5xx errors; now exposes verbatim so callers can fall back to local catalog explicitly.
 - [x] All `useEffect` cleanup paths verified: notification visibility listener, cart polling, image preview URL revocation, countdown intervals.
 
+### FE-PLAN audit (2026-05-16, this pass)
+- [x] **Lint cleaned to 0 warnings** — removed stale `useEscapeKey` imports (the hook is only used inside `FormDialog` / `Modal` now) and unused `X` icon imports from AdminPage / OrdersPage / SellerPage. Verify line in this file is honest again.
+- [x] **Buyer-side coupon endpoint module** — `lib/api/endpoints/coupons.ts` covers `GET /coupons`, `POST /coupons/validate`, `POST /checkout/apply-coupon`. Existing `checkout.ts#validateCoupon` (the alias path) stays for back-compat.
+- [x] **Flash-sale endpoint module** — `lib/api/endpoints/flash-sale.ts` covers `POST /flash-sale/reserve`, `GET /flash-sale/stock/{id}`, `POST /flash-sale/release/{id}`. Closes a Plan §2 gap; UI integration on the home flash-sale carousel is the next step.
+- [x] **Vite vs Next.js deviation documented** — added an implementation note at the top of FE-PLAN §6. Stack table now records that we ship Vite SPA (not Next.js) on purpose, with the SEO trade-off called out so future contributors don't re-litigate it. UI kit deviation (astraui vs shadcn) is documented in the same place.
+- [x] **Playwright E2E scaffolded** — `fe/playwright.config.ts` + `fe/e2e/smoke.spec.ts` + `fe/e2e/buyer-happy-path.spec.ts`. Smoke test (home loads, login route reachable) is unconditional; happy-path login → checkout test is gated behind `E2E_USER_EMAIL`/`E2E_USER_PASSWORD` so CI doesn't fail until the seed buyer is wired up. `npm run test:e2e` is the entry point.
+
 ---
 
 ## Not done (all blocked or low priority)
@@ -80,8 +87,8 @@ Last updated: 2026-05-16.
 - [ ] **Invoice download** — needs **BE-10** wired through gateway.
 
 ### Auth-flow blocked
-- [ ] Playwright E2E for buyer happy path — blocked on **BE-6** (Keycloak realm seed for `vnshop-web`).
-- [ ] End-to-end smoke test (compose up → login → place order → verify trace in Jaeger) — same blocker.
+- [ ] **Buyer happy-path E2E** (`fe/e2e/buyer-happy-path.spec.ts` placeholder) — login flow gated on a deterministic seed buyer in Keycloak (`E2E_USER_EMAIL` / `E2E_USER_PASSWORD`). Smoke test already runs without auth.
+- [ ] End-to-end smoke test (compose up → login → place order → verify trace in Jaeger) — same blocker as above plus distributed tracing wiring.
 
 ### Marginal polish
 - [ ] Roll out `ImageWithFallback` across the high-traffic surfaces (Home product cards, Cart, Search, OrdersPage). Component + tests already shipped; pickup is a per-page mechanical swap.
@@ -114,15 +121,17 @@ npm run build      # tsc -b && vite build (with code-splitting)
 npm run typecheck  # tsc -b --noEmit
 npm test           # vitest run
 npm run test:watch # vitest watch
+npm run test:e2e   # playwright test (auto-starts dev server)
 npm run lint       # eslint .
 ```
 
-## Verification artifacts (current run)
+## Verification artifacts (current run, 2026-05-16)
 
 | Check | Result |
 |---|---|
 | `npm run typecheck` | clean |
 | `npm test` | **77 tests / 13 files, all pass** |
-| `npm run lint` | **0 problems** |
+| `npm run lint` | **0 problems** (was 5 warnings before this pass) |
 | `npm run build` | clean; main bundle 232 KB / 65 KB gzip; recharts isolated to dashboards |
 | `window.prompt` / `window.confirm` calls | **0** |
+| Playwright config | wired (`fe/playwright.config.ts` + `fe/e2e/`); smoke runnable, buyer happy-path skips without seed creds |

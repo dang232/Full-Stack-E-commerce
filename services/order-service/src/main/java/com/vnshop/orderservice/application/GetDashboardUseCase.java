@@ -16,7 +16,9 @@ import java.util.stream.Collectors;
 
 public class GetDashboardUseCase {
     private static final int DAYS_IN_PERIOD = 30;
-    private static final int TOP_ITEM_LIMIT = 10;
+    // Package-private so SpEL cache-key expressions can reference it via #root.target.TOP_ITEM_LIMIT.
+    // Boot 4 / Spring 7's SpEL stopped reaching private static fields by default.
+    static final int TOP_ITEM_LIMIT = 10;
 
     private final DashboardAnalyticsPort analytics;
 
@@ -54,14 +56,14 @@ public class GetDashboardUseCase {
         return new RevenueTimeSeries(points);
     }
 
-    @Cacheable(cacheNames = "dashboardTopProducts", key = "'last30Days:limit' + #root.target.TOP_ITEM_LIMIT")
+    @Cacheable(cacheNames = "dashboardTopProducts", key = "'last30Days:limit10'")
     public List<TopItem> topProducts() {
         return analytics.topProducts(TOP_ITEM_LIMIT).stream()
                 .map(m -> new TopItem(m.id(), m.name(), m.value()))
                 .toList();
     }
 
-    @Cacheable(cacheNames = "dashboardTopSellers", key = "'last30Days:limit' + #root.target.TOP_ITEM_LIMIT")
+    @Cacheable(cacheNames = "dashboardTopSellers", key = "'last30Days:limit10'")
     public List<TopItem> topSellers() {
         return analytics.topSellers(TOP_ITEM_LIMIT).stream()
                 .map(m -> new TopItem(m.id(), m.name(), m.value()))
