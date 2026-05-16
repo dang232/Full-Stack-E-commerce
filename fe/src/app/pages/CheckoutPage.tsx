@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
@@ -19,7 +19,7 @@ import {
 import { placeOrder } from "../lib/api/endpoints/orders";
 import { codConfirm, momoCreate, vnpayCreate } from "../lib/api/endpoints/payment";
 import { myProfile } from "../lib/api/endpoints/users";
-import { formatPrice } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
 import type { Address } from "../types/api";
 
 type Step = "address" | "shipping" | "payment" | "review" | "success";
@@ -120,7 +120,11 @@ export function CheckoutPage() {
 
   const [step, setStep] = useState<Step>("address");
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
-  const [selectedShippingId, setSelectedShippingId] = useState(shippingOptions[0]?.id ?? "");
+  // The user's explicit shipping pick. Empty string means "use default" — we resolve
+  // to the first available option at render time, so we never need an effect to
+  // mirror server-provided defaults into local state.
+  const [shippingChoice, setShippingChoice] = useState<string>("");
+  const selectedShippingId = shippingChoice || shippingOptions[0]?.id || "";
   const [selectedPaymentId, setSelectedPaymentId] = useState<PaymentOption["id"]>("VNPAY");
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -129,13 +133,6 @@ export function CheckoutPage() {
   // Idempotency key generated once per checkout attempt; reused on retries.
   const idempotencyKeyRef = useRef<string>("");
   if (!idempotencyKeyRef.current) idempotencyKeyRef.current = uuidv4();
-
-  // When shipping options arrive, default to the first one if none selected yet.
-  useEffect(() => {
-    if (!selectedShippingId && shippingOptions.length > 0) {
-      setSelectedShippingId(shippingOptions[0].id);
-    }
-  }, [shippingOptions, selectedShippingId]);
 
   // Server-side preview of totals — best effort. UI falls back to local sum if unavailable.
   const calcQuery = useQuery({
@@ -498,7 +495,7 @@ export function CheckoutPage() {
                   {shippingOptions.map((method) => (
                     <button
                       key={method.id}
-                      onClick={() => setSelectedShippingId(method.id)}
+                      onClick={() => setShippingChoice(method.id)}
                       className="w-full p-4 rounded-2xl border-2 text-left transition-all bg-white"
                       style={{
                         borderColor: selectedShippingId === method.id ? "#00BFB3" : "#e5e7eb",

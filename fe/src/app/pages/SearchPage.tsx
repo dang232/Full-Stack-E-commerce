@@ -1,14 +1,16 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { motion } from "motion/react";
 import {
   SlidersHorizontal, Star, Truck, X, Zap,
   Grid3X3, LayoutList, Search
 } from "lucide-react";
-import { products, categories, formatPrice, type Product } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
+import { products, categories, type Product } from "../components/vnshop-data";
 import { useVNShop } from "../components/vnshop-context";
 import { useProducts } from "../hooks/use-products";
 import { useSearch } from "../hooks/use-search";
+import { useResettableState } from "../hooks/use-resettable-state";
 import { ImageWithFallback } from "../components/image-with-fallback";
 
 function ProductListItem({ product }: { product: Product }) {
@@ -139,7 +141,8 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get("q") ?? "";
-  const catFilter = searchParams.get("cat") ?? "";
+  // URL is the source of truth for the selected category — no shadow state.
+  const selectedCat = searchParams.get("cat") ?? "";
   const isFlash = searchParams.get("flash") === "true";
 
   const [localQuery, setLocalQuery] = useState(query);
@@ -148,14 +151,23 @@ export function SearchPage() {
   const [sortBy, setSortBy] = useState("popular");
   const [minRating, setMinRating] = useState(0);
   const [freeShipOnly, setFreeShipOnly] = useState(false);
-  const [selectedCat, setSelectedCat] = useState(catFilter);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [pageSize, setPageSize] = useState(20);
 
-  // Reset visible window when filters / search change so the user always sees the top of the new result set.
-  useEffect(() => { setPageSize(20); }, [query, selectedCat, priceMin, priceMax, minRating, freeShipOnly, sortBy, isFlash]);
-  useEffect(() => { setSelectedCat(catFilter); }, [catFilter]);
+  // Filter signature drives a key-based remount of the result window so
+  // pagination resets without an effect.
+  const filterSignature = `${query}|${selectedCat}|${priceMin}|${priceMax}|${minRating}|${freeShipOnly}|${sortBy}|${isFlash}`;
+  const [pageSize, setPageSize] = useResettableState(20, filterSignature);
+
+  // Helper: replace `cat` in the URL while preserving other params.
+  const setCategory = (next: string) => {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      if (next) params.set("cat", next);
+      else params.delete("cat");
+      return params;
+    });
+  };
 
   // Backend search runs when there's a query OR a category. Empty results are kept
   // (the user really did search and got nothing back). We only fall through to the local
@@ -206,7 +218,6 @@ export function SearchPage() {
   const remaining = Math.max(0, filtered.length - pageSize);
 
   const clearFilters = () => {
-    setSelectedCat("");
     setPriceMin("");
     setPriceMax("");
     setMinRating(0);
@@ -247,7 +258,7 @@ export function SearchPage() {
       {/* Category pills */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1 scrollbar-hide">
         <button
-          onClick={() => setSelectedCat("")}
+          onClick={() => setCategory("")}
           className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
           style={!selectedCat ? { background: "#00BFB3", color: "#fff" } : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }}
         >
@@ -256,7 +267,7 @@ export function SearchPage() {
         {categories.map(cat => (
           <button
             key={cat.id}
-            onClick={() => setSelectedCat(selectedCat === cat.id ? "" : cat.id)}
+            onClick={() => setCategory(selectedCat === cat.id ? "" : cat.id)}
             className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
             style={selectedCat === cat.id
               ? { background: "#00BFB3", color: "#fff" }
@@ -439,7 +450,7 @@ export function SearchPage() {
               {selectedCat && (
                 <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white" style={{ background: "#00BFB3" }}>
                   {categories.find(c => c.id === selectedCat)?.label}
-                  <button onClick={() => setSelectedCat("")}><X size={12} /></button>
+                  <button onClick={() => setCategory("")}><X size={12} /></button>
                 </span>
               )}
               {(priceMin || priceMax) && (

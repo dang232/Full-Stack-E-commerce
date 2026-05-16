@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +25,18 @@ interface FormDialogProps {
   isSubmitting?: boolean;
 }
 
+function emptyValues(fields: FormField[]): Record<string, string> {
+  const initial: Record<string, string> = {};
+  for (const f of fields) initial[f.key] = "";
+  return initial;
+}
+
+/**
+ * Generic form dialog. Caller is expected to remount it via `key` (or by only
+ * rendering it when `open === true`) when fields or initial values change —
+ * the previous useEffect-based reset has been removed because parents already
+ * control mount lifecycle through the modal pattern.
+ */
 export function FormDialog({
   open,
   title,
@@ -36,17 +48,7 @@ export function FormDialog({
   onSubmit,
   isSubmitting = false,
 }: FormDialogProps) {
-  const [values, setValues] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (open) {
-      const initial: Record<string, string> = {};
-      fields.forEach((f) => {
-        initial[f.key] = "";
-      });
-      setValues(initial);
-    }
-  }, [open, fields]);
+  const [values, setValues] = useState<Record<string, string>>(() => emptyValues(fields));
 
   useEscapeKey(open && !isSubmitting, onClose);
 

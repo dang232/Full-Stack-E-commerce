@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -56,25 +56,41 @@ export function ProfilePage() {
   const profile = profileQuery.data;
   const addresses: Address[] = profile?.addresses ?? [];
 
-  // Info tab form state
-  const [editing, setEditing] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
-  useEffect(() => {
+  // Server-derived defaults for the info tab. We never mirror these into local
+  // state; instead the form re-mounts with `key` whenever the user enters edit
+  // mode, taking these values as its initial draft.
+  const serverDefaults = useMemo(() => {
     if (profile) {
-      setFormData({
+      return {
         name: profile.name ?? "",
         email: profile.email ?? "",
         phone: profile.phone ?? "",
-      });
-    } else if (kcProfile) {
+      };
+    }
+    if (kcProfile) {
       const fullName = [kcProfile.firstName, kcProfile.lastName].filter(Boolean).join(" ").trim();
-      setFormData({
+      return {
         name: fullName || kcProfile.username || "",
         email: kcProfile.email ?? "",
         phone: "",
-      });
+      };
     }
+    return { name: "", email: "", phone: "" };
   }, [profile, kcProfile]);
+
+  // Info tab form state
+  const [editing, setEditing] = useState(false);
+  const [formDraft, setFormDraft] = useState(serverDefaults);
+  // Display values come from the draft while editing, otherwise from the server.
+  const formData = editing ? formDraft : serverDefaults;
+  const setFormData = (updater: (prev: typeof formDraft) => typeof formDraft) =>
+    setFormDraft(updater);
+
+  const beginEditing = () => {
+    setFormDraft(serverDefaults);
+    setEditing(true);
+  };
+  const cancelEditing = () => setEditing(false);
 
   const updateProfileMutation = useMutation({
     mutationFn: () =>
@@ -254,7 +270,7 @@ export function ProfilePage() {
                   {editing ? (
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setEditing(false)}
+                        onClick={cancelEditing}
                         className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-500"
                       >
                         Huỷ
@@ -271,7 +287,7 @@ export function ProfilePage() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => setEditing(true)}
+                      onClick={beginEditing}
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border"
                       style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
                     >

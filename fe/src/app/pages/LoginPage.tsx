@@ -1,18 +1,16 @@
-import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Navigate, useSearchParams } from "react-router";
 import { Sparkles, ChevronRight, ShieldCheck } from "lucide-react";
 import { useAuth } from "../hooks/use-auth";
 
 export function LoginPage() {
-  const navigate = useNavigate();
   const [params] = useSearchParams();
   const { ready, authenticated, login } = useAuth();
   const next = params.get("next") ?? "/";
 
-  // Already signed in → bounce to the requested next page.
-  useEffect(() => {
-    if (ready && authenticated) navigate(next, { replace: true });
-  }, [ready, authenticated, next, navigate]);
+  // Already signed in → bounce to the requested next page (no effect needed).
+  if (ready && authenticated) {
+    return <Navigate to={next} replace />;
+  }
 
   return (
     <div

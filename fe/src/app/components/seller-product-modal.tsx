@@ -60,44 +60,47 @@ async function uploadOne(file: File, productId: string): Promise<string> {
   return activated.url;
 }
 
+/**
+ * Public wrapper. Renders nothing when closed so the body's state initialisers
+ * fire fresh every time the modal opens (taking `product` as the seed). This
+ * removes the previous reset-on-open effect.
+ */
 export function SellerProductModal({ open, onClose, product }: SellerProductModalProps) {
+  if (!open) return null;
+  return <SellerProductModalBody onClose={onClose} product={product ?? null} />;
+}
+
+function SellerProductModalBody({
+  onClose,
+  product,
+}: {
+  onClose: () => void;
+  product: Product | null;
+}) {
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEdit = !!product;
 
-  // Form state.
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [originalPrice, setOriginalPrice] = useState("");
-  const [stock, setStock] = useState("1");
-  const [category, setCategory] = useState("");
+  // Form state — initialisers seed from `product` once per mount.
+  const [name, setName] = useState(() => product?.name ?? "");
+  const [description, setDescription] = useState(() => product?.description ?? "");
+  const [price, setPrice] = useState(() => (product?.price ? String(product.price) : ""));
+  const [originalPrice, setOriginalPrice] = useState(() =>
+    product?.originalPrice ? String(product.originalPrice) : "",
+  );
+  const [stock, setStock] = useState(() => (product?.stock ? String(product.stock) : "1"));
+  const [category, setCategory] = useState(() => product?.category ?? "");
 
   // Image state. `existingImages` are URLs already attached to the product (edit mode).
   // `staged` are local files the user picked but haven't been uploaded yet.
-  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>(
+    () => product?.images ?? (product?.image ? [product.image] : []),
+  );
   const [staged, setStaged] = useState<StagedFile[]>([]);
   const [phase, setPhase] = useState<"idle" | "creating" | "uploading" | "finalising">("idle");
 
-  // Prefill form when (re)opening.
-  useEffect(() => {
-    if (!open) return;
-    setName(product?.name ?? "");
-    setDescription(product?.description ?? "");
-    setPrice(product?.price ? String(product.price) : "");
-    setOriginalPrice(product?.originalPrice ? String(product.originalPrice) : "");
-    setStock(product?.stock ? String(product.stock) : "1");
-    setCategory(product?.category ?? "");
-    setExistingImages(product?.images ?? (product?.image ? [product.image] : []));
-    // Revoke any preview URLs from a previous open.
-    setStaged((prev) => {
-      prev.forEach((s) => URL.revokeObjectURL(s.previewUrl));
-      return [];
-    });
-    setPhase("idle");
-  }, [open, product]);
-
-  // Revoke object URLs on unmount to avoid leaks.
+  // Revoke object URLs on unmount to avoid leaks. Because the wrapper only
+  // mounts the body while open, this fires on every close.
   useEffect(() => {
     return () => {
       staged.forEach((s) => URL.revokeObjectURL(s.previewUrl));
@@ -113,7 +116,7 @@ export function SellerProductModal({ open, onClose, product }: SellerProductModa
     onClose();
   };
 
-  useEscapeKey(open && !isBusy, handleClose);
+  useEscapeKey(!isBusy, handleClose);
 
   const enqueueFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;

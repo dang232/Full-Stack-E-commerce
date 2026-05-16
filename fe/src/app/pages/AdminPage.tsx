@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -30,7 +30,7 @@ import {
   dashboardTopSellers,
 } from "../lib/api/endpoints/admin";
 import { ApiError } from "../lib/api/envelope";
-import { formatPrice } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
 import { FormDialog } from "../components/form-dialog";
 import { useEscapeKey } from "../hooks/use-escape-key";
 
@@ -478,25 +478,33 @@ function CouponDialog({
   }) => void;
   isSubmitting: boolean;
 }) {
+  if (!open) return null;
+  return <CouponDialogBody onClose={onClose} onSubmit={onSubmit} isSubmitting={isSubmitting} />;
+}
+
+function CouponDialogBody({
+  onClose,
+  onSubmit,
+  isSubmitting,
+}: {
+  onClose: () => void;
+  onSubmit: (body: {
+    code: string;
+    type: "PERCENT" | "FIXED";
+    value: number;
+    minOrderValue?: number;
+    maxDiscount?: number;
+    active: boolean;
+  }) => void;
+  isSubmitting: boolean;
+}) {
   const [code, setCode] = useState("");
   const [type, setType] = useState<"PERCENT" | "FIXED">("PERCENT");
   const [value, setValue] = useState("");
   const [minOrderValue, setMinOrderValue] = useState("");
   const [maxDiscount, setMaxDiscount] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      setCode("");
-      setType("PERCENT");
-      setValue("");
-      setMinOrderValue("");
-      setMaxDiscount("");
-    }
-  }, [open]);
-
-  useEscapeKey(open && !isSubmitting, onClose);
-
-  if (!open) return null;
+  useEscapeKey(!isSubmitting, onClose);
 
   const handleSubmit = () => {
     const trimmedCode = code.trim().toUpperCase();

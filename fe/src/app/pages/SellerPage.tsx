@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -20,7 +20,8 @@ import {
 } from "../lib/api/endpoints/orders";
 import { myPayouts, myWallet, requestPayout, type Payout } from "../lib/api/endpoints/seller-finance";
 import { ApiError } from "../lib/api/envelope";
-import { formatPrice, type Product } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
+import { type Product } from "../components/vnshop-data";
 import { SellerProductModal } from "../components/seller-product-modal";
 import { FormDialog } from "../components/form-dialog";
 import { useEscapeKey } from "../hooks/use-escape-key";
@@ -297,19 +298,32 @@ function ShipDialog({
   onSubmit: (input: { carrier: string; trackingNumber: string }) => void;
   isSubmitting: boolean;
 }) {
+  if (!subOrderId) return null;
+  return (
+    <ShipDialogBody
+      subOrderId={subOrderId}
+      onClose={onClose}
+      onSubmit={onSubmit}
+      isSubmitting={isSubmitting}
+    />
+  );
+}
+
+function ShipDialogBody({
+  subOrderId,
+  onClose,
+  onSubmit,
+  isSubmitting,
+}: {
+  subOrderId: string;
+  onClose: () => void;
+  onSubmit: (input: { carrier: string; trackingNumber: string }) => void;
+  isSubmitting: boolean;
+}) {
   const [carrier, setCarrier] = useState("GHN");
   const [trackingNumber, setTrackingNumber] = useState("");
 
-  useEffect(() => {
-    if (subOrderId) {
-      setCarrier("GHN");
-      setTrackingNumber("");
-    }
-  }, [subOrderId]);
-
-  useEscapeKey(!!subOrderId && !isSubmitting, onClose);
-
-  if (!subOrderId) return null;
+  useEscapeKey(!isSubmitting, onClose);
 
   const carriers = ["GHN", "GHTK", "VNPost", "J&T", "Khác"];
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useQueries } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
@@ -8,7 +8,7 @@ import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useWishlist } from "../hooks/use-wishlist";
 import { productById } from "../lib/api/endpoints/products";
-import { formatPrice } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
 import { ApiError } from "../lib/api/envelope";
 import { ImageWithFallback } from "../components/image-with-fallback";
 
@@ -18,10 +18,7 @@ export function WishlistPage() {
   const wishlist = useWishlist();
   const { addItem } = useCart();
 
-  // Hydrate Zustand from localStorage on mount.
-  useEffect(() => {
-    // useWishlist already calls hydrate() on mount.
-  }, []);
+  // useWishlist() hydrates from localStorage internally, no effect needed here.
 
   const queries = useQueries({
     queries: wishlist.ids.map((id) => ({
