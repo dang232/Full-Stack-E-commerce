@@ -25,10 +25,22 @@ export const productList = (params: ProductListParams = {}) =>
 export const productById = (id: string) =>
   api.get(`/products/${encodeURIComponent(id)}`, productDetailSchema, undefined, { auth: false });
 
-export const sellerProductCreate = (body: unknown) =>
+/** Body for create / update on the seller product endpoints. */
+export interface SellerProductWriteBody {
+  name: string;
+  description?: string;
+  price: number;
+  originalPrice?: number;
+  stock: number;
+  category?: string;
+  images?: string[];
+  image?: string;
+}
+
+export const sellerProductCreate = (body: SellerProductWriteBody) =>
   api.post("/sellers/me/products", productDetailSchema, body);
 
-export const sellerProductUpdate = (id: string, body: unknown) =>
+export const sellerProductUpdate = (id: string, body: SellerProductWriteBody) =>
   api.put(`/sellers/me/products/${encodeURIComponent(id)}`, productDetailSchema, body);
 
 export const sellerProductImageUploadUrl = (productId: string, body: { contentType: string; size?: number }) =>

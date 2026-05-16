@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { api } from "../client";
 import { orderSchema, pageSchema } from "../../../types/api";
+import type { PaymentMethod } from "../../domain-enums";
 
 export interface PlaceOrderInput {
   items: Array<{ productId: string; quantity: number }>;
   addressId?: number;
-  paymentMethod: "COD" | "VNPAY" | "MOMO" | "BANK";
+  paymentMethod: PaymentMethod;
   couponCode?: string;
   shippingChoices?: Array<{ sellerId: string; code: string }>;
   notes?: string;

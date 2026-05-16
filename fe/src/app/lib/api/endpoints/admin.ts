@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { api } from "../client";
 import { reviewSchema } from "../../../types/api";
+import { COUPON_TYPES } from "../../domain-enums";
 
 const sellerSummarySchema = z
   .object({
@@ -35,9 +36,21 @@ const couponSchema = z
   })
   .passthrough();
 
+export interface CouponWriteBody {
+  code: string;
+  type: (typeof COUPON_TYPES)[number];
+  value: number;
+  minOrderValue?: number;
+  maxDiscount?: number;
+  startsAt?: string;
+  endsAt?: string;
+  active?: boolean;
+}
+
 export const adminListCoupons = () => api.get("/admin/coupons", z.array(couponSchema));
-export const adminCreateCoupon = (body: unknown) => api.post("/admin/coupons", couponSchema, body);
-export const adminUpdateCoupon = (id: string, body: unknown) =>
+export const adminCreateCoupon = (body: CouponWriteBody) =>
+  api.post("/admin/coupons", couponSchema, body);
+export const adminUpdateCoupon = (id: string, body: CouponWriteBody) =>
   api.put(`/admin/coupons/${encodeURIComponent(id)}`, couponSchema, body);
 export const adminDeactivateCoupon = (id: string) =>
   api.post(`/admin/coupons/${encodeURIComponent(id)}/deactivate`, couponSchema);
@@ -72,8 +85,31 @@ export const adminFailPayout = (id: string, body: { reason: string }) =>
   api.post(`/admin/finance/payouts/${encodeURIComponent(id)}/fail`, adminPayoutSchema, body);
 
 // Dashboard
-const summarySchema = z.record(z.string(), z.number()).or(z.object({}).passthrough());
-export const dashboardSummary = () => api.get("/admin/dashboard/summary", summarySchema);
+//
+// Backend names for the same conceptual KPI vary (`totalRevenue` vs `revenue`).
+// Each field accepts every alias we have seen and the consumer just reads
+// `.totalRevenue`, so the UI no longer needs runtime key probing.
+const dashboardSummarySchema = z
+  .object({
+    totalRevenue: z.number().optional(),
+    revenue: z.number().optional(),
+    total: z.number().optional(),
+    totalUsers: z.number().optional(),
+    users: z.number().optional(),
+    totalOrders: z.number().optional(),
+    orders: z.number().optional(),
+    totalSellers: z.number().optional(),
+    sellers: z.number().optional(),
+  })
+  .passthrough()
+  .transform((s) => ({
+    totalRevenue: s.totalRevenue ?? s.revenue ?? s.total ?? null,
+    totalUsers: s.totalUsers ?? s.users ?? null,
+    totalOrders: s.totalOrders ?? s.orders ?? null,
+    totalSellers: s.totalSellers ?? s.sellers ?? null,
+  }));
+export type DashboardSummary = z.infer<typeof dashboardSummarySchema>;
+export const dashboardSummary = () => api.get("/admin/dashboard/summary", dashboardSummarySchema);
 export const dashboardRevenue = (params: { from?: string; to?: string; granularity?: "day" | "week" | "month" } = {}) =>
   api.get(
     "/admin/dashboard/revenue",

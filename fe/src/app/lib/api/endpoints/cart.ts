@@ -13,4 +13,9 @@ export const updateCartItem = (productId: string, body: { quantity: number }) =>
 export const removeCartItem = (productId: string) =>
   api.delete(`/cart/items/${encodeURIComponent(productId)}`, cartSchema);
 
-export const clearCart = () => api.delete("/cart", z.unknown());
+/**
+ * The clear-cart endpoint returns 204 / empty body on success. We don't read the
+ * value, just the resolved promise.
+ */
+const emptyResponseSchema = z.union([z.null(), z.undefined(), z.object({}).passthrough()]);
+export const clearCart = () => api.delete("/cart", emptyResponseSchema);
