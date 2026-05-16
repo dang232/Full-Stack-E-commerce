@@ -6,7 +6,8 @@ import { api } from "../client";
 export interface ProductListParams {
   page?: number;
   size?: number;
-  category?: string;
+  categoryId?: string;
+  q?: string;
   sort?: string;
 }
 
@@ -17,7 +18,8 @@ export const productList = (params: ProductListParams = {}) =>
     {
       page: params.page,
       size: params.size ?? 24,
-      category: params.category,
+      categoryId: params.categoryId,
+      q: params.q,
       sort: params.sort,
     },
     { auth: false },
