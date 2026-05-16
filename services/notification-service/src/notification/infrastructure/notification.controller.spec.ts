@@ -65,11 +65,13 @@ describe('NotificationController', () => {
           id === 'notification-1' && userId === 'user-1' ? notification : null,
         ),
     );
-    markAllReadMock = jest.fn((userId: string): Promise<number> =>
-      Promise.resolve(userId === 'user-1' ? 3 : 0),
+    markAllReadMock = jest.fn(
+      (userId: string): Promise<number> =>
+        Promise.resolve(userId === 'user-1' ? 3 : 0),
     );
-    countUnreadMock = jest.fn((userId: string): Promise<number> =>
-      Promise.resolve(userId === 'user-1' ? 2 : 0),
+    countUnreadMock = jest.fn(
+      (userId: string): Promise<number> =>
+        Promise.resolve(userId === 'user-1' ? 2 : 0),
     );
 
     const findUserNotificationsUseCase: Pick<
@@ -78,7 +80,7 @@ describe('NotificationController', () => {
     > = {
       execute: (userId: string) =>
         Promise.resolve(userId === 'user-1' ? [notification] : []),
-      executePaged: executePagedMock as unknown as FindUserNotificationsUseCase['executePaged'],
+      executePaged: executePagedMock,
     };
 
     const findNotificationByIdUseCase: Pick<
@@ -97,23 +99,21 @@ describe('NotificationController', () => {
       MarkNotificationReadUseCase,
       'execute'
     > = {
-      execute: markReadMock as unknown as MarkNotificationReadUseCase['execute'],
+      execute: markReadMock,
     };
 
     const markAllNotificationsReadUseCase: Pick<
       MarkAllNotificationsReadUseCase,
       'execute'
     > = {
-      execute:
-        markAllReadMock as unknown as MarkAllNotificationsReadUseCase['execute'],
+      execute: markAllReadMock,
     };
 
     const countUnreadNotificationsUseCase: Pick<
       CountUnreadNotificationsUseCase,
       'execute'
     > = {
-      execute:
-        countUnreadMock as unknown as CountUnreadNotificationsUseCase['execute'],
+      execute: countUnreadMock,
     };
 
     controller = new NotificationController(
@@ -128,7 +128,12 @@ describe('NotificationController', () => {
 
   it('returns paged user notifications when userId provided via header', async () => {
     const result: SuccessResponse<PageResult<Notification>> =
-      await controller.findUserNotifications('user-1', undefined, undefined, undefined);
+      await controller.findUserNotifications(
+        'user-1',
+        undefined,
+        undefined,
+        undefined,
+      );
 
     expect(result.success).toBe(true);
     expect(result.message).toBe('Success');
@@ -151,7 +156,12 @@ describe('NotificationController', () => {
 
   it('throws BadRequestException when userId missing on list', async () => {
     await expect(
-      controller.findUserNotifications(undefined, undefined, undefined, undefined),
+      controller.findUserNotifications(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -238,8 +248,8 @@ describe('NotificationController', () => {
   });
 
   it('throws BadRequestException when unread-count called with no userId', async () => {
-    await expect(
-      controller.unreadCount(undefined, undefined),
-    ).rejects.toThrow(BadRequestException);
+    await expect(controller.unreadCount(undefined, undefined)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });
