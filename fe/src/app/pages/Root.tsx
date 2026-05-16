@@ -1,5 +1,4 @@
 import {
-  Search,
   ShoppingCart,
   Heart,
   Bell,
