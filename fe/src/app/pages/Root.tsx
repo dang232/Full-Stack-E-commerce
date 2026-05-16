@@ -27,8 +27,10 @@ import { Outlet, useNavigate, useLocation } from "react-router";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { NotificationBell } from "../components/notification-bell";
+import { SearchAutocomplete } from "../components/search-autocomplete";
 import { useVNShop } from "../components/vnshop-context";
 import { useCart } from "../hooks/use-cart";
+import { useSearchSuggestions } from "../hooks/use-search-suggestions";
 import { useWishlist } from "../hooks/use-wishlist";
 
 function Navbar() {
@@ -38,12 +40,12 @@ function Navbar() {
   const { itemCount: cartCount } = useCart();
   const { ids: wishlist } = useWishlist();
   const [searchQ, setSearchQ] = useState("");
+  const { suggestions } = useSearchSuggestions(searchQ);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQ.trim()) void navigate(`/search?q=${encodeURIComponent(searchQ.trim())}`);
+  const submitSearch = (q: string) => {
+    void navigate(`/search?q=${encodeURIComponent(q)}`);
   };
 
   const navLinks = [
@@ -120,23 +122,14 @@ function Navbar() {
           </button>
 
           {/* Search */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-2xl hidden sm:flex">
-            <div className="flex w-full rounded-xl overflow-hidden shadow-md">
-              <input
-                value={searchQ}
-                onChange={(e) => setSearchQ(e.target.value)}
-                placeholder="Tìm kiếm sản phẩm, thương hiệu, shop..."
-                className="flex-1 px-4 py-2.5 text-sm bg-white text-gray-800 outline-none placeholder:text-gray-400"
-              />
-              <button
-                type="submit"
-                className="px-5 py-2.5 font-semibold text-sm text-white transition-colors"
-                style={{ background: "#FF6200" }}
-              >
-                <Search size={18} />
-              </button>
-            </div>
-          </form>
+          <SearchAutocomplete
+            className="flex-1 max-w-2xl hidden sm:flex"
+            value={searchQ}
+            onValueChange={setSearchQ}
+            suggestions={suggestions}
+            onSubmit={submitSearch}
+            placeholder="Tìm kiếm sản phẩm, thương hiệu, shop..."
+          />
 
           {/* Right actions */}
           <div className="flex items-center gap-1 ml-auto sm:ml-0 shrink-0">
@@ -321,21 +314,17 @@ function Navbar() {
             style={{ background: isDark ? "#0f1117" : "rgba(0,153,144,0.98)" }}
           >
             <div className="p-4 space-y-1">
-              <form onSubmit={handleSearch} className="flex gap-2 mb-3">
-                <input
-                  value={searchQ}
-                  onChange={(e) => setSearchQ(e.target.value)}
-                  placeholder="Tìm kiếm..."
-                  className="flex-1 px-3 py-2 rounded-lg text-sm bg-white/10 text-white placeholder:text-white/50 outline-none border border-white/20"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg text-white"
-                  style={{ background: "#FF6200" }}
-                >
-                  <Search size={16} />
-                </button>
-              </form>
+              <SearchAutocomplete
+                className="mb-3"
+                value={searchQ}
+                onValueChange={setSearchQ}
+                suggestions={suggestions}
+                onSubmit={(q) => {
+                  submitSearch(q);
+                  setMenuOpen(false);
+                }}
+                placeholder="Tìm kiếm..."
+              />
               {[
                 { icon: Home, label: "Trang Chủ", path: "/" },
                 { icon: Package, label: "Đơn mua", path: "/orders" },
