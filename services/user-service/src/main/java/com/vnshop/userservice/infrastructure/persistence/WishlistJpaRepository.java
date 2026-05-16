@@ -7,7 +7,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.util.List;
 
 /**
@@ -92,10 +91,5 @@ public class WishlistJpaRepository implements WishlistRepositoryPort {
                 .setParameter("keycloakId", keycloakId)
                 .getSingleResult();
         return count == null ? 0 : count.intValue();
-    }
-
-    /** Used by the use case for newly-created items. */
-    public Instant now() {
-        return Instant.now();
     }
 }

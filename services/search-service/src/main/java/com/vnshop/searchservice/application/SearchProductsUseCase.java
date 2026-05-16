@@ -18,12 +18,6 @@ public class SearchProductsUseCase {
         this.productReadModelRepository = productReadModelRepository;
     }
 
-    public List<SearchProductResponse> search(String query, String category, String brand, BigDecimal minPrice, BigDecimal maxPrice) {
-        return productReadModelRepository.search(query, category, brand, minPrice, maxPrice).stream()
-                .map(SearchProductResponse::fromDomain)
-                .toList();
-    }
-
     public Page<SearchProductResponse> searchPaged(String query, String category, String brand, BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
         return productReadModelRepository.searchPaged(query, category, brand, minPrice, maxPrice, pageable)
                 .map(SearchProductResponse::fromDomain);
@@ -45,14 +39,20 @@ public class SearchProductsUseCase {
      * without unselecting the current one (typical e-commerce facet UX).
      */
     public SearchFacetsResponse facets(String query, String category, String brand, BigDecimal minPrice, BigDecimal maxPrice) {
-        List<SearchFacetsResponse.FacetEntry> categoryFacets = productReadModelRepository
-                .categoryFacetsFor(query, brand, minPrice, maxPrice).stream()
+        return new SearchFacetsResponse(
+                toFacetEntries(productReadModelRepository.categoryFacetsFor(query, brand, minPrice, maxPrice)),
+                toFacetEntries(productReadModelRepository.brandFacetsFor(query, category, minPrice, maxPrice))
+        );
+    }
+
+    /**
+     * Maps JPA's Object[]-tuple result for a {@code (key, count)} GROUP BY into
+     * our typed FacetEntry. Both facet queries share this shape, so the mapping
+     * lives here once instead of being duplicated per axis.
+     */
+    private static List<SearchFacetsResponse.FacetEntry> toFacetEntries(List<Object[]> rows) {
+        return rows.stream()
                 .map(row -> new SearchFacetsResponse.FacetEntry((String) row[0], ((Number) row[1]).longValue()))
                 .toList();
-        List<SearchFacetsResponse.FacetEntry> brandFacets = productReadModelRepository
-                .brandFacetsFor(query, category, minPrice, maxPrice).stream()
-                .map(row -> new SearchFacetsResponse.FacetEntry((String) row[0], ((Number) row[1]).longValue()))
-                .toList();
-        return new SearchFacetsResponse(categoryFacets, brandFacets);
     }
 }
