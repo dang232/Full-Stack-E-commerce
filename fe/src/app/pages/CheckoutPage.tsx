@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import {
   MapPin, Truck, CreditCard, CheckCircle, ChevronRight,
-  ArrowLeft, Plus, Shield, Package, AlertCircle, LogIn, Check,
+  ArrowLeft, Plus, Shield, Package, AlertCircle, LogIn, Check, Tag,
 } from "lucide-react";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
@@ -17,7 +17,7 @@ import {
   shippingOptions as fetchShippingOptions,
 } from "../lib/api/endpoints/checkout";
 import { placeOrder } from "../lib/api/endpoints/orders";
-import { validateCouponCode } from "../lib/api/endpoints/coupons";
+import { listActiveCoupons, validateCouponCode } from "../lib/api/endpoints/coupons";
 import { codConfirm, momoCreate, vnpayCreate } from "../lib/api/endpoints/payment";
 import { myProfile } from "../lib/api/endpoints/users";
 import { formatPrice } from "../lib/format";
@@ -130,8 +130,19 @@ export function CheckoutPage() {
   const [note, setNote] = useState("");
   const [couponInput, setCouponInput] = useState<string>("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [showCouponPicker, setShowCouponPicker] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+
+  // Lazily fetch the public coupon catalogue when the user opens the picker.
+  // No `enabled` gate would mean every checkout view paid the call even if
+  // the user typed a code by hand or skipped coupons entirely.
+  const couponsQuery = useQuery({
+    queryKey: ["checkout", "active-coupons"],
+    queryFn: listActiveCoupons,
+    enabled: showCouponPicker,
+    staleTime: 60_000,
+  });
 
   // Idempotency key generated once per checkout attempt; reused on retries.
   const idempotencyKeyRef = useRef<string>("");
@@ -189,6 +200,14 @@ export function CheckoutPage() {
     const code = couponInput.trim();
     if (!code || couponMutation.isPending) return;
     couponMutation.mutate({ code, orderAmount: subtotal });
+  };
+
+  const handlePickCoupon = (code: string) => {
+    setCouponInput(code);
+    setShowCouponPicker(false);
+    if (!couponMutation.isPending) {
+      couponMutation.mutate({ code, orderAmount: subtotal });
+    }
   };
 
   const handleRemoveCoupon = () => {
@@ -743,7 +762,91 @@ export function CheckoutPage() {
               )}
             </div>
             <div className="mb-4">
-              <label className="block text-xs font-semibold text-gray-600 mb-2">Mã giảm giá</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-semibold text-gray-600">Mã giảm giá</label>
+                {!appliedCoupon && (
+                  <button
+                    onClick={() => setShowCouponPicker((v) => !v)}
+                    className="flex items-center gap-1 text-xs font-semibold transition-colors"
+                    style={{ color: "#00BFB3" }}
+                    type="button"
+                  >
+                    <Tag size={12} />
+                    {showCouponPicker ? "Ẩn danh sách" : "Xem mã khả dụng"}
+                  </button>
+                )}
+              </div>
+              <AnimatePresence>
+                {showCouponPicker && !appliedCoupon && (
+                  <motion.div
+                    key="picker"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden mb-3"
+                  >
+                    <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-2 max-h-48 overflow-y-auto">
+                      {couponsQuery.isLoading && (
+                        <p className="text-xs text-gray-500 px-2 py-1">Đang tải mã...</p>
+                      )}
+                      {couponsQuery.error instanceof ApiError && (
+                        <p className="text-xs text-red-500 px-2 py-1">
+                          Không tải được mã: {couponsQuery.error.message}
+                        </p>
+                      )}
+                      {couponsQuery.data && couponsQuery.data.length === 0 && (
+                        <p className="text-xs text-gray-500 px-2 py-2 text-center">
+                          Hiện chưa có mã khả dụng
+                        </p>
+                      )}
+                      {couponsQuery.data && couponsQuery.data.length > 0 && (
+                        <ul className="space-y-1">
+                          {couponsQuery.data.map((coupon) => {
+                            const value = coupon.value ?? coupon.discountValue;
+                            const type = (coupon.type ?? coupon.discountType ?? "FIXED").toUpperCase();
+                            const label = type === "PERCENT" && value !== undefined
+                              ? `Giảm ${value}%`
+                              : value !== undefined
+                                ? `Giảm ${formatPrice(value)}`
+                                : "Mã giảm giá";
+                            const minLabel = coupon.minOrderValue
+                              ? `Đơn tối thiểu ${formatPrice(coupon.minOrderValue)}`
+                              : null;
+                            const eligible = !coupon.minOrderValue || subtotal >= coupon.minOrderValue;
+                            return (
+                              <li key={coupon.code}>
+                                <button
+                                  onClick={() => handlePickCoupon(coupon.code)}
+                                  disabled={!eligible}
+                                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left rounded-lg bg-white border border-gray-200 hover:border-[#00BFB3] hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:shadow-none"
+                                  type="button"
+                                >
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-bold font-mono truncate" style={{ color: "#00BFB3" }}>
+                                      {coupon.code}
+                                    </p>
+                                    <p className="text-xs text-gray-500 truncate">
+                                      {label}
+                                      {minLabel ? ` · ${minLabel}` : ""}
+                                    </p>
+                                  </div>
+                                  <span
+                                    className="text-xs font-semibold shrink-0"
+                                    style={{ color: eligible ? "#FF6200" : "#9ca3af" }}
+                                  >
+                                    {eligible ? "Áp dụng" : "Chưa đủ"}
+                                  </span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <AnimatePresence mode="wait">
                 {!appliedCoupon ? (
                   <motion.div
