@@ -842,8 +842,6 @@ export const sampleOrders: Order[] = [
   },
 ];
 
-export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-}
+export { formatPrice } from "../lib/format";
 
 export const flashSaleEnd = new Date(Date.now() + 6 * 3600 * 1000 + 23 * 60 * 1000 + 45 * 1000);
