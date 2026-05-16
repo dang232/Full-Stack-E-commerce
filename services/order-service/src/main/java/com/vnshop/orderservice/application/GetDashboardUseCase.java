@@ -4,7 +4,6 @@ import com.vnshop.orderservice.domain.DashboardSummary;
 import com.vnshop.orderservice.domain.RevenueTimeSeries;
 import com.vnshop.orderservice.domain.TopItem;
 import com.vnshop.orderservice.domain.port.out.DashboardAnalyticsPort;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -14,11 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Dashboard read-side projections. Previously decorated with {@code @Cacheable},
+ * but Spring Cache + Redis + Jackson polymorphic typing could not be made to
+ * round-trip the domain records cleanly under Boot 4 / Spring 7 / Jackson 2.21
+ * — first call wrote, second call returned a {@code LinkedHashMap} that ClassCast'd.
+ * Recomputing on every request is acceptable: each method is one Postgres query
+ * and dashboard queries are admin-only, low-traffic. Add caching back if/when
+ * traffic warrants it, but use a typed serializer (e.g. one per method).
+ */
 public class GetDashboardUseCase {
     private static final int DAYS_IN_PERIOD = 30;
-    // Package-private so SpEL cache-key expressions can reference it via #root.target.TOP_ITEM_LIMIT.
-    // Boot 4 / Spring 7's SpEL stopped reaching private static fields by default.
-    static final int TOP_ITEM_LIMIT = 10;
+    private static final int TOP_ITEM_LIMIT = 10;
 
     private final DashboardAnalyticsPort analytics;
 
@@ -26,7 +32,6 @@ public class GetDashboardUseCase {
         this.analytics = analytics;
     }
 
-    @Cacheable(cacheNames = "dashboardSummary", key = "'last30Days'")
     public DashboardSummary summary() {
         LocalDate periodEnd = LocalDate.now();
         LocalDate periodStart = periodEnd.minusDays(DAYS_IN_PERIOD - 1L);
@@ -41,7 +46,6 @@ public class GetDashboardUseCase {
         return new DashboardSummary(totalOrders, totalRevenue, activeBuyers, activeSellers, averageOrderValue, periodStart, periodEnd);
     }
 
-    @Cacheable(cacheNames = "dashboardRevenue", key = "'last30Days:day'")
     public RevenueTimeSeries revenue() {
         LocalDate periodEnd = LocalDate.now();
         LocalDate periodStart = periodEnd.minusDays(DAYS_IN_PERIOD - 1L);
@@ -56,14 +60,12 @@ public class GetDashboardUseCase {
         return new RevenueTimeSeries(points);
     }
 
-    @Cacheable(cacheNames = "dashboardTopProducts", key = "'last30Days:limit10'")
     public List<TopItem> topProducts() {
         return analytics.topProducts(TOP_ITEM_LIMIT).stream()
                 .map(m -> new TopItem(m.id(), m.name(), m.value()))
                 .toList();
     }
 
-    @Cacheable(cacheNames = "dashboardTopSellers", key = "'last30Days:limit10'")
     public List<TopItem> topSellers() {
         return analytics.topSellers(TOP_ITEM_LIMIT).stream()
                 .map(m -> new TopItem(m.id(), m.name(), m.value()))
