@@ -1,6 +1,8 @@
 /services/notification-service/node_modules
 /.sisyphus
 .env.secrets
+/.env
+/.env.local
 /services/notification-service/dist
 /services/cart-service/node_modules
 /services/cart-service/dist

@@ -33,6 +33,7 @@ import {
 import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
 import { FormDialog } from "../components/form-dialog";
+import { Modal } from "../components/ui/modal";
 import { useEscapeKey } from "../hooks/use-escape-key";
 
 type AdminTab = "dashboard" | "sellers" | "reviews" | "coupons" | "disputes" | "payouts";
@@ -495,8 +496,6 @@ function CouponDialogBody({
   const [minOrderValue, setMinOrderValue] = useState("");
   const [maxDiscount, setMaxDiscount] = useState("");
 
-  useEscapeKey(!isSubmitting, onClose);
-
   const handleSubmit = () => {
     const trimmedCode = code.trim().toUpperCase();
     if (!trimmedCode) {
@@ -523,102 +522,13 @@ function CouponDialogBody({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.5)" }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl w-full max-w-md shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800">Tạo coupon mới</h3>
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center disabled:opacity-50"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mã coupon</label>
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="VD: SALE50"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono uppercase tracking-wider outline-none focus:border-[#6366F1]"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Loại giảm giá</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(["PERCENT", "FIXED"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setType(t)}
-                  className="py-2 rounded-xl text-sm font-medium border transition-colors"
-                  style={
-                    type === t
-                      ? { background: "#6366F1", color: "white", borderColor: "#6366F1" }
-                      : { background: "white", color: "#6b7280", borderColor: "#e5e7eb" }
-                  }
-                >
-                  {t === "PERCENT" ? "Phần trăm (%)" : "Số tiền cố định (đ)"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Giá trị {type === "PERCENT" ? "(%)" : "(VND)"}
-            </label>
-            <input
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder={type === "PERCENT" ? "10" : "50000"}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Đơn tối thiểu (VND)
-              </label>
-              <input
-                value={minOrderValue}
-                onChange={(e) => setMinOrderValue(e.target.value)}
-                placeholder="200000"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
-              />
-            </div>
-            {type === "PERCENT" && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Giảm tối đa (VND)
-                </label>
-                <input
-                  value={maxDiscount}
-                  onChange={(e) => setMaxDiscount(e.target.value)}
-                  placeholder="100000"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+    <Modal
+      open
+      onClose={onClose}
+      dismissDisabled={isSubmitting}
+      title="Tạo coupon mới"
+      footer={
+        <>
           <button
             onClick={onClose}
             disabled={isSubmitting}
@@ -634,9 +544,82 @@ function CouponDialogBody({
           >
             {isSubmitting ? "Đang tạo..." : "Tạo coupon"}
           </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mã coupon</label>
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="VD: SALE50"
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono uppercase tracking-wider outline-none focus:border-[#6366F1]"
+            autoFocus
+          />
         </div>
-      </motion.div>
-    </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Loại giảm giá</label>
+          <div className="grid grid-cols-2 gap-2">
+            {(["PERCENT", "FIXED"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setType(t)}
+                className="py-2 rounded-xl text-sm font-medium border transition-colors"
+                style={
+                  type === t
+                    ? { background: "#6366F1", color: "white", borderColor: "#6366F1" }
+                    : { background: "white", color: "#6b7280", borderColor: "#e5e7eb" }
+                }
+              >
+                {t === "PERCENT" ? "Phần trăm (%)" : "Số tiền cố định (đ)"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            Giá trị {type === "PERCENT" ? "(%)" : "(VND)"}
+          </label>
+          <input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={type === "PERCENT" ? "10" : "50000"}
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Đơn tối thiểu (VND)
+            </label>
+            <input
+              value={minOrderValue}
+              onChange={(e) => setMinOrderValue(e.target.value)}
+              placeholder="200000"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
+            />
+          </div>
+          {type === "PERCENT" && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                Giảm tối đa (VND)
+              </label>
+              <input
+                value={maxDiscount}
+                onChange={(e) => setMaxDiscount(e.target.value)}
+                placeholder="100000"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </Modal>
   );
 }
 

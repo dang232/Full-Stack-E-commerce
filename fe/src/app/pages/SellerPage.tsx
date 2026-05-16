@@ -24,6 +24,7 @@ import { formatPrice } from "../lib/format";
 import { type Product } from "../components/vnshop-data";
 import { SellerProductModal } from "../components/seller-product-modal";
 import { FormDialog } from "../components/form-dialog";
+import { Modal } from "../components/ui/modal";
 import { useEscapeKey } from "../hooks/use-escape-key";
 
 const SAMPLE_REVENUE = [
@@ -323,82 +324,29 @@ function ShipDialogBody({
   const [carrier, setCarrier] = useState("GHN");
   const [trackingNumber, setTrackingNumber] = useState("");
 
-  useEscapeKey(!isSubmitting, onClose);
-
   const carriers = ["GHN", "GHTK", "VNPost", "J&T", "Khác"];
 
+  const handleSubmit = () => {
+    if (!carrier.trim() || carrier === "Khác") {
+      toast.error("Vui lòng nhập tên đơn vị vận chuyển");
+      return;
+    }
+    if (!trackingNumber.trim()) {
+      toast.error("Vui lòng nhập mã vận đơn");
+      return;
+    }
+    onSubmit({ carrier: carrier.trim(), trackingNumber: trackingNumber.trim() });
+  };
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.5)" }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl w-full max-w-md shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800">Bàn giao đơn cho vận chuyển</h3>
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center disabled:opacity-50"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <p className="text-xs text-gray-500 font-mono">Sub-order: {subOrderId}</p>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Đơn vị vận chuyển
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {carriers.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCarrier(c)}
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors"
-                  style={
-                    carrier === c
-                      ? { background: "#00BFB3", color: "white", borderColor: "#00BFB3" }
-                      : { background: "white", color: "#6b7280", borderColor: "#e5e7eb" }
-                  }
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-            {carrier === "Khác" && (
-              <input
-                value={carrier === "Khác" ? "" : carrier}
-                onChange={(e) => setCarrier(e.target.value)}
-                placeholder="Tên đơn vị vận chuyển"
-                className="mt-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#00BFB3]"
-              />
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Mã vận đơn
-            </label>
-            <input
-              value={trackingNumber}
-              onChange={(e) => setTrackingNumber(e.target.value)}
-              placeholder="VD: GHN1234567890"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
-              autoFocus
-            />
-          </div>
-        </div>
-
-        <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+    <Modal
+      open
+      onClose={onClose}
+      dismissDisabled={isSubmitting}
+      title="Bàn giao đơn cho vận chuyển"
+      subtitle={<span className="font-mono">Sub-order: {subOrderId}</span>}
+      footer={
+        <>
           <button
             onClick={onClose}
             disabled={isSubmitting}
@@ -407,29 +355,62 @@ function ShipDialogBody({
             Huỷ
           </button>
           <button
-            onClick={() => {
-              if (!carrier.trim() || carrier === "Khác") {
-                toast.error("Vui lòng nhập tên đơn vị vận chuyển");
-                return;
-              }
-              if (!trackingNumber.trim()) {
-                toast.error("Vui lòng nhập mã vận đơn");
-                return;
-              }
-              onSubmit({
-                carrier: carrier.trim(),
-                trackingNumber: trackingNumber.trim(),
-              });
-            }}
+            onClick={handleSubmit}
             disabled={isSubmitting}
             className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
             style={{ background: "#FF6200" }}
           >
             {isSubmitting ? "Đang gửi..." : "Bàn giao"}
           </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Đơn vị vận chuyển
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {carriers.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCarrier(c)}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors"
+                style={
+                  carrier === c
+                    ? { background: "#00BFB3", color: "white", borderColor: "#00BFB3" }
+                    : { background: "white", color: "#6b7280", borderColor: "#e5e7eb" }
+                }
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          {carrier === "Khác" && (
+            <input
+              value={carrier === "Khác" ? "" : carrier}
+              onChange={(e) => setCarrier(e.target.value)}
+              placeholder="Tên đơn vị vận chuyển"
+              className="mt-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#00BFB3]"
+            />
+          )}
         </div>
-      </motion.div>
-    </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            Mã vận đơn
+          </label>
+          <input
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="VD: GHN1234567890"
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+            autoFocus
+          />
+        </div>
+      </div>
+    </Modal>
   );
 }
 

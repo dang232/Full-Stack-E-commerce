@@ -3,7 +3,6 @@ package com.vnshop.sellerfinanceservice.infrastructure.persistence;
 import com.vnshop.sellerfinanceservice.domain.Payout;
 import com.vnshop.sellerfinanceservice.domain.PayoutStatus;
 import com.vnshop.sellerfinanceservice.domain.port.out.PayoutRepositoryPort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,11 +35,5 @@ public class PayoutJpaRepository implements PayoutRepositoryPort {
     @Override
     public List<Payout> findBySellerId(String sellerId) {
         return repository.findBySellerId(sellerId).stream().map(PayoutJpaEntity::toDomain).toList();
-    }
-
-    interface PayoutSpringDataRepository extends JpaRepository<PayoutJpaEntity, UUID> {
-        List<PayoutJpaEntity> findByStatus(PayoutStatus status);
-
-        List<PayoutJpaEntity> findBySellerId(String sellerId);
     }
 }

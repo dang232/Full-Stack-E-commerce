@@ -1,9 +1,10 @@
-package com.vnshop.orderservice.infrastructure.persistence.finance;
+package com.vnshop.sellerfinanceservice.infrastructure.persistence;
 
-import com.vnshop.orderservice.domain.finance.PayoutStatus;
+import com.vnshop.sellerfinanceservice.domain.PayoutStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PayoutSpringDataRepository extends JpaRepository<PayoutJpaEntity, UUID> {
     List<PayoutJpaEntity> findByStatus(PayoutStatus status);

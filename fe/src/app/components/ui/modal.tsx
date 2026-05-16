@@ -16,7 +16,13 @@ interface ModalProps {
   /** When true the close icon is hidden (useful when only programmatic dismiss is allowed). */
   hideCloseButton?: boolean;
   /** Width preset; defaults to "md". */
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
+  /**
+   * When true the modal becomes scrollable: the panel grows up to 90vh, the
+   * header sticks to the top, and the body scrolls. Used by long forms like
+   * the seller product editor.
+   */
+  scrollable?: boolean;
   /** Footer content (typically Cancel/Confirm buttons). */
   footer?: ReactNode;
   children?: ReactNode;
@@ -28,6 +34,7 @@ const SIZE_CLASS: Record<NonNullable<ModalProps["size"]>, string> = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-2xl",
+  xl: "max-w-3xl",
 };
 
 /**
@@ -46,6 +53,7 @@ export function Modal({
   subtitle,
   hideCloseButton = false,
   size = "md",
+  scrollable = false,
   footer,
   children,
   onBackdropClick,
@@ -57,6 +65,13 @@ export function Modal({
     if (onBackdropClick) onBackdropClick(e);
     else onClose();
   };
+
+  const panelClass = scrollable
+    ? `bg-white rounded-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto ${SIZE_CLASS[size]}`
+    : `bg-white rounded-2xl w-full shadow-2xl ${SIZE_CLASS[size]}`;
+  const headerClass = scrollable
+    ? "sticky top-0 z-10 bg-white flex items-start justify-between gap-3 px-6 py-4 border-b border-gray-100"
+    : "flex items-start justify-between gap-3 px-6 py-4 border-b border-gray-100";
 
   return (
     <AnimatePresence>
@@ -72,13 +87,13 @@ export function Modal({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.18 }}
-            className={`bg-white rounded-2xl w-full shadow-2xl ${SIZE_CLASS[size]}`}
+            className={panelClass}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
           >
             {(title || !hideCloseButton) && (
-              <div className="flex items-start justify-between gap-3 px-6 py-4 border-b border-gray-100">
+              <div className={headerClass}>
                 <div className="flex-1 min-w-0">
                   {title && <h3 className="text-lg font-bold text-gray-800">{title}</h3>}
                   {subtitle && <div className="text-xs text-gray-500 mt-0.5">{subtitle}</div>}

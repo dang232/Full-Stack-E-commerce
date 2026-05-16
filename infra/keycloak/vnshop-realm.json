@@ -44,11 +44,15 @@
         "composite": false,
         "clientRole": false
       }
-    ],
-    "defaultRole": {
-      "name": "default-roles-vnshop",
-      "realmRoles": ["BUYER"]
-    }
+    ]
+  },
+  "defaultRole": {
+    "name": "default-roles-vnshop",
+    "composite": true,
+    "composites": {
+      "realm": ["BUYER"]
+    },
+    "clientRole": false
   },
   "clients": [
     {

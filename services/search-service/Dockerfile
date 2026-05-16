@@ -4,11 +4,12 @@ COPY services/search-service/pom.xml .
 RUN mvn dependency:go-offline
 COPY services/search-service/src ./src
 RUN mvn package -DskipTests
+RUN cd target && JAR=$(ls -S *.jar 2>/dev/null | grep -vE "(sources|javadoc|original|opentelemetry-javaagent).jar$" | head -1) && mv "$JAR" app.jar
 
 FROM eclipse-temurin:25-jre-alpine AS runner
 RUN apk add --no-cache curl && addgroup -g 1000 vnshop && adduser -D -u 1000 -G vnshop vnshop
 WORKDIR /app
-COPY --from=builder /workspace/target/*.jar app.jar
+COPY --from=builder /workspace/target/app.jar app.jar
 RUN chown -R vnshop:vnshop /app
 USER vnshop
 EXPOSE 8086

@@ -1,0 +1,50 @@
+# Repo-level .dockerignore.
+# All Java services build with `context: .`, so without this every build would
+# tar up node_modules, target/, dist/, .git, IDE state, etc., from every service.
+# That's how we hit "Can't add file … node_modules\@babel\core\… to tar" earlier.
+
+# VCS / IDE / docs
+.git
+.github
+.gitignore
+.idea
+.vscode
+.qodo
+.claude
+.omc
+.sisyphus
+README.md
+docs
+LICENSE
+ATTRIBUTIONS.md
+
+# Local env (never bake secrets into images)
+.env
+.env.local
+.env.secrets
+
+# Build artefacts
+**/target
+**/build
+**/dist
+**/coverage
+**/.next
+**/.turbo
+**/*.tsbuildinfo
+
+# Dependencies
+**/node_modules
+
+# Front-end source isn't needed by any backend image
+fe
+
+# Test / scratch artefacts
+**/*.log
+**/.cache
+**/.DS_Store
+
+# Compose / infra orchestration is not part of any service image
+docker-compose.yml
+compose
+infra/postgres/init
+infra/scripts

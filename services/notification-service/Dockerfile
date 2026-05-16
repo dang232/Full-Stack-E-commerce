@@ -7,7 +7,7 @@ COPY src ./src
 RUN npm run build
 
 FROM node:24-alpine AS runner
-RUN apk add --no-cache curl && addgroup -g 1000 vnshop && adduser -D -u 1000 -G vnshop vnshop
+RUN apk add --no-cache curl && addgroup -S vnshop && adduser -S -G vnshop vnshop
 WORKDIR /app
 COPY --from=builder /workspace/node_modules ./node_modules
 COPY --from=builder /workspace/dist ./dist

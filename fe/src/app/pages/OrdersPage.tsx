@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { formatPrice } from "../lib/format";
 import { type Order as UIOrder } from "../components/vnshop-data";
 import { parseOrderStatus } from "../lib/domain-enums";
+import { TRACKING_STEPS_FALLBACK } from "../lib/domain-constants";
+import { Modal } from "../components/ui/modal";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useCancelOrder, useMyOrders } from "../hooks/use-orders";
@@ -58,16 +60,7 @@ function fromServer(o: ServerOrder): UIOrder {
   };
 }
 
-const TRACKING_STEPS_FALLBACK = [
-  "Đặt hàng thành công",
-  "Người bán xác nhận đơn",
-  "Đã lấy hàng",
-  "Đang trên đường giao",
-  "Giao thành công",
-];
-
 function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void }) {
-  useEscapeKey(true, onClose);
   const completedThrough =
     order.status === "delivered"
       ? TRACKING_STEPS_FALLBACK.length
@@ -78,80 +71,61 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
       : 1;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.5)" }}
-      onClick={onClose}
+    <Modal
+      open
+      onClose={onClose}
+      title="Theo dõi đơn hàng"
+      subtitle={<span className="font-mono">{order.trackingCode ?? order.id}</span>}
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h3 className="font-bold text-gray-800">Theo dõi đơn hàng</h3>
-            <p className="text-xs text-gray-500 font-mono">{order.trackingCode ?? order.id}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {TRACKING_STEPS_FALLBACK.map((label, i) => {
-            const done = i < completedThrough;
-            return (
-              <div key={i} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
-                  >
-                    {done ? (
-                      <CheckCircle size={14} color="white" />
-                    ) : (
-                      <div className="w-2 h-2 rounded-full bg-gray-400" />
-                    )}
-                  </div>
-                  {i < TRACKING_STEPS_FALLBACK.length - 1 && (
-                    <div
-                      className="w-0.5 h-8 mt-1"
-                      style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
-                    />
+      <div className="space-y-4">
+        {TRACKING_STEPS_FALLBACK.map((label, i) => {
+          const done = i < completedThrough;
+          return (
+            <div key={i} className="flex gap-4">
+              <div className="flex flex-col items-center">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
+                >
+                  {done ? (
+                    <CheckCircle size={14} color="white" />
+                  ) : (
+                    <div className="w-2 h-2 rounded-full bg-gray-400" />
                   )}
                 </div>
-                <div className="pb-4">
-                  <p className={`text-sm font-medium ${done ? "text-gray-800" : "text-gray-400"}`}>
-                    {label}
-                  </p>
-                </div>
+                {i < TRACKING_STEPS_FALLBACK.length - 1 && (
+                  <div
+                    className="w-0.5 h-8 mt-1"
+                    style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
+                  />
+                )}
               </div>
-            );
-          })}
+              <div className="pb-4">
+                <p className={`text-sm font-medium ${done ? "text-gray-800" : "text-gray-400"}`}>
+                  {label}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {order.estimatedDelivery && (
+        <div
+          className="mt-2 p-3 rounded-xl flex items-center gap-2 text-sm"
+          style={{ background: "rgba(0,191,179,0.08)" }}
+        >
+          <MapPin size={15} style={{ color: "#00BFB3" }} />
+          <span className="text-gray-600">
+            Dự kiến giao: <strong>{order.estimatedDelivery}</strong>
+          </span>
         </div>
+      )}
 
-        {order.estimatedDelivery && (
-          <div
-            className="mt-2 p-3 rounded-xl flex items-center gap-2 text-sm"
-            style={{ background: "rgba(0,191,179,0.08)" }}
-          >
-            <MapPin size={15} style={{ color: "#00BFB3" }} />
-            <span className="text-gray-600">
-              Dự kiến giao: <strong>{order.estimatedDelivery}</strong>
-            </span>
-          </div>
-        )}
-
-        <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1.5">
-          <AlertCircle size={12} /> Tích hợp theo dõi thời gian thực với GHN/GHTK đang được phát triển (BE-3).
-        </p>
-      </motion.div>
-    </div>
+      <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1.5">
+        <AlertCircle size={12} /> Tích hợp theo dõi thời gian thực với GHN/GHTK đang được phát triển (BE-3).
+      </p>
+    </Modal>
   );
 }
 
@@ -170,8 +144,6 @@ function ReturnModal({
   const [subOrderId, setSubOrderId] = useState(subOrders[0]?.id ?? "");
   const [reason, setReason] = useState("");
 
-  useEscapeKey(!isSubmitting, onClose);
-
   const handleSubmit = () => {
     if (!subOrderId) {
       toast.error("Đơn hàng này không có gói hàng nào để trả lại.");
@@ -185,67 +157,14 @@ function ReturnModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.5)" }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h3 className="font-bold text-gray-800">Yêu cầu trả hàng</h3>
-            <p className="text-xs text-gray-500 font-mono">{order.id}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
-          >
-            ×
-          </button>
-        </div>
-
-        {subOrders.length > 1 && (
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Chọn gói hàng cần trả
-            </label>
-            <select
-              value={subOrderId}
-              onChange={(e) => setSubOrderId(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] bg-white"
-            >
-              {subOrders.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.sellerName ?? s.id} — {s.status}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Lý do trả hàng</label>
-        <textarea
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          rows={4}
-          placeholder="Vui lòng mô tả chi tiết để người bán xử lý nhanh hơn..."
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-white"
-        />
-
-        <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
-          <AlertCircle size={14} className="shrink-0 mt-0.5" />
-          <p>
-            Sau khi gửi yêu cầu, người bán có thể xác nhận hoặc từ chối. Nếu không có phản hồi, bạn
-            có thể leo lên thành khiếu nại từ trang chi tiết đơn hàng.
-          </p>
-        </div>
-
-        <div className="mt-5 flex gap-3">
+    <Modal
+      open
+      onClose={onClose}
+      dismissDisabled={isSubmitting}
+      title="Yêu cầu trả hàng"
+      subtitle={<span className="font-mono">{order.id}</span>}
+      footer={
+        <>
           <button
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600"
@@ -260,9 +179,45 @@ function ReturnModal({
           >
             {isSubmitting ? "Đang gửi..." : "Gửi yêu cầu"}
           </button>
+        </>
+      }
+    >
+      {subOrders.length > 1 && (
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Chọn gói hàng cần trả
+          </label>
+          <select
+            value={subOrderId}
+            onChange={(e) => setSubOrderId(e.target.value)}
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] bg-white"
+          >
+            {subOrders.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.sellerName ?? s.id} — {s.status}
+              </option>
+            ))}
+          </select>
         </div>
-      </motion.div>
-    </div>
+      )}
+
+      <label className="block text-sm font-semibold text-gray-700 mb-2">Lý do trả hàng</label>
+      <textarea
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        rows={4}
+        placeholder="Vui lòng mô tả chi tiết để người bán xử lý nhanh hơn..."
+        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-white"
+      />
+
+      <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
+        <AlertCircle size={14} className="shrink-0 mt-0.5" />
+        <p>
+          Sau khi gửi yêu cầu, người bán có thể xác nhận hoặc từ chối. Nếu không có phản hồi, bạn
+          có thể leo lên thành khiếu nại từ trang chi tiết đơn hàng.
+        </p>
+      </div>
+    </Modal>
   );
 }
 
