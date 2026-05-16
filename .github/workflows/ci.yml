@@ -27,6 +27,7 @@ jobs:
     outputs:
       java: ${{ steps.filter.outputs.java }}
       node: ${{ steps.filter.outputs.node }}
+      poms: ${{ steps.filter.outputs.poms }}
       any: ${{ steps.filter.outputs.any }}
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +50,9 @@ jobs:
             node:
               - 'services/notification-service/**'
               - 'services/cart-service/**'
+              - '.github/workflows/ci.yml'
+            poms:
+              - 'services/*/pom.xml'
               - '.github/workflows/ci.yml'
             any:
               - '**'
@@ -127,12 +131,17 @@ jobs:
           npm test -- --coverage --passWithNoTests
           npm run build
 
-  # ── Dependency check (separate stage, run on one representative service) ──
+  # ── Dependency check ──
+  # Only runs when a pom.xml or the workflow itself changes, since OWASP
+  # signal is dependency-version-driven; pure code commits can't introduce
+  # new CVEs. Persists the NVD CVE database between runs (the previous bare
+  # invocation re-downloaded the entire NVD feed on every run, ~20 minutes
+  # cold; with the cache primed warm runs land in 2-3 minutes).
   dependency-check:
     name: OWASP dependency check
     runs-on: ubuntu-latest
-    needs: [java-tests, node-tests]
-    if: always() && (needs.changes.outputs.java == 'true' || github.event_name == 'workflow_dispatch')
+    needs: [changes, java-tests, node-tests]
+    if: always() && (needs.changes.outputs.poms == 'true' || github.event_name == 'workflow_dispatch')
     defaults:
       run:
         working-directory: services/inventory-service
@@ -153,6 +162,13 @@ jobs:
           path: ~/.m2/repository
           key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: maven-${{ runner.os }}-
+
+      - name: Cache NVD CVE database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: dependency-check-data-${{ runner.os }}-v1-${{ github.run_id }}
+          restore-keys: dependency-check-data-${{ runner.os }}-v1-
 
       - name: OWASP dependency check
         run: mvn --batch-mode org.owasp:dependency-check-maven:12.1.9:check -DfailBuildOnCVSS=7 -DknownExploitedEnabled=false
