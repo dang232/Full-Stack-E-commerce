@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
+import { FacetList } from "../components/facet-list";
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
 import { products, categories, type Product } from "../components/vnshop-data";
@@ -559,43 +560,23 @@ export function SearchPage() {
               </button>
             </div>
 
-            {/* Brand facets — driven by /search/facets so options reflect the
-                current query/category/price filters. Hidden when there are no
-                brand results to show. */}
-            {facets.brands.length > 0 ? (
-              <div className="mt-5 pt-5 border-t border-gray-100">
-                <p className="text-sm font-semibold text-gray-700 mb-2">Thương hiệu</p>
-                <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {facets.brands.slice(0, 15).map((entry) => {
-                    const isSelected = selectedBrand === entry.key;
-                    return (
-                      <button
-                        key={entry.key}
-                        onClick={() => setSelectedBrand(isSelected ? "" : entry.key)}
-                        className="w-full flex items-center justify-between text-sm py-1"
-                        style={{ color: isSelected ? "#00BFB3" : "#4b5563" }}
-                      >
-                        <span className="flex items-center gap-2">
-                          <div
-                            className="w-4 h-4 rounded border-2 flex items-center justify-center shrink-0"
-                            style={{
-                              borderColor: isSelected ? "#00BFB3" : "#d1d5db",
-                              background: isSelected ? "#00BFB3" : "transparent",
-                            }}
-                          >
-                            {isSelected ? (
-                              <span className="text-white text-[10px] font-bold">✓</span>
-                            ) : null}
-                          </div>
-                          <span className="truncate">{entry.key}</span>
-                        </span>
-                        <span className="text-xs text-gray-400 shrink-0 ml-2">{entry.count}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
+            {/* Brand + category facets — driven by /search/facets so the
+                options reflect the current query and other filters. Each
+                axis hides itself when the BE returned no entries (e.g. on
+                the welcome state before the user has searched). */}
+            <FacetList
+              title="Thương hiệu"
+              entries={facets.brands}
+              selected={selectedBrand}
+              onToggle={(key) => setSelectedBrand(selectedBrand === key ? "" : key)}
+            />
+            <FacetList
+              title="Danh mục"
+              entries={facets.categories}
+              selected={selectedCat}
+              onToggle={(key) => setCategory(selectedCat === key ? "" : key)}
+              formatLabel={(key) => categories.find((c) => c.id === key)?.label ?? key}
+            />
           </div>
         </aside>
 
