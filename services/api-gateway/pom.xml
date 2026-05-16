@@ -18,6 +18,8 @@
 		<opentelemetry.javaagent.version>2.27.0</opentelemetry.javaagent.version>
 		<tomcat.version>11.0.22</tomcat.version>
 		<spring-cloud.version>2025.1.1</spring-cloud.version>
+		<netty.version>4.2.13.Final</netty.version>
+		<bouncycastle.version>1.84</bouncycastle.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -73,6 +75,11 @@
 				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
