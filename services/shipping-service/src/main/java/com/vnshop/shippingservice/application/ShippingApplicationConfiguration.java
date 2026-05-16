@@ -10,4 +10,9 @@ public class ShippingApplicationConfiguration {
     ShippingRateCalculator shippingRateCalculator(CarrierGatewayPort carrierGateway) {
         return new ShippingRateCalculator(carrierGateway);
     }
+
+    @Bean
+    GetTrackingUseCase getTrackingUseCase(CarrierGatewayPort carrierGateway) {
+        return new GetTrackingUseCase(carrierGateway);
+    }
 }
