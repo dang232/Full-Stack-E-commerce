@@ -109,6 +109,13 @@ public class RouteConfig {
             .route("seller-orders", route -> route.path("/seller/orders/**")
                 .filters(filters -> resilient(filters, "order-service"))
                 .uri(orderServiceUri))
+            // Coupon-service owns the /checkout/{validate,apply}-coupon aliases
+            // (legacy paths kept alongside /coupons/validate). These specific
+            // routes must precede the broader /checkout/** -> order-service
+            // route below so the alias keeps reaching coupon-service.
+            .route("checkout-coupons", route -> route.path("/checkout/validate-coupon", "/checkout/apply-coupon")
+                .filters(filters -> resilient(filters, "coupon-service"))
+                .uri(couponServiceUri))
             .route("checkout", route -> route.path("/checkout/**")
                 .filters(filters -> resilient(filters, "order-service"))
                 .uri(orderServiceUri))
