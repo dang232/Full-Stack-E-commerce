@@ -594,7 +594,8 @@ export function SearchPage() {
                 {query ? `Kết quả cho "${query}"` : "Tất cả sản phẩm"}
               </p>
               <p className="text-sm text-gray-500 mt-0.5">
-                {filtered.length} sản phẩm được tìm thấy
+                {(usedBackend ? search.totalElements : filtered.length).toLocaleString("vi-VN")}{" "}
+                sản phẩm được tìm thấy
               </p>
             </div>
             <div className="flex items-center gap-2">
