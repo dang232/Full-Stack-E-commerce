@@ -28,7 +28,7 @@ Last updated: 2026-05-16 (post-FE-PLAN audit pass).
 
 ### UX hardening
 - [x] **No more `window.prompt` / `window.confirm`** anywhere — replaced with reusable `FormDialog` (textarea, number, validated text fields).
-- [x] **`ImageWithFallback` component** rolled out to all product surfaces (Home, Search, Product detail + gallery, Cart, Wishlist, Orders, Seller modal, navbar avatar). Zero raw `<img>` tags remain in app code. Chain: `src` → `fallbackSrc` → placeholder icon.
+- [x] **`ImageWithFallback` component** rolled out to all remote-source product surfaces (Home, Search, Product detail + gallery, Cart, Wishlist, Orders, Seller modal, navbar avatar). Zero raw `<img>` tags remain in app code **for remote URLs**. The one remaining `<img>` lives in `seller-product-modal.tsx` for `URL.createObjectURL(file)` previews — `blob:` URIs either work or the underlying file handle is gone, so the fallback chain doesn't apply. Chain for the wrapped path: `src` → `fallbackSrc` → placeholder icon.
 - [x] **Cart unified + optimistic** — `useCart` now does proper optimistic updates with snapshot rollback for add/update/remove/clear. `useVNShop().addToCart`/`cartCount` route through it. Cart badge updates instantly; rolls back cleanly on server failure.
 - [x] **Wishlist unified** — `useVNShop().toggleWishlist`/`isWishlisted` route through the persistent `useWishlist` localStorage store.
 - [x] **Notification mark-read with optimistic + rollback** — bell decrements immediately on click; server failure restores prior unread state.
