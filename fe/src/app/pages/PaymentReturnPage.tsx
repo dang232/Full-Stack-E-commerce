@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router";
 import { CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { paymentStatus } from "../lib/api/endpoints/payment";
 import { ApiError } from "../lib/api/envelope";
-import { formatPrice } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
 
 type Provider = "vnpay" | "momo";
 type Phase = "pending" | "completed" | "failed" | "error";

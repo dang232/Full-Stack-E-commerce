@@ -6,7 +6,7 @@ import {
   TrendingUp, Eye, AlertCircle, Info, CheckCircle, XCircle,
   Plus, Minus, X, Filter, SlidersHorizontal, Store, User, Home
 } from "lucide-react";
-import { formatPrice } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
 
 // ─── Color Token ────────────────────────────────────────────────────────────
 type ColorSwatch = {

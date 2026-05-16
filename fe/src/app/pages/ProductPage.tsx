@@ -7,7 +7,8 @@ import {
   Heart, Share2, Store, MessageSquare, ThumbsUp, CheckCircle, Package
 } from "lucide-react";
 import { toast } from "sonner";
-import { products, reviews as reviewsMock, sellers, formatPrice } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
+import { products, reviews as reviewsMock, sellers } from "../components/vnshop-data";
 import { useVNShop } from "../components/vnshop-context";
 import { useProduct, useProducts } from "../hooks/use-products";
 import { useAuth } from "../hooks/use-auth";

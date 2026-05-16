@@ -6,7 +6,8 @@ import {
   Headphones, TrendingUp, Award, ChevronLeft, Sparkles,
   ArrowRight, Gift, BadgeCheck
 } from "lucide-react";
-import { products, categories, sellers, flashSaleProducts, flashSaleEnd, formatPrice, type Product } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
+import { products, categories, sellers, flashSaleProducts, flashSaleEnd, type Product } from "../components/vnshop-data";
 import { useVNShop } from "../components/vnshop-context";
 import { useProducts } from "../hooks/use-products";
 import { useCountdown } from "../hooks/use-countdown";

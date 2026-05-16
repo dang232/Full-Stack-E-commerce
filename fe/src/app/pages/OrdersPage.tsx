@@ -7,7 +7,8 @@ import {
   MapPin, MessageSquare, Star, RotateCcw, AlertCircle, LogIn, ArrowLeftRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice, type Order as UIOrder } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
+import { type Order as UIOrder } from "../components/vnshop-data";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useCancelOrder, useMyOrders } from "../hooks/use-orders";

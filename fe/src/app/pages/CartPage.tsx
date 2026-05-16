@@ -6,12 +6,10 @@ import { toast } from "sonner";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { ImageWithFallback } from "../components/image-with-fallback";
-import { formatPrice } from "../components/vnshop-data";
+import { formatPrice } from "../lib/format";
+import { FREE_SHIPPING_THRESHOLD, FLAT_SHIPPING_FEE } from "../lib/domain-constants";
 import { ApiError } from "../lib/api/envelope";
 import type { CartItem } from "../types/api";
-
-const FREE_SHIPPING_THRESHOLD = 500_000;
-const FLAT_SHIPPING_FEE = 30_000;
 
 export function CartPage() {
   const navigate = useNavigate();
