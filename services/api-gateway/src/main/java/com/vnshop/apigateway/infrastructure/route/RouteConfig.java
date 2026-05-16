@@ -82,9 +82,10 @@ public class RouteConfig {
             .route("search", route -> route.path("/search/**")
                 .filters(filters -> resilient(filters, "search-service"))
                 .uri(searchServiceUri))
-            .route("inventory", route -> route.path("/inventory/**")
-                .filters(filters -> resilient(filters, "inventory-service"))
-                .uri(inventoryServiceUri))
+            // /inventory/** route was removed in Phase 3C: inventory-service exposes
+            // only gRPC (Reserve/Release) and the flash-sale REST endpoint below.
+            // Stock for product detail is now served by product-service directly via
+            // ProductResponse.stock; no public HTTP /inventory/* endpoint exists.
             .route("flash-sale", route -> route.path("/flash-sale/**")
                 .filters(filters -> resilient(filters, "inventory-service"))
                 .uri(inventoryServiceUri))
