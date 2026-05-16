@@ -1,5 +1,6 @@
-import { Navigate, useLocation } from "react-router";
 import { type ReactNode } from "react";
+import { Navigate, useLocation } from "react-router";
+
 import { useAuth, type Role } from "../../hooks/use-auth";
 
 interface RequireAuthProps {

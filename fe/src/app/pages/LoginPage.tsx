@@ -1,5 +1,6 @@
-import { Navigate, useSearchParams } from "react-router";
 import { Sparkles, ChevronRight, ShieldCheck } from "lucide-react";
+import { Navigate, useSearchParams } from "react-router";
+
 import { useAuth } from "../hooks/use-auth";
 
 export function LoginPage() {

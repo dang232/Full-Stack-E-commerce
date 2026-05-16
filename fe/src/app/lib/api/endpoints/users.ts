@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { api } from "../client";
+
 import { addressSchema, userProfileSchema, type Address } from "../../../types/api";
+import { api } from "../client";
 
 export const myProfile = () => api.get("/users/me", userProfileSchema);
 
@@ -9,9 +10,11 @@ export interface UpdateProfileInput {
   phone?: string;
   avatar?: string;
 }
-export const updateProfile = (body: UpdateProfileInput) => api.put("/users/me", userProfileSchema, body);
+export const updateProfile = (body: UpdateProfileInput) =>
+  api.put("/users/me", userProfileSchema, body);
 
-export const addAddress = (body: Address) => api.post("/users/me/addresses", z.array(addressSchema), body);
+export const addAddress = (body: Address) =>
+  api.post("/users/me/addresses", z.array(addressSchema), body);
 export const setDefaultAddress = (index: number) =>
   api.put(`/users/me/addresses/${index}/default`, z.array(addressSchema));
 export const removeAddress = (index: number) =>

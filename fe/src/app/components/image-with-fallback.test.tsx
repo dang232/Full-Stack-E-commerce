@@ -1,16 +1,11 @@
-import { describe, expect, it } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
 import { ImageWithFallback } from "./image-with-fallback";
 
 describe("ImageWithFallback", () => {
   it("renders the image when src is provided", () => {
-    render(
-      <ImageWithFallback
-        src="https://cdn/x.jpg"
-        alt="Product"
-        className="w-10 h-10"
-      />,
-    );
+    render(<ImageWithFallback src="https://cdn/x.jpg" alt="Product" className="w-10 h-10" />);
     const img = screen.getByAltText("Product") as HTMLImageElement;
     expect(img.tagName).toBe("IMG");
     expect(img.src).toBe("https://cdn/x.jpg");
@@ -31,7 +26,7 @@ describe("ImageWithFallback", () => {
         alt="Product"
       />,
     );
-    const img = screen.getByAltText("Product") as HTMLImageElement;
+    const img = screen.getByAltText("Product");
     fireEvent.error(img);
     // Still in image mode but using the fallback URL.
     const after = screen.getByAltText("Product") as HTMLImageElement;
@@ -45,7 +40,7 @@ describe("ImageWithFallback", () => {
 
   it("goes straight to placeholder on error when no fallbackSrc is provided", () => {
     render(<ImageWithFallback src="https://cdn/missing.jpg" alt="Product" />);
-    const img = screen.getByAltText("Product") as HTMLImageElement;
+    const img = screen.getByAltText("Product");
     fireEvent.error(img);
     expect(screen.queryByAltText("Product")).toBeNull();
     expect(screen.getByLabelText("Product")).toBeInTheDocument();

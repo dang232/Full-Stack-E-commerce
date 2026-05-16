@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { api } from "../client";
+
 import { reviewSchema } from "../../../types/api";
-import { COUPON_TYPES } from "../../domain-enums";
+import type { COUPON_TYPES } from "../../domain-enums";
+import { api } from "../client";
 
 const sellerSummarySchema = z
   .object({
@@ -65,8 +66,10 @@ const disputeSchema = z
   })
   .passthrough();
 export const adminOpenDisputes = () => api.get("/admin/disputes/open", z.array(disputeSchema));
-export const adminResolveDispute = (id: string, body: { resolution: string; refundAmount?: number }) =>
-  api.post(`/admin/disputes/${encodeURIComponent(id)}/resolve`, disputeSchema, body);
+export const adminResolveDispute = (
+  id: string,
+  body: { resolution: string; refundAmount?: number },
+) => api.post(`/admin/disputes/${encodeURIComponent(id)}/resolve`, disputeSchema, body);
 
 const adminPayoutSchema = z
   .object({
@@ -110,7 +113,9 @@ const dashboardSummarySchema = z
   }));
 export type DashboardSummary = z.infer<typeof dashboardSummarySchema>;
 export const dashboardSummary = () => api.get("/admin/dashboard/summary", dashboardSummarySchema);
-export const dashboardRevenue = (params: { from?: string; to?: string; granularity?: "day" | "week" | "month" } = {}) =>
+export const dashboardRevenue = (
+  params: { from?: string; to?: string; granularity?: "day" | "week" | "month" } = {},
+) =>
   api.get(
     "/admin/dashboard/revenue",
     z.array(z.object({ date: z.string(), amount: z.number() }).passthrough()),
@@ -119,12 +124,20 @@ export const dashboardRevenue = (params: { from?: string; to?: string; granulari
 export const dashboardTopProducts = (params: { limit?: number } = {}) =>
   api.get(
     "/admin/dashboard/top-products",
-    z.array(z.object({ productId: z.string(), name: z.string().optional(), revenue: z.number() }).passthrough()),
+    z.array(
+      z
+        .object({ productId: z.string(), name: z.string().optional(), revenue: z.number() })
+        .passthrough(),
+    ),
     { limit: params.limit ?? 10 },
   );
 export const dashboardTopSellers = (params: { limit?: number } = {}) =>
   api.get(
     "/admin/dashboard/top-sellers",
-    z.array(z.object({ sellerId: z.string(), shopName: z.string().optional(), revenue: z.number() }).passthrough()),
+    z.array(
+      z
+        .object({ sellerId: z.string(), shopName: z.string().optional(), revenue: z.number() })
+        .passthrough(),
+    ),
     { limit: params.limit ?? 10 },
   );

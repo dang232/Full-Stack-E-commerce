@@ -1,6 +1,7 @@
+import { CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import { CheckCircle, AlertCircle, Clock } from "lucide-react";
+
 import { paymentStatus } from "../lib/api/endpoints/payment";
 import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
@@ -8,14 +9,21 @@ import { formatPrice } from "../lib/format";
 type Provider = "vnpay" | "momo";
 type Phase = "pending" | "completed" | "failed" | "error";
 
-const TERMINAL_STATUSES = new Set(["COMPLETED", "PAID", "SUCCESS", "FAILED", "CANCELLED", "EXPIRED"]);
+const TERMINAL_STATUSES = new Set([
+  "COMPLETED",
+  "PAID",
+  "SUCCESS",
+  "FAILED",
+  "CANCELLED",
+  "EXPIRED",
+]);
 
 export function PaymentReturnPage() {
   const navigate = useNavigate();
   const params = useParams<{ provider: string }>();
   const [search] = useSearchParams();
 
-  const provider: Provider = (params.provider === "momo" ? "momo" : "vnpay");
+  const provider: Provider = params.provider === "momo" ? "momo" : "vnpay";
 
   // Most VN gateways return order id in their own param names. Try a few common ones.
   const orderId = useMemo(() => {
@@ -95,7 +103,7 @@ export function PaymentReturnPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-20 text-center">
-      {phase === "pending" && (
+      {phase === "pending" ? (
         <>
           <div
             className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center animate-pulse"
@@ -114,9 +122,9 @@ export function PaymentReturnPage() {
             {provider === "vnpay" ? "VNPay" : "MoMo"}.
           </p>
         </>
-      )}
+      ) : null}
 
-      {phase === "completed" && (
+      {phase === "completed" ? (
         <>
           <div
             className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center"
@@ -130,16 +138,16 @@ export function PaymentReturnPage() {
           >
             Thanh toán thành công 🎉
           </h1>
-          {amount !== null && (
+          {amount !== null ? (
             <p className="text-sm text-gray-500 mb-2">
               Số tiền đã thanh toán: <strong>{formatPrice(amount)}</strong>
             </p>
-          )}
-          {orderId && (
+          ) : null}
+          {orderId ? (
             <p className="text-sm text-gray-500 mb-8">
               Mã đơn hàng: <span className="font-mono font-semibold">{orderId}</span>
             </p>
-          )}
+          ) : null}
           <div className="flex gap-3">
             <button
               onClick={() => navigate("/orders")}
@@ -157,9 +165,9 @@ export function PaymentReturnPage() {
             </button>
           </div>
         </>
-      )}
+      ) : null}
 
-      {phase === "failed" && (
+      {phase === "failed" ? (
         <>
           <div
             className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
@@ -187,9 +195,9 @@ export function PaymentReturnPage() {
             </button>
           </div>
         </>
-      )}
+      ) : null}
 
-      {phase === "error" && (
+      {phase === "error" ? (
         <>
           <div
             className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
@@ -209,7 +217,7 @@ export function PaymentReturnPage() {
             Đến đơn hàng
           </button>
         </>
-      )}
+      ) : null}
     </div>
   );
 }

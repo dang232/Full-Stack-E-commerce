@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+
 import { ApiError } from "./api/envelope";
 
 export const queryClient = new QueryClient({

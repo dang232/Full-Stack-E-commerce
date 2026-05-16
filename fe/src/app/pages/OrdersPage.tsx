@@ -1,28 +1,43 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Package,
+  Truck,
+  CheckCircle,
+  XCircle,
+  Clock,
+  RefreshCw,
+  MapPin,
+  MessageSquare,
+  Star,
+  RotateCcw,
+  AlertCircle,
+  LogIn,
+  ArrowLeftRight,
+} from "lucide-react";
+import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "motion/react";
-import {
-  Package, Truck, CheckCircle, XCircle, Clock, RefreshCw,
-  MapPin, MessageSquare, Star, RotateCcw, AlertCircle, LogIn, ArrowLeftRight,
-} from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice } from "../lib/format";
-import { type Order as UIOrder } from "../components/vnshop-data";
-import { parseOrderStatus } from "../lib/domain-enums";
-import { TRACKING_STEPS_FALLBACK } from "../lib/domain-constants";
+
+import { ImageWithFallback } from "../components/image-with-fallback";
 import { Modal } from "../components/ui/modal";
+import { type Order as UIOrder } from "../components/vnshop-data";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useCancelOrder, useMyOrders } from "../hooks/use-orders";
-import type { Order as ServerOrder } from "../types/api";
-import { ApiError } from "../lib/api/envelope";
 import { requestReturn } from "../lib/api/endpoints/orders";
-import { ImageWithFallback } from "../components/image-with-fallback";
+import { ApiError } from "../lib/api/envelope";
+import { TRACKING_STEPS_FALLBACK } from "../lib/domain-constants";
+import { parseOrderStatus } from "../lib/domain-enums";
+import { formatPrice } from "../lib/format";
+import type { Order as ServerOrder } from "../types/api";
 
 type OrderTab = "all" | "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
 
-const STATUS_CONFIG: Record<UIOrder["status"], { label: string; icon: typeof Package; color: string; bg: string }> = {
+const STATUS_CONFIG: Record<
+  UIOrder["status"],
+  { label: string; icon: typeof Package; color: string; bg: string }
+> = {
   pending: { label: "Chờ xác nhận", icon: Clock, color: "#F59E0B", bg: "#FEF3C7" },
   confirmed: { label: "Đã xác nhận", icon: CheckCircle, color: "#3B82F6", bg: "#EFF6FF" },
   shipping: { label: "Đang giao hàng", icon: Truck, color: "#00BFB3", bg: "rgba(0,191,179,0.08)" },
@@ -64,10 +79,10 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
     order.status === "delivered"
       ? TRACKING_STEPS_FALLBACK.length
       : order.status === "shipping"
-      ? 4
-      : order.status === "confirmed"
-      ? 2
-      : 1;
+        ? 4
+        : order.status === "confirmed"
+          ? 2
+          : 1;
 
   return (
     <Modal
@@ -92,12 +107,12 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
                     <div className="w-2 h-2 rounded-full bg-gray-400" />
                   )}
                 </div>
-                {i < TRACKING_STEPS_FALLBACK.length - 1 && (
+                {i < TRACKING_STEPS_FALLBACK.length - 1 ? (
                   <div
                     className="w-0.5 h-8 mt-1"
                     style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
                   />
-                )}
+                ) : null}
               </div>
               <div className="pb-4">
                 <p className={`text-sm font-medium ${done ? "text-gray-800" : "text-gray-400"}`}>
@@ -109,7 +124,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
         })}
       </div>
 
-      {order.estimatedDelivery && (
+      {order.estimatedDelivery ? (
         <div
           className="mt-2 p-3 rounded-xl flex items-center gap-2 text-sm"
           style={{ background: "rgba(0,191,179,0.08)" }}
@@ -119,10 +134,11 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
             Dự kiến giao: <strong>{order.estimatedDelivery}</strong>
           </span>
         </div>
-      )}
+      ) : null}
 
       <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1.5">
-        <AlertCircle size={12} /> Tích hợp theo dõi thời gian thực với GHN/GHTK đang được phát triển (BE-3).
+        <AlertCircle size={12} /> Tích hợp theo dõi thời gian thực với GHN/GHTK đang được phát triển
+        (BE-3).
       </p>
     </Modal>
   );
@@ -181,7 +197,7 @@ function ReturnModal({
         </>
       }
     >
-      {subOrders.length > 1 && (
+      {subOrders.length > 1 ? (
         <div className="mb-4">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Chọn gói hàng cần trả
@@ -198,7 +214,7 @@ function ReturnModal({
             ))}
           </select>
         </div>
-      )}
+      ) : null}
 
       <label className="block text-sm font-semibold text-gray-700 mb-2">Lý do trả hàng</label>
       <textarea
@@ -212,8 +228,8 @@ function ReturnModal({
       <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
         <AlertCircle size={14} className="shrink-0 mt-0.5" />
         <p>
-          Sau khi gửi yêu cầu, người bán có thể xác nhận hoặc từ chối. Nếu không có phản hồi, bạn
-          có thể leo lên thành khiếu nại từ trang chi tiết đơn hàng.
+          Sau khi gửi yêu cầu, người bán có thể xác nhận hoặc từ chối. Nếu không có phản hồi, bạn có
+          thể leo lên thành khiếu nại từ trang chi tiết đơn hàng.
         </p>
       </div>
     </Modal>
@@ -258,15 +274,15 @@ function OrderCard({
 
   return (
     <>
-      {showTracking && <TrackingModal order={order} onClose={() => setShowTracking(false)} />}
-      {showReturn && (
+      {showTracking ? <TrackingModal order={order} onClose={() => setShowTracking(false)} /> : null}
+      {showReturn ? (
         <ReturnModal
           order={rawOrder}
           onClose={() => setShowReturn(false)}
           onSubmit={(input) => submitReturn.mutate(input)}
           isSubmitting={submitReturn.isPending}
         />
-      )}
+      ) : null}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -287,9 +303,9 @@ function OrderCard({
         </div>
 
         <div className="p-5">
-          {order.items.length === 0 && (
+          {order.items.length === 0 ? (
             <p className="text-sm text-gray-400 italic mb-3">Đang tải chi tiết sản phẩm...</p>
-          )}
+          ) : null}
           {order.items.map((item, i) => (
             <div key={i} className="flex items-center gap-4 mb-3">
               <ImageWithFallback
@@ -311,8 +327,8 @@ function OrderCard({
 
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <div className="text-sm text-gray-500">
-              {order.date && <span>{order.date}</span>}
-              {order.seller && <span> · {order.seller}</span>}
+              {order.date ? <span>{order.date}</span> : null}
+              {order.seller ? <span> · {order.seller}</span> : null}
             </div>
             <div className="text-right">
               <span className="text-xs text-gray-500">Tổng: </span>
@@ -324,7 +340,7 @@ function OrderCard({
         </div>
 
         <div className="flex gap-2 px-5 pb-4">
-          {order.status === "shipping" && (
+          {order.status === "shipping" ? (
             <button
               onClick={() => setShowTracking(true)}
               className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2"
@@ -332,8 +348,8 @@ function OrderCard({
             >
               <MapPin size={15} /> Theo dõi đơn hàng
             </button>
-          )}
-          {order.status === "delivered" && (
+          ) : null}
+          {order.status === "delivered" ? (
             <>
               <button
                 onClick={() => onReorder(order.items)}
@@ -359,15 +375,15 @@ function OrderCard({
                 <Star size={14} /> Đánh giá
               </button>
             </>
-          )}
-          {order.status === "pending" && (
+          ) : null}
+          {order.status === "pending" ? (
             <button
               onClick={() => onCancel(order.id)}
               className="flex items-center gap-2 py-2.5 px-4 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50"
             >
               <XCircle size={14} /> Hủy đơn
             </button>
-          )}
+          ) : null}
           <button className="py-2.5 px-4 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-1 hover:bg-gray-50">
             <MessageSquare size={14} /> Chat
           </button>
@@ -409,7 +425,7 @@ export function OrdersPage() {
     }
     if (added > 0) {
       toast.success(`Đã thêm ${added} sản phẩm vào giỏ`);
-      navigate("/cart");
+      void navigate("/cart");
     }
   };
 
@@ -419,8 +435,7 @@ export function OrdersPage() {
   }, [ordersQuery.data]);
 
   const filtered = useMemo(
-    () =>
-      activeTab === "all" ? allOrders : allOrders.filter((o) => o.ui.status === activeTab),
+    () => (activeTab === "all" ? allOrders : allOrders.filter((o) => o.ui.status === activeTab)),
     [allOrders, activeTab],
   );
 
@@ -491,10 +506,10 @@ export function OrdersPage() {
       </div>
 
       <div className="space-y-4">
-        {ordersQuery.isLoading && (
+        {ordersQuery.isLoading ? (
           <div className="py-16 text-center text-sm text-gray-400">Đang tải đơn hàng...</div>
-        )}
-        {ordersQuery.error && !ordersQuery.isLoading && (
+        ) : null}
+        {ordersQuery.error && !ordersQuery.isLoading ? (
           <div className="py-16 text-center bg-white rounded-2xl">
             <AlertCircle size={48} className="mx-auto mb-4 text-red-300" />
             <p className="text-gray-600 font-medium mb-2">
@@ -510,25 +525,25 @@ export function OrdersPage() {
               Về trang chủ
             </button>
           </div>
-        )}
-        {!ordersQuery.isLoading && !ordersQuery.error && filtered.length > 0 && (
-          filtered.map((entry) => (
-            <OrderCard
-              key={entry.ui.id}
-              order={entry.ui}
-              rawOrder={entry.raw}
-              onCancel={handleCancel}
-              onReview={(productId) => navigate(`/product/${productId}`)}
-              onReorder={(items) => void handleReorder(items)}
-            />
-          ))
-        )}
-        {!ordersQuery.isLoading && !ordersQuery.error && filtered.length === 0 && (
+        ) : null}
+        {!ordersQuery.isLoading && !ordersQuery.error && filtered.length > 0
+          ? filtered.map((entry) => (
+              <OrderCard
+                key={entry.ui.id}
+                order={entry.ui}
+                rawOrder={entry.raw}
+                onCancel={handleCancel}
+                onReview={(productId) => navigate(`/product/${productId}`)}
+                onReorder={(items) => void handleReorder(items)}
+              />
+            ))
+          : null}
+        {!ordersQuery.isLoading && !ordersQuery.error && filtered.length === 0 ? (
           <div className="py-16 text-center bg-white rounded-2xl">
             <Package size={48} className="mx-auto mb-4 text-gray-200" />
             <p className="text-gray-500 font-medium">Không có đơn hàng nào</p>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

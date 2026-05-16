@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "./use-auth";
+
 import {
   addCartItem,
   clearCart as clearCartApi,
@@ -7,7 +7,9 @@ import {
   removeCartItem,
   updateCartItem,
 } from "../lib/api/endpoints/cart";
-import type { Cart, CartItem } from "../types/api";
+import type { Cart } from "../types/api";
+
+import { useAuth } from "./use-auth";
 
 const CART_KEY = ["cart"] as const;
 
@@ -22,16 +24,14 @@ function optimisticAdd(cart: Cart | undefined, productId: string, quantity: numb
     items[existing] = { ...items[existing], quantity: items[existing].quantity + quantity };
   } else {
     // Skeleton item — name/price/image will reconcile from the server response.
-    items.push({ productId, name: "", price: 0, quantity } as CartItem);
+    items.push({ productId, name: "", price: 0, quantity });
   }
   return recomputeTotals({ ...base, items });
 }
 
 function optimisticUpdate(cart: Cart | undefined, productId: string, quantity: number): Cart {
   const base = cart ?? EMPTY_CART;
-  const items = (base.items ?? []).map((i) =>
-    i.productId === productId ? { ...i, quantity } : i,
-  );
+  const items = (base.items ?? []).map((i) => (i.productId === productId ? { ...i, quantity } : i));
   return recomputeTotals({ ...base, items });
 }
 
@@ -61,7 +61,12 @@ export function useCart() {
     enabled: ready && authenticated,
   });
 
-  const addItem = useMutation<Cart, unknown, { productId: string; quantity: number }, { previous?: Cart }>({
+  const addItem = useMutation<
+    Cart,
+    unknown,
+    { productId: string; quantity: number },
+    { previous?: Cart }
+  >({
     mutationFn: (input) => addCartItem(input),
     onMutate: async (input) => {
       await qc.cancelQueries({ queryKey: CART_KEY });
@@ -78,7 +83,12 @@ export function useCart() {
     },
   });
 
-  const updateItem = useMutation<Cart, unknown, { productId: string; quantity: number }, { previous?: Cart }>({
+  const updateItem = useMutation<
+    Cart,
+    unknown,
+    { productId: string; quantity: number },
+    { previous?: Cart }
+  >({
     mutationFn: ({ productId, quantity }) => updateCartItem(productId, { quantity }),
     onMutate: async ({ productId, quantity }) => {
       await qc.cancelQueries({ queryKey: CART_KEY });

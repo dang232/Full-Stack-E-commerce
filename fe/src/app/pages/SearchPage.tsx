@@ -1,17 +1,15 @@
+import { SlidersHorizontal, Star, Truck, X, Zap, Grid3X3, LayoutList, Search } from "lucide-react";
+import { motion } from "motion/react";
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { motion } from "motion/react";
-import {
-  SlidersHorizontal, Star, Truck, X, Zap,
-  Grid3X3, LayoutList, Search
-} from "lucide-react";
-import { formatPrice } from "../lib/format";
-import { products, categories, type Product } from "../components/vnshop-data";
-import { useVNShop } from "../components/vnshop-context";
-import { useProducts } from "../hooks/use-products";
-import { useSearch } from "../hooks/use-search";
-import { useResettableState } from "../hooks/use-resettable-state";
+
 import { ImageWithFallback } from "../components/image-with-fallback";
+import { useVNShop } from "../components/vnshop-context";
+import { products, categories, type Product } from "../components/vnshop-data";
+import { useProducts } from "../hooks/use-products";
+import { useResettableState } from "../hooks/use-resettable-state";
+import { useSearch } from "../hooks/use-search";
+import { formatPrice } from "../lib/format";
 
 function ProductListItem({ product }: { product: Product }) {
   const navigate = useNavigate();
@@ -23,55 +21,98 @@ function ProductListItem({ product }: { product: Product }) {
       onClick={() => navigate(`/product/${product.id}`)}
     >
       <div className="relative shrink-0 w-36 h-36 rounded-xl overflow-hidden">
-        <ImageWithFallback src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-        {product.discount && (
-          <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white text-[10px] font-bold" style={{ background: "#FF6200" }}>
+        <ImageWithFallback
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+        />
+        {product.discount ? (
+          <span
+            className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white text-[10px] font-bold"
+            style={{ background: "#FF6200" }}
+          >
             -{product.discount}%
           </span>
-        )}
+        ) : null}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-gray-400 mb-1">{product.sellerName} · {product.location}</p>
+        <p className="text-xs text-gray-400 mb-1">
+          {product.sellerName} · {product.location}
+        </p>
         <h3 className="font-medium text-gray-800 mb-2 line-clamp-2">{product.name}</h3>
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={12} className={i < Math.floor(product.rating) ? "text-amber-400 fill-amber-400" : "text-gray-300 fill-gray-200"} />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                size={12}
+                className={
+                  i < Math.floor(product.rating)
+                    ? "text-amber-400 fill-amber-400"
+                    : "text-gray-300 fill-gray-200"
+                }
+              />
             ))}
           </div>
           <span className="text-xs text-gray-500">({product.reviewCount.toLocaleString()})</span>
           <span className="text-xs text-gray-400">• {product.sold.toLocaleString()} đã bán</span>
         </div>
-        <p className="text-xs text-gray-500 line-clamp-2 mb-3">{product.description.slice(0, 100)}...</p>
+        <p className="text-xs text-gray-500 line-clamp-2 mb-3">
+          {product.description.slice(0, 100)}...
+        </p>
         <div className="flex items-center gap-2 flex-wrap">
-          {product.shippingFee === 0 && (
-            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(0,191,179,0.1)", color: "#00BFB3" }}>
+          {product.shippingFee === 0 ? (
+            <span
+              className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "rgba(0,191,179,0.1)", color: "#00BFB3" }}
+            >
               <Truck size={10} /> Miễn phí ship
             </span>
-          )}
-          {product.colors?.slice(0, 3).map(c => (
-            <span key={c} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{c}</span>
+          ) : null}
+          {product.colors?.slice(0, 3).map((c) => (
+            <span key={c} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+              {c}
+            </span>
           ))}
         </div>
       </div>
       <div className="shrink-0 flex flex-col items-end justify-between">
         <button
-          onClick={e => { e.stopPropagation(); toggleWishlist(product.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product.id);
+          }}
           className="p-1.5 rounded-lg transition-colors"
           style={{ color: loved ? "#FF6200" : "#9ca3af" }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={loved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill={loved ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
         <div className="text-right">
-          <p className="font-bold text-lg" style={{ color: "#FF6200" }}>{formatPrice(product.price)}</p>
-          {product.originalPrice && <p className="text-sm text-gray-400 line-through">{formatPrice(product.originalPrice)}</p>}
+          <p className="font-bold text-lg" style={{ color: "#FF6200" }}>
+            {formatPrice(product.price)}
+          </p>
+          {product.originalPrice ? (
+            <p className="text-sm text-gray-400 line-through">
+              {formatPrice(product.originalPrice)}
+            </p>
+          ) : null}
         </div>
         <button
           className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors"
           style={{ background: "#00BFB3" }}
-          onClick={e => { e.stopPropagation(); addToCart(product); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            addToCart(product);
+          }}
         >
           Mua ngay
         </button>
@@ -93,45 +134,84 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
       onClick={() => navigate(`/product/${product.id}`)}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
-        <ImageWithFallback src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        {product.discount && (
-          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[10px] font-bold" style={{ background: "#FF6200" }}>
+        <ImageWithFallback
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        {product.discount ? (
+          <span
+            className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[10px] font-bold"
+            style={{ background: "#FF6200" }}
+          >
             -{product.discount}%
           </span>
-        )}
+        ) : null}
         <button
           className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ background: loved ? "#FF6200" : "rgba(255,255,255,0.9)", color: loved ? "white" : "#6b7280" }}
-          onClick={e => { e.stopPropagation(); toggleWishlist(product.id); }}
+          style={{
+            background: loved ? "#FF6200" : "rgba(255,255,255,0.9)",
+            color: loved ? "white" : "#6b7280",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product.id);
+          }}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill={loved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill={loved ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
         <button
           className="absolute bottom-0 inset-x-0 py-2 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 translate-y-full group-hover:translate-y-0 transition-all duration-200"
           style={{ background: "rgba(0,191,179,0.92)" }}
-          onClick={e => { e.stopPropagation(); addToCart(product); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            addToCart(product);
+          }}
         >
           Thêm vào giỏ
         </button>
       </div>
       <div className="p-3">
         <p className="text-[11px] text-gray-400 truncate">{product.sellerName}</p>
-        <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mt-0.5 mb-1.5 leading-snug">{product.name}</h3>
+        <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mt-0.5 mb-1.5 leading-snug">
+          {product.name}
+        </h3>
         <div className="flex items-center gap-1 mb-2">
           <Star size={11} fill="#F59E0B" className="text-amber-400" />
           <span className="text-xs text-gray-700">{product.rating}</span>
-          <span className="text-xs text-gray-400">({product.reviewCount > 999 ? `${(product.reviewCount / 1000).toFixed(1)}k` : product.reviewCount})</span>
+          <span className="text-xs text-gray-400">
+            (
+            {product.reviewCount > 999
+              ? `${(product.reviewCount / 1000).toFixed(1)}k`
+              : product.reviewCount}
+            )
+          </span>
         </div>
         <div className="flex items-end justify-between gap-1">
           <div>
-            <p className="font-bold text-sm" style={{ color: "#FF6200" }}>{formatPrice(product.price)}</p>
-            {product.originalPrice && <p className="text-[11px] text-gray-400 line-through">{formatPrice(product.originalPrice)}</p>}
+            <p className="font-bold text-sm" style={{ color: "#FF6200" }}>
+              {formatPrice(product.price)}
+            </p>
+            {product.originalPrice ? (
+              <p className="text-[11px] text-gray-400 line-through">
+                {formatPrice(product.originalPrice)}
+              </p>
+            ) : null}
           </div>
-          {product.shippingFee === 0 && (
-            <span className="text-[10px] font-medium" style={{ color: "#00BFB3" }}>Free ship</span>
-          )}
+          {product.shippingFee === 0 ? (
+            <span className="text-[10px] font-medium" style={{ color: "#00BFB3" }}>
+              Free ship
+            </span>
+          ) : null}
         </div>
       </div>
     </motion.div>
@@ -191,28 +271,53 @@ export function SearchPage() {
 
   const filtered = useMemo(() => {
     let list = [...catalog];
-    if (isFlash) list = list.filter(p => (p.discount ?? 0) >= 20 || p.badge === "flash");
+    if (isFlash) list = list.filter((p) => (p.discount ?? 0) >= 20 || p.badge === "flash");
     // Backend already applied q + category — skip those client-side filters.
     if (!usedBackend) {
-      if (selectedCat) list = list.filter(p => p.category === selectedCat);
+      if (selectedCat) list = list.filter((p) => p.category === selectedCat);
       if (query) {
         const q = query.toLowerCase();
-        list = list.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || p.tags.some(t => t.includes(q)));
+        list = list.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q) ||
+            p.tags.some((t) => t.includes(q)),
+        );
       }
     }
-    if (priceMin) list = list.filter(p => p.price >= Number(priceMin) * 1000);
-    if (priceMax) list = list.filter(p => p.price <= Number(priceMax) * 1000);
-    if (minRating > 0) list = list.filter(p => p.rating >= minRating);
-    if (freeShipOnly) list = list.filter(p => p.shippingFee === 0);
+    if (priceMin) list = list.filter((p) => p.price >= Number(priceMin) * 1000);
+    if (priceMax) list = list.filter((p) => p.price <= Number(priceMax) * 1000);
+    if (minRating > 0) list = list.filter((p) => p.rating >= minRating);
+    if (freeShipOnly) list = list.filter((p) => p.shippingFee === 0);
     switch (sortBy) {
-      case "price-low": list.sort((a, b) => a.price - b.price); break;
-      case "price-high": list.sort((a, b) => b.price - a.price); break;
-      case "rating": list.sort((a, b) => b.rating - a.rating); break;
-      case "newest": list.sort((a, b) => (b.badge === "new" ? 1 : 0) - (a.badge === "new" ? 1 : 0)); break;
-      default: list.sort((a, b) => b.sold - a.sold);
+      case "price-low":
+        list.sort((a, b) => a.price - b.price);
+        break;
+      case "price-high":
+        list.sort((a, b) => b.price - a.price);
+        break;
+      case "rating":
+        list.sort((a, b) => b.rating - a.rating);
+        break;
+      case "newest":
+        list.sort((a, b) => (b.badge === "new" ? 1 : 0) - (a.badge === "new" ? 1 : 0));
+        break;
+      default:
+        list.sort((a, b) => b.sold - a.sold);
     }
     return list;
-  }, [catalog, usedBackend, query, selectedCat, priceMin, priceMax, minRating, freeShipOnly, sortBy, isFlash]);
+  }, [
+    catalog,
+    usedBackend,
+    query,
+    selectedCat,
+    priceMin,
+    priceMax,
+    minRating,
+    freeShipOnly,
+    sortBy,
+    isFlash,
+  ]);
 
   const paginated = filtered.slice(0, pageSize);
   const remaining = Math.max(0, filtered.length - pageSize);
@@ -230,7 +335,9 @@ export function SearchPage() {
     if (localQuery.trim()) setSearchParams({ q: localQuery.trim() });
   };
 
-  const activeFilterCount = [selectedCat, priceMin, priceMax, minRating > 0, freeShipOnly].filter(Boolean).length;
+  const activeFilterCount = [selectedCat, priceMin, priceMax, minRating > 0, freeShipOnly].filter(
+    Boolean,
+  ).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -240,17 +347,28 @@ export function SearchPage() {
           <Search size={18} className="ml-4 text-gray-400 shrink-0" />
           <input
             value={localQuery}
-            onChange={e => setLocalQuery(e.target.value)}
+            onChange={(e) => setLocalQuery(e.target.value)}
             placeholder="Tìm kiếm sản phẩm..."
             className="flex-1 px-3 py-3 text-sm outline-none bg-transparent"
           />
-          {localQuery && (
-            <button type="button" onClick={() => { setLocalQuery(""); setSearchParams({}); }} className="pr-3 text-gray-400">
+          {localQuery ? (
+            <button
+              type="button"
+              onClick={() => {
+                setLocalQuery("");
+                setSearchParams({});
+              }}
+              className="pr-3 text-gray-400"
+            >
               <X size={16} />
             </button>
-          )}
+          ) : null}
         </div>
-        <button type="submit" className="px-6 py-3 rounded-xl text-white font-semibold text-sm" style={{ background: "#00BFB3" }}>
+        <button
+          type="submit"
+          className="px-6 py-3 rounded-xl text-white font-semibold text-sm"
+          style={{ background: "#00BFB3" }}
+        >
           Tìm kiếm
         </button>
       </form>
@@ -260,18 +378,23 @@ export function SearchPage() {
         <button
           onClick={() => setCategory("")}
           className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
-          style={!selectedCat ? { background: "#00BFB3", color: "#fff" } : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }}
+          style={
+            !selectedCat
+              ? { background: "#00BFB3", color: "#fff" }
+              : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
+          }
         >
           Tất cả
         </button>
-        {categories.map(cat => (
+        {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setCategory(selectedCat === cat.id ? "" : cat.id)}
             className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
-            style={selectedCat === cat.id
-              ? { background: "#00BFB3", color: "#fff" }
-              : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
+            style={
+              selectedCat === cat.id
+                ? { background: "#00BFB3", color: "#fff" }
+                : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
             }
           >
             <span>{cat.emoji}</span> {cat.label}
@@ -285,9 +408,15 @@ export function SearchPage() {
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-800">Bộ lọc</h3>
-              {activeFilterCount > 0 && (
-                <button onClick={clearFilters} className="text-xs font-medium" style={{ color: "#FF6200" }}>Xóa tất cả</button>
-              )}
+              {activeFilterCount > 0 ? (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs font-medium"
+                  style={{ color: "#FF6200" }}
+                >
+                  Xóa tất cả
+                </button>
+              ) : null}
             </div>
 
             {/* Sort */}
@@ -299,15 +428,20 @@ export function SearchPage() {
                 { v: "price-low", l: "Giá: Thấp → Cao" },
                 { v: "price-high", l: "Giá: Cao → Thấp" },
                 { v: "newest", l: "Mới nhất" },
-              ].map(opt => (
+              ].map((opt) => (
                 <button
                   key={opt.v}
                   onClick={() => setSortBy(opt.v)}
                   className="w-full text-left text-sm py-1.5 flex items-center gap-2"
                   style={{ color: sortBy === opt.v ? "#00BFB3" : "#4b5563" }}
                 >
-                  <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: sortBy === opt.v ? "#00BFB3" : "#d1d5db" }}>
-                    {sortBy === opt.v && <div className="w-2 h-2 rounded-full" style={{ background: "#00BFB3" }} />}
+                  <div
+                    className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                    style={{ borderColor: sortBy === opt.v ? "#00BFB3" : "#d1d5db" }}
+                  >
+                    {sortBy === opt.v ? (
+                      <div className="w-2 h-2 rounded-full" style={{ background: "#00BFB3" }} />
+                    ) : null}
                   </div>
                   {opt.l}
                 </button>
@@ -320,14 +454,14 @@ export function SearchPage() {
               <div className="flex gap-2">
                 <input
                   value={priceMin}
-                  onChange={e => setPriceMin(e.target.value)}
+                  onChange={(e) => setPriceMin(e.target.value)}
                   placeholder="Từ"
                   type="number"
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-[#00BFB3]"
                 />
                 <input
                   value={priceMax}
-                  onChange={e => setPriceMax(e.target.value)}
+                  onChange={(e) => setPriceMax(e.target.value)}
                   placeholder="Đến"
                   type="number"
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-[#00BFB3]"
@@ -338,15 +472,22 @@ export function SearchPage() {
                 { label: "100k–500k", min: "100", max: "500" },
                 { label: "500k–2tr", min: "500", max: "2000" },
                 { label: "Trên 2tr", min: "2000", max: "" },
-              ].map(range => (
+              ].map((range) => (
                 <button
                   key={range.label}
-                  onClick={() => { setPriceMin(range.min); setPriceMax(range.max); }}
+                  onClick={() => {
+                    setPriceMin(range.min);
+                    setPriceMax(range.max);
+                  }}
                   className="mt-1 mr-1 px-2.5 py-1 rounded-full text-xs border transition-colors"
                   style={{
-                    borderColor: priceMin === range.min && priceMax === range.max ? "#00BFB3" : "#e5e7eb",
+                    borderColor:
+                      priceMin === range.min && priceMax === range.max ? "#00BFB3" : "#e5e7eb",
                     color: priceMin === range.min && priceMax === range.max ? "#00BFB3" : "#6b7280",
-                    background: priceMin === range.min && priceMax === range.max ? "rgba(0,191,179,0.08)" : "transparent"
+                    background:
+                      priceMin === range.min && priceMax === range.max
+                        ? "rgba(0,191,179,0.08)"
+                        : "transparent",
                   }}
                 >
                   {range.label}
@@ -357,7 +498,7 @@ export function SearchPage() {
             {/* Rating */}
             <div className="mb-5">
               <p className="text-sm font-semibold text-gray-700 mb-2">Đánh giá</p>
-              {[4, 3, 2].map(r => (
+              {[4, 3, 2].map((r) => (
                 <button
                   key={r}
                   onClick={() => setMinRating(minRating === r ? 0 : r)}
@@ -365,8 +506,13 @@ export function SearchPage() {
                   style={{ color: minRating === r ? "#00BFB3" : "#4b5563" }}
                 >
                   <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={13} fill={i < r ? "#F59E0B" : "#e5e7eb"} className="text-amber-400" />
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={13}
+                        fill={i < r ? "#F59E0B" : "#e5e7eb"}
+                        className="text-amber-400"
+                      />
                     ))}
                   </div>
                   <span>từ {r} ★</span>
@@ -401,10 +547,16 @@ export function SearchPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-gray-800 font-medium">
-                {isFlash && <span className="inline-flex items-center gap-1 mr-2 text-red-500 font-bold"><Zap size={16} fill="currentColor" /> Flash Sale</span>}
+                {isFlash ? (
+                  <span className="inline-flex items-center gap-1 mr-2 text-red-500 font-bold">
+                    <Zap size={16} fill="currentColor" /> Flash Sale
+                  </span>
+                ) : null}
                 {query ? `Kết quả cho "${query}"` : "Tất cả sản phẩm"}
               </p>
-              <p className="text-sm text-gray-500 mt-0.5">{filtered.length} sản phẩm được tìm thấy</p>
+              <p className="text-sm text-gray-500 mt-0.5">
+                {filtered.length} sản phẩm được tìm thấy
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -412,27 +564,33 @@ export function SearchPage() {
                 className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium"
               >
                 <SlidersHorizontal size={16} />
-                Lọc {activeFilterCount > 0 && `(${activeFilterCount})`}
+                Lọc {activeFilterCount > 0 ? `(${activeFilterCount})` : null}
               </button>
               <div className="hidden sm:flex border border-gray-200 rounded-xl overflow-hidden bg-white">
                 <button
                   onClick={() => setViewMode("grid")}
                   className="p-2.5 transition-colors"
-                  style={{ background: viewMode === "grid" ? "#00BFB3" : "transparent", color: viewMode === "grid" ? "white" : "#6b7280" }}
+                  style={{
+                    background: viewMode === "grid" ? "#00BFB3" : "transparent",
+                    color: viewMode === "grid" ? "white" : "#6b7280",
+                  }}
                 >
                   <Grid3X3 size={16} />
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
                   className="p-2.5 transition-colors"
-                  style={{ background: viewMode === "list" ? "#00BFB3" : "transparent", color: viewMode === "list" ? "white" : "#6b7280" }}
+                  style={{
+                    background: viewMode === "list" ? "#00BFB3" : "transparent",
+                    color: viewMode === "list" ? "white" : "#6b7280",
+                  }}
                 >
                   <LayoutList size={16} />
                 </button>
               </div>
               <select
                 value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
+                onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-xl bg-white text-sm outline-none"
               >
                 <option value="popular">Phổ biến</option>
@@ -445,57 +603,92 @@ export function SearchPage() {
           </div>
 
           {/* Active filter chips */}
-          {activeFilterCount > 0 && (
+          {activeFilterCount > 0 ? (
             <div className="flex flex-wrap gap-2 mb-4">
-              {selectedCat && (
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white" style={{ background: "#00BFB3" }}>
-                  {categories.find(c => c.id === selectedCat)?.label}
-                  <button onClick={() => setCategory("")}><X size={12} /></button>
+              {selectedCat ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#00BFB3" }}
+                >
+                  {categories.find((c) => c.id === selectedCat)?.label}
+                  <button onClick={() => setCategory("")}>
+                    <X size={12} />
+                  </button>
                 </span>
-              )}
-              {(priceMin || priceMax) && (
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white" style={{ background: "#00BFB3" }}>
+              ) : null}
+              {priceMin || priceMax ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#00BFB3" }}
+                >
                   {priceMin ? `${priceMin}k` : "0"} – {priceMax ? `${priceMax}k` : "∞"}
-                  <button onClick={() => { setPriceMin(""); setPriceMax(""); }}><X size={12} /></button>
+                  <button
+                    onClick={() => {
+                      setPriceMin("");
+                      setPriceMax("");
+                    }}
+                  >
+                    <X size={12} />
+                  </button>
                 </span>
-              )}
-              {minRating > 0 && (
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white" style={{ background: "#00BFB3" }}>
+              ) : null}
+              {minRating > 0 ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#00BFB3" }}
+                >
                   ≥ {minRating}★
-                  <button onClick={() => setMinRating(0)}><X size={12} /></button>
+                  <button onClick={() => setMinRating(0)}>
+                    <X size={12} />
+                  </button>
                 </span>
-              )}
-              {freeShipOnly && (
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white" style={{ background: "#00BFB3" }}>
+              ) : null}
+              {freeShipOnly ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#00BFB3" }}
+                >
                   Miễn phí ship
-                  <button onClick={() => setFreeShipOnly(false)}><X size={12} /></button>
+                  <button onClick={() => setFreeShipOnly(false)}>
+                    <X size={12} />
+                  </button>
                 </span>
-              )}
+              ) : null}
             </div>
-          )}
+          ) : null}
 
           {/* Empty state */}
           {paginated.length === 0 ? (
             <div className="py-24 text-center bg-white rounded-2xl">
               <Search size={48} className="mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">Không tìm thấy sản phẩm</h3>
-              <p className="text-sm text-gray-400 mb-6">Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm</p>
-              <button onClick={clearFilters} className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold" style={{ background: "#00BFB3" }}>
+              <p className="text-sm text-gray-400 mb-6">
+                Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm
+              </p>
+              <button
+                onClick={clearFilters}
+                className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold"
+                style={{ background: "#00BFB3" }}
+              >
                 Xóa bộ lọc
               </button>
             </div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
-              {paginated.map((p, i) => <ProductGridCard key={p.id} product={p} index={i} />)}
+              {paginated.map((p, i) => (
+                <ProductGridCard key={p.id} product={p} index={i} />
+              ))}
             </div>
           ) : (
             <div className="space-y-3">
-              {paginated.map(p => <ProductListItem key={p.id} product={p} />)}
+              {paginated.map((p) => (
+                <ProductListItem key={p.id} product={p} />
+              ))}
             </div>
           )}
 
           {/* Load more */}
-          {remaining > 0 && (
+          {remaining > 0 ? (
             <div className="mt-8 text-center">
               <button
                 onClick={() => setPageSize((s) => s + 20)}
@@ -505,7 +698,7 @@ export function SearchPage() {
                 Xem thêm {Math.min(20, remaining)} sản phẩm
               </button>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

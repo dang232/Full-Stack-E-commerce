@@ -1,8 +1,9 @@
 import Keycloak, { type KeycloakInstance } from "keycloak-js";
 
-const url = import.meta.env.VITE_KEYCLOAK_URL ?? "http://localhost:8085";
-const realm = import.meta.env.VITE_KEYCLOAK_REALM ?? "vnshop";
-const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID ?? "vnshop-web";
+const env = import.meta.env as Record<string, string | undefined>;
+const url = env.VITE_KEYCLOAK_URL ?? "http://localhost:8085";
+const realm = env.VITE_KEYCLOAK_REALM ?? "vnshop";
+const clientId = env.VITE_KEYCLOAK_CLIENT_ID ?? "vnshop-web";
 
 let instance: KeycloakInstance | null = null;
 

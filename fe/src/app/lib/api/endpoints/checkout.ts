@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { api } from "../client";
 
 export const calculateCheckoutSchema = z
@@ -24,7 +25,7 @@ export const calculateCheckoutSchema = z
 export type CheckoutCalculation = z.infer<typeof calculateCheckoutSchema>;
 
 export interface CheckoutCalculateInput {
-  items: Array<{ productId: string; quantity: number }>;
+  items: { productId: string; quantity: number }[];
   addressId?: number;
   couponCode?: string;
 }
@@ -40,7 +41,8 @@ const paymentMethodSchema = z
     enabled: z.boolean().default(true),
   })
   .passthrough();
-export const paymentMethods = () => api.get("/checkout/payment-methods", z.array(paymentMethodSchema));
+export const paymentMethods = () =>
+  api.get("/checkout/payment-methods", z.array(paymentMethodSchema));
 
 const shippingOptionSchema = z
   .object({
@@ -52,12 +54,20 @@ const shippingOptionSchema = z
   })
   .passthrough();
 
-export const shippingOptions = (body: { items: Array<{ productId: string; quantity: number }>; addressId?: number }) =>
-  api.post("/checkout/shipping-options", z.array(shippingOptionSchema), body);
+export const shippingOptions = (body: {
+  items: { productId: string; quantity: number }[];
+  addressId?: number;
+}) => api.post("/checkout/shipping-options", z.array(shippingOptionSchema), body);
 
 export const validateCoupon = (body: { code: string; subtotal?: number }) =>
   api.post(
     "/checkout/validate-coupon",
-    z.object({ valid: z.boolean(), discount: z.number().optional(), message: z.string().optional() }).passthrough(),
+    z
+      .object({
+        valid: z.boolean(),
+        discount: z.number().optional(),
+        message: z.string().optional(),
+      })
+      .passthrough(),
     body,
   );

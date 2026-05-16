@@ -1,9 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
-import { apiResponseSchema, ApiError } from "./envelope";
+
 import { getKeycloak, refreshToken } from "../auth/keycloak";
 
-const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8080").replace(/\/$/, "");
+import { apiResponseSchema, ApiError } from "./envelope";
+
+const BASE_URL = (
+  (import.meta.env as Record<string, string | undefined>).VITE_API_URL ?? "http://localhost:8080"
+).replace(/\/$/, "");
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -31,7 +35,12 @@ function buildUrl(path: string, query?: RequestOptions<z.ZodTypeAny>["query"]): 
   return url.toString();
 }
 
-async function buildHeaders(opts: { auth: boolean; correlationId: string; idempotencyKey?: string; hasBody: boolean }) {
+async function buildHeaders(opts: {
+  auth: boolean;
+  correlationId: string;
+  idempotencyKey?: string;
+  hasBody: boolean;
+}) {
   const headers: Record<string, string> = {
     Accept: "application/json",
     "X-Correlation-Id": opts.correlationId,
@@ -96,17 +105,28 @@ export async function request<TSchema extends z.ZodTypeAny>(
     try {
       parsed = JSON.parse(text);
     } catch {
-      throw new ApiError(response.status, "INVALID_JSON", "Server returned non-JSON response", serverCorrelationId);
+      throw new ApiError(
+        response.status,
+        "INVALID_JSON",
+        "Server returned non-JSON response",
+        serverCorrelationId,
+      );
     }
   }
 
   if (!response.ok) {
     const code =
-      parsed && typeof parsed === "object" && "errorCode" in parsed && typeof (parsed as Record<string, unknown>).errorCode === "string"
+      parsed &&
+      typeof parsed === "object" &&
+      "errorCode" in parsed &&
+      typeof (parsed as Record<string, unknown>).errorCode === "string"
         ? ((parsed as Record<string, unknown>).errorCode as string)
         : null;
     const message =
-      parsed && typeof parsed === "object" && "message" in parsed && typeof (parsed as Record<string, unknown>).message === "string"
+      parsed &&
+      typeof parsed === "object" &&
+      "message" in parsed &&
+      typeof (parsed as Record<string, unknown>).message === "string"
         ? ((parsed as Record<string, unknown>).message as string)
         : `HTTP ${response.status}`;
     throw new ApiError(response.status, code, message, serverCorrelationId);
@@ -114,23 +134,52 @@ export async function request<TSchema extends z.ZodTypeAny>(
 
   const envelope = apiResponseSchema(opts.schema).safeParse(parsed);
   if (!envelope.success) {
-    throw new ApiError(response.status, "MALFORMED_RESPONSE", envelope.error.message, serverCorrelationId);
+    throw new ApiError(
+      response.status,
+      "MALFORMED_RESPONSE",
+      envelope.error.message,
+      serverCorrelationId,
+    );
   }
   if (!envelope.data.success) {
-    throw new ApiError(response.status, envelope.data.errorCode, envelope.data.message, serverCorrelationId);
+    throw new ApiError(
+      response.status,
+      envelope.data.errorCode,
+      envelope.data.message,
+      serverCorrelationId,
+    );
   }
   return envelope.data.data;
 }
 
 export const api = {
-  get: <T extends z.ZodTypeAny>(path: string, schema: T, query?: RequestOptions<T>["query"], opts?: Pick<RequestOptions<T>, "auth" | "signal">) =>
-    request({ method: "GET", path, schema, query, ...opts }),
-  post: <T extends z.ZodTypeAny>(path: string, schema: T, body?: unknown, opts?: Pick<RequestOptions<T>, "auth" | "signal" | "idempotencyKey">) =>
-    request({ method: "POST", path, schema, body, ...opts }),
-  put: <T extends z.ZodTypeAny>(path: string, schema: T, body?: unknown, opts?: Pick<RequestOptions<T>, "auth" | "signal">) =>
-    request({ method: "PUT", path, schema, body, ...opts }),
-  patch: <T extends z.ZodTypeAny>(path: string, schema: T, body?: unknown, opts?: Pick<RequestOptions<T>, "auth" | "signal">) =>
-    request({ method: "PATCH", path, schema, body, ...opts }),
-  delete: <T extends z.ZodTypeAny>(path: string, schema: T, opts?: Pick<RequestOptions<T>, "auth" | "signal">) =>
-    request({ method: "DELETE", path, schema, ...opts }),
+  get: <T extends z.ZodTypeAny>(
+    path: string,
+    schema: T,
+    query?: RequestOptions<T>["query"],
+    opts?: Pick<RequestOptions<T>, "auth" | "signal">,
+  ) => request({ method: "GET", path, schema, query, ...opts }),
+  post: <T extends z.ZodTypeAny>(
+    path: string,
+    schema: T,
+    body?: unknown,
+    opts?: Pick<RequestOptions<T>, "auth" | "signal" | "idempotencyKey">,
+  ) => request({ method: "POST", path, schema, body, ...opts }),
+  put: <T extends z.ZodTypeAny>(
+    path: string,
+    schema: T,
+    body?: unknown,
+    opts?: Pick<RequestOptions<T>, "auth" | "signal">,
+  ) => request({ method: "PUT", path, schema, body, ...opts }),
+  patch: <T extends z.ZodTypeAny>(
+    path: string,
+    schema: T,
+    body?: unknown,
+    opts?: Pick<RequestOptions<T>, "auth" | "signal">,
+  ) => request({ method: "PATCH", path, schema, body, ...opts }),
+  delete: <T extends z.ZodTypeAny>(
+    path: string,
+    schema: T,
+    opts?: Pick<RequestOptions<T>, "auth" | "signal">,
+  ) => request({ method: "DELETE", path, schema, ...opts }),
 };

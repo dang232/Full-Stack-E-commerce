@@ -1,16 +1,17 @@
+import { useQueries } from "@tanstack/react-query";
+import { Heart, ShoppingCart, Star, Trash2, Share2, Filter, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { useQueries } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
-import { Heart, ShoppingCart, Star, Trash2, Share2, Filter, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+
+import { ImageWithFallback } from "../components/image-with-fallback";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useWishlist } from "../hooks/use-wishlist";
 import { productById } from "../lib/api/endpoints/products";
-import { formatPrice } from "../lib/format";
 import { ApiError } from "../lib/api/envelope";
-import { ImageWithFallback } from "../components/image-with-fallback";
+import { formatPrice } from "../lib/format";
 
 export function WishlistPage() {
   const navigate = useNavigate();
@@ -162,14 +163,14 @@ export function WishlistPage() {
                         alt={p.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      {discount !== null && (
+                      {discount !== null ? (
                         <span
                           className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[10px] font-bold"
                           style={{ background: "#FF6200" }}
                         >
                           -{discount}%
                         </span>
-                      )}
+                      ) : null}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -188,7 +189,7 @@ export function WishlistPage() {
                       >
                         {p.name}
                       </button>
-                      {(p.rating !== undefined || p.reviewCount !== undefined) && (
+                      {p.rating !== undefined || p.reviewCount !== undefined ? (
                         <div className="flex items-center gap-1 mt-1 mb-2">
                           <Star size={11} fill="#F59E0B" className="text-amber-400" />
                           <span className="text-xs text-gray-600">{p.rating ?? 0}</span>
@@ -196,16 +197,16 @@ export function WishlistPage() {
                             ({(p.reviewCount ?? 0).toLocaleString()})
                           </span>
                         </div>
-                      )}
+                      ) : null}
                       <div className="flex items-center gap-1 mb-3">
                         <span className="font-bold text-sm" style={{ color: "#FF6200" }}>
                           {formatPrice(p.price ?? 0)}
                         </span>
-                        {original && (
+                        {original ? (
                           <span className="text-xs text-gray-400 line-through">
                             {formatPrice(original)}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <button
                         onClick={() => handleAddToCart(id)}
@@ -221,14 +222,14 @@ export function WishlistPage() {
             </div>
           </AnimatePresence>
 
-          {queries.some((q) => q.isLoading) && (
+          {queries.some((q) => q.isLoading) ? (
             <p className="text-xs text-gray-400 text-center mt-6">Đang tải sản phẩm...</p>
-          )}
-          {queries.some((q) => q.error instanceof ApiError && (q.error as ApiError).status === 404) && (
+          ) : null}
+          {queries.some((q) => q.error instanceof ApiError && q.error.status === 404) ? (
             <p className="text-xs text-amber-600 text-center mt-6">
               Một số sản phẩm yêu thích không còn tồn tại — bạn có thể xoá chúng khỏi danh sách.
             </p>
-          )}
+          ) : null}
         </>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { searchProducts, type SearchParams } from "../lib/api/endpoints/search";
+
 import type { Product } from "../components/vnshop-data";
+import { searchProducts, type SearchParams } from "../lib/api/endpoints/search";
 import type { ProductSummary } from "../types/api";
 
 function pct(originalPrice: number | undefined, price: number | undefined): number | undefined {

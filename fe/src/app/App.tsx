@@ -1,7 +1,8 @@
 import { RouterProvider } from "react-router";
 import { Toaster } from "sonner";
-import { VNShopProvider } from "./components/vnshop-context";
+
 import { ErrorBoundary } from "./components/error-boundary";
+import { VNShopProvider } from "./components/vnshop-context";
 import { router } from "./routes";
 import "../styles/fonts.css";
 

@@ -1,14 +1,26 @@
-import { useNavigate } from "react-router";
-import { useState } from "react";
+import {
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingCart,
+  Tag,
+  Truck,
+  ChevronRight,
+  Shield,
+  ArrowLeft,
+  LogIn,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Trash2, Plus, Minus, ShoppingCart, Tag, Truck, ChevronRight, Shield, ArrowLeft, LogIn } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
+
+import { ImageWithFallback } from "../components/image-with-fallback";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
-import { ImageWithFallback } from "../components/image-with-fallback";
-import { formatPrice } from "../lib/format";
-import { FREE_SHIPPING_THRESHOLD, FLAT_SHIPPING_FEE } from "../lib/domain-constants";
 import { ApiError } from "../lib/api/envelope";
+import { FREE_SHIPPING_THRESHOLD, FLAT_SHIPPING_FEE } from "../lib/domain-constants";
+import { formatPrice } from "../lib/format";
 import type { CartItem } from "../types/api";
 
 export function CartPage() {
@@ -27,7 +39,7 @@ export function CartPage() {
     GIAM20: Math.floor(totalAmount * 0.2),
   };
 
-  const couponDiscount = appliedCoupon ? VALID_COUPONS[appliedCoupon] ?? 0 : 0;
+  const couponDiscount = appliedCoupon ? (VALID_COUPONS[appliedCoupon] ?? 0) : 0;
   const shippingFee = totalAmount >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_FEE;
   const finalTotal = Math.max(0, totalAmount - couponDiscount) + shippingFee;
 
@@ -45,19 +57,23 @@ export function CartPage() {
   const onUpdate = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(productId, {
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể xoá sản phẩm"),
+        onError: (err) =>
+          toast.error(err instanceof ApiError ? err.message : "Không thể xoá sản phẩm"),
       });
       return;
     }
     updateItem(
       { productId, quantity },
-      { onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật") },
+      {
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật"),
+      },
     );
   };
 
   const onRemove = (productId: string) =>
     removeItem(productId, {
-      onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể xoá sản phẩm"),
+      onError: (err) =>
+        toast.error(err instanceof ApiError ? err.message : "Không thể xoá sản phẩm"),
     });
 
   if (!ready) {
@@ -180,7 +196,9 @@ export function CartPage() {
                   <span className="font-semibold text-gray-700 text-sm">{group.sellerName}</span>
                   <span className="ml-auto text-xs text-gray-400 flex items-center gap-1">
                     <Truck size={12} />
-                    {totalAmount >= FREE_SHIPPING_THRESHOLD ? "Miễn phí vận chuyển" : `Ship ${formatPrice(FLAT_SHIPPING_FEE)}`}
+                    {totalAmount >= FREE_SHIPPING_THRESHOLD
+                      ? "Miễn phí vận chuyển"
+                      : `Ship ${formatPrice(FLAT_SHIPPING_FEE)}`}
                   </span>
                 </div>
 
@@ -216,7 +234,9 @@ export function CartPage() {
                             >
                               <Minus size={13} />
                             </button>
-                            <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+                            <span className="w-10 text-center text-sm font-medium">
+                              {item.quantity}
+                            </span>
                             <button
                               onClick={() => onUpdate(item.productId, item.quantity + 1)}
                               className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 text-gray-600 transition-colors"
@@ -228,9 +248,11 @@ export function CartPage() {
                             <p className="font-bold" style={{ color: "#FF6200" }}>
                               {formatPrice(item.price * item.quantity)}
                             </p>
-                            {item.quantity > 1 && (
-                              <p className="text-xs text-gray-400">{formatPrice(item.price)} / sp</p>
-                            )}
+                            {item.quantity > 1 ? (
+                              <p className="text-xs text-gray-400">
+                                {formatPrice(item.price)} / sp
+                              </p>
+                            ) : null}
                           </div>
                         </div>
                       </div>
@@ -277,8 +299,8 @@ export function CartPage() {
                 Áp dụng
               </button>
             </div>
-            {couponError && <p className="text-xs text-red-500 mt-1.5">{couponError}</p>}
-            {appliedCoupon && (
+            {couponError ? <p className="text-xs text-red-500 mt-1.5">{couponError}</p> : null}
+            {appliedCoupon ? (
               <div
                 className="mt-2 flex items-center justify-between px-3 py-2 rounded-lg text-sm"
                 style={{ background: "rgba(0,191,179,0.08)" }}
@@ -294,7 +316,7 @@ export function CartPage() {
                   Xóa
                 </button>
               </div>
-            )}
+            ) : null}
             <p className="text-[11px] text-gray-400 mt-3">
               Giá trị thực sẽ được kiểm tra lại tại trang thanh toán.
             </p>
@@ -307,14 +329,14 @@ export function CartPage() {
                 <span className="text-gray-600">Tạm tính ({itemCount} sản phẩm)</span>
                 <span className="font-medium">{formatPrice(totalAmount)}</span>
               </div>
-              {couponDiscount > 0 && (
+              {couponDiscount > 0 ? (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Giảm giá voucher</span>
                   <span className="font-medium" style={{ color: "#00BFB3" }}>
                     -{formatPrice(couponDiscount)}
                   </span>
                 </div>
-              )}
+              ) : null}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Phí vận chuyển</span>
                 <span className={shippingFee === 0 ? "font-medium text-green-500" : "font-medium"}>
@@ -327,11 +349,11 @@ export function CartPage() {
                   <span className="font-black text-xl" style={{ color: "#FF6200" }}>
                     {formatPrice(finalTotal)}
                   </span>
-                  {couponDiscount > 0 && (
+                  {couponDiscount > 0 ? (
                     <p className="text-xs" style={{ color: "#00BFB3" }}>
                       Tiết kiệm {formatPrice(couponDiscount)}
                     </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>

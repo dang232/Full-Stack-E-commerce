@@ -1,30 +1,59 @@
-import { useMemo, useState } from "react";
-import { motion } from "motion/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, Package, ShoppingBag, Star, Wallet, MessageSquare,
-  Settings, Bell, Plus,
-  Eye, Edit, CheckCircle, Truck,
-  ArrowUpRight, Search, Filter, AlertCircle,
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Star,
+  Wallet,
+  MessageSquare,
+  Settings,
+  Bell,
+  Plus,
+  Eye,
+  Edit,
+  CheckCircle,
+  Truck,
+  ArrowUpRight,
+  Search,
+  Filter,
+  AlertCircle,
 } from "lucide-react";
+import { motion } from "motion/react";
+import { useMemo, useState } from "react";
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 import { toast } from "sonner";
+
+import { FormDialog } from "../components/form-dialog";
+import { SellerProductModal } from "../components/seller-product-modal";
+import { Modal } from "../components/ui/modal";
+import { type Product } from "../components/vnshop-data";
 import { useProducts } from "../hooks/use-products";
-import { sellerProfile } from "../lib/api/endpoints/users";
 import {
-  sellerAcceptOrder, sellerPendingOrders, sellerRejectOrder, sellerShipOrder,
+  sellerAcceptOrder,
+  sellerPendingOrders,
+  sellerRejectOrder,
+  sellerShipOrder,
   type PendingSubOrder,
 } from "../lib/api/endpoints/orders";
-import { myPayouts, myWallet, requestPayout, type Payout } from "../lib/api/endpoints/seller-finance";
+import {
+  myPayouts,
+  myWallet,
+  requestPayout,
+  type Payout,
+} from "../lib/api/endpoints/seller-finance";
+import { sellerProfile } from "../lib/api/endpoints/users";
 import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
-import { type Product } from "../components/vnshop-data";
-import { SellerProductModal } from "../components/seller-product-modal";
-import { FormDialog } from "../components/form-dialog";
-import { Modal } from "../components/ui/modal";
 
 const SAMPLE_REVENUE = [
   { day: "T2", revenue: 12500000, orders: 8 },
@@ -60,12 +89,12 @@ function KPICard({
         >
           <Icon size={22} style={{ color }} />
         </div>
-        {change && (
+        {change ? (
           <div className="flex items-center gap-1 text-xs font-semibold text-green-500">
             <ArrowUpRight size={14} />
             {change}
           </div>
-        )}
+        ) : null}
       </div>
       <p className="text-2xl font-black text-gray-800">{value}</p>
       <p className="text-sm text-gray-500 mt-0.5">{label}</p>
@@ -164,11 +193,7 @@ function Dashboard({
               tickLine={false}
               tick={{ fill: "#9ca3af", fontSize: 12 }}
             />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#9ca3af", fontSize: 11 }}
-            />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
             <Tooltip
               contentStyle={{
                 borderRadius: "12px",
@@ -194,11 +219,7 @@ function ProductsManagement() {
   return (
     <div className="space-y-5">
       <SellerProductModal open={showCreate} onClose={() => setShowCreate(false)} />
-      <SellerProductModal
-        open={!!editing}
-        product={editing}
-        onClose={() => setEditing(null)}
-      />
+      <SellerProductModal open={!!editing} product={editing} onClose={() => setEditing(null)} />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-800">Quản lý sản phẩm</h2>
         <button
@@ -213,8 +234,8 @@ function ProductsManagement() {
       <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
         <AlertCircle size={14} className="shrink-0 mt-0.5" />
         <p>
-          Đang hiển thị toàn bộ catalog. API riêng cho seller (`/sellers/me/products`) sẽ thay
-          thế khi sẵn sàng.
+          Đang hiển thị toàn bộ catalog. API riêng cho seller (`/sellers/me/products`) sẽ thay thế
+          khi sẵn sàng.
         </p>
       </div>
 
@@ -233,7 +254,7 @@ function ProductsManagement() {
         </button>
       </div>
 
-      {isLoading && <p className="text-sm text-gray-400">Đang tải sản phẩm...</p>}
+      {isLoading ? <p className="text-sm text-gray-400">Đang tải sản phẩm...</p> : null}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full">
@@ -251,14 +272,14 @@ function ProductsManagement() {
               <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    {p.image && (
+                    {p.image ? (
                       <img
                         src={p.image}
                         alt={p.name}
                         className="w-10 h-10 rounded-lg object-cover"
                         loading="lazy"
                       />
-                    )}
+                    ) : null}
                     <p className="text-sm font-medium text-gray-800 max-w-[280px] truncate">
                       {p.name}
                     </p>
@@ -386,20 +407,18 @@ function ShipDialogBody({
               </button>
             ))}
           </div>
-          {carrier === "Khác" && (
+          {carrier === "Khác" ? (
             <input
               value={carrier === "Khác" ? "" : carrier}
               onChange={(e) => setCarrier(e.target.value)}
               placeholder="Tên đơn vị vận chuyển"
               className="mt-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#00BFB3]"
             />
-          )}
+          ) : null}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Mã vận đơn
-          </label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mã vận đơn</label>
           <input
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
@@ -413,7 +432,15 @@ function ShipDialogBody({
   );
 }
 
-function OrdersManagement({ orders, isLoading, error }: { orders: PendingSubOrder[]; isLoading: boolean; error: unknown }) {
+function OrdersManagement({
+  orders,
+  isLoading,
+  error,
+}: {
+  orders: PendingSubOrder[];
+  isLoading: boolean;
+  error: unknown;
+}) {
   const qc = useQueryClient();
   const [shipFor, setShipFor] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<string | null>(null);
@@ -424,8 +451,7 @@ function OrdersManagement({ orders, isLoading, error }: { orders: PendingSubOrde
       void qc.invalidateQueries({ queryKey: ["seller", "pending-orders"] });
       toast.success("Đã xác nhận đơn");
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể xác nhận đơn"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể xác nhận đơn"),
   });
 
   const reject = useMutation({
@@ -436,8 +462,7 @@ function OrdersManagement({ orders, isLoading, error }: { orders: PendingSubOrde
       toast.success("Đã từ chối đơn");
       setRejectFor(null);
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể từ chối đơn"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể từ chối đơn"),
   });
 
   const ship = useMutation({
@@ -448,8 +473,7 @@ function OrdersManagement({ orders, isLoading, error }: { orders: PendingSubOrde
       toast.success("Đã chuyển sang trạng thái Giao hàng");
       setShipFor(null);
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể giao hàng"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể giao hàng"),
   });
 
   return (
@@ -485,16 +509,16 @@ function OrdersManagement({ orders, isLoading, error }: { orders: PendingSubOrde
       />
       <h2 className="text-xl font-bold text-gray-800">Quản lý đơn hàng</h2>
 
-      {isLoading && <p className="text-sm text-gray-400">Đang tải đơn hàng...</p>}
-      {error instanceof ApiError && (
+      {isLoading ? <p className="text-sm text-gray-400">Đang tải đơn hàng...</p> : null}
+      {error instanceof ApiError ? (
         <p className="text-sm text-red-500">Không tải được đơn hàng: {error.message}</p>
-      )}
-      {!isLoading && orders.length === 0 && !error && (
+      ) : null}
+      {!isLoading && orders.length === 0 && !error ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
           <Package size={40} className="mx-auto mb-3 text-gray-300" />
           <p className="text-sm text-gray-500">Không có đơn hàng nào cần xử lý</p>
         </div>
-      )}
+      ) : null}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-50">
@@ -514,7 +538,7 @@ function OrdersManagement({ orders, isLoading, error }: { orders: PendingSubOrde
                   <p className="text-sm text-gray-500 mt-0.5">Mã đơn cha: {order.orderId}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  {isPending && (
+                  {isPending ? (
                     <>
                       <button
                         onClick={() => accept.mutate(order.id)}
@@ -532,8 +556,8 @@ function OrdersManagement({ orders, isLoading, error }: { orders: PendingSubOrde
                         Từ chối
                       </button>
                     </>
-                  )}
-                  {isAccepted && (
+                  ) : null}
+                  {isAccepted ? (
                     <button
                       onClick={() => setShipFor(order.id)}
                       disabled={ship.isPending}
@@ -542,7 +566,7 @@ function OrdersManagement({ orders, isLoading, error }: { orders: PendingSubOrde
                     >
                       <Truck size={13} /> Giao hàng
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
             );
@@ -574,8 +598,7 @@ function WalletTab({
       toast.success("Đã gửi yêu cầu rút tiền");
       setShowPayoutDialog(false);
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể gửi yêu cầu"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể gửi yêu cầu"),
   });
 
   return (
@@ -618,7 +641,10 @@ function WalletTab({
       />
       <h2 className="text-xl font-bold text-gray-800">Ví & Thanh toán</h2>
 
-      <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #00BFB3, #006b65)" }}>
+      <div
+        className="rounded-2xl p-6 text-white"
+        style={{ background: "linear-gradient(135deg, #00BFB3, #006b65)" }}
+      >
         <p className="text-white/70 text-sm mb-2">Số dư khả dụng</p>
         <p className="text-4xl font-black mb-4">
           {balance !== null ? formatPrice(balance) : isLoading ? "Đang tải..." : "—"}
@@ -634,17 +660,19 @@ function WalletTab({
         </div>
       </div>
 
-      {error instanceof ApiError && (
+      {error instanceof ApiError ? (
         <p className="text-sm text-red-500">Không tải được ví: {error.message}</p>
-      )}
+      ) : null}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <h3 className="px-5 py-4 font-bold text-gray-800 border-b border-gray-100">
           Lịch sử rút tiền
         </h3>
-        {payouts.length === 0 && (
-          <p className="px-5 py-8 text-sm text-gray-400 text-center">Chưa có yêu cầu rút tiền nào</p>
-        )}
+        {payouts.length === 0 ? (
+          <p className="px-5 py-8 text-sm text-gray-400 text-center">
+            Chưa có yêu cầu rút tiền nào
+          </p>
+        ) : null}
         <div className="divide-y divide-gray-50">
           {payouts.map((p) => (
             <div key={p.id} className="px-5 py-4 flex items-center justify-between">
@@ -655,8 +683,7 @@ function WalletTab({
               <span
                 className="px-2.5 py-1 rounded-full text-xs font-semibold"
                 style={{
-                  background:
-                    p.status.toUpperCase() === "COMPLETED" ? "#ECFDF5" : "#FEF3C7",
+                  background: p.status.toUpperCase() === "COMPLETED" ? "#ECFDF5" : "#FEF3C7",
                   color: p.status.toUpperCase() === "COMPLETED" ? "#10B981" : "#F59E0B",
                 }}
               >
@@ -728,14 +755,12 @@ export function SellerPage() {
                 <span className="flex items-center gap-1 text-green-500 font-medium">
                   <CheckCircle size={13} /> Đã đăng nhập
                 </span>
-                {pendingOrders.length > 0 && (
+                {pendingOrders.length > 0 ? (
                   <>
                     <span>·</span>
-                    <span style={{ color: "#FF6200" }}>
-                      {pendingOrders.length} đơn cần xử lý
-                    </span>
+                    <span style={{ color: "#FF6200" }}>{pendingOrders.length} đơn cần xử lý</span>
                   </>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
@@ -792,34 +817,34 @@ export function SellerPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              {activeTab === "dashboard" && (
+              {activeTab === "dashboard" ? (
                 <Dashboard pendingOrders={pendingOrders} walletBalance={balance} />
-              )}
-              {activeTab === "products" && <ProductsManagement />}
-              {activeTab === "orders" && (
+              ) : null}
+              {activeTab === "products" ? <ProductsManagement /> : null}
+              {activeTab === "orders" ? (
                 <OrdersManagement
                   orders={pendingOrders}
                   isLoading={pendingQuery.isLoading}
                   error={pendingQuery.error}
                 />
-              )}
-              {activeTab === "reviews" && (
+              ) : null}
+              {activeTab === "reviews" ? (
                 <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
                   <MessageSquare size={48} className="mx-auto mb-4 text-gray-200" />
                   <p className="text-sm text-gray-500">
                     Inbox đánh giá sẽ được hỗ trợ khi backend cung cấp endpoint riêng.
                   </p>
                 </div>
-              )}
-              {activeTab === "wallet" && (
+              ) : null}
+              {activeTab === "wallet" ? (
                 <WalletTab
                   balance={balance}
                   payouts={payoutsQuery.data ?? []}
                   isLoading={walletQuery.isLoading}
                   error={walletQuery.error}
                 />
-              )}
-              {activeTab === "settings" && (
+              ) : null}
+              {activeTab === "settings" ? (
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
                   <h2 className="text-xl font-bold text-gray-800 mb-3">Cài đặt Shop</h2>
                   <p className="text-sm text-gray-500 mb-4">
@@ -827,17 +852,17 @@ export function SellerPage() {
                     profile.
                   </p>
                   <div className="space-y-4 text-sm">
-                    {profileQuery.data && (
+                    {profileQuery.data ? (
                       <pre className="bg-gray-50 rounded-xl p-3 text-[11px] overflow-auto">
                         {JSON.stringify(profileQuery.data, null, 2)}
                       </pre>
-                    )}
-                    {profileQuery.error instanceof ApiError && (
+                    ) : null}
+                    {profileQuery.error instanceof ApiError ? (
                       <p className="text-sm text-red-500">{profileQuery.error.message}</p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
-              )}
+              ) : null}
             </motion.div>
           </div>
         </div>

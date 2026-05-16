@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+
 import { ApiError } from "../lib/api/envelope";
 
 interface Props {
@@ -28,18 +29,22 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.props.fallback) return this.props.fallback(this.state.error, this.reset);
 
     const apiError = this.state.error instanceof ApiError ? this.state.error : null;
-    const message = apiError?.message ?? (this.state.error instanceof Error ? this.state.error.message : "Đã xảy ra lỗi không xác định.");
+    const message =
+      apiError?.message ??
+      (this.state.error instanceof Error
+        ? this.state.error.message
+        : "Đã xảy ra lỗi không xác định.");
 
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-6 text-center">
           <h2 className="text-lg font-bold text-gray-800 mb-2">Có lỗi xảy ra</h2>
           <p className="text-sm text-gray-600 mb-4">{message}</p>
-          {apiError?.correlationId && (
+          {apiError?.correlationId ? (
             <p className="text-xs text-gray-400 mb-4">
               Mã hỗ trợ: <span className="font-mono">{apiError.correlationId}</span>
             </p>
-          )}
+          ) : null}
           <button
             type="button"
             onClick={this.reset}

@@ -2,7 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 // Mock keycloak BEFORE importing the client.
-const mockKeycloak = { authenticated: false, token: undefined as string | undefined, login: vi.fn() };
+const mockKeycloak = {
+  authenticated: false,
+  token: undefined as string | undefined,
+  login: vi.fn(),
+};
 vi.mock("../auth/keycloak", () => ({
   getKeycloak: () => mockKeycloak,
   refreshToken: vi.fn().mockResolvedValue(true),

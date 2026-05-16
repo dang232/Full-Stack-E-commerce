@@ -20,7 +20,7 @@ export const pageSchema = <T extends z.ZodTypeAny>(item: T) =>
     })
     .passthrough();
 
-export type Page<T> = {
+export interface Page<T> {
   content: T[];
   totalElements?: number;
   totalPages?: number;
@@ -28,7 +28,7 @@ export type Page<T> = {
   size?: number;
   first?: boolean;
   last?: boolean;
-};
+}
 
 export const productSummarySchema = z
   .object({

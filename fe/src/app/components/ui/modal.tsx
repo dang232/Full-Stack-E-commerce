@@ -1,6 +1,7 @@
-import { type ReactNode, type MouseEvent } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { X } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { type ReactNode, type MouseEvent } from "react";
+
 import { useEscapeKey } from "../../hooks/use-escape-key";
 import { modalBackdropBg } from "../../lib/ui/theme";
 
@@ -75,7 +76,7 @@ export function Modal({
 
   return (
     <AnimatePresence>
-      {open && (
+      {open ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: modalBackdropBg }}
@@ -92,13 +93,13 @@ export function Modal({
             role="dialog"
             aria-modal="true"
           >
-            {(title || !hideCloseButton) && (
+            {title || !hideCloseButton ? (
               <div className={headerClass}>
                 <div className="flex-1 min-w-0">
-                  {title && <h3 className="text-lg font-bold text-gray-800">{title}</h3>}
-                  {subtitle && <div className="text-xs text-gray-500 mt-0.5">{subtitle}</div>}
+                  {title ? <h3 className="text-lg font-bold text-gray-800">{title}</h3> : null}
+                  {subtitle ? <div className="text-xs text-gray-500 mt-0.5">{subtitle}</div> : null}
                 </div>
-                {!hideCloseButton && (
+                {!hideCloseButton ? (
                   <button
                     type="button"
                     onClick={onClose}
@@ -108,18 +109,18 @@ export function Modal({
                   >
                     <X size={16} />
                   </button>
-                )}
+                ) : null}
               </div>
-            )}
+            ) : null}
 
             <div className="p-6">{children}</div>
 
-            {footer && (
+            {footer ? (
               <div className="px-6 py-4 border-t border-gray-100 flex gap-3">{footer}</div>
-            )}
+            ) : null}
           </motion.div>
         </div>
-      )}
+      ) : null}
     </AnimatePresence>
   );
 }

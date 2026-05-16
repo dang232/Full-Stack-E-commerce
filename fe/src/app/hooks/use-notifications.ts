@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "./use-auth";
+import { useEffect, useState } from "react";
+
 import { getNotification, listNotifications } from "../lib/api/endpoints/notifications";
 import type { Notification } from "../types/api";
+
+import { useAuth } from "./use-auth";
 
 const POLL_INTERVAL_MS = 30_000;
 const NOTIFICATIONS_KEY = ["notifications", "list"] as const;
 
 /** Tracks whether the document is currently visible. Used to gate background polling. */
 function usePageVisible() {
-  const [visible, setVisible] = useState(
-    typeof document === "undefined" ? true : !document.hidden,
-  );
+  const [visible, setVisible] = useState(typeof document === "undefined" ? true : !document.hidden);
   useEffect(() => {
     const onChange = () => setVisible(!document.hidden);
     document.addEventListener("visibilitychange", onChange);
@@ -44,15 +44,17 @@ export function useNotifications() {
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: NOTIFICATIONS_KEY });
       const previous = qc.getQueryData<Notification[]>(NOTIFICATIONS_KEY);
-      qc.setQueryData<Notification[]>(NOTIFICATIONS_KEY, (prev) =>
-        prev?.map((n) => (n.id === id ? { ...n, read: true } : n)) ?? prev,
+      qc.setQueryData<Notification[]>(
+        NOTIFICATIONS_KEY,
+        (prev) => prev?.map((n) => (n.id === id ? { ...n, read: true } : n)) ?? prev,
       );
       return { previous };
     },
     onSuccess: (updated, id) => {
       // Reconcile with whatever the server returned (in case more fields changed).
-      qc.setQueryData<Notification[]>(NOTIFICATIONS_KEY, (prev) =>
-        prev?.map((n) => (n.id === id ? { ...n, read: true, ...updated } : n)) ?? prev,
+      qc.setQueryData<Notification[]>(
+        NOTIFICATIONS_KEY,
+        (prev) => prev?.map((n) => (n.id === id ? { ...n, read: true, ...updated } : n)) ?? prev,
       );
     },
     onError: (_err, _id, context) => {

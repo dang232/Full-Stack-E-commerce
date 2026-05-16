@@ -1,15 +1,36 @@
-import { useMemo, useState } from "react";
-import { motion } from "motion/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, Users, Package, Star, Tag, AlertCircle, Wallet,
-  TrendingUp, ArrowUpRight, CheckCircle, XCircle, Search, BarChart3,
+  LayoutDashboard,
+  Users,
+  Package,
+  Star,
+  Tag,
+  AlertCircle,
+  Wallet,
+  TrendingUp,
+  ArrowUpRight,
+  CheckCircle,
+  XCircle,
+  Search,
+  BarChart3,
 } from "lucide-react";
+import { motion } from "motion/react";
+import { useMemo, useState } from "react";
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 import { toast } from "sonner";
+
+import { FormDialog } from "../components/form-dialog";
+import { Modal } from "../components/ui/modal";
 import {
   adminApproveReview,
   adminApproveSeller,
@@ -32,8 +53,6 @@ import {
 } from "../lib/api/endpoints/admin";
 import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
-import { FormDialog } from "../components/form-dialog";
-import { Modal } from "../components/ui/modal";
 
 type AdminTab = "dashboard" | "sellers" | "reviews" | "coupons" | "disputes" | "payouts";
 
@@ -61,16 +80,16 @@ function AdminKPICard({
         >
           <Icon size={22} style={{ color }} />
         </div>
-        {change && (
+        {change ? (
           <div className="flex items-center gap-1 text-xs font-semibold text-green-500">
             <ArrowUpRight size={14} />
             {change}
           </div>
-        )}
+        ) : null}
       </div>
       <p className="text-2xl font-black text-gray-800">{value}</p>
       <p className="text-sm text-gray-500 mt-0.5">{label}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      {sub ? <p className="text-xs text-gray-400 mt-0.5">{sub}</p> : null}
     </div>
   );
 }
@@ -114,12 +133,12 @@ function AdminDashboard() {
         </button>
       </div>
 
-      {summaryQuery.error instanceof ApiError && (
+      {summaryQuery.error instanceof ApiError ? (
         <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
           <AlertCircle size={14} className="shrink-0 mt-0.5" />
           <p>Không tải được KPI: {summaryQuery.error.message}</p>
         </div>
-      )}
+      ) : null}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <AdminKPICard
@@ -150,7 +169,7 @@ function AdminDashboard() {
 
       <div className="bg-white rounded-2xl p-5 shadow-sm">
         <h3 className="font-bold text-gray-800 mb-4">Doanh thu theo thời gian</h3>
-        {revenueQuery.isLoading && <p className="text-sm text-gray-400">Đang tải...</p>}
+        {revenueQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
         {revenueQuery.data && revenueQuery.data.length > 0 ? (
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart data={revenueQuery.data}>
@@ -192,9 +211,7 @@ function AdminDashboard() {
           </ResponsiveContainer>
         ) : (
           !revenueQuery.isLoading && (
-            <p className="text-sm text-gray-400 text-center py-12">
-              Chưa có dữ liệu doanh thu
-            </p>
+            <p className="text-sm text-gray-400 text-center py-12">Chưa có dữ liệu doanh thu</p>
           )
         )}
       </div>
@@ -277,8 +294,7 @@ function SellersApproval() {
       void qc.invalidateQueries({ queryKey: ["admin", "sellers"] });
       toast.success("Đã duyệt seller");
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể duyệt seller"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể duyệt seller"),
   });
 
   const filtered = (sellersQuery.data ?? []).filter((s) =>
@@ -300,15 +316,15 @@ function SellersApproval() {
         />
       </div>
 
-      {sellersQuery.isLoading && <p className="text-sm text-gray-400">Đang tải...</p>}
-      {sellersQuery.error instanceof ApiError && (
+      {sellersQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {sellersQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{sellersQuery.error.message}</p>
-      )}
-      {!sellersQuery.isLoading && filtered.length === 0 && (
+      ) : null}
+      {!sellersQuery.isLoading && filtered.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
           <p className="text-sm text-gray-500">Không có seller nào chờ duyệt</p>
         </div>
-      )}
+      ) : null}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-50">
@@ -351,8 +367,7 @@ function ReviewsModeration() {
       void qc.invalidateQueries({ queryKey: ["admin", "reviews"] });
       toast.success("Đã duyệt đánh giá");
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể duyệt"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể duyệt"),
   });
 
   const reject = useMutation({
@@ -363,8 +378,7 @@ function ReviewsModeration() {
       toast.success("Đã từ chối đánh giá");
       setRejectFor(null);
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể từ chối"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể từ chối"),
   });
 
   const reviews = reviewsQuery.data ?? [];
@@ -393,15 +407,15 @@ function ReviewsModeration() {
       />
       <h2 className="text-xl font-bold text-gray-800">Kiểm duyệt đánh giá</h2>
 
-      {reviewsQuery.isLoading && <p className="text-sm text-gray-400">Đang tải...</p>}
-      {reviewsQuery.error instanceof ApiError && (
+      {reviewsQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {reviewsQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{reviewsQuery.error.message}</p>
-      )}
-      {!reviewsQuery.isLoading && reviews.length === 0 && (
+      ) : null}
+      {!reviewsQuery.isLoading && reviews.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
           <p className="text-sm text-gray-500">Không có đánh giá nào cần duyệt</p>
         </div>
-      )}
+      ) : null}
 
       <div className="space-y-3">
         {reviews.map((r) => (
@@ -414,7 +428,7 @@ function ReviewsModeration() {
                 </p>
               </div>
               <div className="flex items-center gap-0.5">
-                {[...Array(5)].map((_, i) => (
+                {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
                     size={14}
@@ -424,9 +438,9 @@ function ReviewsModeration() {
                 ))}
               </div>
             </div>
-            {r.comment && (
+            {r.comment ? (
               <p className="text-sm text-gray-700 mb-3 bg-gray-50 p-3 rounded-xl">{r.comment}</p>
-            )}
+            ) : null}
             <div className="flex gap-2">
               <button
                 onClick={() => approve.mutate(r.id)}
@@ -514,7 +528,9 @@ function CouponDialogBody({
       code: trimmedCode,
       type,
       value: v,
-      minOrderValue: minOrderValue ? Number(minOrderValue.replace(/\D/g, "")) || undefined : undefined,
+      minOrderValue: minOrderValue
+        ? Number(minOrderValue.replace(/\D/g, "")) || undefined
+        : undefined,
       maxDiscount: maxDiscount ? Number(maxDiscount.replace(/\D/g, "")) || undefined : undefined,
       active: true,
     });
@@ -603,7 +619,7 @@ function CouponDialogBody({
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
             />
           </div>
-          {type === "PERCENT" && (
+          {type === "PERCENT" ? (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 Giảm tối đa (VND)
@@ -615,7 +631,7 @@ function CouponDialogBody({
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
               />
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </Modal>
@@ -638,8 +654,7 @@ function CouponsManagement() {
       toast.success("Đã tạo coupon");
       setShowCreate(false);
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể tạo coupon"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể tạo coupon"),
   });
 
   const deactivate = useMutation({
@@ -648,8 +663,7 @@ function CouponsManagement() {
       void qc.invalidateQueries({ queryKey: ["admin", "coupons"] });
       toast.success("Đã vô hiệu hoá coupon");
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể vô hiệu hoá"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể vô hiệu hoá"),
   });
 
   const coupons = couponsQuery.data ?? [];
@@ -674,10 +688,10 @@ function CouponsManagement() {
         </button>
       </div>
 
-      {couponsQuery.isLoading && <p className="text-sm text-gray-400">Đang tải...</p>}
-      {couponsQuery.error instanceof ApiError && (
+      {couponsQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {couponsQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{couponsQuery.error.message}</p>
-      )}
+      ) : null}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full">
@@ -710,7 +724,7 @@ function CouponsManagement() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  {c.active && (
+                  {c.active ? (
                     <button
                       onClick={() => deactivate.mutate(c.id)}
                       disabled={deactivate.isPending}
@@ -718,15 +732,15 @@ function CouponsManagement() {
                     >
                       Vô hiệu hoá
                     </button>
-                  )}
+                  ) : null}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {!couponsQuery.isLoading && coupons.length === 0 && (
+        {!couponsQuery.isLoading && coupons.length === 0 ? (
           <p className="px-5 py-8 text-sm text-gray-400 text-center">Chưa có coupon nào</p>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -742,15 +756,19 @@ function DisputesQueue() {
   });
 
   const resolve = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: { resolution: string; refundAmount?: number } }) =>
-      adminResolveDispute(id, body),
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: string;
+      body: { resolution: string; refundAmount?: number };
+    }) => adminResolveDispute(id, body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "disputes"] });
       toast.success("Đã giải quyết khiếu nại");
       setResolveFor(null);
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể giải quyết"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể giải quyết"),
   });
 
   const disputes = disputesQuery.data ?? [];
@@ -794,12 +812,12 @@ function DisputesQueue() {
       />
       <h2 className="text-xl font-bold text-gray-800">Khiếu nại</h2>
 
-      {disputesQuery.isLoading && <p className="text-sm text-gray-400">Đang tải...</p>}
-      {!disputesQuery.isLoading && disputes.length === 0 && (
+      {disputesQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {!disputesQuery.isLoading && disputes.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
           <p className="text-sm text-gray-500">Không có khiếu nại nào đang mở</p>
         </div>
-      )}
+      ) : null}
 
       <div className="space-y-3">
         {disputes.map((d) => (
@@ -814,11 +832,11 @@ function DisputesQueue() {
                 {d.status}
               </span>
             </div>
-            {d.description && (
+            {d.description ? (
               <p className="text-sm text-gray-700 mb-3 bg-gray-50 p-3 rounded-xl">
                 {d.description}
               </p>
-            )}
+            ) : null}
             <button
               onClick={() => setResolveFor(d.id)}
               disabled={resolve.isPending}
@@ -849,20 +867,17 @@ function PayoutsQueue() {
       void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
       toast.success("Đã đánh dấu hoàn thành");
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật"),
   });
 
   const fail = useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      adminFailPayout(id, { reason }),
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => adminFailPayout(id, { reason }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
       toast.success("Đã đánh dấu thất bại");
       setFailFor(null);
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật"),
   });
 
   const payouts = payoutsQuery.data ?? [];
@@ -892,12 +907,12 @@ function PayoutsQueue() {
       />
       <h2 className="text-xl font-bold text-gray-800">Yêu cầu rút tiền</h2>
 
-      {payoutsQuery.isLoading && <p className="text-sm text-gray-400">Đang tải...</p>}
-      {!payoutsQuery.isLoading && payouts.length === 0 && (
+      {payoutsQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {!payoutsQuery.isLoading && payouts.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
           <p className="text-sm text-gray-500">Không có yêu cầu rút tiền nào</p>
         </div>
-      )}
+      ) : null}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-50">
@@ -905,9 +920,7 @@ function PayoutsQueue() {
             <div key={p.id} className="px-5 py-4 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-mono text-gray-400">{p.id}</p>
-                <p className="text-sm font-semibold text-gray-800">
-                  Seller: {p.sellerId}
-                </p>
+                <p className="text-sm font-semibold text-gray-800">Seller: {p.sellerId}</p>
                 <p className="text-xs text-gray-500">{p.requestedAt ?? ""}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
@@ -1008,12 +1021,12 @@ export function AdminPage() {
                   item.id === "sellers"
                     ? badges.sellers
                     : item.id === "reviews"
-                    ? badges.reviews
-                    : item.id === "disputes"
-                    ? badges.disputes
-                    : item.id === "payouts"
-                    ? badges.payouts
-                    : 0;
+                      ? badges.reviews
+                      : item.id === "disputes"
+                        ? badges.disputes
+                        : item.id === "payouts"
+                          ? badges.payouts
+                          : 0;
                 return (
                   <button
                     key={item.id}
@@ -1028,14 +1041,14 @@ export function AdminPage() {
                   >
                     <item.icon size={18} />
                     <span className="flex-1">{item.label}</span>
-                    {badge > 0 && (
+                    {badge > 0 ? (
                       <span
                         className="px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white"
                         style={{ background: "#FF6200" }}
                       >
                         {badge}
                       </span>
-                    )}
+                    ) : null}
                   </button>
                 );
               })}
@@ -1066,12 +1079,12 @@ export function AdminPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
             >
-              {activeTab === "dashboard" && <AdminDashboard />}
-              {activeTab === "sellers" && <SellersApproval />}
-              {activeTab === "reviews" && <ReviewsModeration />}
-              {activeTab === "coupons" && <CouponsManagement />}
-              {activeTab === "disputes" && <DisputesQueue />}
-              {activeTab === "payouts" && <PayoutsQueue />}
+              {activeTab === "dashboard" ? <AdminDashboard /> : null}
+              {activeTab === "sellers" ? <SellersApproval /> : null}
+              {activeTab === "reviews" ? <ReviewsModeration /> : null}
+              {activeTab === "coupons" ? <CouponsManagement /> : null}
+              {activeTab === "disputes" ? <DisputesQueue /> : null}
+              {activeTab === "payouts" ? <PayoutsQueue /> : null}
             </motion.div>
           </div>
         </div>

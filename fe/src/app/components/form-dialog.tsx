@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { motion } from "motion/react";
 import { X } from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
 import { toast } from "sonner";
+
 import { useEscapeKey } from "../hooks/use-escape-key";
 
 export interface FormField {
@@ -101,21 +102,19 @@ export function FormDialog({
         </div>
 
         <div className="p-6 space-y-4">
-          {description && <p className="text-sm text-gray-500">{description}</p>}
+          {description ? <p className="text-sm text-gray-500">{description}</p> : null}
           {fields.map((field) => (
             <div key={field.key}>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 {field.label}
-                {field.required === false && (
+                {field.required === false ? (
                   <span className="text-gray-400 font-normal"> (tuỳ chọn)</span>
-                )}
+                ) : null}
               </label>
               {field.type === "textarea" ? (
                 <textarea
                   value={values[field.key] ?? ""}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
-                  }
+                  onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
                   rows={3}
                   placeholder={field.placeholder}
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none"
@@ -126,17 +125,15 @@ export function FormDialog({
                   type={field.type === "number" ? "text" : "text"}
                   inputMode={field.type === "number" ? "numeric" : undefined}
                   value={values[field.key] ?? ""}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
-                  }
+                  onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
                   placeholder={field.placeholder}
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
                   autoFocus={fields.indexOf(field) === 0}
                 />
               )}
-              {field.helper && (
+              {field.helper ? (
                 <p className="text-[11px] text-gray-400 mt-1">{field.helper}</p>
-              )}
+              ) : null}
             </div>
           ))}
         </div>

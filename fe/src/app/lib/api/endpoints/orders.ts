@@ -1,14 +1,15 @@
 import { z } from "zod";
-import { api } from "../client";
+
 import { orderSchema, pageSchema } from "../../../types/api";
 import type { PaymentMethod } from "../../domain-enums";
+import { api } from "../client";
 
 export interface PlaceOrderInput {
-  items: Array<{ productId: string; quantity: number }>;
+  items: { productId: string; quantity: number }[];
   addressId?: number;
   paymentMethod: PaymentMethod;
   couponCode?: string;
-  shippingChoices?: Array<{ sellerId: string; code: string }>;
+  shippingChoices?: { sellerId: string; code: string }[];
   notes?: string;
 }
 
@@ -24,7 +25,8 @@ export const myOrders = (params: { page?: number; size?: number; status?: string
 
 export const orderById = (id: string) => api.get(`/orders/${encodeURIComponent(id)}`, orderSchema);
 
-export const cancelOrder = (id: string) => api.delete(`/orders/${encodeURIComponent(id)}/cancel`, orderSchema);
+export const cancelOrder = (id: string) =>
+  api.delete(`/orders/${encodeURIComponent(id)}/cancel`, orderSchema);
 
 const returnSchema = z
   .object({
@@ -38,8 +40,12 @@ const returnSchema = z
   .passthrough();
 export type Return = z.infer<typeof returnSchema>;
 
-export const requestReturn = (body: { orderId: string; subOrderId: string; reason: string; itemIds?: string[] }) =>
-  api.post("/returns", returnSchema, body);
+export const requestReturn = (body: {
+  orderId: string;
+  subOrderId: string;
+  reason: string;
+  itemIds?: string[];
+}) => api.post("/returns", returnSchema, body);
 
 export const myReturns = () => api.get("/returns", z.array(returnSchema));
 
@@ -64,11 +70,14 @@ const pendingSubOrderSchema = z
   .passthrough();
 export type PendingSubOrder = z.infer<typeof pendingSubOrderSchema>;
 
-export const sellerPendingOrders = () => api.get("/seller/orders/pending", z.array(pendingSubOrderSchema));
+export const sellerPendingOrders = () =>
+  api.get("/seller/orders/pending", z.array(pendingSubOrderSchema));
 
 export const sellerAcceptOrder = (subOrderId: string) =>
   api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/accept`, pendingSubOrderSchema);
 export const sellerRejectOrder = (subOrderId: string, body: { reason: string }) =>
   api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/reject`, pendingSubOrderSchema, body);
-export const sellerShipOrder = (subOrderId: string, body: { carrier: string; trackingNumber: string }) =>
-  api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/ship`, pendingSubOrderSchema, body);
+export const sellerShipOrder = (
+  subOrderId: string,
+  body: { carrier: string; trackingNumber: string },
+) => api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/ship`, pendingSubOrderSchema, body);

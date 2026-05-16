@@ -1,9 +1,15 @@
 import { z } from "zod";
-import { api } from "../client";
+
 import { questionSchema } from "../../../types/api";
+import { api } from "../client";
 
 export const questionsByProduct = (productId: string) =>
-  api.get(`/questions/product/${encodeURIComponent(productId)}`, z.array(questionSchema), undefined, { auth: false });
+  api.get(
+    `/questions/product/${encodeURIComponent(productId)}`,
+    z.array(questionSchema),
+    undefined,
+    { auth: false },
+  );
 
 export interface AskQuestionInput {
   productId: string;

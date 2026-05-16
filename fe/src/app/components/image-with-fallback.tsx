@@ -1,5 +1,5 @@
-import { useState, type ImgHTMLAttributes } from "react";
 import { ImageOff } from "lucide-react";
+import { useState, type ImgHTMLAttributes } from "react";
 
 type ImageFallbackProps = ImgHTMLAttributes<HTMLImageElement> & {
   /** Optional alternate URL to try before showing the placeholder. */

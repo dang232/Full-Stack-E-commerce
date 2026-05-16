@@ -6,10 +6,12 @@
  */
 import { createContext, useContext, useCallback, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import type { Product } from "./vnshop-data";
+
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useWishlist } from "../hooks/use-wishlist";
+
+import type { Product } from "./vnshop-data";
 
 interface User {
   id: string;
@@ -111,7 +113,8 @@ export function VNShopProvider({ children }: { children: ReactNode }) {
       id: auth.subject ?? profile?.id ?? "",
       name: fullName,
       email: profile?.email ?? "",
-      phone: (profile?.attributes as Record<string, string[] | undefined> | undefined)?.phone?.[0] ?? "",
+      phone:
+        (profile?.attributes as Record<string, string[] | undefined> | undefined)?.phone?.[0] ?? "",
       avatar: "",
       role: pickRole(auth.roles),
     };

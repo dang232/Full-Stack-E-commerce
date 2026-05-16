@@ -1,25 +1,37 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import {
+  MapPin,
+  Truck,
+  CreditCard,
+  CheckCircle,
+  ChevronRight,
+  ArrowLeft,
+  Plus,
+  Shield,
+  Package,
+  AlertCircle,
+  LogIn,
+  Check,
+  Tag,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { motion, AnimatePresence } from "motion/react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
-import {
-  MapPin, Truck, CreditCard, CheckCircle, ChevronRight,
-  ArrowLeft, Plus, Shield, Package, AlertCircle, LogIn, Check, Tag,
-} from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
-import { ApiError } from "../lib/api/envelope";
 import {
   calculateCheckout,
   paymentMethods as fetchPaymentMethods,
   shippingOptions as fetchShippingOptions,
 } from "../lib/api/endpoints/checkout";
-import { placeOrder } from "../lib/api/endpoints/orders";
 import { listActiveCoupons, validateCouponCode } from "../lib/api/endpoints/coupons";
+import { placeOrder } from "../lib/api/endpoints/orders";
 import { codConfirm, momoCreate, vnpayCreate } from "../lib/api/endpoints/payment";
 import { myProfile } from "../lib/api/endpoints/users";
+import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
 import type { Address } from "../types/api";
 
@@ -48,8 +60,20 @@ interface PaymentOption {
 }
 
 const FALLBACK_SHIPPING: ShippingOption[] = [
-  { id: "standard", name: "Giao Hàng Tiêu Chuẩn", desc: "Giao trong 1-2 ngày", fee: 30000, eta: "Ngày mai" },
-  { id: "economy", name: "Giao Hàng Tiết Kiệm", desc: "Giao trong 3-5 ngày", fee: 20000, eta: "3-5 ngày" },
+  {
+    id: "standard",
+    name: "Giao Hàng Tiêu Chuẩn",
+    desc: "Giao trong 1-2 ngày",
+    fee: 30000,
+    eta: "Ngày mai",
+  },
+  {
+    id: "economy",
+    name: "Giao Hàng Tiết Kiệm",
+    desc: "Giao trong 3-5 ngày",
+    fee: 20000,
+    eta: "3-5 ngày",
+  },
 ];
 
 const FALLBACK_PAYMENT: PaymentOption[] = [
@@ -99,7 +123,8 @@ export function CheckoutPage() {
     return data.map((s, i) => ({
       id: s.code ?? `option-${i}`,
       name: s.name ?? `Phương thức ${i + 1}`,
-      desc: typeof s.estimatedDays === "number" ? `Giao trong ${s.estimatedDays} ngày` : "Tiêu chuẩn",
+      desc:
+        typeof s.estimatedDays === "number" ? `Giao trong ${s.estimatedDays} ngày` : "Tiêu chuẩn",
       fee: s.fee ?? 0,
       eta: typeof s.estimatedDays === "number" ? `${s.estimatedDays} ngày` : "Tiêu chuẩn",
     }));
@@ -116,7 +141,15 @@ export function CheckoutPage() {
     };
     return data
       .filter((p) => p.enabled !== false)
-      .map((p) => codeToFallback[p.code] ?? { id: p.code as PaymentOption["id"], name: p.name, icon: "💳", desc: p.description ?? "" });
+      .map(
+        (p) =>
+          codeToFallback[p.code] ?? {
+            id: p.code as PaymentOption["id"],
+            name: p.name,
+            icon: "💳",
+            desc: p.description ?? "",
+          },
+      );
   }, [paymentQuery.data]);
 
   const [step, setStep] = useState<Step>("address");
@@ -331,7 +364,7 @@ export function CheckoutPage() {
     if (step === "address") {
       if (addresses.length === 0) {
         toast.error("Vui lòng thêm ít nhất một địa chỉ trong trang Hồ sơ trước khi thanh toán.");
-        navigate("/profile");
+        void navigate("/profile");
         return;
       }
       setStep("shipping");
@@ -374,7 +407,7 @@ export function CheckoutPage() {
           >
             Đặt hàng thành công! 🎉
           </h1>
-          {placedOrderId && (
+          {placedOrderId ? (
             <>
               <p className="text-gray-500 mb-2">Mã đơn hàng của bạn:</p>
               <div
@@ -384,12 +417,12 @@ export function CheckoutPage() {
                 {placedOrderId}
               </div>
             </>
-          )}
-          {selectedPaymentId === "COD" && (
+          ) : null}
+          {selectedPaymentId === "COD" ? (
             <p className="text-sm text-gray-500 mb-2">
               Bạn sẽ thanh toán <strong>{formatPrice(finalTotal)}</strong> khi nhận hàng.
             </p>
-          )}
+          ) : null}
           <div className="flex gap-3">
             <button
               onClick={() => navigate("/orders")}
@@ -447,12 +480,12 @@ export function CheckoutPage() {
                   {s.label}
                 </span>
               </div>
-              {i < STEPS.length - 1 && (
+              {i < STEPS.length - 1 ? (
                 <div
                   className="w-16 sm:w-24 h-0.5 mb-5 mx-1 transition-colors"
                   style={{ background: isDone ? "#00BFB3" : "#e5e7eb" }}
                 />
-              )}
+              ) : null}
             </div>
           );
         })}
@@ -467,18 +500,20 @@ export function CheckoutPage() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.25 }}
           >
-            {step === "address" && (
+            {step === "address" ? (
               <div className="space-y-4">
                 <h2 className="font-bold text-gray-800 text-lg mb-4">Chọn địa chỉ giao hàng</h2>
-                {profileQuery.isLoading && (
+                {profileQuery.isLoading ? (
                   <p className="text-sm text-gray-400">Đang tải địa chỉ...</p>
-                )}
-                {!profileQuery.isLoading && addresses.length === 0 && (
+                ) : null}
+                {!profileQuery.isLoading && addresses.length === 0 ? (
                   <div className="bg-white rounded-2xl p-5 text-sm text-gray-500 flex items-start gap-3">
                     <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-semibold text-gray-700">Bạn chưa có địa chỉ nào</p>
-                      <p className="mt-1">Hãy thêm địa chỉ giao hàng trong Hồ sơ trước khi thanh toán.</p>
+                      <p className="mt-1">
+                        Hãy thêm địa chỉ giao hàng trong Hồ sơ trước khi thanh toán.
+                      </p>
                       <button
                         onClick={() => navigate("/profile")}
                         className="mt-3 text-sm font-semibold"
@@ -488,7 +523,7 @@ export function CheckoutPage() {
                       </button>
                     </div>
                   </div>
-                )}
+                ) : null}
                 {addresses.map((addr, i) => (
                   <button
                     key={i}
@@ -503,20 +538,20 @@ export function CheckoutPage() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold text-gray-800">{buyerName}</span>
-                          {addr.phone && (
+                          {addr.phone ? (
                             <>
                               <span className="text-gray-400 text-sm">|</span>
                               <span className="text-gray-600 text-sm">{addr.phone}</span>
                             </>
-                          )}
-                          {addr.isDefault && (
+                          ) : null}
+                          {addr.isDefault ? (
                             <span
                               className="px-1.5 py-0.5 rounded text-xs font-medium border"
                               style={{ borderColor: "#FF6200", color: "#FF6200" }}
                             >
                               Mặc định
                             </span>
-                          )}
+                          ) : null}
                         </div>
                         <p className="text-sm text-gray-500">{formatAddressLine(addr)}</p>
                       </div>
@@ -524,9 +559,12 @@ export function CheckoutPage() {
                         className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all"
                         style={{ borderColor: selectedAddressIndex === i ? "#00BFB3" : "#d1d5db" }}
                       >
-                        {selectedAddressIndex === i && (
-                          <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#00BFB3" }} />
-                        )}
+                        {selectedAddressIndex === i ? (
+                          <div
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ background: "#00BFB3" }}
+                          />
+                        ) : null}
                       </div>
                     </div>
                   </button>
@@ -538,11 +576,13 @@ export function CheckoutPage() {
                   <Plus size={16} /> Thêm địa chỉ mới
                 </button>
               </div>
-            )}
+            ) : null}
 
-            {step === "shipping" && (
+            {step === "shipping" ? (
               <div>
-                <h2 className="font-bold text-gray-800 text-lg mb-4">Chọn phương thức vận chuyển</h2>
+                <h2 className="font-bold text-gray-800 text-lg mb-4">
+                  Chọn phương thức vận chuyển
+                </h2>
                 <div className="space-y-3">
                   {shippingOptions.map((method) => (
                     <button
@@ -551,14 +591,17 @@ export function CheckoutPage() {
                       className="w-full p-4 rounded-2xl border-2 text-left transition-all bg-white"
                       style={{
                         borderColor: selectedShippingId === method.id ? "#00BFB3" : "#e5e7eb",
-                        background: selectedShippingId === method.id ? "rgba(0,191,179,0.04)" : "white",
+                        background:
+                          selectedShippingId === method.id ? "rgba(0,191,179,0.04)" : "white",
                       }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Truck
                             size={20}
-                            style={{ color: selectedShippingId === method.id ? "#00BFB3" : "#6b7280" }}
+                            style={{
+                              color: selectedShippingId === method.id ? "#00BFB3" : "#6b7280",
+                            }}
                           />
                           <div>
                             <p className="font-semibold text-sm text-gray-800">{method.name}</p>
@@ -592,9 +635,9 @@ export function CheckoutPage() {
                   />
                 </div>
               </div>
-            )}
+            ) : null}
 
-            {step === "payment" && (
+            {step === "payment" ? (
               <div>
                 <h2 className="font-bold text-gray-800 text-lg mb-4">Phương thức thanh toán</h2>
                 <div className="space-y-3">
@@ -621,12 +664,12 @@ export function CheckoutPage() {
                             borderColor: selectedPaymentId === method.id ? "#00BFB3" : "#d1d5db",
                           }}
                         >
-                          {selectedPaymentId === method.id && (
+                          {selectedPaymentId === method.id ? (
                             <div
                               className="w-2.5 h-2.5 rounded-full"
                               style={{ background: "#00BFB3" }}
                             />
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </button>
@@ -637,9 +680,9 @@ export function CheckoutPage() {
                   <span>Tất cả giao dịch được mã hóa SSL 256-bit và bảo mật tuyệt đối</span>
                 </div>
               </div>
-            )}
+            ) : null}
 
-            {step === "review" && (
+            {step === "review" ? (
               <div className="space-y-4">
                 <h2 className="font-bold text-gray-800 text-lg mb-4">Xác nhận đơn hàng</h2>
 
@@ -660,9 +703,9 @@ export function CheckoutPage() {
                     <div className="text-sm">
                       <p className="font-semibold text-gray-800">
                         {buyerName}
-                        {addresses[selectedAddressIndex].phone && (
+                        {addresses[selectedAddressIndex].phone ? (
                           <> · {addresses[selectedAddressIndex].phone}</>
-                        )}
+                        ) : null}
                       </p>
                       <p className="text-gray-500 mt-0.5">
                         {formatAddressLine(addresses[selectedAddressIndex])}
@@ -739,7 +782,7 @@ export function CheckoutPage() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </motion.div>
         </AnimatePresence>
 
@@ -750,21 +793,22 @@ export function CheckoutPage() {
               {cartItems.slice(0, 3).map((item) => (
                 <div key={item.productId} className="flex justify-between gap-2">
                   <span className="text-gray-600 truncate">
-                    {(item.name ?? item.productId).split(" ").slice(0, 4).join(" ")}... x{item.quantity}
+                    {(item.name ?? item.productId).split(" ").slice(0, 4).join(" ")}... x
+                    {item.quantity}
                   </span>
                   <span className="font-medium shrink-0">
                     {formatPrice(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
-              {cartItems.length > 3 && (
+              {cartItems.length > 3 ? (
                 <p className="text-xs text-gray-400">+{cartItems.length - 3} sản phẩm khác</p>
-              )}
+              ) : null}
             </div>
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-xs font-semibold text-gray-600">Mã giảm giá</label>
-                {!appliedCoupon && (
+                {!appliedCoupon ? (
                   <button
                     onClick={() => setShowCouponPicker((v) => !v)}
                     className="flex items-center gap-1 text-xs font-semibold transition-colors"
@@ -774,10 +818,10 @@ export function CheckoutPage() {
                     <Tag size={12} />
                     {showCouponPicker ? "Ẩn danh sách" : "Xem mã khả dụng"}
                   </button>
-                )}
+                ) : null}
               </div>
               <AnimatePresence>
-                {showCouponPicker && !appliedCoupon && (
+                {showCouponPicker && !appliedCoupon ? (
                   <motion.div
                     key="picker"
                     initial={{ opacity: 0, height: 0 }}
@@ -787,33 +831,39 @@ export function CheckoutPage() {
                     className="overflow-hidden mb-3"
                   >
                     <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-2 max-h-48 overflow-y-auto">
-                      {couponsQuery.isLoading && (
+                      {couponsQuery.isLoading ? (
                         <p className="text-xs text-gray-500 px-2 py-1">Đang tải mã...</p>
-                      )}
-                      {couponsQuery.error instanceof ApiError && (
+                      ) : null}
+                      {couponsQuery.error instanceof ApiError ? (
                         <p className="text-xs text-red-500 px-2 py-1">
                           Không tải được mã: {couponsQuery.error.message}
                         </p>
-                      )}
-                      {couponsQuery.data && couponsQuery.data.length === 0 && (
+                      ) : null}
+                      {couponsQuery.data?.length === 0 ? (
                         <p className="text-xs text-gray-500 px-2 py-2 text-center">
                           Hiện chưa có mã khả dụng
                         </p>
-                      )}
-                      {couponsQuery.data && couponsQuery.data.length > 0 && (
+                      ) : null}
+                      {couponsQuery.data && couponsQuery.data.length > 0 ? (
                         <ul className="space-y-1">
                           {couponsQuery.data.map((coupon) => {
                             const value = coupon.value ?? coupon.discountValue;
-                            const type = (coupon.type ?? coupon.discountType ?? "FIXED").toUpperCase();
-                            const label = type === "PERCENT" && value !== undefined
-                              ? `Giảm ${value}%`
-                              : value !== undefined
-                                ? `Giảm ${formatPrice(value)}`
-                                : "Mã giảm giá";
+                            const type = (
+                              coupon.type ??
+                              coupon.discountType ??
+                              "FIXED"
+                            ).toUpperCase();
+                            const label =
+                              type === "PERCENT" && value !== undefined
+                                ? `Giảm ${value}%`
+                                : value !== undefined
+                                  ? `Giảm ${formatPrice(value)}`
+                                  : "Mã giảm giá";
                             const minLabel = coupon.minOrderValue
                               ? `Đơn tối thiểu ${formatPrice(coupon.minOrderValue)}`
                               : null;
-                            const eligible = !coupon.minOrderValue || subtotal >= coupon.minOrderValue;
+                            const eligible =
+                              !coupon.minOrderValue || subtotal >= coupon.minOrderValue;
                             return (
                               <li key={coupon.code}>
                                 <button
@@ -823,7 +873,10 @@ export function CheckoutPage() {
                                   type="button"
                                 >
                                   <div className="min-w-0">
-                                    <p className="text-sm font-bold font-mono truncate" style={{ color: "#00BFB3" }}>
+                                    <p
+                                      className="text-sm font-bold font-mono truncate"
+                                      style={{ color: "#00BFB3" }}
+                                    >
                                       {coupon.code}
                                     </p>
                                     <p className="text-xs text-gray-500 truncate">
@@ -842,10 +895,10 @@ export function CheckoutPage() {
                             );
                           })}
                         </ul>
-                      )}
+                      ) : null}
                     </div>
                   </motion.div>
-                )}
+                ) : null}
               </AnimatePresence>
               <AnimatePresence mode="wait">
                 {!appliedCoupon ? (
@@ -889,7 +942,7 @@ export function CheckoutPage() {
                     >
                       <Check size={14} />
                       <span>Đã áp dụng: {appliedCoupon}</span>
-                      {discount > 0 && <span className="ml-1">-{formatPrice(discount)}</span>}
+                      {discount > 0 ? <span className="ml-1">-{formatPrice(discount)}</span> : null}
                     </div>
                     <button
                       onClick={handleRemoveCoupon}
@@ -913,12 +966,12 @@ export function CheckoutPage() {
                   {shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}
                 </span>
               </div>
-              {discount > 0 && (
+              {discount > 0 ? (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Giảm giá</span>
                   <span style={{ color: "#FF6200" }}>-{formatPrice(discount)}</span>
                 </div>
-              )}
+              ) : null}
               <div className="flex justify-between font-black text-base pt-2 border-t border-gray-100">
                 <span>Tổng cộng</span>
                 <span style={{ color: "#FF6200" }}>{formatPrice(finalTotal)}</span>
@@ -947,11 +1000,11 @@ export function CheckoutPage() {
               )}
             </button>
 
-            {step === "review" && (
+            {step === "review" ? (
               <p className="text-[11px] text-gray-400 mt-3 text-center">
                 Bằng cách đặt hàng, bạn đồng ý với chính sách của VNShop.
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

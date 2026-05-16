@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { api } from "../client";
 
 const walletSchema = z

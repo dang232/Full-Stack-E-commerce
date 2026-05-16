@@ -1,9 +1,12 @@
 import { z } from "zod";
-import { api } from "../client";
+
 import { reviewSchema } from "../../../types/api";
+import { api } from "../client";
 
 export const reviewsByProduct = (productId: string) =>
-  api.get(`/reviews/product/${encodeURIComponent(productId)}`, z.array(reviewSchema), undefined, { auth: false });
+  api.get(`/reviews/product/${encodeURIComponent(productId)}`, z.array(reviewSchema), undefined, {
+    auth: false,
+  });
 
 export interface CreateReviewInput {
   productId: string;

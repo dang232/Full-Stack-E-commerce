@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { api } from "../client";
+
 import { pageSchema, productDetailSchema, productSummarySchema } from "../../../types/api";
+import { api } from "../client";
 
 export interface ProductListParams {
   page?: number;
@@ -43,7 +44,10 @@ export const sellerProductCreate = (body: SellerProductWriteBody) =>
 export const sellerProductUpdate = (id: string, body: SellerProductWriteBody) =>
   api.put(`/sellers/me/products/${encodeURIComponent(id)}`, productDetailSchema, body);
 
-export const sellerProductImageUploadUrl = (productId: string, body: { contentType: string; size?: number }) =>
+export const sellerProductImageUploadUrl = (
+  productId: string,
+  body: { contentType: string; size?: number },
+) =>
   api.post(
     `/sellers/me/products/${encodeURIComponent(productId)}/images/upload-url`,
     z.object({ uploadUrl: z.string(), key: z.string().optional() }).passthrough(),

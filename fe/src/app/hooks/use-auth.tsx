@@ -2,8 +2,18 @@
  * AuthProvider colocates with its hooks intentionally — splitting them across
  * files would require updating every import site for marginal HMR benefit.
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { KeycloakProfile, KeycloakTokenParsed } from "keycloak-js";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+
 import { getKeycloak } from "../lib/auth/keycloak";
 
 export type Role = "BUYER" | "SELLER" | "ADMIN";
@@ -22,7 +32,7 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null);
 
 function parseRoles(parsed: KeycloakTokenParsed | undefined): Role[] {
-  const realm = (parsed?.realm_access?.roles ?? []) as string[];
+  const realm = parsed?.realm_access?.roles ?? [];
   return realm.filter((r): r is Role => r === "BUYER" || r === "SELLER" || r === "ADMIN");
 }
 

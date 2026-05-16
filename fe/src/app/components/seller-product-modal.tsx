@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+
 import {
   sellerProductCreate,
   sellerProductImageActivate,
@@ -9,9 +10,10 @@ import {
   sellerProductUpdate,
 } from "../lib/api/endpoints/products";
 import { ApiError } from "../lib/api/envelope";
-import type { Product } from "./vnshop-data";
+
 import { ImageWithFallback } from "./image-with-fallback";
 import { Modal } from "./ui/modal";
+import type { Product } from "./vnshop-data";
 
 interface SellerProductModalProps {
   open: boolean;
@@ -126,21 +128,23 @@ function SellerProductModalBody({
     }
 
     const accepted: StagedFile[] = [];
-    Array.from(files).slice(0, slotsLeft).forEach((file) => {
-      if (!ACCEPTED_TYPES.test(file.type)) {
-        toast.error(`${file.name}: Chỉ chấp nhận JPG, PNG, hoặc WebP`);
-        return;
-      }
-      if (file.size > MAX_IMAGE_BYTES) {
-        toast.error(`${file.name}: Vượt quá ${MAX_IMAGE_BYTES / (1024 * 1024)}MB`);
-        return;
-      }
-      accepted.push({
-        id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        file,
-        previewUrl: URL.createObjectURL(file),
+    Array.from(files)
+      .slice(0, slotsLeft)
+      .forEach((file) => {
+        if (!ACCEPTED_TYPES.test(file.type)) {
+          toast.error(`${file.name}: Chỉ chấp nhận JPG, PNG, hoặc WebP`);
+          return;
+        }
+        if (file.size > MAX_IMAGE_BYTES) {
+          toast.error(`${file.name}: Vượt quá ${MAX_IMAGE_BYTES / (1024 * 1024)}MB`);
+          return;
+        }
+        accepted.push({
+          id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          file,
+          previewUrl: URL.createObjectURL(file),
+        });
       });
-    });
 
     if (accepted.length > 0) setStaged((prev) => [...prev, ...accepted]);
   };
@@ -201,22 +205,20 @@ function SellerProductModalBody({
       let uploadedUrls: string[] = [];
       if (staged.length > 0) {
         setPhase("uploading");
-        const settled = await Promise.allSettled(
-          staged.map((s) => uploadOne(s.file, productId)),
-        );
+        const settled = await Promise.allSettled(staged.map((s) => uploadOne(s.file, productId)));
         uploadedUrls = settled
           .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
           .map((r) => r.value);
         const failed = settled.filter((r) => r.status === "rejected");
         if (failed.length > 0) {
           // Surface first error but don't abort — partial uploads are still useful.
-          const first = failed[0] as PromiseRejectedResult;
+          const first = failed[0];
           const message =
             first.reason instanceof ApiError
               ? first.reason.message
               : first.reason instanceof Error
-              ? first.reason.message
-              : "Một số ảnh tải lên thất bại";
+                ? first.reason.message
+                : "Một số ảnh tải lên thất bại";
           toast.error(`${failed.length}/${staged.length} ảnh tải lên thất bại: ${message}`);
         }
       }
@@ -251,10 +253,10 @@ function SellerProductModalBody({
         err instanceof ApiError
           ? err.message
           : err instanceof Error
-          ? err.message
-          : isEdit
-          ? "Không thể cập nhật sản phẩm"
-          : "Không thể đăng sản phẩm",
+            ? err.message
+            : isEdit
+              ? "Không thể cập nhật sản phẩm"
+              : "Không thể đăng sản phẩm",
       ),
     onSettled: () => setPhase("idle"),
   });
@@ -334,160 +336,158 @@ function SellerProductModalBody({
       }
     >
       <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Ảnh sản phẩm{" "}
-              <span className="text-gray-400 font-normal">
-                ({totalImageCount}/{MAX_IMAGES})
-              </span>
-            </label>
-            <div className="grid grid-cols-4 gap-3">
-              {existingImages.map((url) => (
-                <div
-                  key={url}
-                  className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200"
-                >
-                  <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeExistingImage(url)}
-                    disabled={isBusy}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white disabled:opacity-50"
-                    aria-label="Xoá ảnh"
-                  >
-                    <Trash2 size={12} className="text-red-500" />
-                  </button>
-                </div>
-              ))}
-              {staged.map((s) => (
-                <div
-                  key={s.id}
-                  className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200"
-                >
-                  <img src={s.previewUrl} alt={s.file.name} className="w-full h-full object-cover" />
-                  {phase === "uploading" && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <Loader2 size={20} className="text-white animate-spin" />
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => removeStaged(s.id)}
-                    disabled={isBusy}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white disabled:opacity-50"
-                    aria-label="Bỏ ảnh"
-                  >
-                    <Trash2 size={12} className="text-red-500" />
-                  </button>
-                </div>
-              ))}
-              {totalImageCount < MAX_IMAGES && (
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Ảnh sản phẩm{" "}
+            <span className="text-gray-400 font-normal">
+              ({totalImageCount}/{MAX_IMAGES})
+            </span>
+          </label>
+          <div className="grid grid-cols-4 gap-3">
+            {existingImages.map((url) => (
+              <div
+                key={url}
+                className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200"
+              >
+                <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => removeExistingImage(url)}
                   disabled={isBusy}
-                  className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors disabled:opacity-50"
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white disabled:opacity-50"
+                  aria-label="Xoá ảnh"
                 >
-                  <ImageIcon size={20} />
-                  <span className="text-[11px] font-medium">Thêm ảnh</span>
+                  <Trash2 size={12} className="text-red-500" />
                 </button>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={(e) => {
-                enqueueFiles(e.target.files);
-                e.target.value = "";
-              }}
-            />
-            <p className="text-[11px] text-gray-400 mt-2">
-              JPG, PNG, hoặc WebP. Tối đa {MAX_IMAGE_BYTES / (1024 * 1024)}MB mỗi ảnh,{" "}
-              {MAX_IMAGES} ảnh / sản phẩm. Ảnh sẽ được tải lên khi bạn nhấn Lưu.
-            </p>
+              </div>
+            ))}
+            {staged.map((s) => (
+              <div
+                key={s.id}
+                className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200"
+              >
+                <img src={s.previewUrl} alt={s.file.name} className="w-full h-full object-cover" />
+                {phase === "uploading" ? (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <Loader2 size={20} className="text-white animate-spin" />
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => removeStaged(s.id)}
+                  disabled={isBusy}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white disabled:opacity-50"
+                  aria-label="Bỏ ảnh"
+                >
+                  <Trash2 size={12} className="text-red-500" />
+                </button>
+              </div>
+            ))}
+            {totalImageCount < MAX_IMAGES ? (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isBusy}
+                className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors disabled:opacity-50"
+              >
+                <ImageIcon size={20} />
+                <span className="text-[11px] font-medium">Thêm ảnh</span>
+              </button>
+            ) : null}
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              enqueueFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <p className="text-[11px] text-gray-400 mt-2">
+            JPG, PNG, hoặc WebP. Tối đa {MAX_IMAGE_BYTES / (1024 * 1024)}MB mỗi ảnh, {MAX_IMAGES}{" "}
+            ảnh / sản phẩm. Ảnh sẽ được tải lên khi bạn nhấn Lưu.
+          </p>
+        </div>
 
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tên sản phẩm</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="VD: Tai nghe Sony WH-1000XM5"
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+            disabled={isBusy}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mô tả</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Mô tả chi tiết sản phẩm..."
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none"
+            disabled={isBusy}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Tên sản phẩm
+              Giá bán (VND)
             </label>
             <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="VD: Tai nghe Sony WH-1000XM5"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="990000"
+              inputMode="numeric"
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
               disabled={isBusy}
             />
           </div>
-
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mô tả</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Mô tả chi tiết sản phẩm..."
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none"
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Giá gốc (tuỳ chọn)
+            </label>
+            <input
+              value={originalPrice}
+              onChange={(e) => setOriginalPrice(e.target.value)}
+              placeholder="1290000"
+              inputMode="numeric"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
               disabled={isBusy}
             />
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Giá bán (VND)
-              </label>
-              <input
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="990000"
-                inputMode="numeric"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
-                disabled={isBusy}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Giá gốc (tuỳ chọn)
-              </label>
-              <input
-                value={originalPrice}
-                onChange={(e) => setOriginalPrice(e.target.value)}
-                placeholder="1290000"
-                inputMode="numeric"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
-                disabled={isBusy}
-              />
-            </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tồn kho</label>
+            <input
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              placeholder="100"
+              inputMode="numeric"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+              disabled={isBusy}
+            />
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tồn kho</label>
-              <input
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                placeholder="100"
-                inputMode="numeric"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
-                disabled={isBusy}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Danh mục</label>
-              <input
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="electronics"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
-                disabled={isBusy}
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Danh mục</label>
+            <input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="electronics"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+              disabled={isBusy}
+            />
           </div>
         </div>
+      </div>
     </Modal>
   );
 }

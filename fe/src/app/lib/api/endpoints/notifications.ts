@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { api } from "../client";
+
 import { notificationSchema } from "../../../types/api";
+import { api } from "../client";
 
 export const listNotifications = (params: { page?: number; size?: number } = {}) =>
   api.get("/notifications", z.array(notificationSchema), {

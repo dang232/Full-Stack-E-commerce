@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Toaster } from "sonner";
+import { describe, expect, it, vi } from "vitest";
+
 import { FormDialog, type FormField } from "./form-dialog";
 
 const baseFields: FormField[] = [
@@ -83,7 +84,7 @@ describe("FormDialog", () => {
         },
       ],
     });
-    const textarea = screen.getByPlaceholderText("Nội dung không phù hợp...") as HTMLTextAreaElement;
+    const textarea = screen.getByPlaceholderText("Nội dung không phù hợp...");
     fireEvent.change(textarea, { target: { value: "  Hết hàng  " } });
     fireEvent.click(screen.getByRole("button", { name: "Gửi" }));
     expect(onSubmit).toHaveBeenCalledTimes(1);

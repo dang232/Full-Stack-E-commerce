@@ -37,12 +37,7 @@ export function parseOrderStatus(raw: string | null | undefined): OrderStatusUi 
 
 // ─── Return / refund status ─────────────────────────────────────────────────
 
-export type ReturnStatusUi =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "completed"
-  | "escalated";
+export type ReturnStatusUi = "pending" | "approved" | "rejected" | "completed" | "escalated";
 
 export function parseReturnStatus(raw: string | null | undefined): ReturnStatusUi {
   const v = (raw ?? "").toUpperCase();

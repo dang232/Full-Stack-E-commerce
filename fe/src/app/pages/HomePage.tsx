@@ -1,41 +1,74 @@
+import {
+  ChevronRight,
+  Star,
+  Zap,
+  Truck,
+  Shield,
+  RefreshCw,
+  Headphones,
+  TrendingUp,
+  Award,
+  ChevronLeft,
+  Sparkles,
+  ArrowRight,
+  Gift,
+  BadgeCheck,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { motion, AnimatePresence } from "motion/react";
-import {
-  ChevronRight, Star, Zap, Truck, Shield, RefreshCw,
-  Headphones, TrendingUp, Award, ChevronLeft, Sparkles,
-  ArrowRight, Gift, BadgeCheck
-} from "lucide-react";
-import { formatPrice } from "../lib/format";
-import { products, categories, sellers, flashSaleProducts, flashSaleEnd, type Product } from "../components/vnshop-data";
-import { useVNShop } from "../components/vnshop-context";
-import { useProducts } from "../hooks/use-products";
-import { useCountdown } from "../hooks/use-countdown";
+
 import { ImageWithFallback } from "../components/image-with-fallback";
+import { useVNShop } from "../components/vnshop-context";
+import {
+  products,
+  categories,
+  sellers,
+  flashSaleProducts,
+  flashSaleEnd,
+  type Product,
+} from "../components/vnshop-data";
+import { useCountdown } from "../hooks/use-countdown";
+import { useProducts } from "../hooks/use-products";
+import { formatPrice } from "../lib/format";
 
 // ─── Section Header ────────────────────────────────────────────────────────────
 function SectionHeader({
-  title, subtitle, ctaLabel = "Xem tất cả", ctaPath, accent = "teal"
+  title,
+  subtitle,
+  ctaLabel = "Xem tất cả",
+  ctaPath,
+  accent = "teal",
 }: {
-  title: string; subtitle?: string; ctaLabel?: string; ctaPath?: string; accent?: "teal" | "orange";
+  title: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaPath?: string;
+  accent?: "teal" | "orange";
 }) {
   const navigate = useNavigate();
   const color = accent === "teal" ? "#00BFB3" : "#FF6200";
   return (
     <div className="flex items-end justify-between mb-6">
       <div>
-        <h2 className="text-2xl md:text-[26px] font-bold tracking-tight text-gray-900 leading-tight" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>{title}</h2>
-        {subtitle && <p className="text-sm text-gray-500 mt-1.5">{subtitle}</p>}
+        <h2
+          className="text-2xl md:text-[26px] font-bold tracking-tight text-gray-900 leading-tight"
+          style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+        >
+          {title}
+        </h2>
+        {subtitle ? <p className="text-sm text-gray-500 mt-1.5">{subtitle}</p> : null}
       </div>
-      {ctaPath && (
+      {ctaPath ? (
         <button
           onClick={() => navigate(ctaPath)}
           className="group flex items-center gap-1.5 text-sm font-semibold transition-all shrink-0 px-3 py-1.5 rounded-full hover:bg-gray-50"
           style={{ color }}
         >
-          {ctaLabel} <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+          {ctaLabel}{" "}
+          <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -62,32 +95,56 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
         />
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
-          {product.discount && (
-            <span className="px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight" style={{ background: "#FF6200" }}>
+          {product.discount ? (
+            <span
+              className="px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight"
+              style={{ background: "#FF6200" }}
+            >
               -{product.discount}%
             </span>
-          )}
-          {product.badge === "flash" && (
-            <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight" style={{ background: "#E53E3E" }}>
+          ) : null}
+          {product.badge === "flash" ? (
+            <span
+              className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight"
+              style={{ background: "#E53E3E" }}
+            >
               <Zap size={9} fill="white" /> Flash
             </span>
-          )}
-          {product.badge === "new" && (
-            <span className="px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight" style={{ background: "#10B981" }}>Mới</span>
-          )}
+          ) : null}
+          {product.badge === "new" ? (
+            <span
+              className="px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight"
+              style={{ background: "#10B981" }}
+            >
+              Mới
+            </span>
+          ) : null}
         </div>
-        {product.shippingFee === 0 && (
-          <span className="absolute top-2.5 right-2.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-white text-xs font-semibold" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}>
+        {product.shippingFee === 0 ? (
+          <span
+            className="absolute top-2.5 right-2.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-white text-xs font-semibold"
+            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
+          >
             <Truck size={9} /> Free
           </span>
-        )}
+        ) : null}
         {/* Wishlist */}
         <button
           className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110"
           style={{ background: loved ? "#FF6200" : "rgba(255,255,255,0.95)" }}
-          onClick={e => { e.stopPropagation(); toggleWishlist(product.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product.id);
+          }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill={loved ? "white" : "none"} stroke={loved ? "white" : "#374151"} strokeWidth="2">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill={loved ? "white" : "none"}
+            stroke={loved ? "white" : "#374151"}
+            strokeWidth="2"
+          >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
@@ -95,25 +152,44 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
         <button
           className="absolute bottom-0 left-0 right-0 py-2 text-white text-xs font-semibold translate-y-full group-hover:translate-y-0 transition-transform duration-300"
           style={{ background: "rgba(0,191,179,0.95)", backdropFilter: "blur(4px)" }}
-          onClick={e => { e.stopPropagation(); addToCart(product); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            addToCart(product);
+          }}
         >
           + Thêm vào giỏ hàng
         </button>
       </div>
       <div className="p-4">
-        <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-1 truncate font-medium">{product.sellerName}</p>
-        <h3 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2 mb-3 min-h-[2.5rem]">{product.name}</h3>
+        <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-1 truncate font-medium">
+          {product.sellerName}
+        </p>
+        <h3 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2 mb-3 min-h-[2.5rem]">
+          {product.name}
+        </h3>
         <div className="flex items-baseline gap-2 mb-2.5">
-          <span className="font-bold text-base" style={{ color: "#FF6200" }}>{formatPrice(product.price)}</span>
-          {product.originalPrice && (
-            <span className="text-xs text-gray-400 line-through">{formatPrice(product.originalPrice)}</span>
-          )}
+          <span className="font-bold text-base" style={{ color: "#FF6200" }}>
+            {formatPrice(product.price)}
+          </span>
+          {product.originalPrice ? (
+            <span className="text-xs text-gray-400 line-through">
+              {formatPrice(product.originalPrice)}
+            </span>
+          ) : null}
         </div>
         <div className="flex items-center gap-1.5 pt-2.5 border-t border-gray-100">
           <Star size={11} fill="#FF6200" stroke="#FF6200" />
           <span className="text-xs font-semibold text-gray-700">{product.rating}</span>
-          <span className="text-xs text-gray-400">({product.reviewCount >= 1000 ? `${(product.reviewCount/1000).toFixed(1)}k` : product.reviewCount})</span>
-          <span className="text-xs text-gray-400 ml-auto">Đã bán {product.sold >= 1000 ? `${(product.sold/1000).toFixed(0)}k` : product.sold}</span>
+          <span className="text-xs text-gray-400">
+            (
+            {product.reviewCount >= 1000
+              ? `${(product.reviewCount / 1000).toFixed(1)}k`
+              : product.reviewCount}
+            )
+          </span>
+          <span className="text-xs text-gray-400 ml-auto">
+            Đã bán {product.sold >= 1000 ? `${(product.sold / 1000).toFixed(0)}k` : product.sold}
+          </span>
         </div>
       </div>
     </motion.div>
@@ -189,7 +265,10 @@ function HeroSection() {
   const current = heroSlides[slide];
 
   return (
-    <div className="relative overflow-hidden rounded-3xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)]" style={{ minHeight: 440, background: current.bg }}>
+    <div
+      className="relative overflow-hidden rounded-3xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)]"
+      style={{ minHeight: 440, background: current.bg }}
+    >
       {/* Background photo with overlay */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -199,11 +278,25 @@ function HeroSection() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6 }}
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${current.image})`, filter: "brightness(0.35) saturate(1.1)" }}
+          style={{
+            backgroundImage: `url(${current.image})`,
+            filter: "brightness(0.35) saturate(1.1)",
+          }}
         />
       </AnimatePresence>
-      <div className="absolute inset-0" style={{ background: "linear-gradient(105deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.05) 100%)" }} />
-      <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.18), transparent 50%)" }} />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(105deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.05) 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          background: "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.18), transparent 50%)",
+        }}
+      />
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center px-10 md:px-14 py-14 md:py-20 max-w-2xl">
@@ -215,10 +308,24 @@ function HeroSection() {
             exit={{ opacity: 0, x: direction * 30 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
           >
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white mb-6 tracking-wide" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.22)" }}>
+            <span
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white mb-6 tracking-wide"
+              style={{
+                background: "rgba(255,255,255,0.12)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.22)",
+              }}
+            >
               {current.eyebrow}
             </span>
-            <h1 className="text-4xl md:text-6xl font-black text-white leading-[1.05] mb-5 tracking-tight" style={{ fontFamily: "'Be Vietnam Pro', sans-serif", whiteSpace: "pre-line", letterSpacing: "-0.02em" }}>
+            <h1
+              className="text-4xl md:text-6xl font-black text-white leading-[1.05] mb-5 tracking-tight"
+              style={{
+                fontFamily: "'Be Vietnam Pro', sans-serif",
+                whiteSpace: "pre-line",
+                letterSpacing: "-0.02em",
+              }}
+            >
               {current.title}
             </h1>
             <p className="text-white/80 text-base md:text-lg mb-9 leading-relaxed max-w-md font-light">
@@ -251,11 +358,16 @@ function HeroSection() {
               key={i}
               onClick={() => go(i)}
               className="h-1.5 rounded-full transition-all duration-400"
-              style={{ background: i === slide ? "#fff" : "rgba(255,255,255,0.35)", width: i === slide ? 28 : 8 }}
+              style={{
+                background: i === slide ? "#fff" : "rgba(255,255,255,0.35)",
+                width: i === slide ? 28 : 8,
+              }}
             />
           ))}
         </div>
-        <span className="text-white/40 text-xs tabular-nums">{slide + 1}/{heroSlides.length}</span>
+        <span className="text-white/40 text-xs tabular-nums">
+          {slide + 1}/{heroSlides.length}
+        </span>
       </div>
       <button
         onClick={() => go(slide - 1)}
@@ -279,14 +391,32 @@ function HeroSection() {
 function PromoStrip() {
   const navigate = useNavigate();
   const items = [
-    { emoji: "⚡", label: "Flash Sale", sub: "Đến -50%", path: "/search?flash=true", color: "#E53E3E" },
-    { emoji: "🚀", label: "Giao Hỏa Tốc", sub: "2 giờ nhận hàng", path: "/search", color: "#FF6200" },
+    {
+      emoji: "⚡",
+      label: "Flash Sale",
+      sub: "Đến -50%",
+      path: "/search?flash=true",
+      color: "#E53E3E",
+    },
+    {
+      emoji: "🚀",
+      label: "Giao Hỏa Tốc",
+      sub: "2 giờ nhận hàng",
+      path: "/search",
+      color: "#FF6200",
+    },
     { emoji: "🎁", label: "Voucher 50k", sub: "Code: VNSHOP50", path: "/search", color: "#8B5CF6" },
-    { emoji: "🛡️", label: "Hàng Chính Hãng", sub: "Bảo đảm 100%", path: "/search", color: "#10B981" },
+    {
+      emoji: "🛡️",
+      label: "Hàng Chính Hãng",
+      sub: "Bảo đảm 100%",
+      path: "/search",
+      color: "#10B981",
+    },
   ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {items.map(item => (
+      {items.map((item) => (
         <button
           key={item.label}
           onClick={() => navigate(item.path)}
@@ -294,8 +424,12 @@ function PromoStrip() {
         >
           <span className="text-2xl">{item.emoji}</span>
           <div>
-            <p className="text-sm font-semibold text-gray-800 group-hover:text-[#00BFB3] transition-colors">{item.label}</p>
-            <p className="text-xs" style={{ color: item.color }}>{item.sub}</p>
+            <p className="text-sm font-semibold text-gray-800 group-hover:text-[#00BFB3] transition-colors">
+              {item.label}
+            </p>
+            <p className="text-xs" style={{ color: item.color }}>
+              {item.sub}
+            </p>
           </div>
         </button>
       ))}
@@ -319,24 +453,41 @@ function FlashSaleSection() {
         <div className="px-6 pt-5 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)" }}>
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(255,255,255,0.15)" }}
+              >
                 <Zap size={24} fill="white" className="text-white" />
               </div>
               <div>
-                <p className="text-white font-black text-lg leading-tight" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>⚡ FLASH SALE</p>
+                <p
+                  className="text-white font-black text-lg leading-tight"
+                  style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+                >
+                  ⚡ FLASH SALE
+                </p>
                 <p className="text-white/60 text-xs">Giảm sốc — Số lượng có hạn!</p>
               </div>
             </div>
             <div className="sm:ml-auto flex items-center gap-3">
               <span className="text-white/60 text-sm hidden sm:block">Kết thúc sau</span>
               <div className="flex items-center gap-1.5">
-                {[{ v: h, l: "Giờ" }, { v: m, l: "Phút" }, { v: s, l: "Giây" }].map(({ v, l }, i) => (
+                {[
+                  { v: h, l: "Giờ" },
+                  { v: m, l: "Phút" },
+                  { v: s, l: "Giây" },
+                ].map(({ v, l }, i) => (
                   <div key={l} className="flex items-center gap-1.5">
                     <div className="flex flex-col items-center">
-                      <span className="text-white font-black text-xl tabular-nums w-12 h-12 flex items-center justify-center rounded-xl" style={{ background: "rgba(0,0,0,0.3)" }}>{v}</span>
+                      <span
+                        className="text-white font-black text-xl tabular-nums w-12 h-12 flex items-center justify-center rounded-xl"
+                        style={{ background: "rgba(0,0,0,0.3)" }}
+                      >
+                        {v}
+                      </span>
                       <span className="text-white/50 text-[10px] mt-0.5">{l}</span>
                     </div>
-                    {i < 2 && <span className="text-white/50 font-bold text-lg mb-4">:</span>}
+                    {i < 2 ? <span className="text-white/50 font-bold text-lg mb-4">:</span> : null}
                   </div>
                 ))}
               </div>
@@ -362,18 +513,38 @@ function FlashSaleSection() {
                 className="shrink-0 group"
                 style={{ width: 130 }}
               >
-                <div className="rounded-xl overflow-hidden mb-2 relative" style={{ aspectRatio: "1" }}>
-                  <ImageWithFallback src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute bottom-0 left-0 right-0 py-1 text-center" style={{ background: "rgba(229,53,62,0.9)" }}>
+                <div
+                  className="rounded-xl overflow-hidden mb-2 relative"
+                  style={{ aspectRatio: "1" }}
+                >
+                  <ImageWithFallback
+                    src={p.image}
+                    alt={p.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div
+                    className="absolute bottom-0 left-0 right-0 py-1 text-center"
+                    style={{ background: "rgba(229,53,62,0.9)" }}
+                  >
                     <span className="text-white font-black text-xs">-{p.discount}%</span>
                   </div>
                 </div>
-                <p className="text-white text-xs font-medium text-left line-clamp-1 mb-0.5">{p.name.split(" ").slice(0, 5).join(" ")}</p>
-                <p className="text-yellow-300 font-bold text-sm text-left">{formatPrice(p.price)}</p>
+                <p className="text-white text-xs font-medium text-left line-clamp-1 mb-0.5">
+                  {p.name.split(" ").slice(0, 5).join(" ")}
+                </p>
+                <p className="text-yellow-300 font-bold text-sm text-left">
+                  {formatPrice(p.price)}
+                </p>
                 {/* Sold progress */}
                 <div className="mt-1.5">
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.2)" }}>
-                    <div className="h-full rounded-full bg-yellow-300" style={{ width: `${(i % 4) * 15 + 35}%` }} />
+                  <div
+                    className="h-1.5 rounded-full overflow-hidden"
+                    style={{ background: "rgba(255,255,255,0.2)" }}
+                  >
+                    <div
+                      className="h-full rounded-full bg-yellow-300"
+                      style={{ width: `${(i % 4) * 15 + 35}%` }}
+                    />
                   </div>
                   <p className="text-white/50 text-[10px] mt-0.5">Đã bán {(i % 4) * 15 + 35}%</p>
                 </div>
@@ -390,9 +561,14 @@ function FlashSaleSection() {
 function CategoriesSection() {
   const navigate = useNavigate();
   const catColors: Record<string, string> = {
-    electronics: "#3B82F6", fashion: "#EC4899", beauty: "#F59E0B",
-    home: "#10B981", sports: "#FF6200", books: "#8B5CF6",
-    food: "#EF4444", toys: "#F97316",
+    electronics: "#3B82F6",
+    fashion: "#EC4899",
+    beauty: "#F59E0B",
+    home: "#10B981",
+    sports: "#FF6200",
+    books: "#8B5CF6",
+    food: "#EF4444",
+    toys: "#F97316",
   };
   return (
     <section>
@@ -411,11 +587,18 @@ function CategoriesSection() {
               onClick={() => navigate(`/search?cat=${cat.id}`)}
               className="flex flex-col items-center gap-2.5 py-5 px-2 rounded-2xl bg-white border border-gray-100 hover:border-transparent hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.18)] transition-all cursor-pointer"
             >
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-[26px]" style={{ background: `${color}14` }}>
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center text-[26px]"
+                style={{ background: `${color}14` }}
+              >
                 {cat.emoji}
               </div>
-              <span className="text-[13px] font-semibold text-gray-800 text-center leading-tight">{cat.label}</span>
-              <span className="text-[11px] text-gray-400 font-medium">{(cat.count / 1000).toFixed(0)}k sản phẩm</span>
+              <span className="text-[13px] font-semibold text-gray-800 text-center leading-tight">
+                {cat.label}
+              </span>
+              <span className="text-[11px] text-gray-400 font-medium">
+                {(cat.count / 1000).toFixed(0)}k sản phẩm
+              </span>
             </motion.button>
           );
         })}
@@ -427,16 +610,22 @@ function CategoriesSection() {
 // ─── Trust Bar ────────────────────────────────────────────────────────────────
 function TrustBar() {
   const items = [
-    { icon: Truck,       text: "Miễn phí vận chuyển", sub: "Đơn từ 150.000đ", color: "#00BFB3" },
-    { icon: Shield,      text: "Hàng chính hãng 100%", sub: "Cam kết hoàn tiền", color: "#3B82F6" },
-    { icon: RefreshCw,   text: "Đổi trả 30 ngày", sub: "Không cần lý do", color: "#10B981" },
-    { icon: Headphones,  text: "Hỗ trợ 24/7", sub: "1800 6789 miễn phí", color: "#F59E0B" },
+    { icon: Truck, text: "Miễn phí vận chuyển", sub: "Đơn từ 150.000đ", color: "#00BFB3" },
+    { icon: Shield, text: "Hàng chính hãng 100%", sub: "Cam kết hoàn tiền", color: "#3B82F6" },
+    { icon: RefreshCw, text: "Đổi trả 30 ngày", sub: "Không cần lý do", color: "#10B981" },
+    { icon: Headphones, text: "Hỗ trợ 24/7", sub: "1800 6789 miễn phí", color: "#F59E0B" },
   ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100">
-      {items.map(item => (
-        <div key={item.text} className="flex items-center gap-3.5 p-5 bg-white hover:bg-gray-50/50 transition-colors">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${item.color}14` }}>
+      {items.map((item) => (
+        <div
+          key={item.text}
+          className="flex items-center gap-3.5 p-5 bg-white hover:bg-gray-50/50 transition-colors"
+        >
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: `${item.color}14` }}
+          >
             <item.icon size={20} style={{ color: item.color }} strokeWidth={2.2} />
           </div>
           <div>
@@ -459,12 +648,32 @@ function PromoBanners() {
         style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)", minHeight: 160 }}
         onClick={() => navigate("/search?cat=electronics")}
       >
-        <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-15" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=60)", backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1/2 opacity-15"
+          style={{
+            backgroundImage:
+              "url(https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=60)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
         <div className="relative z-10">
-          <span className="text-xs font-bold text-blue-300 tracking-wider uppercase">Flash Deal • Hôm Nay</span>
-          <h3 className="text-2xl font-black text-white mt-1.5 mb-2" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>Điện Tử Giảm 40%</h3>
-          <p className="text-gray-400 text-sm mb-5 max-w-xs">Laptop, tai nghe Sony, smartwatch — Bảo hành 12 tháng chính hãng</p>
-          <button className="flex items-center gap-1.5 text-sm font-semibold text-white px-4 py-2 rounded-lg transition-colors hover:bg-white/10" style={{ border: "1px solid rgba(255,255,255,0.2)" }}>
+          <span className="text-xs font-bold text-blue-300 tracking-wider uppercase">
+            Flash Deal • Hôm Nay
+          </span>
+          <h3
+            className="text-2xl font-black text-white mt-1.5 mb-2"
+            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+          >
+            Điện Tử Giảm 40%
+          </h3>
+          <p className="text-gray-400 text-sm mb-5 max-w-xs">
+            Laptop, tai nghe Sony, smartwatch — Bảo hành 12 tháng chính hãng
+          </p>
+          <button
+            className="flex items-center gap-1.5 text-sm font-semibold text-white px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
+            style={{ border: "1px solid rgba(255,255,255,0.2)" }}
+          >
             Mua ngay <ArrowRight size={15} />
           </button>
         </div>
@@ -476,19 +685,35 @@ function PromoBanners() {
           onClick={() => navigate("/search?cat=fashion")}
         >
           <span className="text-xs font-bold text-yellow-100 tracking-wider uppercase">Mới về</span>
-          <h3 className="text-lg font-black text-white mt-1 mb-1" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>Thời Trang Hè</h3>
+          <h3
+            className="text-lg font-black text-white mt-1 mb-1"
+            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+          >
+            Thời Trang Hè
+          </h3>
           <p className="text-yellow-100/80 text-xs mb-3">Xu hướng mới nhất 2026</p>
-          <button className="text-xs font-semibold text-white flex items-center gap-1 opacity-80 hover:opacity-100">Khám phá <ChevronRight size={13} /></button>
+          <button className="text-xs font-semibold text-white flex items-center gap-1 opacity-80 hover:opacity-100">
+            Khám phá <ChevronRight size={13} />
+          </button>
         </div>
         <div
           className="flex-1 rounded-2xl p-5 cursor-pointer hover:opacity-95 transition-opacity"
           style={{ background: "linear-gradient(135deg, #7C3AED 0%, #9333EA 100%)" }}
           onClick={() => navigate("/search?cat=beauty")}
         >
-          <span className="text-xs font-bold text-purple-200 tracking-wider uppercase">Beauty Sale</span>
-          <h3 className="text-lg font-black text-white mt-1 mb-1" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>Làm Đẹp -30%</h3>
+          <span className="text-xs font-bold text-purple-200 tracking-wider uppercase">
+            Beauty Sale
+          </span>
+          <h3
+            className="text-lg font-black text-white mt-1 mb-1"
+            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+          >
+            Làm Đẹp -30%
+          </h3>
           <p className="text-purple-200 text-xs mb-3">Skincare Hàn Quốc chính hãng</p>
-          <button className="text-xs font-semibold text-white flex items-center gap-1 opacity-80 hover:opacity-100">Xem ngay <ChevronRight size={13} /></button>
+          <button className="text-xs font-semibold text-white flex items-center gap-1 opacity-80 hover:opacity-100">
+            Xem ngay <ChevronRight size={13} />
+          </button>
         </div>
       </div>
     </div>
@@ -514,9 +739,19 @@ function SellerShowcase() {
             onClick={() => navigate(`/search?seller=${seller.id}`)}
           >
             {/* Banner */}
-            <div className="h-24 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #E6FAF9, #B3F0ED)" }}>
-              <ImageWithFallback src={seller.banner} alt={seller.name} className="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: "#00BFB3" }}>
+            <div
+              className="h-24 relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #E6FAF9, #B3F0ED)" }}
+            >
+              <ImageWithFallback
+                src={seller.banner}
+                alt={seller.name}
+                className="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500"
+              />
+              <div
+                className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-xs font-bold text-white"
+                style={{ background: "#00BFB3" }}
+              >
                 Mall
               </div>
             </div>
@@ -534,7 +769,7 @@ function SellerShowcase() {
               </div>
               <div className="flex items-center gap-2 mb-0.5">
                 <h3 className="font-bold text-gray-900 text-sm">{seller.name}</h3>
-                {seller.verified && <Award size={13} style={{ color: "#F59E0B" }} />}
+                {seller.verified ? <Award size={13} style={{ color: "#F59E0B" }} /> : null}
               </div>
               <div className="flex items-center gap-1.5 mb-3 text-xs text-gray-500">
                 <Star size={11} fill="#FF6200" stroke="#FF6200" />
@@ -547,7 +782,7 @@ function SellerShowcase() {
                   { label: "Sản phẩm", value: seller.products },
                   { label: "Phản hồi", value: `${seller.responseRate}%` },
                   { label: "Đã bán", value: `${(seller.sales / 1000).toFixed(0)}k` },
-                ].map(stat => (
+                ].map((stat) => (
                   <div key={stat.label} className="text-center">
                     <p className="font-bold text-sm text-gray-900">{stat.value}</p>
                     <p className="text-xs text-gray-400">{stat.label}</p>
@@ -610,8 +845,8 @@ function ProductsSection() {
     { id: "sports", label: "Thể Thao", emoji: "⚽" },
   ];
   const filtered = useMemo(
-    () => activeTab === "all" ? catalog : catalog.filter(p => p.category === activeTab),
-    [activeTab, catalog]
+    () => (activeTab === "all" ? catalog : catalog.filter((p) => p.category === activeTab)),
+    [activeTab, catalog],
   );
 
   return (
@@ -620,26 +855,46 @@ function ProductsSection() {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <Sparkles size={18} style={{ color: "#00BFB3" }} />
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#00BFB3" }}>Dành riêng cho bạn</span>
+            <span
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: "#00BFB3" }}
+            >
+              Dành riêng cho bạn
+            </span>
           </div>
-          <h2 className="text-2xl md:text-[26px] font-bold tracking-tight text-gray-900 leading-tight" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>Gợi Ý Cho Bạn</h2>
+          <h2
+            className="text-2xl md:text-[26px] font-bold tracking-tight text-gray-900 leading-tight"
+            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+          >
+            Gợi Ý Cho Bạn
+          </h2>
           <p className="text-sm text-gray-500 mt-1.5">Được cá nhân hóa dựa trên sở thích mua sắm</p>
         </div>
-        <button onClick={() => navigate("/search")} className="group flex items-center gap-1.5 text-sm font-semibold transition-all px-3 py-1.5 rounded-full hover:bg-gray-50" style={{ color: "#00BFB3" }}>
-          Xem tất cả <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+        <button
+          onClick={() => navigate("/search")}
+          className="group flex items-center gap-1.5 text-sm font-semibold transition-all px-3 py-1.5 rounded-full hover:bg-gray-50"
+          style={{ color: "#00BFB3" }}
+        >
+          Xem tất cả{" "}
+          <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1 scrollbar-hide">
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
-            style={activeTab === tab.id
-              ? { background: "#00BFB3", color: "#fff", boxShadow: "0 4px 12px rgba(0,191,179,0.35)" }
-              : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
+            style={
+              activeTab === tab.id
+                ? {
+                    background: "#00BFB3",
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(0,191,179,0.35)",
+                  }
+                : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
             }
           >
             <span>{tab.emoji}</span> {tab.label}
@@ -660,8 +915,12 @@ function ProductsSection() {
           onClick={() => navigate("/search")}
           className="px-8 py-3 rounded-full font-semibold text-sm border-2 transition-all hover:text-white hover:shadow-lg"
           style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#00BFB3"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#00BFB3";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+          }}
         >
           Xem thêm sản phẩm →
         </button>
@@ -690,11 +949,18 @@ function Bestsellers() {
           >
             <span
               className="text-base font-black w-7 text-center shrink-0"
-              style={{ color: i < 3 ? "#FF6200" : "#D1D5DB", fontFamily: "'Be Vietnam Pro', sans-serif" }}
+              style={{
+                color: i < 3 ? "#FF6200" : "#D1D5DB",
+                fontFamily: "'Be Vietnam Pro', sans-serif",
+              }}
             >
               {i + 1}
             </span>
-            <ImageWithFallback src={p.image} alt={p.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+            <ImageWithFallback
+              src={p.image}
+              alt={p.name}
+              className="w-12 h-12 rounded-lg object-cover shrink-0"
+            />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-gray-800 line-clamp-2 leading-tight group-hover:text-[#00BFB3] transition-colors">
                 {p.name}
@@ -702,10 +968,17 @@ function Bestsellers() {
               <p className="text-xs text-gray-400 mt-0.5">{p.sold.toLocaleString()} đã bán</p>
             </div>
             <div className="shrink-0 text-right">
-              <p className="text-xs font-bold" style={{ color: "#FF6200" }}>{formatPrice(p.price)}</p>
-              {p.discount && (
-                <span className="text-[10px] font-bold px-1 py-0.5 rounded" style={{ background: "#FFF2EA", color: "#FF6200" }}>-{p.discount}%</span>
-              )}
+              <p className="text-xs font-bold" style={{ color: "#FF6200" }}>
+                {formatPrice(p.price)}
+              </p>
+              {p.discount ? (
+                <span
+                  className="text-[10px] font-bold px-1 py-0.5 rounded"
+                  style={{ background: "#FFF2EA", color: "#FF6200" }}
+                >
+                  -{p.discount}%
+                </span>
+              ) : null}
             </div>
           </motion.div>
         ))}
@@ -721,20 +994,40 @@ function AppBanner() {
       className="rounded-2xl overflow-hidden relative"
       style={{ background: "linear-gradient(135deg, #00BFB3 0%, #009990 100%)", minHeight: 120 }}
     >
-      <div className="absolute right-0 top-0 bottom-0 w-64 opacity-10" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=300&q=50)", backgroundSize: "cover" }} />
+      <div
+        className="absolute right-0 top-0 bottom-0 w-64 opacity-10"
+        style={{
+          backgroundImage:
+            "url(https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=300&q=50)",
+          backgroundSize: "cover",
+        }}
+      />
       <div className="relative z-10 px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
         <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
           <span className="text-2xl">📱</span>
         </div>
         <div className="flex-1">
-          <h3 className="font-black text-white text-lg mb-0.5" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>Tải App VNShop</h3>
-          <p className="text-white/75 text-sm">Nhận thêm ưu đãi độc quyền — Voucher 100k cho lần mua đầu qua app</p>
+          <h3
+            className="font-black text-white text-lg mb-0.5"
+            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+          >
+            Tải App VNShop
+          </h3>
+          <p className="text-white/75 text-sm">
+            Nhận thêm ưu đãi độc quyền — Voucher 100k cho lần mua đầu qua app
+          </p>
         </div>
         <div className="flex gap-2.5 shrink-0">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity" style={{ color: "#009990" }}>
+          <button
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
+            style={{ color: "#009990" }}
+          >
             <span>🍎</span> App Store
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity" style={{ color: "#009990" }}>
+          <button
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
+            style={{ color: "#009990" }}
+          >
             <span>🤖</span> Google Play
           </button>
         </div>
@@ -754,7 +1047,10 @@ function UserWidget() {
         {isLoggedIn && user ? (
           <>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold" style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}>
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold"
+                style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+              >
                 {user.name.charAt(0)}
               </div>
               <div>
@@ -768,14 +1064,16 @@ function UserWidget() {
                 { label: "Yêu thích", value: wishlist.length, color: "#FF6200", path: "/wishlist" },
                 { label: "Đơn hàng", value: 3, color: "#3B82F6", path: "/orders" },
                 { label: "Voucher", value: 5, color: "#10B981", path: "/profile" },
-              ].map(item => (
+              ].map((item) => (
                 <button
                   key={item.label}
                   onClick={() => navigate(item.path)}
                   className="text-center p-2.5 rounded-xl hover:opacity-80 transition-opacity"
                   style={{ background: `${item.color}10` }}
                 >
-                  <p className="font-bold text-base" style={{ color: item.color }}>{item.value}</p>
+                  <p className="font-bold text-base" style={{ color: item.color }}>
+                    {item.value}
+                  </p>
                   <p className="text-xs text-gray-500 mt-0.5">{item.label}</p>
                 </button>
               ))}
@@ -783,14 +1081,29 @@ function UserWidget() {
           </>
         ) : (
           <div className="text-center py-2">
-            <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: "#E6FAF9" }}>
+            <div
+              className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
+              style={{ background: "#E6FAF9" }}
+            >
               <span className="text-3xl">👋</span>
             </div>
             <p className="font-semibold text-gray-800 mb-1">Chào bạn!</p>
             <p className="text-xs text-gray-500 mb-4">Đăng nhập để nhận ưu đãi cá nhân</p>
             <div className="flex gap-2">
-              <button onClick={() => navigate("/login")} className="flex-1 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "#00BFB3" }}>Đăng nhập</button>
-              <button onClick={() => navigate("/login")} className="flex-1 py-2 rounded-xl text-sm font-semibold border" style={{ color: "#00BFB3", borderColor: "#00BFB3" }}>Đăng ký</button>
+              <button
+                onClick={() => navigate("/login")}
+                className="flex-1 py-2 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "#00BFB3" }}
+              >
+                Đăng nhập
+              </button>
+              <button
+                onClick={() => navigate("/login")}
+                className="flex-1 py-2 rounded-xl text-sm font-semibold border"
+                style={{ color: "#00BFB3", borderColor: "#00BFB3" }}
+              >
+                Đăng ký
+              </button>
             </div>
           </div>
         )}
@@ -801,7 +1114,10 @@ function UserWidget() {
         className="rounded-2xl p-4 text-white relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, #FF6200, #FF8C00)" }}
       >
-        <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full opacity-15" style={{ background: "rgba(255,255,255,0.4)" }} />
+        <div
+          className="absolute -right-4 -top-4 w-24 h-24 rounded-full opacity-15"
+          style={{ background: "rgba(255,255,255,0.4)" }}
+        />
         <div className="flex items-center gap-2 mb-2">
           <Gift size={16} className="text-white" />
           <p className="font-bold text-sm">Voucher hôm nay</p>

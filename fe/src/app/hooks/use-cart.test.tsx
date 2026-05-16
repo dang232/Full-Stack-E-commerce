@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { type ReactNode } from "react";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 const useAuthMock = vi.fn();
 vi.mock("./use-auth", () => ({
@@ -127,9 +127,7 @@ describe("useCart", () => {
     await waitFor(() => expect(result.current.items).toEqual([]));
 
     await act(async () => {
-      await result.current
-        .addItemAsync({ productId: "p1", quantity: 1 })
-        .catch(() => undefined);
+      await result.current.addItemAsync({ productId: "p1", quantity: 1 }).catch(() => undefined);
     });
 
     // Cache restored from snapshot — no extra refetch needed.

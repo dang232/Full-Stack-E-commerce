@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 import { Bell, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+
 import { useAuth } from "../hooks/use-auth";
 import { useNotifications } from "../hooks/use-notifications";
 import type { Notification } from "../types/api";
@@ -51,12 +52,12 @@ export function NotificationBell() {
       try {
         const url = new URL(n.deepLink, window.location.origin);
         if (url.origin === window.location.origin) {
-          navigate(url.pathname + url.search + url.hash);
+          void navigate(url.pathname + url.search + url.hash);
           return;
         }
         window.location.href = n.deepLink;
       } catch {
-        navigate(n.deepLink);
+        void navigate(n.deepLink);
       }
     }
   };
@@ -66,7 +67,7 @@ export function NotificationBell() {
       <button
         onClick={() => {
           if (!authenticated) {
-            navigate("/login?next=%2Fprofile");
+            void navigate("/login?next=%2Fprofile");
             return;
           }
           setOpen((v) => !v);
@@ -78,18 +79,18 @@ export function NotificationBell() {
         aria-haspopup="menu"
       >
         <Bell size={22} />
-        {unreadCount > 0 && (
+        {unreadCount > 0 ? (
           <span
             className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 rounded-full text-white text-[10px] font-bold flex items-center justify-center"
             style={{ background: "#EF4444" }}
           >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
-        )}
+        ) : null}
       </button>
 
       <AnimatePresence>
-        {open && authenticated && (
+        {open && authenticated ? (
           <motion.div
             role="menu"
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
@@ -100,22 +101,22 @@ export function NotificationBell() {
           >
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <h3 className="font-semibold text-sm text-gray-800">Thông báo</h3>
-              {unreadCount > 0 && (
+              {unreadCount > 0 ? (
                 <span className="text-[11px] text-gray-500">{unreadCount} chưa đọc</span>
-              )}
+              ) : null}
             </div>
 
             <div className="max-h-96 overflow-y-auto">
-              {isLoading && (
+              {isLoading ? (
                 <p className="px-4 py-6 text-sm text-gray-400 text-center">Đang tải...</p>
-              )}
-              {!isLoading && items.length === 0 && (
+              ) : null}
+              {!isLoading && items.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <Bell size={32} className="mx-auto mb-3 text-gray-200" />
                   <p className="text-sm text-gray-400">Chưa có thông báo nào</p>
                 </div>
-              )}
-              {!isLoading && items.length > 0 && (
+              ) : null}
+              {!isLoading && items.length > 0 ? (
                 <ul className="divide-y divide-gray-50">
                   {items.map((n) => (
                     <li key={n.id}>
@@ -140,34 +141,34 @@ export function NotificationBell() {
                             >
                               {n.title ?? n.type ?? "Thông báo"}
                             </p>
-                            {n.read === false && (
+                            {n.read === false ? (
                               <span
                                 className="w-2 h-2 rounded-full shrink-0 mt-1.5"
                                 style={{ background: "#FF6200" }}
                               />
-                            )}
+                            ) : null}
                           </div>
-                          {n.body && (
+                          {n.body ? (
                             <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{n.body}</p>
-                          )}
-                          {n.createdAt && (
+                          ) : null}
+                          {n.createdAt ? (
                             <p className="text-[11px] text-gray-400 mt-1">
                               {relativeTime(n.createdAt)}
                             </p>
-                          )}
+                          ) : null}
                         </div>
                       </button>
                     </li>
                   ))}
                 </ul>
-              )}
+              ) : null}
             </div>
 
             <div className="px-4 py-2.5 border-t border-gray-100 text-center">
               <button
                 onClick={() => {
                   setOpen(false);
-                  navigate("/profile");
+                  void navigate("/profile");
                 }}
                 className="text-xs font-medium"
                 style={{ color: "#00BFB3" }}
@@ -176,7 +177,7 @@ export function NotificationBell() {
               </button>
             </div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );

@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { type ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const myOrdersMock = vi.fn();
 const orderByIdMock = vi.fn();
@@ -39,10 +39,9 @@ describe("useMyOrders", () => {
   it("forwards pagination + filter params to myOrders", async () => {
     myOrdersMock.mockResolvedValue({ content: [], totalElements: 0 });
     const { Wrapper } = makeWrapper();
-    const { result } = renderHook(
-      () => useMyOrders({ page: 2, size: 10, status: "shipping" }),
-      { wrapper: Wrapper },
-    );
+    const { result } = renderHook(() => useMyOrders({ page: 2, size: 10, status: "shipping" }), {
+      wrapper: Wrapper,
+    });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(myOrdersMock).toHaveBeenCalledWith({ page: 2, size: 10, status: "shipping" });
   });

@@ -1,5 +1,5 @@
-import { api } from "../client";
 import { pageSchema, productSummarySchema } from "../../../types/api";
+import { api } from "../client";
 
 export interface SearchParams {
   q?: string;

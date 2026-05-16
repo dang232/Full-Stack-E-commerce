@@ -1,20 +1,47 @@
-import { useState } from "react";
-import { motion } from "motion/react";
 import {
-  Check, Copy, ChevronRight, Star, Zap, Heart, ShoppingCart,
-  Bell, Search, Package, Tag, Shield, Truck, ArrowRight,
-  TrendingUp, Eye, AlertCircle, Info, CheckCircle, XCircle,
-  Plus, Minus, X, Filter, SlidersHorizontal, Store, User, Home
+  Check,
+  Copy,
+  ChevronRight,
+  Star,
+  Zap,
+  Heart,
+  ShoppingCart,
+  Bell,
+  Search,
+  Package,
+  Tag,
+  Shield,
+  Truck,
+  ArrowRight,
+  TrendingUp,
+  Eye,
+  AlertCircle,
+  Info,
+  CheckCircle,
+  XCircle,
+  Plus,
+  Minus,
+  X,
+  Filter,
+  SlidersHorizontal,
+  Store,
+  User,
+  Home,
 } from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
+
 import { formatPrice } from "../lib/format";
 
 // ─── Color Token ────────────────────────────────────────────────────────────
-type ColorSwatch = {
-  name: string; hex: string; textDark?: boolean;
-};
+interface ColorSwatch {
+  name: string;
+  hex: string;
+  textDark?: boolean;
+}
 
 const TEAL_PALETTE: ColorSwatch[] = [
-  { name: "Teal 50",  hex: "#E6FAF9", textDark: true },
+  { name: "Teal 50", hex: "#E6FAF9", textDark: true },
   { name: "Teal 100", hex: "#B3F0ED", textDark: true },
   { name: "Teal 200", hex: "#80E6E2", textDark: true },
   { name: "Teal 300", hex: "#4DDBD6", textDark: true },
@@ -26,7 +53,7 @@ const TEAL_PALETTE: ColorSwatch[] = [
   { name: "Teal 900", hex: "#005C57" },
 ];
 const ORANGE_PALETTE: ColorSwatch[] = [
-  { name: "Orange 50",  hex: "#FFF2EA", textDark: true },
+  { name: "Orange 50", hex: "#FFF2EA", textDark: true },
   { name: "Orange 100", hex: "#FFD9BF", textDark: true },
   { name: "Orange 200", hex: "#FFB580", textDark: true },
   { name: "Orange 300", hex: "#FF9240", textDark: true },
@@ -38,7 +65,7 @@ const ORANGE_PALETTE: ColorSwatch[] = [
   { name: "Orange 900", hex: "#7F3000" },
 ];
 const NEUTRAL_PALETTE: ColorSwatch[] = [
-  { name: "Gray 50",  hex: "#F9FAFB", textDark: true },
+  { name: "Gray 50", hex: "#F9FAFB", textDark: true },
   { name: "Gray 100", hex: "#F3F4F6", textDark: true },
   { name: "Gray 200", hex: "#E5E7EB", textDark: true },
   { name: "Gray 300", hex: "#D1D5DB", textDark: true },
@@ -50,22 +77,22 @@ const NEUTRAL_PALETTE: ColorSwatch[] = [
   { name: "Gray 900", hex: "#111827" },
 ];
 const SEMANTIC_COLORS: ColorSwatch[] = [
-  { name: "Success",  hex: "#10B981" },
-  { name: "Warning",  hex: "#F59E0B", textDark: true },
-  { name: "Error",    hex: "#EF4444" },
-  { name: "Info",     hex: "#3B82F6" },
+  { name: "Success", hex: "#10B981" },
+  { name: "Warning", hex: "#F59E0B", textDark: true },
+  { name: "Error", hex: "#EF4444" },
+  { name: "Info", hex: "#3B82F6" },
 ];
 
 function SwatchRow({ swatches }: { swatches: ColorSwatch[] }) {
   const [copied, setCopied] = useState<string | null>(null);
   const copy = (hex: string) => {
-    navigator.clipboard.writeText(hex);
+    void navigator.clipboard.writeText(hex);
     setCopied(hex);
     setTimeout(() => setCopied(null), 1400);
   };
   return (
     <div className="flex gap-1.5 flex-wrap">
-      {swatches.map(s => (
+      {swatches.map((s) => (
         <button
           key={s.hex}
           onClick={() => copy(s.hex)}
@@ -73,12 +100,20 @@ function SwatchRow({ swatches }: { swatches: ColorSwatch[] }) {
           style={{ width: 80 }}
           title={s.hex}
         >
-          <div className="h-14 w-full flex items-center justify-center" style={{ background: s.hex }}>
-            <span className={`opacity-0 group-hover:opacity-100 transition-opacity ${s.textDark ? "text-gray-800" : "text-white"}`}>
+          <div
+            className="h-14 w-full flex items-center justify-center"
+            style={{ background: s.hex }}
+          >
+            <span
+              className={`opacity-0 group-hover:opacity-100 transition-opacity ${s.textDark ? "text-gray-800" : "text-white"}`}
+            >
               {copied === s.hex ? <Check size={14} /> : <Copy size={14} />}
             </span>
           </div>
-          <div className="px-1.5 py-1.5 bg-white border border-gray-100" style={{ fontSize: 10, lineHeight: 1.4 }}>
+          <div
+            className="px-1.5 py-1.5 bg-white border border-gray-100"
+            style={{ fontSize: 10, lineHeight: 1.4 }}
+          >
             <div className="font-semibold text-gray-700 truncate">{s.name}</div>
             <div className="text-gray-400 font-mono">{s.hex}</div>
           </div>
@@ -89,12 +124,20 @@ function SwatchRow({ swatches }: { swatches: ColorSwatch[] }) {
 }
 
 // ─── Section ─────────────────────────────────────────────────────────────────
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="mb-16">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        {subtitle && <p className="text-gray-500 mt-1">{subtitle}</p>}
+        {subtitle ? <p className="text-gray-500 mt-1">{subtitle}</p> : null}
       </div>
       {children}
     </section>
@@ -110,7 +153,9 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{children}</p>;
+  return (
+    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{children}</p>
+  );
 }
 
 // ─── Buttons ─────────────────────────────────────────────────────────────────
@@ -127,27 +172,54 @@ function ButtonShowcase() {
         <div>
           <Label>Primary — Teal</Label>
           <div className="flex flex-wrap gap-3 items-center">
-            <button className="px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 active:scale-95" style={{ background: "#00BFB3" }}>
+            <button
+              className="px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 active:scale-95"
+              style={{ background: "#00BFB3" }}
+            >
               Mua ngay
             </button>
-            <button className="px-5 py-2.5 rounded-xl text-white font-semibold transition-all hover:opacity-90 active:scale-95" style={{ background: "#00BFB3" }}>
+            <button
+              className="px-5 py-2.5 rounded-xl text-white font-semibold transition-all hover:opacity-90 active:scale-95"
+              style={{ background: "#00BFB3" }}
+            >
               Thêm vào giỏ
             </button>
-            <button className="px-6 py-3 rounded-xl text-white font-semibold text-lg transition-all hover:opacity-90 active:scale-95" style={{ background: "#00BFB3" }}>
+            <button
+              className="px-6 py-3 rounded-xl text-white font-semibold text-lg transition-all hover:opacity-90 active:scale-95"
+              style={{ background: "#00BFB3" }}
+            >
               Thanh toán
             </button>
-            <button disabled className="px-5 py-2.5 rounded-xl text-white font-semibold opacity-40 cursor-not-allowed" style={{ background: "#00BFB3" }}>
+            <button
+              disabled
+              className="px-5 py-2.5 rounded-xl text-white font-semibold opacity-40 cursor-not-allowed"
+              style={{ background: "#00BFB3" }}
+            >
               Disabled
             </button>
-            <button onClick={triggerLoad} className="px-5 py-2.5 rounded-xl text-white font-semibold flex items-center gap-2 transition-all hover:opacity-90" style={{ background: "#00BFB3" }}>
+            <button
+              onClick={triggerLoad}
+              className="px-5 py-2.5 rounded-xl text-white font-semibold flex items-center gap-2 transition-all hover:opacity-90"
+              style={{ background: "#00BFB3" }}
+            >
               {loading ? (
                 <>
-                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  <svg
+                    className="animate-spin"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   </svg>
                   Đang xử lý…
                 </>
-              ) : "Loading State"}
+              ) : (
+                "Loading State"
+              )}
             </button>
           </div>
         </div>
@@ -155,13 +227,22 @@ function ButtonShowcase() {
         <div>
           <Label>CTA — Orange</Label>
           <div className="flex flex-wrap gap-3 items-center">
-            <button className="px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 active:scale-95" style={{ background: "#FF6200" }}>
+            <button
+              className="px-4 py-2 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 active:scale-95"
+              style={{ background: "#FF6200" }}
+            >
               Flash Sale
             </button>
-            <button className="px-5 py-2.5 rounded-xl text-white font-semibold transition-all hover:opacity-90 active:scale-95 flex items-center gap-1.5" style={{ background: "#FF6200" }}>
+            <button
+              className="px-5 py-2.5 rounded-xl text-white font-semibold transition-all hover:opacity-90 active:scale-95 flex items-center gap-1.5"
+              style={{ background: "#FF6200" }}
+            >
               <Zap size={15} fill="white" /> Mua ngay
             </button>
-            <button className="px-6 py-3 rounded-xl text-white font-semibold text-lg flex items-center gap-2 transition-all hover:opacity-90 active:scale-95" style={{ background: "linear-gradient(135deg, #FF6200, #FF8C00)" }}>
+            <button
+              className="px-6 py-3 rounded-xl text-white font-semibold text-lg flex items-center gap-2 transition-all hover:opacity-90 active:scale-95"
+              style={{ background: "linear-gradient(135deg, #FF6200, #FF8C00)" }}
+            >
               <ShoppingCart size={20} /> Đặt hàng
             </button>
           </div>
@@ -170,7 +251,10 @@ function ButtonShowcase() {
         <div>
           <Label>Outlined & Ghost</Label>
           <div className="flex flex-wrap gap-3 items-center">
-            <button className="px-5 py-2.5 rounded-xl font-semibold border-2 transition-all hover:bg-teal-50" style={{ color: "#00BFB3", borderColor: "#00BFB3" }}>
+            <button
+              className="px-5 py-2.5 rounded-xl font-semibold border-2 transition-all hover:bg-teal-50"
+              style={{ color: "#00BFB3", borderColor: "#00BFB3" }}
+            >
               Xem thêm
             </button>
             <button className="px-5 py-2.5 rounded-xl font-semibold border-2 border-gray-200 text-gray-700 transition-all hover:bg-gray-50">
@@ -179,7 +263,10 @@ function ButtonShowcase() {
             <button className="px-5 py-2.5 rounded-xl font-semibold text-gray-600 transition-all hover:bg-gray-100">
               Hủy bỏ
             </button>
-            <button className="px-5 py-2.5 rounded-xl font-semibold border-2 transition-all hover:bg-red-50" style={{ color: "#EF4444", borderColor: "#EF4444" }}>
+            <button
+              className="px-5 py-2.5 rounded-xl font-semibold border-2 transition-all hover:bg-red-50"
+              style={{ color: "#EF4444", borderColor: "#EF4444" }}
+            >
               Xóa sản phẩm
             </button>
           </div>
@@ -188,13 +275,19 @@ function ButtonShowcase() {
         <div>
           <Label>Icon Buttons</Label>
           <div className="flex flex-wrap gap-3 items-center">
-            <button className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90" style={{ background: "#00BFB3" }}>
+            <button
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90"
+              style={{ background: "#00BFB3" }}
+            >
               <Heart size={18} />
             </button>
             <button className="w-10 h-10 rounded-xl flex items-center justify-center border-2 border-gray-200 text-gray-600 hover:bg-gray-50 transition-all">
               <Heart size={18} />
             </button>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:opacity-90 shadow-lg" style={{ background: "#FF6200" }}>
+            <button
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:opacity-90 shadow-lg"
+              style={{ background: "#FF6200" }}
+            >
               <Plus size={20} />
             </button>
             <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all">
@@ -223,8 +316,8 @@ function TypographyShowcase() {
               { size: "text-4xl", label: "36px / Bold", text: "Flash Sale mỗi ngày 12:00" },
               { size: "text-3xl", label: "30px / SemiBold", text: "Sản phẩm nổi bật hôm nay" },
               { size: "text-2xl", label: "24px / SemiBold", text: "Danh mục phổ biến" },
-              { size: "text-xl",  label: "20px / Medium",  text: "Thông tin sản phẩm chi tiết" },
-            ].map(t => (
+              { size: "text-xl", label: "20px / Medium", text: "Thông tin sản phẩm chi tiết" },
+            ].map((t) => (
               <div key={t.label} className="flex items-baseline gap-4">
                 <span className="text-gray-300 font-mono w-36 text-xs shrink-0">{t.label}</span>
                 <span className={`${t.size} font-bold leading-tight text-gray-900`}>{t.text}</span>
@@ -236,11 +329,27 @@ function TypographyShowcase() {
           <Label>Inter — Body & UI</Label>
           <div className="space-y-3">
             {[
-              { size: "text-lg",   label: "18px / Regular", text: "Chất lượng sản phẩm được kiểm định bởi đội ngũ chuyên gia VNShop." },
-              { size: "text-base", label: "16px / Regular", text: "Giao hàng nhanh toàn quốc, hoàn tiền 100% nếu không hài lòng." },
-              { size: "text-sm",   label: "14px / Regular", text: "Mô tả sản phẩm: Áo thun nam chất liệu cotton 100%, co giãn thoải mái." },
-              { size: "text-xs",   label: "12px / Regular", text: "Lưu ý: Giá đã bao gồm VAT. Miễn phí vận chuyển cho đơn từ 299.000₫." },
-            ].map(t => (
+              {
+                size: "text-lg",
+                label: "18px / Regular",
+                text: "Chất lượng sản phẩm được kiểm định bởi đội ngũ chuyên gia VNShop.",
+              },
+              {
+                size: "text-base",
+                label: "16px / Regular",
+                text: "Giao hàng nhanh toàn quốc, hoàn tiền 100% nếu không hài lòng.",
+              },
+              {
+                size: "text-sm",
+                label: "14px / Regular",
+                text: "Mô tả sản phẩm: Áo thun nam chất liệu cotton 100%, co giãn thoải mái.",
+              },
+              {
+                size: "text-xs",
+                label: "12px / Regular",
+                text: "Lưu ý: Giá đã bao gồm VAT. Miễn phí vận chuyển cho đơn từ 299.000₫.",
+              },
+            ].map((t) => (
               <div key={t.label} className="flex items-baseline gap-4">
                 <span className="text-gray-300 font-mono w-36 text-xs shrink-0">{t.label}</span>
                 <span className={`${t.size} text-gray-700`}>{t.text}</span>
@@ -251,9 +360,11 @@ function TypographyShowcase() {
         <div className="border-t border-gray-100 pt-6">
           <Label>Font Weights</Label>
           <div className="flex flex-wrap gap-6">
-            {[300, 400, 500, 600, 700, 800].map(w => (
+            {[300, 400, 500, 600, 700, 800].map((w) => (
               <div key={w} className="text-center">
-                <div className="text-2xl text-gray-900 mb-1" style={{ fontWeight: w }}>Aa</div>
+                <div className="text-2xl text-gray-900 mb-1" style={{ fontWeight: w }}>
+                  Aa
+                </div>
                 <div className="text-xs text-gray-400">{w}</div>
               </div>
             ))}
@@ -272,20 +383,54 @@ function BadgesShowcase() {
         <div>
           <Label>Product Badges</Label>
           <div className="flex flex-wrap gap-2.5">
-            <span className="px-2.5 py-1 rounded-full text-white text-xs font-bold" style={{ background: "#FF6200" }}>-30%</span>
-            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-white text-xs font-bold" style={{ background: "#E53E3E" }}>
+            <span
+              className="px-2.5 py-1 rounded-full text-white text-xs font-bold"
+              style={{ background: "#FF6200" }}
+            >
+              -30%
+            </span>
+            <span
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-white text-xs font-bold"
+              style={{ background: "#E53E3E" }}
+            >
               <Zap size={10} fill="white" /> Flash Sale
             </span>
-            <span className="px-2.5 py-1 rounded-full text-white text-xs font-bold" style={{ background: "#10B981" }}>Mới</span>
-            <span className="px-2.5 py-1 rounded-full text-white text-xs font-bold" style={{ background: "#8B5CF6" }}>Độc Quyền</span>
-            <span className="px-2.5 py-1 rounded-full text-white text-xs font-bold" style={{ background: "#00BFB3" }}>Mall</span>
-            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#FFF3E0", color: "#FF6200" }}>
+            <span
+              className="px-2.5 py-1 rounded-full text-white text-xs font-bold"
+              style={{ background: "#10B981" }}
+            >
+              Mới
+            </span>
+            <span
+              className="px-2.5 py-1 rounded-full text-white text-xs font-bold"
+              style={{ background: "#8B5CF6" }}
+            >
+              Độc Quyền
+            </span>
+            <span
+              className="px-2.5 py-1 rounded-full text-white text-xs font-bold"
+              style={{ background: "#00BFB3" }}
+            >
+              Mall
+            </span>
+            <span
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+              style={{ background: "#FFF3E0", color: "#FF6200" }}
+            >
               <Truck size={10} /> Miễn ship
             </span>
-            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#E6FAF9", color: "#00BFB3" }}>
+            <span
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+              style={{ background: "#E6FAF9", color: "#00BFB3" }}
+            >
               <Shield size={10} /> Chính hãng
             </span>
-            <span className="px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "#FEF3C7", color: "#92400E" }}>Bán chạy</span>
+            <span
+              className="px-2.5 py-1 rounded-full text-xs font-bold"
+              style={{ background: "#FEF3C7", color: "#92400E" }}
+            >
+              Bán chạy
+            </span>
           </div>
         </div>
         <div className="border-t border-gray-100 pt-6">
@@ -293,13 +438,17 @@ function BadgesShowcase() {
           <div className="flex flex-wrap gap-2.5">
             {[
               { label: "Chờ xác nhận", bg: "#FEF3C7", color: "#92400E" },
-              { label: "Đã xác nhận",  bg: "#DBEAFE", color: "#1E40AF" },
+              { label: "Đã xác nhận", bg: "#DBEAFE", color: "#1E40AF" },
               { label: "Đang vận chuyển", bg: "#E0E7FF", color: "#3730A3" },
               { label: "Đã giao hàng", bg: "#D1FAE5", color: "#065F46" },
-              { label: "Đã hủy",       bg: "#FEE2E2", color: "#991B1B" },
-              { label: "Hoàn tiền",    bg: "#F3E8FF", color: "#6B21A8" },
-            ].map(s => (
-              <span key={s.label} className="px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: s.bg, color: s.color }}>
+              { label: "Đã hủy", bg: "#FEE2E2", color: "#991B1B" },
+              { label: "Hoàn tiền", bg: "#F3E8FF", color: "#6B21A8" },
+            ].map((s) => (
+              <span
+                key={s.label}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold"
+                style={{ background: s.bg, color: s.color }}
+              >
                 {s.label}
               </span>
             ))}
@@ -308,16 +457,43 @@ function BadgesShowcase() {
         <div className="border-t border-gray-100 pt-6">
           <Label>Notification Pills</Label>
           <div className="flex flex-wrap gap-2.5">
-            <span className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold" style={{ background: "#EF4444" }}>3</span>
-            <span className="px-2 py-0.5 rounded-full text-white text-xs font-bold" style={{ background: "#EF4444" }}>12</span>
-            <span className="px-2 py-0.5 rounded-full text-white text-xs font-bold" style={{ background: "#00BFB3" }}>99+</span>
+            <span
+              className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold"
+              style={{ background: "#EF4444" }}
+            >
+              3
+            </span>
+            <span
+              className="px-2 py-0.5 rounded-full text-white text-xs font-bold"
+              style={{ background: "#EF4444" }}
+            >
+              12
+            </span>
+            <span
+              className="px-2 py-0.5 rounded-full text-white text-xs font-bold"
+              style={{ background: "#00BFB3" }}
+            >
+              99+
+            </span>
           </div>
         </div>
         <div className="border-t border-gray-100 pt-6">
           <Label>Category Tags</Label>
           <div className="flex flex-wrap gap-2">
-            {["Điện thoại", "Thời trang", "Làm đẹp", "Nhà cửa", "Thể thao", "Đồ chơi", "Sách", "Thực phẩm"].map(t => (
-              <button key={t} className="px-3.5 py-1.5 rounded-full text-sm font-medium border border-gray-200 text-gray-600 hover:border-teal-400 hover:text-teal-600 hover:bg-teal-50 transition-all">
+            {[
+              "Điện thoại",
+              "Thời trang",
+              "Làm đẹp",
+              "Nhà cửa",
+              "Thể thao",
+              "Đồ chơi",
+              "Sách",
+              "Thực phẩm",
+            ].map((t) => (
+              <button
+                key={t}
+                className="px-3.5 py-1.5 rounded-full text-sm font-medium border border-gray-200 text-gray-600 hover:border-teal-400 hover:text-teal-600 hover:bg-teal-50 transition-all"
+              >
                 {t}
               </button>
             ))}
@@ -364,7 +540,9 @@ function InputsShowcase() {
               className="w-full px-4 py-2.5 rounded-xl border-2 bg-white text-gray-800"
               style={{ borderColor: "#EF4444", boxShadow: "0 0 0 3px rgba(239,68,68,0.1)" }}
             />
-            <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> Số điện thoại không hợp lệ</p>
+            <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+              <AlertCircle size={12} /> Số điện thoại không hợp lệ
+            </p>
           </div>
           {/* Disabled */}
           <div>
@@ -381,7 +559,10 @@ function InputsShowcase() {
           <Label>Search & Select</Label>
           {/* Search input */}
           <div className="relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+            />
             <input
               type="text"
               placeholder="Tìm kiếm sản phẩm..."
@@ -390,7 +571,9 @@ function InputsShowcase() {
           </div>
           {/* Select */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Tỉnh / Thành phố</label>
+            <label className="text-sm font-medium text-gray-700 block mb-1.5">
+              Tỉnh / Thành phố
+            </label>
             <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-800 focus:outline-none focus:border-teal-400 transition-all appearance-none">
               <option>Hồ Chí Minh</option>
               <option>Hà Nội</option>
@@ -399,7 +582,9 @@ function InputsShowcase() {
           </div>
           {/* Textarea */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Địa chỉ giao hàng</label>
+            <label className="text-sm font-medium text-gray-700 block mb-1.5">
+              Địa chỉ giao hàng
+            </label>
             <textarea
               rows={3}
               placeholder="Số nhà, tên đường, phường/xã..."
@@ -439,8 +624,16 @@ function CardsShowcase() {
             <div className="w-full h-full bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center">
               <Package size={48} className="text-teal-300" />
             </div>
-            <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-white text-xs font-bold" style={{ background: "#FF6200" }}>-25%</span>
-            <span className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: "#FFF3E0", color: "#FF6200" }}>
+            <span
+              className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-white text-xs font-bold"
+              style={{ background: "#FF6200" }}
+            >
+              -25%
+            </span>
+            <span
+              className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold"
+              style={{ background: "#FFF3E0", color: "#FF6200" }}
+            >
               <Truck size={9} /> Free
             </span>
           </div>
@@ -450,13 +643,20 @@ function CardsShowcase() {
               Tai nghe Bluetooth Sony WH-1000XM5 chống ồn chủ động
             </p>
             <div className="flex items-center gap-1 mb-2">
-              {[1,2,3,4,5].map(i => (
-                <Star key={i} size={11} fill={i <= 4 ? "#FF6200" : "none"} stroke={i <= 4 ? "#FF6200" : "#D1D5DB"} />
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star
+                  key={i}
+                  size={11}
+                  fill={i <= 4 ? "#FF6200" : "none"}
+                  stroke={i <= 4 ? "#FF6200" : "#D1D5DB"}
+                />
               ))}
               <span className="text-xs text-gray-400 ml-0.5">(1.2k)</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold" style={{ color: "#FF6200" }}>{formatPrice(5990000)}</span>
+              <span className="font-bold" style={{ color: "#FF6200" }}>
+                {formatPrice(5990000)}
+              </span>
               <span className="text-xs text-gray-400 line-through">{formatPrice(7990000)}</span>
             </div>
           </div>
@@ -467,22 +667,38 @@ function CardsShowcase() {
       <div>
         <Label>Seller Card</Label>
         <div className="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all">
-          <div className="h-20 flex items-end px-4 pb-2" style={{ background: "linear-gradient(135deg, #E6FAF9, #B3F0ED)" }}>
-            <div className="w-14 h-14 rounded-xl bg-white shadow-md flex items-center justify-center mb-1" style={{ border: "2px solid #00BFB3" }}>
+          <div
+            className="h-20 flex items-end px-4 pb-2"
+            style={{ background: "linear-gradient(135deg, #E6FAF9, #B3F0ED)" }}
+          >
+            <div
+              className="w-14 h-14 rounded-xl bg-white shadow-md flex items-center justify-center mb-1"
+              style={{ border: "2px solid #00BFB3" }}
+            >
               <Store size={24} style={{ color: "#00BFB3" }} />
             </div>
           </div>
           <div className="px-4 pt-2 pb-4">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-bold text-gray-900">TechStore Việt Nam</h4>
-              <span className="px-1.5 py-0.5 rounded-md text-xs font-bold text-white" style={{ background: "#00BFB3" }}>Mall</span>
+              <span
+                className="px-1.5 py-0.5 rounded-md text-xs font-bold text-white"
+                style={{ background: "#00BFB3" }}
+              >
+                Mall
+              </span>
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
-              <span className="flex items-center gap-0.5"><Star size={10} fill="#FF6200" stroke="#FF6200" /> 4.9</span>
+              <span className="flex items-center gap-0.5">
+                <Star size={10} fill="#FF6200" stroke="#FF6200" /> 4.9
+              </span>
               <span>12.5k sản phẩm</span>
               <span>98% phản hồi</span>
             </div>
-            <button className="w-full py-2 rounded-xl text-sm font-semibold border-2 transition-all hover:bg-teal-50" style={{ color: "#00BFB3", borderColor: "#00BFB3" }}>
+            <button
+              className="w-full py-2 rounded-xl text-sm font-semibold border-2 transition-all hover:bg-teal-50"
+              style={{ color: "#00BFB3", borderColor: "#00BFB3" }}
+            >
               Xem Shop
             </button>
           </div>
@@ -494,7 +710,10 @@ function CardsShowcase() {
         <Label>Review Card</Label>
         <div className="rounded-2xl bg-white shadow-sm border border-gray-100 p-4">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+              style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+            >
               N
             </div>
             <div className="flex-1">
@@ -503,7 +722,7 @@ function CardsShowcase() {
                 <span className="text-xs text-gray-400">2 ngày trước</span>
               </div>
               <div className="flex items-center gap-0.5 mb-2">
-                {[1,2,3,4,5].map(i => (
+                {[1, 2, 3, 4, 5].map((i) => (
                   <Star key={i} size={11} fill="#FF6200" stroke="#FF6200" />
                 ))}
               </div>
@@ -512,7 +731,17 @@ function CardsShowcase() {
               </p>
               <div className="flex items-center gap-3 mt-2.5">
                 <button className="text-xs text-gray-400 flex items-center gap-1 hover:text-teal-600 transition-colors">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
+                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                  </svg>
                   Hữu ích (24)
                 </button>
               </div>
@@ -530,16 +759,52 @@ function AlertsShowcase() {
     <Card>
       <div className="space-y-3">
         {[
-          { icon: CheckCircle, bg: "#D1FAE5", border: "#6EE7B7", text: "#065F46", label: "Đặt hàng thành công!", desc: "Đơn hàng VNS-20240115-001 đã được xác nhận. Dự kiến giao trong 2-3 ngày." },
-          { icon: Info,         bg: "#DBEAFE", border: "#93C5FD", text: "#1E40AF", label: "Khuyến mãi sắp hết!", desc: "Flash Sale kết thúc sau 02:30:15. Mua ngay để hưởng ưu đãi -50%." },
-          { icon: AlertCircle,  bg: "#FEF3C7", border: "#FCD34D", text: "#92400E", label: "Sắp hết hàng", desc: "Chỉ còn 5 sản phẩm trong kho. Đặt ngay để không bỏ lỡ!" },
-          { icon: XCircle,      bg: "#FEE2E2", border: "#FCA5A5", text: "#991B1B", label: "Thanh toán thất bại", desc: "Giao dịch bị từ chối. Vui lòng kiểm tra thông tin thẻ và thử lại." },
+          {
+            icon: CheckCircle,
+            bg: "#D1FAE5",
+            border: "#6EE7B7",
+            text: "#065F46",
+            label: "Đặt hàng thành công!",
+            desc: "Đơn hàng VNS-20240115-001 đã được xác nhận. Dự kiến giao trong 2-3 ngày.",
+          },
+          {
+            icon: Info,
+            bg: "#DBEAFE",
+            border: "#93C5FD",
+            text: "#1E40AF",
+            label: "Khuyến mãi sắp hết!",
+            desc: "Flash Sale kết thúc sau 02:30:15. Mua ngay để hưởng ưu đãi -50%.",
+          },
+          {
+            icon: AlertCircle,
+            bg: "#FEF3C7",
+            border: "#FCD34D",
+            text: "#92400E",
+            label: "Sắp hết hàng",
+            desc: "Chỉ còn 5 sản phẩm trong kho. Đặt ngay để không bỏ lỡ!",
+          },
+          {
+            icon: XCircle,
+            bg: "#FEE2E2",
+            border: "#FCA5A5",
+            text: "#991B1B",
+            label: "Thanh toán thất bại",
+            desc: "Giao dịch bị từ chối. Vui lòng kiểm tra thông tin thẻ và thử lại.",
+          },
         ].map(({ icon: Icon, bg, border, text, label, desc }) => (
-          <div key={label} className="flex gap-3 p-4 rounded-xl" style={{ background: bg, border: `1px solid ${border}` }}>
+          <div
+            key={label}
+            className="flex gap-3 p-4 rounded-xl"
+            style={{ background: bg, border: `1px solid ${border}` }}
+          >
             <Icon size={18} style={{ color: text }} className="shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-sm" style={{ color: text }}>{label}</p>
-              <p className="text-sm mt-0.5" style={{ color: text, opacity: 0.8 }}>{desc}</p>
+              <p className="font-semibold text-sm" style={{ color: text }}>
+                {label}
+              </p>
+              <p className="text-sm mt-0.5" style={{ color: text, opacity: 0.8 }}>
+                {desc}
+              </p>
             </div>
           </div>
         ))}
@@ -555,9 +820,19 @@ function SpacingShowcase() {
     <Card>
       <Label>8pt Grid — Spacing Scale</Label>
       <div className="flex flex-wrap items-end gap-3">
-        {steps.map(s => (
+        {steps.map((s) => (
           <div key={s} className="flex flex-col items-center gap-1">
-            <div className="rounded" style={{ width: s * 4, height: s * 4, minWidth: 4, minHeight: 4, background: "#00BFB3", opacity: 0.6 + s * 0.015 }} />
+            <div
+              className="rounded"
+              style={{
+                width: s * 4,
+                height: s * 4,
+                minWidth: 4,
+                minHeight: 4,
+                background: "#00BFB3",
+                opacity: 0.6 + s * 0.015,
+              }}
+            />
             <span className="text-xs font-mono text-gray-400">{s * 4}px</span>
           </div>
         ))}
@@ -566,14 +841,14 @@ function SpacingShowcase() {
         <Label>Shadow Scale</Label>
         <div className="flex flex-wrap gap-5">
           {[
-            { label: "sm",  shadow: "0 1px 3px rgba(0,0,0,0.08)" },
-            { label: "md",  shadow: "0 4px 12px rgba(0,0,0,0.1)" },
-            { label: "lg",  shadow: "0 8px 24px rgba(0,0,0,0.12)" },
-            { label: "xl",  shadow: "0 16px 40px rgba(0,0,0,0.14)" },
+            { label: "sm", shadow: "0 1px 3px rgba(0,0,0,0.08)" },
+            { label: "md", shadow: "0 4px 12px rgba(0,0,0,0.1)" },
+            { label: "lg", shadow: "0 8px 24px rgba(0,0,0,0.12)" },
+            { label: "xl", shadow: "0 16px 40px rgba(0,0,0,0.14)" },
             { label: "2xl", shadow: "0 24px 64px rgba(0,0,0,0.16)" },
             { label: "teal", shadow: "0 8px 24px rgba(0,191,179,0.3)" },
             { label: "orange", shadow: "0 8px 24px rgba(255,98,0,0.3)" },
-          ].map(s => (
+          ].map((s) => (
             <div key={s.label} className="flex flex-col items-center gap-2">
               <div className="w-16 h-16 rounded-xl bg-white" style={{ boxShadow: s.shadow }} />
               <span className="text-xs font-mono text-gray-400">{s.label}</span>
@@ -592,9 +867,12 @@ function SpacingShowcase() {
             { label: "2xl", r: "20px" },
             { label: "3xl", r: "24px" },
             { label: "full", r: "9999px" },
-          ].map(s => (
+          ].map((s) => (
             <div key={s.label} className="flex flex-col items-center gap-2">
-              <div className="w-14 h-14 border-2 border-teal-300 bg-teal-50" style={{ borderRadius: s.r }} />
+              <div
+                className="w-14 h-14 border-2 border-teal-300 bg-teal-50"
+                style={{ borderRadius: s.r }}
+              />
               <span className="text-xs font-mono text-gray-400">{s.label}</span>
               <span className="text-xs text-gray-300">{s.r}</span>
             </div>
@@ -607,14 +885,30 @@ function SpacingShowcase() {
 
 // ─── Icons Reference ──────────────────────────────────────────────────────────
 const ICON_SET = [
-  { icon: Search, name: "Search" }, { icon: ShoppingCart, name: "Cart" }, { icon: Heart, name: "Heart" },
-  { icon: Bell, name: "Bell" }, { icon: Star, name: "Star" }, { icon: Zap, name: "Zap" },
-  { icon: Truck, name: "Truck" }, { icon: Shield, name: "Shield" }, { icon: Package, name: "Package" },
-  { icon: Tag, name: "Tag" }, { icon: Store, name: "Store" }, { icon: User, name: "User" },
-  { icon: TrendingUp, name: "Trending" }, { icon: Eye, name: "Eye" }, { icon: Filter, name: "Filter" },
-  { icon: SlidersHorizontal, name: "Sliders" }, { icon: Plus, name: "Plus" }, { icon: X, name: "X" },
-  { icon: Check, name: "Check" }, { icon: ArrowRight, name: "Arrow" }, { icon: ChevronRight, name: "Chevron" },
-  { icon: Info, name: "Info" }, { icon: AlertCircle, name: "Alert" }, { icon: CheckCircle, name: "Success" },
+  { icon: Search, name: "Search" },
+  { icon: ShoppingCart, name: "Cart" },
+  { icon: Heart, name: "Heart" },
+  { icon: Bell, name: "Bell" },
+  { icon: Star, name: "Star" },
+  { icon: Zap, name: "Zap" },
+  { icon: Truck, name: "Truck" },
+  { icon: Shield, name: "Shield" },
+  { icon: Package, name: "Package" },
+  { icon: Tag, name: "Tag" },
+  { icon: Store, name: "Store" },
+  { icon: User, name: "User" },
+  { icon: TrendingUp, name: "Trending" },
+  { icon: Eye, name: "Eye" },
+  { icon: Filter, name: "Filter" },
+  { icon: SlidersHorizontal, name: "Sliders" },
+  { icon: Plus, name: "Plus" },
+  { icon: X, name: "X" },
+  { icon: Check, name: "Check" },
+  { icon: ArrowRight, name: "Arrow" },
+  { icon: ChevronRight, name: "Chevron" },
+  { icon: Info, name: "Info" },
+  { icon: AlertCircle, name: "Alert" },
+  { icon: CheckCircle, name: "Success" },
 ];
 
 function IconsShowcase() {
@@ -623,7 +917,10 @@ function IconsShowcase() {
       <Label>Lucide Icons — Used in VNShop</Label>
       <div className="flex flex-wrap gap-3">
         {ICON_SET.map(({ icon: Icon, name }) => (
-          <div key={name} className="flex flex-col items-center gap-1.5 w-16 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-default">
+          <div
+            key={name}
+            className="flex flex-col items-center gap-1.5 w-16 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-default"
+          >
             <Icon size={20} className="text-gray-600" />
             <span className="text-xs text-gray-400 text-center leading-tight">{name}</span>
           </div>
@@ -659,13 +956,22 @@ function NavigationDemo() {
               >
                 <div className="relative">
                   <Icon size={20} style={{ color: active === id ? "#00BFB3" : "#9CA3AF" }} />
-                  {badge && (
-                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold" style={{ background: "#FF6200", fontSize: 9 }}>
+                  {badge ? (
+                    <span
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold"
+                      style={{ background: "#FF6200", fontSize: 9 }}
+                    >
                       {badge}
                     </span>
-                  )}
+                  ) : null}
                 </div>
-                <span className="text-xs" style={{ color: active === id ? "#00BFB3" : "#9CA3AF", fontWeight: active === id ? 600 : 400 }}>
+                <span
+                  className="text-xs"
+                  style={{
+                    color: active === id ? "#00BFB3" : "#9CA3AF",
+                    fontWeight: active === id ? 600 : 400,
+                  }}
+                >
                   {label}
                 </span>
               </button>
@@ -693,9 +999,12 @@ function GradientsShowcase() {
         <div>
           <Label>Brand Gradients</Label>
           <div className="flex flex-wrap gap-4">
-            {gradients.map(g => (
+            {gradients.map((g) => (
               <div key={g.name} className="text-center">
-                <div className="w-28 h-20 rounded-xl shadow-sm mb-1.5" style={{ background: g.css }} />
+                <div
+                  className="w-28 h-20 rounded-xl shadow-sm mb-1.5"
+                  style={{ background: g.css }}
+                />
                 <p className="text-xs text-gray-500">{g.name}</p>
               </div>
             ))}
@@ -746,8 +1055,17 @@ function GradientsShowcase() {
 // ─── Main Export ──────────────────────────────────────────────────────────────
 export function DesignSystemPage() {
   const sections = [
-    "Màu sắc", "Chữ", "Nút bấm", "Badge & Tag", "Form & Input",
-    "Card", "Alert", "Khoảng cách", "Icon", "Navigation", "Gradient"
+    "Màu sắc",
+    "Chữ",
+    "Nút bấm",
+    "Badge & Tag",
+    "Form & Input",
+    "Card",
+    "Alert",
+    "Khoảng cách",
+    "Icon",
+    "Navigation",
+    "Gradient",
   ];
   const [active, setActive] = useState("Màu sắc");
 
@@ -757,16 +1075,24 @@ export function DesignSystemPage() {
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}>
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+            >
               <Sparkles size={16} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>VNShop Design System</h1>
+              <h1
+                className="text-lg font-bold text-gray-900"
+                style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+              >
+                VNShop Design System
+              </h1>
               <p className="text-xs text-gray-400">Hệ thống thiết kế • v1.0 • Tailwind CSS v4</p>
             </div>
           </div>
           <div className="flex gap-1 overflow-x-auto pb-px">
-            {sections.map(s => (
+            {sections.map((s) => (
               <button
                 key={s}
                 onClick={() => setActive(s)}
@@ -790,8 +1116,11 @@ export function DesignSystemPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {active === "Màu sắc" && (
-            <Section title="Hệ thống màu sắc" subtitle="Bảng màu thương hiệu VNShop dựa trên màu chủ đạo Teal #00BFB3 và cam #FF6200">
+          {active === "Màu sắc" ? (
+            <Section
+              title="Hệ thống màu sắc"
+              subtitle="Bảng màu thương hiệu VNShop dựa trên màu chủ đạo Teal #00BFB3 và cam #FF6200"
+            >
               <div className="space-y-6">
                 <Card>
                   <Label>Brand Primary — Teal</Label>
@@ -809,62 +1138,77 @@ export function DesignSystemPage() {
                   <Label>Semantic Colors</Label>
                   <SwatchRow swatches={SEMANTIC_COLORS} />
                   <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-sm text-gray-500">Các màu ngữ nghĩa được dùng nhất quán trong toàn bộ hệ thống: <span className="font-medium text-green-600">Success</span> cho trạng thái thành công, <span className="font-medium text-yellow-600">Warning</span> cho cảnh báo, <span className="font-medium text-red-500">Error</span> cho lỗi và xóa, <span className="font-medium text-blue-500">Info</span> cho thông tin.</p>
+                    <p className="text-sm text-gray-500">
+                      Các màu ngữ nghĩa được dùng nhất quán trong toàn bộ hệ thống:{" "}
+                      <span className="font-medium text-green-600">Success</span> cho trạng thái
+                      thành công, <span className="font-medium text-yellow-600">Warning</span> cho
+                      cảnh báo, <span className="font-medium text-red-500">Error</span> cho lỗi và
+                      xóa, <span className="font-medium text-blue-500">Info</span> cho thông tin.
+                    </p>
                   </div>
                 </Card>
               </div>
             </Section>
-          )}
-          {active === "Chữ" && (
+          ) : null}
+          {active === "Chữ" ? (
             <Section title="Kiểu chữ" subtitle="Inter cho UI text, Be Vietnam Pro cho tiêu đề">
               <TypographyShowcase />
             </Section>
-          )}
-          {active === "Nút bấm" && (
+          ) : null}
+          {active === "Nút bấm" ? (
             <Section title="Buttons" subtitle="Tất cả variants và trạng thái của button components">
               <ButtonShowcase />
             </Section>
-          )}
-          {active === "Badge & Tag" && (
-            <Section title="Badges & Tags" subtitle="Nhãn trạng thái, khuyến mãi, danh mục và thông báo">
+          ) : null}
+          {active === "Badge & Tag" ? (
+            <Section
+              title="Badges & Tags"
+              subtitle="Nhãn trạng thái, khuyến mãi, danh mục và thông báo"
+            >
               <BadgesShowcase />
             </Section>
-          )}
-          {active === "Form & Input" && (
+          ) : null}
+          {active === "Form & Input" ? (
             <Section title="Form & Input" subtitle="Các trường nhập liệu với đầy đủ trạng thái">
               <InputsShowcase />
             </Section>
-          )}
-          {active === "Card" && (
+          ) : null}
+          {active === "Card" ? (
             <Section title="Cards" subtitle="Product card, seller card và review card">
               <CardsShowcase />
             </Section>
-          )}
-          {active === "Alert" && (
+          ) : null}
+          {active === "Alert" ? (
             <Section title="Alerts & Notifications" subtitle="Thông báo hệ thống theo ngữ cảnh">
               <AlertsShowcase />
             </Section>
-          )}
-          {active === "Khoảng cách" && (
-            <Section title="Spacing & Radius & Shadow" subtitle="Hệ thống 8pt grid, shadow và border-radius">
+          ) : null}
+          {active === "Khoảng cách" ? (
+            <Section
+              title="Spacing & Radius & Shadow"
+              subtitle="Hệ thống 8pt grid, shadow và border-radius"
+            >
               <SpacingShowcase />
             </Section>
-          )}
-          {active === "Icon" && (
+          ) : null}
+          {active === "Icon" ? (
             <Section title="Icons" subtitle="Bộ icon Lucide được sử dụng trong VNShop">
               <IconsShowcase />
             </Section>
-          )}
-          {active === "Navigation" && (
+          ) : null}
+          {active === "Navigation" ? (
             <Section title="Navigation" subtitle="Tab bar mobile và navigation patterns">
               <NavigationDemo />
             </Section>
-          )}
-          {active === "Gradient" && (
-            <Section title="Gradients & Glassmorphism" subtitle="Gradient thương hiệu và hiệu ứng kính">
+          ) : null}
+          {active === "Gradient" ? (
+            <Section
+              title="Gradients & Glassmorphism"
+              subtitle="Gradient thương hiệu và hiệu ứng kính"
+            >
               <GradientsShowcase />
             </Section>
-          )}
+          ) : null}
         </motion.div>
 
         {/* Tokens Reference */}
@@ -881,9 +1225,15 @@ export function DesignSystemPage() {
               { token: "--muted", value: "#ececf0", desc: "Subtle bg" },
               { token: "--border", value: "rgba(0,0,0,0.1)", desc: "Default border" },
               { token: "--radius", value: "0.625rem", desc: "Base radius" },
-            ].map(t => (
+            ].map((t) => (
               <div key={t.token} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                <div className="w-8 h-8 rounded-lg shrink-0 border border-gray-200" style={{ background: t.value.startsWith("#") || t.value.startsWith("rgba") ? t.value : "#f3f4f6" }} />
+                <div
+                  className="w-8 h-8 rounded-lg shrink-0 border border-gray-200"
+                  style={{
+                    background:
+                      t.value.startsWith("#") || t.value.startsWith("rgba") ? t.value : "#f3f4f6",
+                  }}
+                />
                 <div>
                   <p className="font-mono text-xs font-semibold text-gray-700">{t.token}</p>
                   <p className="font-mono text-xs text-gray-400">{t.value}</p>
@@ -901,9 +1251,23 @@ export function DesignSystemPage() {
 // Fix missing import
 function Sparkles(props: { size?: number; className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}>
-      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
-      <path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.size || 24}
+      height={props.size || 24}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={props.className}
+    >
+      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+      <path d="M20 3v4" />
+      <path d="M22 5h-4" />
+      <path d="M4 17v2" />
+      <path d="M5 18H3" />
     </svg>
   );
 }

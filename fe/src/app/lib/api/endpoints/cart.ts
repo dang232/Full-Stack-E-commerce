@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { api } from "../client";
+
 import { cartSchema } from "../../../types/api";
+import { api } from "../client";
 
 export const getCart = () => api.get("/cart", cartSchema);
 
