@@ -79,6 +79,7 @@
       "!main.ts",
       "!tracing.ts",
       "!app.module.ts",
+      "!mikro-orm.config.ts",
       "!notification/domain/notification.repository.ts",
       "!notification/infrastructure/notification.mikro-orm-entity.ts",
       "!notification/infrastructure/notification.mikro-orm-repository.ts",
