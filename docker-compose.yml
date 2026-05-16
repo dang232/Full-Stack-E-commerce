@@ -188,13 +188,17 @@ services:
     container_name: vnshop-kafka
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,PLAINTEXT_HOST://0.0.0.0:29092
+      # Advertise the in-network address for service-to-broker traffic AND a host-mapped
+      # address for tools running on the laptop. Without the in-network advertised name,
+      # clients bootstrap fine but then get told to reconnect to "localhost:9092" and fail.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -222,6 +226,15 @@ services:
       KC_DB_SCHEMA: keycloak
       KC_DB_USERNAME: vnshop
       KC_DB_PASSWORD: vnshop123
+      # Exposes /health/{started,live,ready} on management port 9000 (per Keycloak 26 docs).
+      # The image has no curl/wget, so the healthcheck below uses bash's /dev/tcp.
+      KC_HEALTH_ENABLED: "true"
+      # Pin the issuer/frontchannel URL so tokens always carry iss=http://localhost:8085/...
+      # regardless of which Host header the request came in on. Services validate iss against
+      # this same URL but fetch JWKS via in-network http://keycloak:8080 (jwk-set-uri override).
+      KC_HOSTNAME: http://localhost:8085
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
+      KC_HOSTNAME_STRICT: "false"
     ports:
       - "8085:8080"
     volumes:
@@ -230,10 +243,11 @@ services:
       postgres-keycloak:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3; grep -q '200' <&3"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; head -1 <&3 | grep -q '200'"]
       interval: 15s
       timeout: 5s
       retries: 20
+      start_period: 60s
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.4.0
@@ -300,7 +314,8 @@ services:
     environment:
       SERVER_PORT: 8080
       REDIS_HOST: redis
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
       GATEWAY_CORS_ALLOWED_ORIGINS: ${GATEWAY_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
 
@@ -345,7 +360,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   product-service:
@@ -368,9 +384,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/vnshop_product?currentSchema=product_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   inventory-service:
@@ -398,7 +418,8 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   cart-service:
@@ -413,7 +434,8 @@ services:
     environment:
       SERVER_PORT: 8084
       REDIS_HOST: redis
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   search-service:
@@ -438,7 +460,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   notification-service:
@@ -486,7 +509,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   # DEPRECATED - migrated to order-service/product-service
@@ -510,7 +534,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   seller-finance-service:
@@ -533,7 +558,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   order-service:
@@ -556,9 +582,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/vnshop_order?currentSchema=order_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   payment-service:
@@ -583,7 +613,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
   shipping-service:
@@ -608,7 +639,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
 volumes:

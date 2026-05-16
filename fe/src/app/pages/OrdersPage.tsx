@@ -19,7 +19,6 @@ import type { Order as ServerOrder } from "../types/api";
 import { ApiError } from "../lib/api/envelope";
 import { requestReturn } from "../lib/api/endpoints/orders";
 import { ImageWithFallback } from "../components/image-with-fallback";
-import { useEscapeKey } from "../hooks/use-escape-key";
 
 type OrderTab = "all" | "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
 

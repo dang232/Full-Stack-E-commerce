@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Users, Package, Star, Tag, AlertCircle, Wallet,
-  TrendingUp, ArrowUpRight, CheckCircle, XCircle, Search, BarChart3, X,
+  TrendingUp, ArrowUpRight, CheckCircle, XCircle, Search, BarChart3,
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -34,7 +34,6 @@ import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
 import { FormDialog } from "../components/form-dialog";
 import { Modal } from "../components/ui/modal";
-import { useEscapeKey } from "../hooks/use-escape-key";
 
 type AdminTab = "dashboard" | "sellers" | "reviews" | "coupons" | "disputes" | "payouts";
 

@@ -37,7 +37,8 @@ public class SecurityConfig {
                 .pathMatchers("/admin/**").hasRole("ADMIN")
                 .anyExchange().authenticated()
             )
-            .oauth2Login(oauth2 -> { })
+            // The SPA acquires tokens directly from Keycloak (PKCE) and sends them as Bearer.
+            // No oauth2Login (no client registration) — gateway is purely a JWT-validating proxy.
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
             )

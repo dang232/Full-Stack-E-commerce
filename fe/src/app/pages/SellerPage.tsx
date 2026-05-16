@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard, Package, ShoppingBag, Star, Wallet, MessageSquare,
-  Settings, Bell, Plus, X,
+  Settings, Bell, Plus,
   Eye, Edit, CheckCircle, Truck,
   ArrowUpRight, Search, Filter, AlertCircle,
 } from "lucide-react";
@@ -25,7 +25,6 @@ import { type Product } from "../components/vnshop-data";
 import { SellerProductModal } from "../components/seller-product-modal";
 import { FormDialog } from "../components/form-dialog";
 import { Modal } from "../components/ui/modal";
-import { useEscapeKey } from "../hooks/use-escape-key";
 
 const SAMPLE_REVENUE = [
   { day: "T2", revenue: 12500000, orders: 8 },

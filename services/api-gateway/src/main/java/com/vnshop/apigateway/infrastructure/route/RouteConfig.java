@@ -1,6 +1,5 @@
 package com.vnshop.apigateway.infrastructure.route;
 
-import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
@@ -10,6 +9,17 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * The gateway is a pure JWT-validating reverse proxy: the SPA acquires tokens directly
+ * from Keycloak via PKCE and sends them as Bearer headers, which the resource-server
+ * filter validates. The previous TokenRelay setup (which required an OAuth2 client
+ * registration that did OIDC discovery at boot) has been dropped because it
+ * (a) wasn't actually used by the SPA flow and (b) failed when KC_HOSTNAME differs
+ * between in-network JWKS fetches and external token issuance.
+ *
+ * <p>The Authorization header is forwarded to downstream services automatically by
+ * Spring Cloud Gateway, so dropping TokenRelay does not lose anything.
+ */
 @Configuration
 public class RouteConfig {
 
@@ -59,77 +69,86 @@ public class RouteConfig {
     @Bean
     RouteLocator gatewayRoutes(
         RouteLocatorBuilder builder,
-        TokenRelayGatewayFilterFactory tokenRelay,
         RedisRateLimiter redisRateLimiter,
         KeyResolver userKeyResolver
     ) {
         return builder.routes()
             .route("products", route -> route.path("/products/**")
-                .filters(filters -> rateLimited(filters, "product-service", tokenRelay, redisRateLimiter, userKeyResolver))
+                .filters(filters -> rateLimited(filters, "product-service", redisRateLimiter, userKeyResolver))
                 .uri(productServiceUri))
             .route("categories", route -> route.path("/categories/**")
-                .filters(filters -> resilient(filters, "product-service", tokenRelay))
+                .filters(filters -> resilient(filters, "product-service"))
                 .uri(productServiceUri))
             .route("search", route -> route.path("/search/**")
-                .filters(filters -> resilient(filters, "search-service", tokenRelay))
+                .filters(filters -> resilient(filters, "search-service"))
                 .uri(searchServiceUri))
             .route("inventory", route -> route.path("/inventory/**")
-                .filters(filters -> resilient(filters, "inventory-service", tokenRelay))
+                .filters(filters -> resilient(filters, "inventory-service"))
                 .uri(inventoryServiceUri))
             .route("users", route -> route.path("/users/**", "/sellers/**")
-                .filters(filters -> resilient(filters, "user-service", tokenRelay))
+                .filters(filters -> resilient(filters, "user-service"))
                 .uri(userServiceUri))
             .route("cart", route -> route.path("/cart/**")
-                .filters(filters -> resilient(filters, "cart-service", tokenRelay))
+                .filters(filters -> resilient(filters, "cart-service"))
                 .uri(cartServiceUri))
             .route("orders", route -> route.path("/orders/**")
-                .filters(filters -> rateLimited(filters, "order-service", tokenRelay, redisRateLimiter, userKeyResolver))
+                .filters(filters -> rateLimited(filters, "order-service", redisRateLimiter, userKeyResolver))
                 .uri(orderServiceUri))
             .route("payment", route -> route.path("/payment/**")
-                .filters(filters -> rateLimited(filters, "payment-service", tokenRelay, redisRateLimiter, userKeyResolver))
+                .filters(filters -> rateLimited(filters, "payment-service", redisRateLimiter, userKeyResolver))
                 .uri(paymentServiceUri))
             .route("shipping", route -> route.path("/shipping/**")
-                .filters(filters -> resilient(filters, "shipping-service", tokenRelay))
+                .filters(filters -> resilient(filters, "shipping-service"))
                 .uri(shippingServiceUri))
             .route("notifications", route -> route.path("/notifications/**")
-                .filters(filters -> resilient(filters, "notification-service", tokenRelay))
+                .filters(filters -> resilient(filters, "notification-service"))
                 .uri(notificationServiceUri))
             .route("coupons", route -> route.path("/coupons/**")
-                .filters(filters -> resilient(filters, "order-service", tokenRelay))
+                .filters(filters -> resilient(filters, "order-service"))
                 .uri(couponServiceUri))
             .route("reviews", route -> route.path("/reviews/**")
-                .filters(filters -> resilient(filters, "product-service", tokenRelay))
+                .filters(filters -> resilient(filters, "product-service"))
                 .uri(productServiceUri))
             .route("seller-finance", route -> route.path("/seller-finance/**")
-                .filters(filters -> resilient(filters, "order-service", tokenRelay))
+                .filters(filters -> resilient(filters, "order-service"))
                 .uri(sellerFinanceServiceUri))
+            // Admin sub-routes — more specific patterns must come before the
+            // catch-all /admin/** route below. Each maps to the service that owns
+            // the corresponding domain endpoints.
+            .route("admin-dashboard", route -> route.path("/admin/dashboard/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("admin-disputes", route -> route.path("/admin/disputes/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("admin-coupons", route -> route.path("/admin/coupons/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("admin-finance", route -> route.path("/admin/finance/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(sellerFinanceServiceUri))
+            .route("admin-reviews", route -> route.path("/admin/reviews/**")
+                .filters(filters -> resilient(filters, "product-service"))
+                .uri(productServiceUri))
             .route("admin", route -> route.path("/admin/**")
-                .filters(filters -> resilient(filters, "user-service", tokenRelay))
+                .filters(filters -> resilient(filters, "user-service"))
                 .uri(userServiceUri))
             .build();
     }
 
-    private GatewayFilterSpec resilient(
-        GatewayFilterSpec filters,
-        String service,
-        TokenRelayGatewayFilterFactory tokenRelay
-    ) {
-        return filters
-            .filter(tokenRelay.apply())
-            .circuitBreaker(config -> config
-                .setName(service)
-                .setFallbackUri("forward:/fallback/" + service));
+    private GatewayFilterSpec resilient(GatewayFilterSpec filters, String service) {
+        return filters.circuitBreaker(config -> config
+            .setName(service)
+            .setFallbackUri("forward:/fallback/" + service));
     }
 
     private GatewayFilterSpec rateLimited(
         GatewayFilterSpec filters,
         String service,
-        TokenRelayGatewayFilterFactory tokenRelay,
         RedisRateLimiter redisRateLimiter,
         KeyResolver userKeyResolver
     ) {
         return filters
-            .filter(tokenRelay.apply())
             .requestRateLimiter(config -> config
                 .setRateLimiter(redisRateLimiter)
                 .setKeyResolver(userKeyResolver))

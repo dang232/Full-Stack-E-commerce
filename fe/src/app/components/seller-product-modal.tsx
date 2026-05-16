@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "motion/react";
-import { ImageIcon, Loader2, Plus, Trash2, X } from "lucide-react";
+import { ImageIcon, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   sellerProductCreate,
@@ -12,7 +11,7 @@ import {
 import { ApiError } from "../lib/api/envelope";
 import type { Product } from "./vnshop-data";
 import { ImageWithFallback } from "./image-with-fallback";
-import { useEscapeKey } from "../hooks/use-escape-key";
+import { Modal } from "./ui/modal";
 
 interface SellerProductModalProps {
   open: boolean;
@@ -116,7 +115,7 @@ function SellerProductModalBody({
     onClose();
   };
 
-  useEscapeKey(!isBusy, handleClose);
+  // Modal handles escape + backdrop dismissal; respect dismissDisabled while busy.
 
   const enqueueFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -297,32 +296,44 @@ function SellerProductModalBody({
   })();
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.5)" }}
-      onClick={handleClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
-          <h3 className="text-lg font-bold text-gray-800">
-            {isEdit ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
-          </h3>
+    <Modal
+      open
+      onClose={handleClose}
+      dismissDisabled={isBusy}
+      size="lg"
+      scrollable
+      title={isEdit ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
+      footer={
+        <>
           <button
+            type="button"
             onClick={handleClose}
             disabled={isBusy}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center disabled:opacity-50"
-            aria-label="Đóng"
+            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 disabled:opacity-50"
           >
-            <X size={16} />
+            Huỷ
           </button>
-        </div>
-
-        <div className="p-6 space-y-5">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isBusy}
+            className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
+          >
+            {isBusy ? (
+              <>
+                <Loader2 size={14} className="animate-spin" /> {submitLabel}
+              </>
+            ) : (
+              <>
+                <Plus size={14} /> {submitLabel}
+              </>
+            )}
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Ảnh sản phẩm{" "}
@@ -477,36 +488,7 @@ function SellerProductModalBody({
             </div>
           </div>
         </div>
-
-        <div className="sticky bottom-0 px-6 py-4 border-t border-gray-100 bg-white flex gap-3">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isBusy}
-            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 disabled:opacity-50"
-          >
-            Huỷ
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isBusy}
-            className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
-          >
-            {isBusy ? (
-              <>
-                <Loader2 size={14} className="animate-spin" /> {submitLabel}
-              </>
-            ) : (
-              <>
-                <Plus size={14} /> {submitLabel}
-              </>
-            )}
-          </button>
-        </div>
-      </motion.div>
-    </div>
+    </Modal>
   );
 }
 

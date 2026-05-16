@@ -10,12 +10,28 @@ import java.security.Principal;
 @Configuration
 public class ResilienceConfig {
 
+    /**
+     * Per-user rate-limit key. Falls back to the request's remote IP for anonymous
+     * traffic (permitAll routes like /products). Reactor's RateLimiter throws NPE
+     * if any operator in the chain produces null, so we use flatMap (which lets us
+     * return Mono.empty() for null names) instead of map (which chokes on null).
+     */
     @Bean
     KeyResolver userKeyResolver() {
         return exchange -> exchange.getPrincipal()
-            .map(Principal::getName)
-            .switchIfEmpty(Mono.just(exchange.getRequest().getRemoteAddress() == null
-                ? "anonymous"
-                : exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()));
+            .flatMap(principal -> {
+                String name = principal.getName();
+                return (name != null && !name.isBlank()) ? Mono.just(name) : Mono.empty();
+            })
+            .defaultIfEmpty(remoteAddress(exchange));
+    }
+
+    private static String remoteAddress(org.springframework.web.server.ServerWebExchange exchange) {
+        var addr = exchange.getRequest().getRemoteAddress();
+        if (addr == null || addr.getAddress() == null) {
+            return "anonymous";
+        }
+        var host = addr.getAddress().getHostAddress();
+        return host != null ? host : "anonymous";
     }
 }

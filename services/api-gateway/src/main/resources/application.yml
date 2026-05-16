@@ -12,19 +12,11 @@ spring:
     oauth2:
       resourceserver:
         jwt:
+          # `iss` claim validation uses the external URL (matches what KC_HOSTNAME=http://localhost:8085
+          # makes the running Keycloak put in tokens). Backchannel JWKS fetch goes through the in-network
+          # URL via jwk-set-uri so the gateway doesn't depend on resolving "localhost" from inside Docker.
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8085/realms/vnshop}
-      client:
-        provider:
-          keycloak:
-            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8085/realms/vnshop}
-        registration:
-          keycloak:
-            provider: keycloak
-            client-id: ${GATEWAY_OAUTH2_CLIENT_ID:api-gateway}
-            client-secret: ${GATEWAY_OAUTH2_CLIENT_SECRET:}
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            scope: openid,profile,email
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs}
   cloud:
     gateway:
       globalcors:

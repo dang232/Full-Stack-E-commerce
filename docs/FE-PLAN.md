@@ -315,6 +315,15 @@ Gap: no `GET /shipping/track/{code}` endpoint exposed yet.
 
 ## 6. Suggested FE Stack
 
+> **Implementation note (2026-05-16):** the buyer/seller/admin app under `fe/` ships with **Vite 6 + react-router 7 (SPA)** rather than Next.js. The framework recommendation in this section was a starting point; the deviation is intentional and tracked here so future contributors don't churn on it.
+>
+> | Concern | Plan recommendation | Implemented | Trade-off |
+> |---|---|---|---|
+> | Framework | Next.js 15 (app router) | Vite 6 SPA + react-router 7 | No SSR on PDPs / category pages — meta tags + sitemap need to handle SEO. Revisit if marketing-led SEO becomes a hard requirement. |
+> | UI kit | shadcn/ui | `@figma/astraui` | Locked to a Figma-aligned kit; trade-off is reduced shadcn ecosystem leverage in exchange for design parity. |
+>
+> Everything else (TanStack Query, Zod, keycloak-js, react-hook-form, Zustand, Recharts, Tailwind v4) matches the plan.
+
 | Concern | Choice | Why |
 |---|---|---|
 | Framework | Next.js 15 (app router) | SSR for SEO on product pages, RSC for data fetching |

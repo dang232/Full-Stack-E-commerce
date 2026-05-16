@@ -130,7 +130,7 @@
       "serviceAccountsEnabled": false,
       "authorizationServicesEnabled": false,
       "frontchannelLogout": false,
-      "fullScopeAllowed": false,
+      "fullScopeAllowed": true,
       "rootUrl": "http://localhost:8080",
       "redirectUris": [
         "http://localhost:8080/*"
@@ -143,7 +143,9 @@
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "oauth2.device.authorization.grant.enabled": "false",
-        "oidc.ciba.grant.enabled": "false"
+        "oidc.ciba.grant.enabled": "false",
+        "client.use.lightweight.access.token.enabled": "false",
+        "access.token.use.basic.claim.set": "true"
       },
       "protocolMappers": [
         {
@@ -158,6 +160,18 @@
             "access.token.claim": "true",
             "claim.name": "realm_access.roles",
             "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true"
           }
         }
       ]
@@ -176,7 +190,7 @@
       "serviceAccountsEnabled": false,
       "authorizationServicesEnabled": false,
       "frontchannelLogout": true,
-      "fullScopeAllowed": false,
+      "fullScopeAllowed": true,
       "rootUrl": "http://localhost:3000",
       "redirectUris": [
         "http://localhost:3000/*",
@@ -218,6 +232,18 @@
             "included.client.audience": "vnshop-api",
             "id.token.claim": "false",
             "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true"
           }
         }
       ]
