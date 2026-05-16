@@ -1,13 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { getNotification, listNotifications } from "../lib/api/endpoints/notifications";
+import {
+  listNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  unreadNotificationCount,
+} from "../lib/api/endpoints/notifications";
 import type { Notification } from "../types/api";
 
 import { useAuth } from "./use-auth";
 
 const POLL_INTERVAL_MS = 30_000;
 const NOTIFICATIONS_KEY = ["notifications", "list"] as const;
+const UNREAD_KEY = ["notifications", "unread-count"] as const;
 
 /** Tracks whether the document is currently visible. Used to gate background polling. */
 function usePageVisible() {
@@ -25,7 +31,7 @@ export function useNotifications() {
   const visible = usePageVisible();
   const qc = useQueryClient();
 
-  const query = useQuery<Notification[]>({
+  const query = useQuery({
     queryKey: NOTIFICATIONS_KEY,
     queryFn: () => listNotifications({ size: 30 }),
     enabled: ready && authenticated,
@@ -34,36 +40,90 @@ export function useNotifications() {
     retry: false,
   });
 
+  const unreadCountQuery = useQuery({
+    queryKey: UNREAD_KEY,
+    queryFn: () => unreadNotificationCount(),
+    enabled: ready && authenticated,
+    refetchInterval: visible ? POLL_INTERVAL_MS : false,
+    refetchOnWindowFocus: true,
+    retry: false,
+  });
+
+  const items: Notification[] = query.data?.content ?? [];
+
+  const patchCacheAfterRead = (id: string, updated?: Notification) => {
+    qc.setQueryData<typeof query.data>(NOTIFICATIONS_KEY, (prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        content: prev.content.map((n) =>
+          n.id === id ? { ...n, ...(updated ?? {}), read: true } : n,
+        ),
+      };
+    });
+  };
+
   /**
-   * Optimistically mark a notification as read, then call the server. The detail-fetch
-   * endpoint is what actually flips `read: true` server-side. On failure we roll back
-   * so the bell count stays accurate.
+   * Optimistically mark a notification as read, then call the server. On failure
+   * we roll back so the bell count stays accurate.
    */
-  const markRead = useMutation<Notification, unknown, string, { previous?: Notification[] }>({
-    mutationFn: (id: string) => getNotification(id),
+  const markRead = useMutation<
+    Notification,
+    unknown,
+    string,
+    { previous?: typeof query.data; previousUnread?: { count: number } }
+  >({
+    mutationFn: (id: string) => markNotificationRead(id),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: NOTIFICATIONS_KEY });
-      const previous = qc.getQueryData<Notification[]>(NOTIFICATIONS_KEY);
-      qc.setQueryData<Notification[]>(
-        NOTIFICATIONS_KEY,
-        (prev) => prev?.map((n) => (n.id === id ? { ...n, read: true } : n)) ?? prev,
-      );
-      return { previous };
+      await qc.cancelQueries({ queryKey: UNREAD_KEY });
+      const previous = qc.getQueryData<typeof query.data>(NOTIFICATIONS_KEY);
+      const previousUnread = qc.getQueryData<{ count: number }>(UNREAD_KEY);
+      const wasUnread = previous?.content.some((n) => n.id === id && n.read === false) ?? false;
+      patchCacheAfterRead(id);
+      if (wasUnread && previousUnread) {
+        qc.setQueryData<{ count: number }>(UNREAD_KEY, {
+          ...previousUnread,
+          count: Math.max(0, previousUnread.count - 1),
+        });
+      }
+      return { previous, previousUnread };
     },
     onSuccess: (updated, id) => {
-      // Reconcile with whatever the server returned (in case more fields changed).
-      qc.setQueryData<Notification[]>(
-        NOTIFICATIONS_KEY,
-        (prev) => prev?.map((n) => (n.id === id ? { ...n, read: true, ...updated } : n)) ?? prev,
-      );
+      patchCacheAfterRead(id, updated);
     },
     onError: (_err, _id, context) => {
       if (context?.previous) qc.setQueryData(NOTIFICATIONS_KEY, context.previous);
+      if (context?.previousUnread) qc.setQueryData(UNREAD_KEY, context.previousUnread);
     },
   });
 
-  const items = query.data ?? [];
-  const unreadCount = items.filter((n) => n.read === false).length;
+  const markAllRead = useMutation<
+    { updated: number },
+    unknown,
+    void,
+    { previous?: typeof query.data; previousUnread?: { count: number } }
+  >({
+    mutationFn: () => markAllNotificationsRead(),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: NOTIFICATIONS_KEY });
+      await qc.cancelQueries({ queryKey: UNREAD_KEY });
+      const previous = qc.getQueryData<typeof query.data>(NOTIFICATIONS_KEY);
+      const previousUnread = qc.getQueryData<{ count: number }>(UNREAD_KEY);
+      qc.setQueryData<typeof query.data>(NOTIFICATIONS_KEY, (prev) => {
+        if (!prev) return prev;
+        return { ...prev, content: prev.content.map((n) => ({ ...n, read: true })) };
+      });
+      qc.setQueryData<{ count: number }>(UNREAD_KEY, { count: 0 });
+      return { previous, previousUnread };
+    },
+    onError: (_err, _v, context) => {
+      if (context?.previous) qc.setQueryData(NOTIFICATIONS_KEY, context.previous);
+      if (context?.previousUnread) qc.setQueryData(UNREAD_KEY, context.previousUnread);
+    },
+  });
+
+  const unreadCount = unreadCountQuery.data?.count ?? items.filter((n) => n.read === false).length;
 
   return {
     items,
@@ -72,5 +132,6 @@ export function useNotifications() {
     error: query.error,
     refetch: query.refetch,
     markRead: markRead.mutate,
+    markAllRead: markAllRead.mutate,
   };
 }

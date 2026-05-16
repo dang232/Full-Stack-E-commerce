@@ -9,13 +9,27 @@ vi.mock("./use-auth", () => ({
 }));
 
 const listNotificationsMock = vi.fn();
-const getNotificationMock = vi.fn();
+const markNotificationReadMock = vi.fn();
+const markAllNotificationsReadMock = vi.fn();
+const unreadNotificationCountMock = vi.fn();
 vi.mock("../lib/api/endpoints/notifications", () => ({
   listNotifications: (...args: unknown[]) => listNotificationsMock(...args),
-  getNotification: (...args: unknown[]) => getNotificationMock(...args),
+  markNotificationRead: (...args: unknown[]) => markNotificationReadMock(...args),
+  markAllNotificationsRead: (...args: unknown[]) => markAllNotificationsReadMock(...args),
+  unreadNotificationCount: (...args: unknown[]) => unreadNotificationCountMock(...args),
 }));
 
 import { useNotifications } from "./use-notifications";
+
+const buildPage = (content: { id: string; title: string; read?: boolean }[]) => ({
+  content,
+  totalElements: content.length,
+  totalPages: 1,
+  number: 0,
+  size: 30,
+  first: true,
+  last: true,
+});
 
 function makeWrapper() {
   const client = new QueryClient({
@@ -30,7 +44,10 @@ function makeWrapper() {
 beforeEach(() => {
   useAuthMock.mockReturnValue({ ready: true, authenticated: true });
   listNotificationsMock.mockReset();
-  getNotificationMock.mockReset();
+  markNotificationReadMock.mockReset();
+  markAllNotificationsReadMock.mockReset();
+  unreadNotificationCountMock.mockReset();
+  unreadNotificationCountMock.mockResolvedValue({ count: 0 });
 });
 
 afterEach(() => {
@@ -43,6 +60,7 @@ describe("useNotifications", () => {
     const { Wrapper } = makeWrapper();
     renderHook(() => useNotifications(), { wrapper: Wrapper });
     expect(listNotificationsMock).not.toHaveBeenCalled();
+    expect(unreadNotificationCountMock).not.toHaveBeenCalled();
   });
 
   it("does not fetch when unauthenticated", () => {
@@ -50,54 +68,87 @@ describe("useNotifications", () => {
     const { Wrapper } = makeWrapper();
     renderHook(() => useNotifications(), { wrapper: Wrapper });
     expect(listNotificationsMock).not.toHaveBeenCalled();
+    expect(unreadNotificationCountMock).not.toHaveBeenCalled();
   });
 
-  it("returns items and computes unreadCount from server data", async () => {
-    listNotificationsMock.mockResolvedValue([
-      { id: "n1", title: "Đơn hàng đã giao", read: false },
-      { id: "n2", title: "Khuyến mãi", read: true },
-      { id: "n3", title: "Tin mới", read: false },
-    ]);
+  it("returns items from the paged envelope and uses server unread count", async () => {
+    listNotificationsMock.mockResolvedValue(
+      buildPage([
+        { id: "n1", title: "Đơn hàng đã giao", read: false },
+        { id: "n2", title: "Khuyến mãi", read: true },
+        { id: "n3", title: "Tin mới", read: false },
+      ]),
+    );
+    unreadNotificationCountMock.mockResolvedValue({ count: 2 });
     const { Wrapper } = makeWrapper();
     const { result } = renderHook(() => useNotifications(), { wrapper: Wrapper });
 
     await waitFor(() => expect(result.current.items).toHaveLength(3));
-    expect(result.current.unreadCount).toBe(2);
+    await waitFor(() => expect(result.current.unreadCount).toBe(2));
   });
 
-  it("counts entries without an explicit `read` field as already read (no false positives)", async () => {
-    listNotificationsMock.mockResolvedValue([
-      { id: "n1", title: "Tin 1" },
-      { id: "n2", title: "Tin 2", read: false },
-    ]);
+  it("falls back to a client-side unread count when the count endpoint fails", async () => {
+    listNotificationsMock.mockResolvedValue(
+      buildPage([
+        { id: "n1", title: "Tin 1" },
+        { id: "n2", title: "Tin 2", read: false },
+      ]),
+    );
+    unreadNotificationCountMock.mockRejectedValue(new Error("boom"));
     const { Wrapper } = makeWrapper();
     const { result } = renderHook(() => useNotifications(), { wrapper: Wrapper });
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
-    expect(result.current.unreadCount).toBe(1);
+    await waitFor(() => expect(result.current.unreadCount).toBe(1));
   });
 
-  it("markRead patches the cache without an extra list refetch", async () => {
-    listNotificationsMock.mockResolvedValue([
-      { id: "n1", title: "Một", read: false },
-      { id: "n2", title: "Hai", read: false },
-    ]);
-    getNotificationMock.mockResolvedValue({ id: "n1", title: "Một", read: true });
+  it("markRead calls POST /:id/read and patches the cache without a list refetch", async () => {
+    listNotificationsMock.mockResolvedValue(
+      buildPage([
+        { id: "n1", title: "Một", read: false },
+        { id: "n2", title: "Hai", read: false },
+      ]),
+    );
+    unreadNotificationCountMock.mockResolvedValue({ count: 2 });
+    markNotificationReadMock.mockResolvedValue({ id: "n1", title: "Một", read: true });
 
     const { Wrapper } = makeWrapper();
     const { result } = renderHook(() => useNotifications(), { wrapper: Wrapper });
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
-    expect(result.current.unreadCount).toBe(2);
+    await waitFor(() => expect(result.current.unreadCount).toBe(2));
 
     await act(async () => {
       result.current.markRead("n1");
     });
 
     await waitFor(() => expect(result.current.unreadCount).toBe(1));
-    expect(getNotificationMock).toHaveBeenCalledWith("n1");
-    // List endpoint should still have been called only once — the patch is local.
+    expect(markNotificationReadMock).toHaveBeenCalledWith("n1");
     expect(listNotificationsMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("markAllRead clears unread count optimistically", async () => {
+    listNotificationsMock.mockResolvedValue(
+      buildPage([
+        { id: "n1", title: "Một", read: false },
+        { id: "n2", title: "Hai", read: false },
+      ]),
+    );
+    unreadNotificationCountMock.mockResolvedValue({ count: 2 });
+    markAllNotificationsReadMock.mockResolvedValue({ updated: 2 });
+
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useNotifications(), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+    await waitFor(() => expect(result.current.unreadCount).toBe(2));
+
+    await act(async () => {
+      result.current.markAllRead();
+    });
+
+    await waitFor(() => expect(result.current.unreadCount).toBe(0));
+    expect(markAllNotificationsReadMock).toHaveBeenCalledTimes(1);
   });
 
   it("exposes loading state while the initial fetch is in flight", () => {
@@ -109,7 +160,7 @@ describe("useNotifications", () => {
     expect(result.current.unreadCount).toBe(0);
   });
 
-  it("propagates errors from the server", async () => {
+  it("propagates errors from the list endpoint", async () => {
     listNotificationsMock.mockRejectedValue(new Error("boom"));
     const { Wrapper } = makeWrapper();
     const { result } = renderHook(() => useNotifications(), { wrapper: Wrapper });
