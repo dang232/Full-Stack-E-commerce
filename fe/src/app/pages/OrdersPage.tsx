@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner";
 import { formatPrice } from "../lib/format";
 import { type Order as UIOrder } from "../components/vnshop-data";
+import { parseOrderStatus } from "../lib/domain-enums";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useCancelOrder, useMyOrders } from "../hooks/use-orders";
@@ -29,16 +30,6 @@ const STATUS_CONFIG: Record<UIOrder["status"], { label: string; icon: typeof Pac
   returned: { label: "Đã hoàn hàng", icon: RotateCcw, color: "#8B5CF6", bg: "#F5F3FF" },
 };
 
-function mapStatus(raw: string): UIOrder["status"] {
-  const v = raw.toUpperCase();
-  if (v.includes("CANCEL")) return "cancelled";
-  if (v.includes("RETURN") || v.includes("REFUND")) return "returned";
-  if (v.includes("DELIVER") || v === "COMPLETED") return "delivered";
-  if (v.includes("SHIP")) return "shipping";
-  if (v.includes("ACCEPT") || v.includes("CONFIRM") || v.includes("PACK")) return "confirmed";
-  return "pending";
-}
-
 function fromServer(o: ServerOrder): UIOrder {
   const sub = o.subOrders?.[0];
   const items =
@@ -54,7 +45,7 @@ function fromServer(o: ServerOrder): UIOrder {
   return {
     id: o.id,
     date: o.createdAt ?? "",
-    status: mapStatus(o.status),
+    status: parseOrderStatus(o.status),
     items,
     total: o.total,
     shipping: o.shippingFee ?? 0,

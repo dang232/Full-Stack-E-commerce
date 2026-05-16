@@ -28,6 +28,7 @@ import {
   dashboardSummary,
   dashboardTopProducts,
   dashboardTopSellers,
+  type CouponWriteBody,
 } from "../lib/api/endpoints/admin";
 import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
@@ -35,16 +36,6 @@ import { FormDialog } from "../components/form-dialog";
 import { useEscapeKey } from "../hooks/use-escape-key";
 
 type AdminTab = "dashboard" | "sellers" | "reviews" | "coupons" | "disputes" | "payouts";
-
-function pickNumber(obj: unknown, ...keys: string[]): number | null {
-  if (!obj || typeof obj !== "object") return null;
-  const o = obj as Record<string, unknown>;
-  for (const k of keys) {
-    const v = o[k];
-    if (typeof v === "number") return v;
-  }
-  return null;
-}
 
 function AdminKPICard({
   icon: Icon,
@@ -106,10 +97,10 @@ function AdminDashboard() {
     retry: false,
   });
 
-  const totalRevenue = pickNumber(summaryQuery.data, "totalRevenue", "revenue", "total");
-  const totalUsers = pickNumber(summaryQuery.data, "totalUsers", "users");
-  const totalOrders = pickNumber(summaryQuery.data, "totalOrders", "orders");
-  const totalSellers = pickNumber(summaryQuery.data, "totalSellers", "sellers");
+  const totalRevenue = summaryQuery.data?.totalRevenue ?? null;
+  const totalUsers = summaryQuery.data?.totalUsers ?? null;
+  const totalOrders = summaryQuery.data?.totalOrders ?? null;
+  const totalSellers = summaryQuery.data?.totalSellers ?? null;
 
   return (
     <div className="space-y-6">
@@ -659,7 +650,7 @@ function CouponsManagement() {
   });
 
   const createCoupon = useMutation({
-    mutationFn: (body: unknown) => adminCreateCoupon(body),
+    mutationFn: (body: CouponWriteBody) => adminCreateCoupon(body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "coupons"] });
       toast.success("Đã tạo coupon");
