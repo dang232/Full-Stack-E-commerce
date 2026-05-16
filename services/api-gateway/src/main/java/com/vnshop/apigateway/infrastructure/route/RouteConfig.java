@@ -85,6 +85,12 @@ public class RouteConfig {
             .route("inventory", route -> route.path("/inventory/**")
                 .filters(filters -> resilient(filters, "inventory-service"))
                 .uri(inventoryServiceUri))
+            .route("flash-sale", route -> route.path("/flash-sale/**")
+                .filters(filters -> resilient(filters, "inventory-service"))
+                .uri(inventoryServiceUri))
+            .route("questions", route -> route.path("/questions/**")
+                .filters(filters -> resilient(filters, "product-service"))
+                .uri(productServiceUri))
             // Seller-owned product CRUD + image upload routes live on product-service.
             // Must precede the broader /sellers/** route below (which targets user-service
             // for seller profile/onboarding endpoints).
@@ -97,6 +103,21 @@ public class RouteConfig {
             .route("cart", route -> route.path("/cart/**")
                 .filters(filters -> resilient(filters, "cart-service"))
                 .uri(cartServiceUri))
+            // Seller fulfilment endpoints (accept/reject/ship sub-orders) live on
+            // order-service. Path is /seller/orders/** (singular), distinct from the
+            // /sellers/** profile/onboarding routes above.
+            .route("seller-orders", route -> route.path("/seller/orders/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("checkout", route -> route.path("/checkout/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("returns", route -> route.path("/returns/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("invoices", route -> route.path("/invoices/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
             .route("orders", route -> route.path("/orders/**")
                 .filters(filters -> rateLimited(filters, "order-service", redisRateLimiter, userKeyResolver))
                 .uri(orderServiceUri))
@@ -110,13 +131,13 @@ public class RouteConfig {
                 .filters(filters -> resilient(filters, "notification-service"))
                 .uri(notificationServiceUri))
             .route("coupons", route -> route.path("/coupons/**")
-                .filters(filters -> resilient(filters, "order-service"))
+                .filters(filters -> resilient(filters, "coupon-service"))
                 .uri(couponServiceUri))
             .route("reviews", route -> route.path("/reviews/**")
                 .filters(filters -> resilient(filters, "product-service"))
                 .uri(productServiceUri))
             .route("seller-finance", route -> route.path("/seller-finance/**")
-                .filters(filters -> resilient(filters, "order-service"))
+                .filters(filters -> resilient(filters, "seller-finance-service"))
                 .uri(sellerFinanceServiceUri))
             // Admin sub-routes — more specific patterns must come before the
             // catch-all /admin/** route below. Each maps to the service that owns
