@@ -8,7 +8,9 @@ import com.vnshop.userservice.application.RegisterSellerUseCase;
 import com.vnshop.userservice.application.UpsertBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewSellerProfileUseCase;
+import com.vnshop.userservice.application.WishlistUseCase;
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
+import com.vnshop.userservice.domain.port.out.WishlistRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -52,5 +54,10 @@ public class UseCaseConfig {
     @Bean
     ViewSellerProfileUseCase viewSellerProfileUseCase(UserRepositoryPort userRepositoryPort) {
         return new ViewSellerProfileUseCase(userRepositoryPort);
+    }
+
+    @Bean
+    WishlistUseCase wishlistUseCase(WishlistRepositoryPort wishlistRepositoryPort) {
+        return new WishlistUseCase(wishlistRepositoryPort);
     }
 }
