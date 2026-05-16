@@ -11,6 +11,8 @@ export interface NotificationProperties {
   data: Record<string, unknown>;
   channels: string[];
   status: NotificationStatus;
+  read: boolean;
+  readAt: Date | null;
   createdAt: Date;
 }
 
@@ -23,6 +25,8 @@ export class Notification {
   public readonly data: Record<string, unknown>;
   public readonly channels: string[];
   public status: NotificationStatus;
+  public read: boolean;
+  public readAt: Date | null;
   public readonly createdAt: Date;
 
   constructor(properties: NotificationProperties) {
@@ -34,17 +38,30 @@ export class Notification {
     this.data = properties.data;
     this.channels = properties.channels;
     this.status = properties.status;
+    this.read = properties.read;
+    this.readAt = properties.readAt;
     this.createdAt = properties.createdAt;
   }
 
   static create(
-    properties: Omit<NotificationProperties, 'id' | 'status' | 'createdAt'>,
+    properties: Omit<
+      NotificationProperties,
+      'id' | 'status' | 'createdAt' | 'read' | 'readAt'
+    >,
   ): Notification {
     return new Notification({
       ...properties,
       id: randomUUID(),
       status: NotificationStatus.PENDING,
+      read: false,
+      readAt: null,
       createdAt: new Date(),
     });
+  }
+
+  markRead(now: Date = new Date()): void {
+    if (this.read) return;
+    this.read = true;
+    this.readAt = now;
   }
 }

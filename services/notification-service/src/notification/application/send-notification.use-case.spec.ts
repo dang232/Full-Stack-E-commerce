@@ -17,11 +17,24 @@ describe('SendNotificationUseCase', () => {
       return Promise.resolve(notification);
     },
     findByUserId: () => Promise.resolve([]),
+    findByUserIdPaged: () =>
+      Promise.resolve({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        number: 0,
+        size: 30,
+        first: true,
+        last: true,
+      }),
     findById: () => Promise.resolve(null),
     markSent: (id: string) => {
       markedSentId = id;
       return Promise.resolve();
     },
+    markRead: () => Promise.resolve(null),
+    markAllRead: () => Promise.resolve(0),
+    countUnread: () => Promise.resolve(0),
   };
 
   const createChannel = (channelName: string): NotificationChannel => ({

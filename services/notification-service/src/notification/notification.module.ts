@@ -1,8 +1,11 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
+import { CountUnreadNotificationsUseCase } from './application/count-unread-notifications.use-case';
 import { FindNotificationByIdUseCase } from './application/find-notification-by-id.use-case';
 import { FindUserNotificationsUseCase } from './application/find-user-notifications.use-case';
 import { KafkaNotificationConsumer } from './application/kafka-notification.consumer';
+import { MarkAllNotificationsReadUseCase } from './application/mark-all-notifications-read.use-case';
+import { MarkNotificationReadUseCase } from './application/mark-notification-read.use-case';
 import {
   NotificationChannel,
   SendNotificationUseCase,
@@ -51,6 +54,30 @@ export const NOTIFICATION_CHANNELS = Symbol('NOTIFICATION_CHANNELS');
         repository: NotificationRepository,
       ): FindNotificationByIdUseCase =>
         new FindNotificationByIdUseCase(repository),
+      inject: [NOTIFICATION_REPOSITORY],
+    },
+    {
+      provide: MarkNotificationReadUseCase,
+      useFactory: (
+        repository: NotificationRepository,
+      ): MarkNotificationReadUseCase =>
+        new MarkNotificationReadUseCase(repository),
+      inject: [NOTIFICATION_REPOSITORY],
+    },
+    {
+      provide: MarkAllNotificationsReadUseCase,
+      useFactory: (
+        repository: NotificationRepository,
+      ): MarkAllNotificationsReadUseCase =>
+        new MarkAllNotificationsReadUseCase(repository),
+      inject: [NOTIFICATION_REPOSITORY],
+    },
+    {
+      provide: CountUnreadNotificationsUseCase,
+      useFactory: (
+        repository: NotificationRepository,
+      ): CountUnreadNotificationsUseCase =>
+        new CountUnreadNotificationsUseCase(repository),
       inject: [NOTIFICATION_REPOSITORY],
     },
     {

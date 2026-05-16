@@ -21,6 +21,8 @@ describe('Notification', () => {
     expect(notification.data).toEqual({ orderId: 'order-1' });
     expect(notification.channels).toEqual(['email']);
     expect(notification.status).toBe(NotificationStatus.PENDING);
+    expect(notification.read).toBe(false);
+    expect(notification.readAt).toBeNull();
     expect(notification.createdAt).toBeInstanceOf(Date);
   });
 
@@ -36,6 +38,8 @@ describe('Notification', () => {
       data: {},
       channels: ['console'],
       status: NotificationStatus.SENT,
+      read: false,
+      readAt: null,
       createdAt,
     });
 
@@ -48,7 +52,28 @@ describe('Notification', () => {
       data: {},
       channels: ['console'],
       status: NotificationStatus.SENT,
+      read: false,
+      readAt: null,
       createdAt,
     });
+  });
+
+  it('markRead flips read state and sets readAt; idempotent on second call', () => {
+    const notification = Notification.create({
+      userId: 'user-1',
+      type: NotificationType.ORDER_CREATED,
+      title: 't',
+      body: 'b',
+      data: {},
+      channels: ['email'],
+    });
+
+    const firstReadAt = new Date('2026-05-12T01:00:00.000Z');
+    notification.markRead(firstReadAt);
+    expect(notification.read).toBe(true);
+    expect(notification.readAt).toBe(firstReadAt);
+
+    notification.markRead(new Date('2026-05-12T02:00:00.000Z'));
+    expect(notification.readAt).toBe(firstReadAt);
   });
 });

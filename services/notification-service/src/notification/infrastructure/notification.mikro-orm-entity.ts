@@ -28,6 +28,12 @@ export class NotificationMikroOrmEntity {
   @Enum(() => NotificationStatus)
   status!: NotificationStatus;
 
+  @Property({ default: false })
+  read: boolean = false;
+
+  @Property({ fieldName: 'read_at', type: 'timestamptz', nullable: true })
+  readAt: Date | null = null;
+
   @Property({ fieldName: 'created_at', type: 'timestamptz' })
   createdAt: Date = new Date();
 }
