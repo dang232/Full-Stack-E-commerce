@@ -23,6 +23,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "../hooks/use-auth";
+import { ApiError } from "../lib/api";
 import {
   myProfile,
   updateProfile,
@@ -30,7 +31,6 @@ import {
   setDefaultAddress,
   removeAddress,
 } from "../lib/api/endpoints/users";
-import { ApiError } from "../lib/api/envelope";
 import type { Address, UserProfile } from "../types/api";
 
 type ProfileTab = "info" | "addresses" | "payment" | "security";

@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { ApiError } from "../../lib/api";
 import { adminApproveSeller, adminListSellers } from "../../lib/api/endpoints/admin";
-import { ApiError } from "../../lib/api/envelope";
 
 export function SellersApproval() {
   const qc = useQueryClient();

@@ -5,13 +5,13 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { FormDialog } from "../../components/form-dialog";
+import { ApiError } from "../../lib/api";
 import {
   sellerAcceptOrder,
   sellerRejectOrder,
   sellerShipOrder,
   type PendingSubOrder,
 } from "../../lib/api/endpoints/orders";
-import { ApiError } from "../../lib/api/envelope";
 
 import { ShipDialog } from "./ShipDialog";
 

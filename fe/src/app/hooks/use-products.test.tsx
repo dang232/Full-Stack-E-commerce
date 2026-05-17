@@ -3,7 +3,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError } from "../lib/api/envelope";
+import { ApiError } from "../lib/api";
 
 const productListMock = vi.fn();
 const productByIdMock = vi.fn();

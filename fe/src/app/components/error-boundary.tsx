@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { ApiError } from "../lib/api/envelope";
+import { ApiError } from "../lib/api";
 
 interface Props {
   children: ReactNode;

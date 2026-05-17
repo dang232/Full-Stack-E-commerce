@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { useAuth } from "../../hooks/use-auth";
 import { useCart } from "../../hooks/use-cart";
+import { ApiError } from "../../lib/api";
 import {
   calculateCheckout,
   paymentMethods as fetchPaymentMethods,
@@ -18,7 +19,6 @@ import { listActiveCoupons, validateCouponCode } from "../../lib/api/endpoints/c
 import { placeOrder } from "../../lib/api/endpoints/orders";
 import { codConfirm, momoCreate, vnpayCreate } from "../../lib/api/endpoints/payment";
 import { myProfile } from "../../lib/api/endpoints/users";
-import { ApiError } from "../../lib/api/envelope";
 import type { Address } from "../../types/api";
 
 import { CheckoutAddressStep } from "./CheckoutAddressStep";

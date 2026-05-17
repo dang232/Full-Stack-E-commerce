@@ -2,8 +2,8 @@ import { CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 
+import { ApiError } from "../lib/api";
 import { paymentStatus } from "../lib/api/endpoints/payment";
-import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
 
 type Provider = "vnpay" | "momo";

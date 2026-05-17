@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { FormDialog } from "../../components/form-dialog";
+import { ApiError } from "../../lib/api";
 import { requestPayout, type Payout } from "../../lib/api/endpoints/seller-finance";
-import { ApiError } from "../../lib/api/envelope";
 import { formatPrice } from "../../lib/format";
 
 export function SellerWallet({

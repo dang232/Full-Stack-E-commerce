@@ -10,8 +10,8 @@ import { ImageWithFallback } from "../components/image-with-fallback";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useWishlist } from "../hooks/use-wishlist";
+import { ApiError } from "../lib/api";
 import { productById } from "../lib/api/endpoints/products";
-import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
 
 export function WishlistPage() {

@@ -26,10 +26,10 @@ import { products, reviews as reviewsMock, sellers } from "../components/vnshop-
 import { useAuth } from "../hooks/use-auth";
 import { useProduct } from "../hooks/use-products";
 import { useFrequentlyBoughtTogether, useYouMayAlsoLike } from "../hooks/use-recommendations";
+import { ApiError } from "../lib/api";
 import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions";
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { reviewsByProduct, createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
-import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {

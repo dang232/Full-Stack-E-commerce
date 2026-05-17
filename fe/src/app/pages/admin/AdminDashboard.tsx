@@ -14,13 +14,13 @@ import {
 } from "recharts";
 
 import { KPICard } from "../../components/kpi-card";
+import { ApiError } from "../../lib/api";
 import {
   dashboardRevenue,
   dashboardSummary,
   dashboardTopProducts,
   dashboardTopSellers,
 } from "../../lib/api/endpoints/admin";
-import { ApiError } from "../../lib/api/envelope";
 import { formatPrice } from "../../lib/format";
 
 

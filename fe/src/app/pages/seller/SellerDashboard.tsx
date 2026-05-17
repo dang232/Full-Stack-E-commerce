@@ -15,9 +15,9 @@ import {
 
 import { KPICard } from "../../components/kpi-card";
 import { useSellerRevenue } from "../../hooks/use-seller-revenue";
+import { ApiError } from "../../lib/api";
 import type { PendingSubOrder } from "../../lib/api/endpoints/orders";
 import type { SellerRevenuePoint } from "../../lib/api/endpoints/seller-analytics";
-import { ApiError } from "../../lib/api/envelope";
 import { formatPrice } from "../../lib/format";
 
 

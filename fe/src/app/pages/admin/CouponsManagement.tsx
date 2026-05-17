@@ -3,13 +3,13 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { ApiError } from "../../lib/api";
 import {
   adminCreateCoupon,
   adminDeactivateCoupon,
   adminListCoupons,
   type CouponWriteBody,
 } from "../../lib/api/endpoints/admin";
-import { ApiError } from "../../lib/api/envelope";
 import { formatPrice } from "../../lib/format";
 
 import { CouponDialog } from "./CouponDialog";

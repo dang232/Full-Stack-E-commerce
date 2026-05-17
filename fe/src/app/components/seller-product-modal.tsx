@@ -3,13 +3,13 @@ import { ImageIcon, Loader2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { ApiError } from "../lib/api";
 import {
   sellerProductCreate,
   sellerProductImageActivate,
   sellerProductImageUploadUrl,
   sellerProductUpdate,
 } from "../lib/api/endpoints/products";
-import { ApiError } from "../lib/api/envelope";
 
 import { ImageWithFallback } from "./image-with-fallback";
 import { Modal } from "./ui/modal";
