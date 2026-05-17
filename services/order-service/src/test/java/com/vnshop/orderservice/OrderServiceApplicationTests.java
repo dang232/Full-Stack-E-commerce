@@ -22,6 +22,7 @@ import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import com.vnshop.orderservice.infrastructure.idempotency.ProcessedEventRepository;
 import com.vnshop.orderservice.infrastructure.outbox.OutboxEventRepository;
 import com.vnshop.orderservice.infrastructure.persistence.OrderJpaRepository;
+import com.vnshop.orderservice.infrastructure.persistence.SagaStateSpringDataRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -39,6 +40,9 @@ class OrderServiceApplicationTests {
 
 	@MockitoBean
 	private OrderJpaRepository orderJpaRepository;
+
+	@MockitoBean
+	private SagaStateSpringDataRepository sagaStateSpringDataRepository;
 
 	@MockitoBean
 	private DashboardAnalyticsPort dashboardAnalyticsPort;
