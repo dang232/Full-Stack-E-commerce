@@ -1,0 +1,110 @@
+{
+  "nav": {
+    "home": "Home",
+    "flashSale": "Flash Sale",
+    "supermarket": "Supermarket",
+    "fashion": "Fashion",
+    "electronics": "Electronics",
+    "allCategories": "All Categories",
+    "support": "Support",
+    "sellerChannel": "Seller Hub",
+    "admin": "Admin",
+    "freePhone": "1800 6789 (Free)",
+    "nationwide": "Nationwide delivery",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Register",
+    "logout": "Log out",
+    "myAccount": "My Account",
+    "myOrders": "My Orders",
+    "wishlist": "Wishlist",
+    "notifications": "Notifications",
+    "settings": "Settings"
+  },
+  "cart": {
+    "title": "Cart",
+    "addToCart": "+ Add to cart"
+  },
+  "search": {
+    "placeholder": "Search products, brands, shops...",
+    "mobilePlaceholder": "Search..."
+  },
+  "flashSale": {
+    "title": "⚡ FLASH SALE",
+    "subtitle": "Shock deals — Limited stock!",
+    "endsIn": "Ends in",
+    "viewAll": "View all",
+    "hours": "Hours",
+    "minutes": "Mins",
+    "seconds": "Secs",
+    "loading": "Loading flash sale...",
+    "comingSoon": "Coming soon",
+    "loadingWait": "Please wait a moment",
+    "expired": "Flash sale ended — Check back soon for new deals",
+    "soldPct": "{{pct}}% sold",
+    "stockLeft": "{{n}} slots left"
+  },
+  "product": {
+    "sold": "Sold",
+    "new": "New",
+    "viewMore": "View more products →"
+  },
+  "home": {
+    "forYou": "Just for you",
+    "suggestions": "Recommended for You",
+    "suggestionsSubtitle": "Personalised based on your shopping preferences",
+    "viewAll": "View all",
+    "trending": "Trending",
+    "categories": "Product Categories",
+    "allCategoriesLabel": "All categories",
+    "trustedSellers": "Trusted Shops",
+    "trustedSellersSubtitle": "Verified by VNShop",
+    "bestsellers": "Best Sellers",
+    "downloadApp": "Download VNShop App",
+    "downloadAppSub": "Get exclusive deals — 100k voucher on your first app purchase",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "greetingTitle": "Hello!",
+    "greetingSubtitle": "Log in to get personalised deals",
+    "voucherToday": "Today's voucher",
+    "voucherSub": "Save 50k on orders from 299k",
+    "copyHint": "Tap to copy",
+    "verified": "Verified",
+    "products": "Products",
+    "response": "Response",
+    "salesCount": "Sold"
+  },
+  "footer": {
+    "tagline": "Vietnam's leading online shopping platform. Trusted · Fast · Affordable.",
+    "customerSupport": "Customer Support",
+    "helpCenter": "Help Center",
+    "warranty": "Warranty Policy",
+    "buyingGuide": "Buying Guide",
+    "paymentMethods": "Payment Methods",
+    "shipping": "Shipping & Delivery",
+    "about": "About Us",
+    "careers": "Careers",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "blog": "Blog & News",
+    "paymentShipping": "Payment & Delivery",
+    "copyright": "© 2026 VNShop. Operated by VNShop JSC. Business Reg: 0123456789"
+  },
+  "trust": {
+    "freeShipping": "Free shipping",
+    "freeShippingSub": "Orders from 150,000₫",
+    "authentic": "100% authentic goods",
+    "authenticSub": "Money-back guarantee",
+    "returns": "30-day returns",
+    "returnsSub": "No questions asked",
+    "support247": "24/7 support",
+    "support247Sub": "1800 6789 free"
+  },
+  "language": {
+    "vi": "VI",
+    "en": "EN"
+  }
+}

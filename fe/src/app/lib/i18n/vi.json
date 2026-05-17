@@ -1,0 +1,110 @@
+{
+  "nav": {
+    "home": "Trang Chủ",
+    "flashSale": "Flash Sale",
+    "supermarket": "Siêu Thị",
+    "fashion": "Thời Trang",
+    "electronics": "Điện Tử",
+    "allCategories": "Tất cả danh mục",
+    "support": "Hỗ trợ",
+    "sellerChannel": "Kênh Người Bán",
+    "admin": "Admin",
+    "freePhone": "1800 6789 (Miễn phí)",
+    "nationwide": "Giao hàng toàn quốc",
+    "dark": "Tối",
+    "light": "Sáng"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "myAccount": "Tài khoản của tôi",
+    "myOrders": "Đơn mua",
+    "wishlist": "Yêu thích",
+    "notifications": "Thông báo",
+    "settings": "Cài đặt"
+  },
+  "cart": {
+    "title": "Giỏ hàng",
+    "addToCart": "+ Thêm vào giỏ hàng"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm sản phẩm, thương hiệu, shop...",
+    "mobilePlaceholder": "Tìm kiếm..."
+  },
+  "flashSale": {
+    "title": "⚡ FLASH SALE",
+    "subtitle": "Giảm sốc — Số lượng có hạn!",
+    "endsIn": "Kết thúc sau",
+    "viewAll": "Xem tất cả",
+    "hours": "Giờ",
+    "minutes": "Phút",
+    "seconds": "Giây",
+    "loading": "Đang tải flash sale...",
+    "comingSoon": "Sắp ra mắt",
+    "loadingWait": "Vui lòng chờ trong giây lát",
+    "expired": "Hết flash sale — Quay lại sớm để săn deal mới",
+    "soldPct": "Đã bán {{pct}}%",
+    "stockLeft": "Còn {{n}} suất"
+  },
+  "product": {
+    "sold": "Đã bán",
+    "new": "Mới",
+    "viewMore": "Xem thêm sản phẩm →"
+  },
+  "home": {
+    "forYou": "Dành riêng cho bạn",
+    "suggestions": "Gợi Ý Cho Bạn",
+    "suggestionsSubtitle": "Được cá nhân hóa dựa trên sở thích mua sắm",
+    "viewAll": "Xem tất cả",
+    "trending": "Đang Hot",
+    "categories": "Danh Mục Sản Phẩm",
+    "allCategoriesLabel": "Tất cả danh mục",
+    "trustedSellers": "Shop Uy Tín",
+    "trustedSellersSubtitle": "Được xác minh bởi VNShop",
+    "bestsellers": "Bán Chạy Nhất",
+    "downloadApp": "Tải App VNShop",
+    "downloadAppSub": "Nhận thêm ưu đãi độc quyền — Voucher 100k cho lần mua đầu qua app",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "greetingTitle": "Chào bạn!",
+    "greetingSubtitle": "Đăng nhập để nhận ưu đãi cá nhân",
+    "voucherToday": "Voucher hôm nay",
+    "voucherSub": "Giảm 50k cho đơn từ 299k",
+    "copyHint": "Nhấn để sao chép",
+    "verified": "Đã xác minh",
+    "products": "Sản phẩm",
+    "response": "Phản hồi",
+    "salesCount": "Đã bán"
+  },
+  "footer": {
+    "tagline": "Nền tảng mua sắm trực tuyến hàng đầu Việt Nam. Uy tín - Nhanh chóng - Tiết kiệm.",
+    "customerSupport": "Hỗ trợ khách hàng",
+    "helpCenter": "Trung tâm hỗ trợ",
+    "warranty": "Chính sách bảo hành",
+    "buyingGuide": "Hướng dẫn mua hàng",
+    "paymentMethods": "Phương thức thanh toán",
+    "shipping": "Vận chuyển & Giao nhận",
+    "about": "Giới thiệu",
+    "careers": "Tuyển dụng",
+    "terms": "Điều khoản dịch vụ",
+    "privacy": "Chính sách bảo mật",
+    "blog": "Blog & Tin tức",
+    "paymentShipping": "Thanh toán & Giao hàng",
+    "copyright": "© 2026 VNShop. Được vận hành bởi VNShop JSC. ĐKKD số: 0123456789"
+  },
+  "trust": {
+    "freeShipping": "Miễn phí vận chuyển",
+    "freeShippingSub": "Đơn từ 150.000đ",
+    "authentic": "Hàng chính hãng 100%",
+    "authenticSub": "Cam kết hoàn tiền",
+    "returns": "Đổi trả 30 ngày",
+    "returnsSub": "Không cần lý do",
+    "support247": "Hỗ trợ 24/7",
+    "support247Sub": "1800 6789 miễn phí"
+  },
+  "language": {
+    "vi": "VI",
+    "en": "EN"
+  }
+}
