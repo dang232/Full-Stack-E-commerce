@@ -1,6 +1,7 @@
 import { SlidersHorizontal, Star, Truck, X, Zap, Grid3X3, LayoutList, Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 
 import { FacetList } from "../components/facet-list";
@@ -235,6 +236,7 @@ export function SearchPage() {
   // URL is the source of truth for the selected category — no shadow state.
   const selectedCat = searchParams.get("cat") ?? "";
   const isFlash = searchParams.get("flash") === "true";
+  const { t } = useTranslation();
 
   const [localQuery, setLocalQuery] = useState(query);
   const [priceMin, setPriceMin] = useState("");
@@ -381,7 +383,7 @@ export function SearchPage() {
           <input
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder={t("search.barPlaceholder")}
             className="flex-1 px-3 py-3 text-sm outline-none bg-transparent"
           />
           {localQuery ? (
@@ -402,7 +404,7 @@ export function SearchPage() {
           className="px-6 py-3 rounded-xl text-white font-semibold text-sm"
           style={{ background: "#00BFB3" }}
         >
-          Tìm kiếm
+          {t("search.submit")}
         </button>
       </form>
 
@@ -417,7 +419,7 @@ export function SearchPage() {
               : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
           }
         >
-          Tất cả
+          {t("search.allCategories")}
         </button>
         {categories.map((cat) => (
           <button
@@ -440,27 +442,27 @@ export function SearchPage() {
         <aside className={`shrink-0 w-56 space-y-5 ${showFilters ? "block" : "hidden lg:block"}`}>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-gray-800">Bộ lọc</h3>
+              <h3 className="font-bold text-gray-800">{t("search.filtersTitle")}</h3>
               {activeFilterCount > 0 ? (
                 <button
                   onClick={clearFilters}
                   className="text-xs font-medium"
                   style={{ color: "#FF6200" }}
                 >
-                  Xóa tất cả
+                  {t("search.clearAll")}
                 </button>
               ) : null}
             </div>
 
             {/* Sort */}
             <div className="mb-5">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Sắp xếp</p>
+              <p className="text-sm font-semibold text-gray-700 mb-2">{t("search.sortHeader")}</p>
               {[
-                { v: "popular", l: "Phổ biến nhất" },
-                { v: "rating", l: "Đánh giá cao" },
-                { v: "price-low", l: "Giá: Thấp → Cao" },
-                { v: "price-high", l: "Giá: Cao → Thấp" },
-                { v: "newest", l: "Mới nhất" },
+                { v: "popular", l: t("search.sort.popular") },
+                { v: "rating", l: t("search.sort.rating") },
+                { v: "price-low", l: t("search.sort.priceLow") },
+                { v: "price-high", l: t("search.sort.priceHigh") },
+                { v: "newest", l: t("search.sort.newest") },
               ].map((opt) => (
                 <button
                   key={opt.v}
@@ -483,31 +485,31 @@ export function SearchPage() {
 
             {/* Price range */}
             <div className="mb-5">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Khoảng giá (nghìn đ)</p>
+              <p className="text-sm font-semibold text-gray-700 mb-2">{t("search.priceHeader")}</p>
               <div className="flex gap-2">
                 <input
                   value={priceMin}
                   onChange={(e) => setPriceMin(e.target.value)}
-                  placeholder="Từ"
+                  placeholder={t("search.priceFrom")}
                   type="number"
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-[#00BFB3]"
                 />
                 <input
                   value={priceMax}
                   onChange={(e) => setPriceMax(e.target.value)}
-                  placeholder="Đến"
+                  placeholder={t("search.priceTo")}
                   type="number"
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-[#00BFB3]"
                 />
               </div>
               {[
-                { label: "Dưới 100k", min: "", max: "100" },
-                { label: "100k–500k", min: "100", max: "500" },
-                { label: "500k–2tr", min: "500", max: "2000" },
-                { label: "Trên 2tr", min: "2000", max: "" },
+                { labelKey: "search.priceBuckets.under100", min: "", max: "100" },
+                { labelKey: "search.priceBuckets.100to500", min: "100", max: "500" },
+                { labelKey: "search.priceBuckets.500to2000", min: "500", max: "2000" },
+                { labelKey: "search.priceBuckets.over2000", min: "2000", max: "" },
               ].map((range) => (
                 <button
-                  key={range.label}
+                  key={range.labelKey}
                   onClick={() => {
                     setPriceMin(range.min);
                     setPriceMax(range.max);
@@ -523,14 +525,14 @@ export function SearchPage() {
                         : "transparent",
                   }}
                 >
-                  {range.label}
+                  {t(range.labelKey)}
                 </button>
               ))}
             </div>
 
             {/* Rating */}
             <div className="mb-5">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Đánh giá</p>
+              <p className="text-sm font-semibold text-gray-700 mb-2">{t("search.ratingHeader")}</p>
               {[4, 3, 2].map((r) => (
                 <button
                   key={r}
@@ -548,7 +550,7 @@ export function SearchPage() {
                       />
                     ))}
                   </div>
-                  <span>từ {r} ★</span>
+                  <span>{t("search.ratingAtLeast", { r })}</span>
                 </button>
               ))}
             </div>
@@ -577,13 +579,13 @@ export function SearchPage() {
                 axis hides itself when the BE returned no entries (e.g. on
                 the welcome state before the user has searched). */}
             <FacetList
-              title="Thương hiệu"
+              title={t("search.brandsTitle")}
               entries={facets.brands}
               selected={selectedBrand}
               onToggle={(key) => setSelectedBrand(selectedBrand === key ? "" : key)}
             />
             <FacetList
-              title="Danh mục"
+              title={t("search.categoriesTitle")}
               entries={facets.categories}
               selected={selectedCat}
               onToggle={(key) => setCategory(selectedCat === key ? "" : key)}
@@ -603,11 +605,12 @@ export function SearchPage() {
                     <Zap size={16} fill="currentColor" /> Flash Sale
                   </span>
                 ) : null}
-                {query ? `Kết quả cho "${query}"` : "Tất cả sản phẩm"}
+                {query ? t("search.resultsForQuery", { q: query }) : t("search.allProducts")}
               </p>
               <p className="text-sm text-gray-500 mt-0.5">
-                {(usedBackend ? search.totalElements : filtered.length).toLocaleString("vi-VN")} sản
-                phẩm được tìm thấy
+                {t("search.resultCount", {
+                  count: usedBackend ? search.totalElements : filtered.length,
+                })}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -616,7 +619,7 @@ export function SearchPage() {
                 className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium"
               >
                 <SlidersHorizontal size={16} />
-                Lọc {activeFilterCount > 0 ? `(${activeFilterCount})` : null}
+                {t("search.filterToggle")} {activeFilterCount > 0 ? `(${activeFilterCount})` : null}
               </button>
               <div className="hidden sm:flex border border-gray-200 rounded-xl overflow-hidden bg-white">
                 <button
@@ -645,11 +648,11 @@ export function SearchPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-xl bg-white text-sm outline-none"
               >
-                <option value="popular">Phổ biến</option>
-                <option value="rating">Đánh giá</option>
-                <option value="price-low">Giá tăng dần</option>
-                <option value="price-high">Giá giảm dần</option>
-                <option value="newest">Mới nhất</option>
+                <option value="popular">{t("search.sort.shortPopular")}</option>
+                <option value="rating">{t("search.sort.shortRating")}</option>
+                <option value="price-low">{t("search.sort.shortPriceLow")}</option>
+                <option value="price-high">{t("search.sort.shortPriceHigh")}</option>
+                <option value="newest">{t("search.sort.shortNewest")}</option>
               </select>
             </div>
           </div>
@@ -711,7 +714,7 @@ export function SearchPage() {
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
                   style={{ background: "#00BFB3" }}
                 >
-                  Miễn phí ship
+                  {t("search.freeShipping")}
                   <button onClick={() => setFreeShipOnly(false)}>
                     <X size={12} />
                   </button>
@@ -724,16 +727,14 @@ export function SearchPage() {
           {paginated.length === 0 ? (
             <div className="py-24 text-center bg-white rounded-2xl">
               <Search size={48} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">Không tìm thấy sản phẩm</h3>
-              <p className="text-sm text-gray-400 mb-6">
-                Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm
-              </p>
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">{t("search.emptyTitle")}</h3>
+              <p className="text-sm text-gray-400 mb-6">{t("search.emptySub")}</p>
               <button
                 onClick={clearFilters}
                 className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold"
                 style={{ background: "#00BFB3" }}
               >
-                Xóa bộ lọc
+                {t("search.emptyClear")}
               </button>
             </div>
           ) : viewMode === "grid" ? (
@@ -758,7 +759,7 @@ export function SearchPage() {
                 className="px-8 py-3 rounded-full border-2 text-sm font-semibold transition-all hover:text-white hover:bg-[#00BFB3]"
                 style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
               >
-                Xem thêm {Math.min(20, remaining)} sản phẩm
+                {t("search.loadMore", { count: Math.min(20, remaining) })}
               </button>
             </div>
           ) : null}

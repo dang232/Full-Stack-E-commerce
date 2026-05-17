@@ -64,7 +64,47 @@
   },
   "search": {
     "placeholder": "Search products, brands, shops...",
-    "mobilePlaceholder": "Search..."
+    "mobilePlaceholder": "Search...",
+    "barPlaceholder": "Search products...",
+    "submit": "Search",
+    "allCategories": "All",
+    "filtersTitle": "Filters",
+    "clearAll": "Clear all",
+    "sortHeader": "Sort by",
+    "sort": {
+      "popular": "Most popular",
+      "rating": "Highest rated",
+      "priceLow": "Price: Low → High",
+      "priceHigh": "Price: High → Low",
+      "newest": "Newest",
+      "shortPopular": "Popular",
+      "shortRating": "Rating",
+      "shortPriceLow": "Price ascending",
+      "shortPriceHigh": "Price descending",
+      "shortNewest": "Newest"
+    },
+    "priceHeader": "Price (in thousands ₫)",
+    "priceFrom": "From",
+    "priceTo": "To",
+    "priceBuckets": {
+      "under100": "Under 100k",
+      "100to500": "100k–500k",
+      "500to2000": "500k–2M",
+      "over2000": "Over 2M"
+    },
+    "ratingHeader": "Rating",
+    "ratingAtLeast": "{{r}}★ and up",
+    "freeShipping": "Free shipping",
+    "brandsTitle": "Brands",
+    "categoriesTitle": "Categories",
+    "filterToggle": "Filter",
+    "resultsForQuery": "Results for \"{{q}}\"",
+    "allProducts": "All products",
+    "resultCount": "{{count}} products found",
+    "emptyTitle": "No products found",
+    "emptySub": "Try adjusting your filters or search query",
+    "emptyClear": "Clear filters",
+    "loadMore": "Show {{count}} more products"
   },
   "flashSale": {
     "title": "⚡ FLASH SALE",

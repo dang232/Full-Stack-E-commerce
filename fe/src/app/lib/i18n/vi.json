@@ -64,7 +64,47 @@
   },
   "search": {
     "placeholder": "Tìm kiếm sản phẩm, thương hiệu, shop...",
-    "mobilePlaceholder": "Tìm kiếm..."
+    "mobilePlaceholder": "Tìm kiếm...",
+    "barPlaceholder": "Tìm kiếm sản phẩm...",
+    "submit": "Tìm kiếm",
+    "allCategories": "Tất cả",
+    "filtersTitle": "Bộ lọc",
+    "clearAll": "Xóa tất cả",
+    "sortHeader": "Sắp xếp",
+    "sort": {
+      "popular": "Phổ biến nhất",
+      "rating": "Đánh giá cao",
+      "priceLow": "Giá: Thấp → Cao",
+      "priceHigh": "Giá: Cao → Thấp",
+      "newest": "Mới nhất",
+      "shortPopular": "Phổ biến",
+      "shortRating": "Đánh giá",
+      "shortPriceLow": "Giá tăng dần",
+      "shortPriceHigh": "Giá giảm dần",
+      "shortNewest": "Mới nhất"
+    },
+    "priceHeader": "Khoảng giá (nghìn đ)",
+    "priceFrom": "Từ",
+    "priceTo": "Đến",
+    "priceBuckets": {
+      "under100": "Dưới 100k",
+      "100to500": "100k–500k",
+      "500to2000": "500k–2tr",
+      "over2000": "Trên 2tr"
+    },
+    "ratingHeader": "Đánh giá",
+    "ratingAtLeast": "từ {{r}} ★",
+    "freeShipping": "Miễn phí ship",
+    "brandsTitle": "Thương hiệu",
+    "categoriesTitle": "Danh mục",
+    "filterToggle": "Lọc",
+    "resultsForQuery": "Kết quả cho \"{{q}}\"",
+    "allProducts": "Tất cả sản phẩm",
+    "resultCount": "{{count}} sản phẩm được tìm thấy",
+    "emptyTitle": "Không tìm thấy sản phẩm",
+    "emptySub": "Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm",
+    "emptyClear": "Xóa bộ lọc",
+    "loadMore": "Xem thêm {{count}} sản phẩm"
   },
   "flashSale": {
     "title": "⚡ FLASH SALE",
