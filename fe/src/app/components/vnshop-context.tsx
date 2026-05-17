@@ -26,7 +26,7 @@ interface VNShopContextType {
   // Cart actions still wired through here so the existing product cards keep working.
   cartCount: number;
   addToCart: (product: Product, quantity?: number) => void;
-  // Wishlist (local-only until BE-8 ships /users/me/wishlist).
+  // Wishlist — backed by /users/me/wishlist (user-service BE-8).
   wishlist: string[];
   toggleWishlist: (productId: string) => void;
   isWishlisted: (productId: string) => boolean;

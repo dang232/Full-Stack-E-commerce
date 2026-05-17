@@ -1,5 +1,5 @@
 import { useQueries } from "@tanstack/react-query";
-import { Heart, ShoppingCart, Star, Trash2, Share2, Filter, AlertCircle } from "lucide-react";
+import { Heart, ShoppingCart, Star, Trash2, Share2, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
@@ -84,14 +84,6 @@ export function WishlistPage() {
             <Filter size={18} />
           </button>
         </div>
-      </div>
-
-      <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2">
-        <AlertCircle size={14} className="shrink-0 mt-0.5" />
-        <p>
-          Danh sách yêu thích đang được lưu trên trình duyệt này. Tính năng đồng bộ giữa các thiết
-          bị sẽ sớm có (BE-8).
-        </p>
       </div>
 
       {wishlist.count === 0 ? (
