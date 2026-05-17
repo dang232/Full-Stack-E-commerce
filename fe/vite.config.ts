@@ -43,7 +43,6 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom', 'react-router'],
           recharts: ['recharts'],
           motion: ['motion'],
-          keycloak: ['keycloak-js'],
           'react-query': ['@tanstack/react-query'],
         },
       },
