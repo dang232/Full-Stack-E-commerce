@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+//TODO needed to rm this and use the true count down for flash sale
 export function useCountdown(target: number) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
