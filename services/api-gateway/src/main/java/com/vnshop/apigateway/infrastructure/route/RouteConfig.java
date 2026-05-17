@@ -107,6 +107,12 @@ public class RouteConfig {
             .route("users", route -> route.path("/users/**", "/sellers/**")
                 .filters(filters -> resilient(filters, "user-service"))
                 .uri(userServiceUri))
+            // Public self-registration. SecurityConfig permits /auth/** without a
+            // bearer token; the controller in user-service proxies to Keycloak's
+            // Admin API to create the user, then materialises the buyer profile.
+            .route("auth", route -> route.path("/auth/**")
+                .filters(filters -> resilient(filters, "user-service"))
+                .uri(userServiceUri))
             .route("cart", route -> route.path("/cart/**")
                 .filters(filters -> resilient(filters, "cart-service"))
                 .uri(cartServiceUri))
