@@ -23,8 +23,13 @@ import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
 import { products, reviews as reviewsMock, sellers } from "../components/vnshop-data";
 import { useAuth } from "../hooks/use-auth";
-import { useProduct, useProducts } from "../hooks/use-products";
+import { useProduct } from "../hooks/use-products";
+import {
+  useFrequentlyBoughtTogether,
+  useYouMayAlsoLike,
+} from "../hooks/use-recommendations";
 import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions";
+import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { reviewsByProduct, createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
 import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
@@ -62,11 +67,12 @@ export function ProductPage() {
 
   const productQuery = useProduct(id ?? "");
   const product = productQuery.data ?? products.find((p) => p.id === id);
-  const { data: catalog = products } = useProducts();
-  const related = useMemo(
-    () => catalog.filter((p) => p.category === product?.category && p.id !== id).slice(0, 6),
-    [catalog, product, id],
-  );
+  // Recommendations come from the recommendations-service (BE) — see
+  // services/recommendations-service. The previous incarnation filtered the
+  // full catalog by category client-side (`useProducts()` -> `.filter(...)`)
+  // which neither scaled nor reflected real co-purchase signal.
+  const fbtQuery = useFrequentlyBoughtTogether(id);
+  const ymalQuery = useYouMayAlsoLike(id);
   const productReviews = useMemo(() => reviewsMock.filter((r) => r.productId === id), [id]);
   const seller = useMemo(() => sellers.find((s) => s.id === product?.sellerId), [product]);
   const { authenticated, login } = useAuth();
@@ -789,51 +795,85 @@ export function ProductPage() {
         </div>
       </div>
 
-      {/* Related Products */}
-      {related.length > 0 ? (
-        <div className="mt-10">
-          <h2
-            className="text-xl font-bold text-gray-800 mb-5"
-            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-          >
-            Sản phẩm tương tự
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {related.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer group transition-all text-left block w-full p-0 border-0"
-                onClick={() => navigate(`/product/${p.id}`)}
-              >
-                <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
-                  <ImageWithFallback
-                    src={p.image}
-                    alt={p.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {p.discount ? (
-                    <span
-                      className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white text-[10px] font-bold"
-                      style={{ background: "#FF6200" }}
-                    >
-                      -{p.discount}%
-                    </span>
-                  ) : null}
-                </div>
-                <div className="p-2.5">
-                  <p className="text-xs text-gray-600 font-medium line-clamp-2 mb-1">
-                    {p.name.split(" ").slice(0, 5).join(" ")}
-                  </p>
-                  <p className="font-bold text-sm" style={{ color: "#FF6200" }}>
-                    {formatPrice(p.price)}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Frequently bought together — co-purchase aggregate from recommendations-service. */}
+      {fbtQuery.data && fbtQuery.data.length > 0 ? (
+        <RecommendationGrid
+          title="Khách hàng thường mua cùng"
+          items={fbtQuery.data}
+          onSelect={(productId) => navigate(`/product/${productId}`)}
+        />
       ) : null}
+
+      {/* You may also like — same-category, ±30% price proximity from recommendations-service. */}
+      {ymalQuery.data && ymalQuery.data.length > 0 ? (
+        <RecommendationGrid
+          title="Sản phẩm tương tự"
+          items={ymalQuery.data}
+          onSelect={(productId) => navigate(`/product/${productId}`)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function RecommendationGrid({
+  title,
+  items,
+  onSelect,
+}: {
+  title: string;
+  items: RecommendationItem[];
+  onSelect: (productId: string) => void;
+}) {
+  return (
+    <div className="mt-10">
+      <h2
+        className="text-xl font-bold text-gray-800 mb-5"
+        style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+      >
+        {title}
+      </h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {items.map((p) => {
+          const discount =
+            p.originalPrice && p.price && p.originalPrice > p.price
+              ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
+              : null;
+          const displayName = p.name ?? "";
+          return (
+            <button
+              key={p.id}
+              type="button"
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer group transition-all text-left block w-full p-0 border-0"
+              onClick={() => onSelect(p.id)}
+            >
+              <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
+                <ImageWithFallback
+                  src={p.image ?? ""}
+                  alt={displayName}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                {discount ? (
+                  <span
+                    className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white text-[10px] font-bold"
+                    style={{ background: "#FF6200" }}
+                  >
+                    -{discount}%
+                  </span>
+                ) : null}
+              </div>
+              <div className="p-2.5">
+                <p className="text-xs text-gray-600 font-medium line-clamp-2 mb-1">
+                  {displayName.split(" ").slice(0, 5).join(" ")}
+                </p>
+                <p className="font-bold text-sm" style={{ color: "#FF6200" }}>
+                  {p.price != null ? formatPrice(p.price) : ""}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
