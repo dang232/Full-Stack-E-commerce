@@ -32,7 +32,8 @@ public class SecurityConfig {
         return http
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authorizeExchange(exchanges -> exchanges
-                .pathMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/search/**", "/health").permitAll()
+                .pathMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/search/**",
+                        "/reviews/**", "/questions/**", "/recommendations/**", "/health").permitAll()
                 .pathMatchers("/auth/**", "/payment/*/callback", "/payment/*/ipn").permitAll()
                 // The WebSocket handshake on /ws/messaging carries the JWT via the
                 // `?token=` query parameter (browsers can't set Authorization headers

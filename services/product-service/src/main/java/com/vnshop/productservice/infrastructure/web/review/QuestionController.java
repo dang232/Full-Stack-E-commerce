@@ -41,7 +41,7 @@ public class QuestionController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<QuestionResponse> ask(@Valid @RequestBody AskQuestionRequest request) {
-        return ApiResponse.ok(QuestionResponse.fromDomain(askQuestionUseCase.ask(new AskQuestionCommand(request.productId(), request.buyerId(), request.question()))));
+        return ApiResponse.ok(QuestionResponse.fromDomain(askQuestionUseCase.ask(new AskQuestionCommand(request.productId(), com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil.currentUserId(), request.question()))));
     }
 
     @PutMapping("/{id}/answer")

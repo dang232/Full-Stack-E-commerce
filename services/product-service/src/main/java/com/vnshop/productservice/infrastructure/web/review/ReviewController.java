@@ -2,10 +2,10 @@ package com.vnshop.productservice.infrastructure.web.review;
 
 import com.vnshop.productservice.infrastructure.web.ApiResponse;
 import com.vnshop.productservice.application.review.CreateReviewCommand;
-import com.vnshop.productservice.application.review.CreateReviewCommand;
 import com.vnshop.productservice.application.review.CreateReviewUseCase;
 import com.vnshop.productservice.application.review.GetProductReviewsUseCase;
 import com.vnshop.productservice.application.review.VoteHelpfulUseCase;
+import com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,7 +42,16 @@ public class ReviewController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ReviewResponse> create(@Valid @RequestBody CreateReviewRequest request) {
-        return ApiResponse.ok(ReviewResponse.fromDomain(createReviewUseCase.create(new CreateReviewCommand(request.productId(), request.buyerId(), request.orderId(), request.rating(), request.text(), request.images()))));
+        // buyerId always comes from the JWT — never trust a body field for identity.
+        // orderId is optional; the use case validates it when present.
+        String orderId = request.orderId() == null || request.orderId().isBlank() ? null : request.orderId();
+        return ApiResponse.ok(ReviewResponse.fromDomain(createReviewUseCase.create(new CreateReviewCommand(
+                request.productId(),
+                JwtPrincipalUtil.currentUserId(),
+                orderId,
+                request.rating(),
+                request.comment(),
+                request.images()))));
     }
 
     @PutMapping("/{id}/helpful")
@@ -50,3 +59,4 @@ public class ReviewController {
         return ApiResponse.ok(ReviewResponse.fromDomain(voteHelpfulUseCase.vote(id)));
     }
 }
+
