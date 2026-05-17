@@ -89,6 +89,11 @@ public class UseCaseConfig {
     }
 
     @Bean
+    com.vnshop.orderservice.application.GetSellerRevenueUseCase getSellerRevenueUseCase(DashboardAnalyticsPort analytics) {
+        return new com.vnshop.orderservice.application.GetSellerRevenueUseCase(analytics);
+    }
+
+    @Bean
     CalculateCheckoutUseCase calculateCheckoutUseCase(CartRepositoryPort cartRepositoryPort) {
         return new CalculateCheckoutUseCase(cartRepositoryPort);
     }

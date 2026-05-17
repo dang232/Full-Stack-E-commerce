@@ -56,4 +56,11 @@ public class DashboardAnalyticsAdapter implements DashboardAnalyticsPort {
                 .map(m -> new TopMetric(m.id(), m.name(), m.value()))
                 .toList();
     }
+
+    @Override
+    public List<SellerRevenueByDate> sellerRevenueByDateBetween(String sellerId, LocalDate startDate, LocalDate endDate) {
+        return orderJpaRepository.sellerRevenueByDateBetween(sellerId, startDate, endDate).stream()
+                .map(r -> new SellerRevenueByDate(r.date(), r.revenue(), r.orderCount()))
+                .toList();
+    }
 }

@@ -87,6 +87,10 @@ public class OrderJpaRepository implements OrderRepositoryPort {
         return springDataRepository.topSellers(PageRequest.of(0, limit));
     }
 
+    public List<SellerRevenueByDate> sellerRevenueByDateBetween(String sellerId, LocalDate startDate, LocalDate endDate) {
+        return springDataRepository.sellerRevenueByDateBetween(sellerId, startInstant(startDate), endInstant(endDate));
+    }
+
     private static Instant startInstant(LocalDate date) {
         return date.atStartOfDay().toInstant(ZoneOffset.UTC);
     }
@@ -101,6 +105,14 @@ public class OrderJpaRepository implements OrderRepositoryPort {
     public record TopMetric(String id, String name, BigDecimal value) {
         public TopMetric(String id, String name, Number value) {
             this(id, name, BigDecimal.valueOf(value.longValue()));
+        }
+    }
+
+    public record SellerRevenueByDate(LocalDate date, BigDecimal revenue, long orderCount) {
+        public SellerRevenueByDate(LocalDate date, Number revenue, Number orderCount) {
+            this(date,
+                    revenue == null ? BigDecimal.ZERO : new BigDecimal(revenue.toString()),
+                    orderCount == null ? 0L : orderCount.longValue());
         }
     }
 }
