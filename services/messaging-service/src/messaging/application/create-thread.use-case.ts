@@ -1,6 +1,6 @@
 import type { ThreadRepository } from "../domain/thread.repository";
 import { THREAD_REPOSITORY } from "../domain/thread.repository";
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { Thread } from "../domain/thread";
 
 export interface CreateThreadInput {
@@ -25,7 +25,7 @@ export class CreateThreadUseCase {
 
   async execute(input: CreateThreadInput): Promise<Thread> {
     if (input.callerId === input.recipientId) {
-      throw new Error("Cannot start a thread with yourself");
+      throw new BadRequestException("Cannot start a thread with yourself");
     }
     const [buyerId, sellerId] =
       input.callerId < input.recipientId

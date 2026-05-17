@@ -5,12 +5,7 @@ import type {
 import { MESSAGE_REPOSITORY } from "../domain/message.repository";
 import type { ThreadRepository } from "../domain/thread.repository";
 import { THREAD_REPOSITORY } from "../domain/thread.repository";
-import {
-  ForbiddenException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class ListMessagesUseCase {
@@ -31,7 +26,6 @@ export class ListMessagesUseCase {
       // 404 instead of 403 so we don't leak thread existence to non-participants.
       throw new NotFoundException("Thread not found");
     }
-    void ForbiddenException; // keep import for future role checks
     return this.messages.findByThread(threadId, cursor, limit);
   }
 }

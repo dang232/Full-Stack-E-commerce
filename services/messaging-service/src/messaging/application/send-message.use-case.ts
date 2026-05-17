@@ -5,7 +5,12 @@ import { THREAD_REPOSITORY } from "../domain/thread.repository";
 import { IdempotencyStore } from "../infrastructure/idempotency-store";
 import type { MessagePublisher } from "./message-publisher";
 import { MESSAGE_PUBLISHER } from "./message-publisher";
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { Message } from "../domain/message";
 
 export interface SendMessageInput {
@@ -36,9 +41,12 @@ export class SendMessageUseCase {
     }
 
     const trimmed = input.body.trim();
-    if (trimmed.length === 0) throw new Error("Message body cannot be empty");
+    if (trimmed.length === 0)
+      throw new BadRequestException("Message body cannot be empty");
     if (trimmed.length > MAX_BODY_LEN) {
-      throw new Error(`Message body exceeds ${MAX_BODY_LEN} characters`);
+      throw new BadRequestException(
+        `Message body exceeds ${MAX_BODY_LEN} characters`,
+      );
     }
 
     const thread = await this.threads.findById(input.threadId);
