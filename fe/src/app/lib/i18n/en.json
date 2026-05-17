@@ -108,7 +108,7 @@
   },
   "flashSale": {
     "title": "⚡ FLASH SALE",
-    "subtitle": "Shock deals — Limited stock!",
+    "subtitle": "Hot deals — Limited stock!",
     "endsIn": "Ends in",
     "viewAll": "View all",
     "hours": "Hours",
@@ -212,13 +212,13 @@
     "trustedSellersSubtitle": "Verified by VNShop",
     "bestsellers": "Best Sellers",
     "downloadApp": "Download VNShop App",
-    "downloadAppSub": "Get exclusive deals — 100k voucher on your first app purchase",
+    "downloadAppSub": "Exclusive deals — ₫100K voucher on your first app purchase",
     "appStore": "App Store",
     "googlePlay": "Google Play",
     "greetingTitle": "Hello!",
     "greetingSubtitle": "Log in to get personalised deals",
     "voucherToday": "Today's voucher",
-    "voucherSub": "Save 50k on orders from 299k",
+    "voucherSub": "₫50K off orders over ₫299K",
     "copyHint": "Tap to copy",
     "verified": "Verified",
     "products": "Products",
@@ -226,7 +226,7 @@
     "salesCount": "Sold"
   },
   "footer": {
-    "tagline": "Vietnam's leading online shopping platform. Trusted · Fast · Affordable.",
+    "tagline": "Vietnam's leading online shopping platform — trusted, fast, affordable.",
     "customerSupport": "Customer Support",
     "helpCenter": "Help Center",
     "warranty": "Warranty Policy",
@@ -243,13 +243,13 @@
   },
   "trust": {
     "freeShipping": "Free shipping",
-    "freeShippingSub": "Orders from 150,000₫",
-    "authentic": "100% authentic goods",
+    "freeShippingSub": "On orders over ₫150,000",
+    "authentic": "100% authentic",
     "authenticSub": "Money-back guarantee",
     "returns": "30-day returns",
     "returnsSub": "No questions asked",
     "support247": "24/7 support",
-    "support247Sub": "1800 6789 free"
+    "support247Sub": "1800 6789 (toll-free)"
   },
   "language": {
     "vi": "VI",
@@ -262,7 +262,7 @@
       "fastDelivery": "Lightning-fast delivery",
       "ratingAvg": "Average rating",
       "authentic": "Authentic products",
-      "secure": "Absolute security"
+      "secure": "Bank-grade security"
     },
     "title": "Sign in to VNShop",
     "subtitle": "You'll be redirected to Keycloak for secure authentication",
@@ -374,7 +374,7 @@
     },
     "dashboard": {
       "title": "Admin Dashboard",
-      "subtitle": "Real-time data from the server",
+      "subtitle": "Live data from the platform",
       "exportReport": "Export report",
       "kpiLoadFail": "Couldn't load KPIs: {{message}}",
       "kpi": {
@@ -489,7 +489,7 @@
       "failOk": "Marked as failed",
       "updateErr": "Couldn't update",
       "failDialog": {
-        "title": "Mark payout request as failed",
+        "title": "Mark payout as failed",
         "subtitle": "Request: {{id}}",
         "submit": "Confirm",
         "reasonLabel": "Reason",
@@ -499,7 +499,7 @@
   },
   "seller": {
     "loggedIn": "Signed in",
-    "ordersToHandle": "{{count}} orders to handle",
+    "ordersToHandle": "{{count}} orders pending",
     "shopFallback": "My Shop",
     "nav": {
       "dashboard": "Dashboard",
@@ -511,7 +511,7 @@
     },
     "dashboard": {
       "title": "Dashboard",
-      "subtitle": "Real-time data",
+      "subtitle": "Live data",
       "kpi": {
         "balance": "Wallet balance",
         "pending": "Pending orders",
