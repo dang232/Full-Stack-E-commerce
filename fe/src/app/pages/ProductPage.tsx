@@ -472,7 +472,10 @@ export function ProductPage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50">
+              <button
+                onClick={() => toast.info("Tin nhắn người bán đang được phát triển")}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50"
+              >
                 <MessageSquare size={15} /> Chat ngay
               </button>
               <button

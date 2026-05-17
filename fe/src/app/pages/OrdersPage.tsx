@@ -442,7 +442,10 @@ function OrderCard({
               <XCircle size={14} /> Hủy đơn
             </button>
           ) : null}
-          <button className="py-2.5 px-4 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-1 hover:bg-gray-50">
+          <button
+            onClick={() => toast.info("Tin nhắn người bán đang được phát triển")}
+            className="py-2.5 px-4 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-1 hover:bg-gray-50"
+          >
             <MessageSquare size={14} /> Chat
           </button>
         </div>
