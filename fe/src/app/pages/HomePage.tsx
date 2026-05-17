@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
@@ -440,6 +441,7 @@ function pctOff(originalPrice: number, salePrice: number): number {
 function FlashSaleSection() {
   const { items, isLoading } = useFlashSaleWithProducts();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Drive the countdown off the earliest active campaign so the chrome
   // disappears as soon as the first sale ends.
@@ -474,19 +476,21 @@ function FlashSaleSection() {
                   className="text-white font-black text-lg leading-tight"
                   style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
                 >
-                  ⚡ FLASH SALE
+                  {t("flashSale.title")}
                 </p>
-                <p className="text-white/60 text-xs">Giảm sốc — Số lượng có hạn!</p>
+                <p className="text-white/60 text-xs">{t("flashSale.subtitle")}</p>
               </div>
             </div>
             {hasCampaigns ? (
               <div className="sm:ml-auto flex items-center gap-3">
-                <span className="text-white/60 text-sm hidden sm:block">Kết thúc sau</span>
+                <span className="text-white/60 text-sm hidden sm:block">
+                  {t("flashSale.endsIn")}
+                </span>
                 <div className="flex items-center gap-1.5">
                   {[
-                    { v: h, l: "Giờ" },
-                    { v: m, l: "Phút" },
-                    { v: s, l: "Giây" },
+                    { v: h, l: t("flashSale.hours") },
+                    { v: m, l: t("flashSale.minutes") },
+                    { v: s, l: t("flashSale.seconds") },
                   ].map(({ v, l }, i) => (
                     <div key={l} className="flex items-center gap-1.5">
                       <div className="flex flex-col items-center">
@@ -509,7 +513,7 @@ function FlashSaleSection() {
                   className="ml-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-white transition-opacity hover:opacity-90"
                   style={{ color: "#E53E3E" }}
                 >
-                  Xem tất cả
+                  {t("flashSale.viewAll")}
                 </button>
               </div>
             ) : null}
@@ -528,6 +532,7 @@ function FlashSaleSection() {
 
 function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
       {items.map(({ campaign: c, product, isLoading: productLoading, isError }, i) => {
@@ -583,7 +588,8 @@ function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
               className={`text-white text-xs font-medium line-clamp-1 mb-0.5 ${productName ? "" : "font-mono"}`}
               title={productName ?? c.productId}
             >
-              {productName ?? (isError ? `#${c.productId.slice(0, 8)} (lỗi)` : `#${c.productId.slice(0, 8)}`)}
+              {productName ??
+                (isError ? `#${c.productId.slice(0, 8)} (lỗi)` : `#${c.productId.slice(0, 8)}`)}
             </p>
             <p className="text-yellow-300 font-bold text-sm">{formatPrice(c.salePrice)}</p>
             {c.originalPrice > c.salePrice ? (
@@ -602,7 +608,9 @@ function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
                 />
               </div>
               <p className="text-white/50 text-[10px] mt-0.5">
-                {soldPct !== null ? `Đã bán ${soldPct}%` : `Còn ${c.stockTotal} suất`}
+                {soldPct !== null
+                  ? t("flashSale.soldPct", { pct: soldPct })
+                  : t("flashSale.stockLeft", { n: c.stockTotal })}
               </p>
             </div>
           </motion.button>
@@ -613,14 +621,15 @@ function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
 }
 
 function FlashSaleEmpty({ isLoading }: { isLoading: boolean }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-center py-10 text-center">
       <div>
         <p className="text-white font-bold text-base mb-1">
-          {isLoading ? "Đang tải flash sale..." : "Sắp ra mắt"}
+          {isLoading ? t("flashSale.loading") : t("flashSale.comingSoon")}
         </p>
         <p className="text-white/60 text-xs">
-          {isLoading ? "Vui lòng chờ trong giây lát" : "Hết flash sale — Quay lại sớm để săn deal mới"}
+          {isLoading ? t("flashSale.loadingWait") : t("flashSale.expired")}
         </p>
       </div>
     </div>

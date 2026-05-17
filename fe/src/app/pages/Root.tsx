@@ -22,9 +22,11 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate, useLocation } from "react-router";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
+import { LanguageSwitcher } from "../components/language-switcher";
 import { NotificationBell } from "../components/notification-bell";
 import { SearchAutocomplete } from "../components/search-autocomplete";
 import { useVNShop } from "../components/vnshop-context";
@@ -42,17 +44,18 @@ function Navbar() {
   const { suggestions } = useSearchSuggestions(searchQ);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const submitSearch = (q: string) => {
     void navigate(`/search?q=${encodeURIComponent(q)}`);
   };
 
   const navLinks = [
-    { label: "Trang Chủ", path: "/" },
-    { label: "Flash Sale", path: "/search?flash=true" },
-    { label: "Siêu Thị", path: "/search?cat=home" },
-    { label: "Thời Trang", path: "/search?cat=fashion" },
-    { label: "Điện Tử", path: "/search?cat=electronics" },
+    { label: t("nav.home"), path: "/" },
+    { label: t("nav.flashSale"), path: "/search?flash=true" },
+    { label: t("nav.supermarket"), path: "/search?cat=home" },
+    { label: t("nav.fashion"), path: "/search?cat=fashion" },
+    { label: t("nav.electronics"), path: "/search?cat=electronics" },
   ];
 
   return (
@@ -65,10 +68,10 @@ function Navbar() {
         <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-white/80 text-xs">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5">
-              <Phone size={11} /> 1800 6789 (Miễn phí)
+              <Phone size={11} /> {t("nav.freePhone")}
             </span>
             <span className="flex items-center gap-1.5">
-              <MapPin size={11} /> Giao hàng toàn quốc
+              <MapPin size={11} /> {t("nav.nationwide")}
             </span>
           </div>
           <div className="flex items-center gap-5">
@@ -76,13 +79,13 @@ function Navbar() {
               onClick={() => navigate("/seller")}
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
-              <Store size={11} /> Kênh Người Bán
+              <Store size={11} /> {t("nav.sellerChannel")}
             </button>
             <button
               onClick={() => navigate("/admin")}
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
-              <LayoutDashboard size={11} /> Admin
+              <LayoutDashboard size={11} /> {t("nav.admin")}
             </button>
             <span className="w-px h-3 bg-white/20" />
             <button
@@ -90,8 +93,9 @@ function Navbar() {
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
               {isDark ? <Sun size={11} /> : <Moon size={11} />}
-              {isDark ? "Sáng" : "Tối"}
+              {isDark ? t("nav.light") : t("nav.dark")}
             </button>
+            <LanguageSwitcher />
           </div>
         </div>
       </div>
@@ -127,7 +131,7 @@ function Navbar() {
             onValueChange={setSearchQ}
             suggestions={suggestions}
             onSubmit={submitSearch}
-            placeholder="Tìm kiếm sản phẩm, thương hiệu, shop..."
+            placeholder={t("search.placeholder")}
           />
 
           {/* Right actions */}
@@ -135,7 +139,7 @@ function Navbar() {
             <button
               onClick={() => navigate("/wishlist")}
               className="relative p-2 text-white rounded-lg hover:bg-white/10 transition-colors"
-              title="Yêu thích"
+              title={t("auth.wishlist")}
             >
               <Heart size={22} />
               {wishlist.length > 0 ? (
@@ -148,7 +152,7 @@ function Navbar() {
             <button
               onClick={() => navigate("/cart")}
               className="relative p-2 text-white rounded-lg hover:bg-white/10 transition-colors"
-              title="Giỏ hàng"
+              title={t("cart.title")}
             >
               <ShoppingCart size={22} />
               {cartCount > 0 ? (
@@ -219,11 +223,11 @@ function Navbar() {
                         </p>
                       </div>
                       {[
-                        { icon: User, label: "Tài khoản của tôi", path: "/profile" },
-                        { icon: Package, label: "Đơn mua", path: "/orders" },
-                        { icon: Heart, label: "Yêu thích", path: "/wishlist" },
-                        { icon: Bell, label: "Thông báo", path: "#" },
-                        { icon: Settings, label: "Cài đặt", path: "#" },
+                        { icon: User, label: t("auth.myAccount"), path: "/profile" },
+                        { icon: Package, label: t("auth.myOrders"), path: "/orders" },
+                        { icon: Heart, label: t("auth.wishlist"), path: "/wishlist" },
+                        { icon: Bell, label: t("auth.notifications"), path: "#" },
+                        { icon: Settings, label: t("auth.settings"), path: "#" },
                       ].map((item) => (
                         <button
                           key={item.label}
@@ -250,7 +254,7 @@ function Navbar() {
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-red-50 transition-colors text-left text-red-500"
                         >
-                          <LogOut size={16} /> Đăng xuất
+                          <LogOut size={16} /> {t("auth.logout")}
                         </button>
                       </div>
                     </motion.div>
@@ -263,7 +267,7 @@ function Navbar() {
                 className="ml-1 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
                 style={{ background: "#FF6200", color: "#fff" }}
               >
-                Đăng nhập
+                {t("auth.login")}
               </button>
             )}
 
@@ -293,11 +297,11 @@ function Navbar() {
             className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
           >
             <Tag size={14} />
-            <span>Tất cả danh mục</span>
+            <span>{t("nav.allCategories")}</span>
           </button>
           <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors">
             <Headphones size={14} />
-            <span>Hỗ trợ</span>
+            <span>{t("nav.support")}</span>
           </button>
         </nav>
       </div>
@@ -322,14 +326,14 @@ function Navbar() {
                   submitSearch(q);
                   setMenuOpen(false);
                 }}
-                placeholder="Tìm kiếm..."
+                placeholder={t("search.mobilePlaceholder")}
               />
               {[
-                { icon: Home, label: "Trang Chủ", path: "/" },
-                { icon: Package, label: "Đơn mua", path: "/orders" },
-                { icon: Heart, label: "Yêu thích", path: "/wishlist" },
-                { icon: User, label: "Tài khoản", path: "/profile" },
-                { icon: Store, label: "Kênh Người Bán", path: "/seller" },
+                { icon: Home, label: t("nav.home"), path: "/" },
+                { icon: Package, label: t("auth.myOrders"), path: "/orders" },
+                { icon: Heart, label: t("auth.wishlist"), path: "/wishlist" },
+                { icon: User, label: t("auth.myAccount"), path: "/profile" },
+                { icon: Store, label: t("nav.sellerChannel"), path: "/seller" },
               ].map((item) => (
                 <button
                   key={item.path}
@@ -354,6 +358,7 @@ function Navbar() {
 export function Root() {
   const navigate = useNavigate();
   const { isDark } = useVNShop();
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen" style={{ background: isDark ? "#0f1117" : "#f4f6f9" }}>
       <Navbar />
@@ -380,9 +385,7 @@ export function Root() {
                   VNShop
                 </span>
               </div>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Nền tảng mua sắm trực tuyến hàng đầu Việt Nam. Uy tín - Nhanh chóng - Tiết kiệm.
-              </p>
+              <p className="text-gray-400 text-sm leading-relaxed">{t("footer.tagline")}</p>
               <div className="flex gap-3 mt-4">
                 {["fb", "ig", "tw", "yt"].map((s) => (
                   <div
@@ -397,27 +400,27 @@ export function Root() {
             </div>
             {[
               {
-                title: "Hỗ trợ khách hàng",
+                title: t("footer.customerSupport"),
                 links: [
-                  "Trung tâm hỗ trợ",
-                  "Chính sách bảo hành",
-                  "Hướng dẫn mua hàng",
-                  "Phương thức thanh toán",
-                  "Vận chuyển & Giao nhận",
+                  t("footer.helpCenter"),
+                  t("footer.warranty"),
+                  t("footer.buyingGuide"),
+                  t("footer.paymentMethods"),
+                  t("footer.shipping"),
                 ],
               },
               {
                 title: "VNShop",
                 links: [
-                  "Giới thiệu",
-                  "Tuyển dụng",
-                  "Điều khoản dịch vụ",
-                  "Chính sách bảo mật",
-                  "Blog & Tin tức",
+                  t("footer.about"),
+                  t("footer.careers"),
+                  t("footer.terms"),
+                  t("footer.privacy"),
+                  t("footer.blog"),
                 ],
               },
               {
-                title: "Thanh toán & Giao hàng",
+                title: t("footer.paymentShipping"),
                 links: ["VNPay", "MoMo", "ZaloPay", "Thẻ ngân hàng", "Giao Hàng Nhanh"],
               },
             ].map((col) => (
@@ -436,9 +439,7 @@ export function Root() {
             ))}
           </div>
           <div className="mt-10 pt-6 border-t border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-gray-500 text-xs">
-              © 2026 VNShop. Được vận hành bởi VNShop JSC. ĐKKD số: 0123456789
-            </p>
+            <p className="text-gray-500 text-xs">{t("footer.copyright")}</p>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate("/design-system")}
