@@ -538,6 +538,7 @@ export function CheckoutPage() {
                 ) : null}
                 {addresses.map((addr, i) => (
                   <button
+                    // eslint-disable-next-line react/no-array-index-key -- address list has no stable id; index is the address position
                     key={i}
                     onClick={() => setSelectedAddressIndex(i)}
                     className="w-full p-4 rounded-2xl border-2 text-left transition-all"

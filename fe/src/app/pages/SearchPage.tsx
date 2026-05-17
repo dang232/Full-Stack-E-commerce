@@ -46,7 +46,7 @@ function ProductListItem({ product }: { product: Product }) {
           <div className="flex items-center gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
-                key={i}
+                key={i} // eslint-disable-line react/no-array-index-key -- decorative star rating, no stable id
                 size={12}
                 className={
                   i < Math.floor(product.rating)
@@ -532,7 +532,7 @@ export function SearchPage() {
                   <div className="flex">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
-                        key={i}
+                        key={i} // eslint-disable-line react/no-array-index-key -- decorative star rating, no stable id
                         size={13}
                         fill={i < r ? "#F59E0B" : "#e5e7eb"}
                         className="text-amber-400"

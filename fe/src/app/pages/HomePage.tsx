@@ -348,9 +348,9 @@ function HeroSection() {
       {/* Controls */}
       <div className="absolute bottom-5 left-8 flex items-center gap-3">
         <div className="flex gap-1.5">
-          {heroSlides.map((_, i) => (
+          {heroSlides.map((slide_, i) => (
             <button
-              key={i}
+              key={slide_.id}
               onClick={() => go(i)}
               className="h-1.5 rounded-full transition-all duration-400"
               style={{
@@ -870,9 +870,9 @@ function TrendingBar() {
         <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">Đang Hot</span>
       </div>
       <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-nowrap">
-        {trending.map((t, i) => (
+        {trending.map((t) => (
           <button
-            key={i}
+            key={t.text}
             onClick={() => navigate(t.path)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border border-gray-100 whitespace-nowrap hover:border-[#00BFB3] hover:text-[#00BFB3] hover:bg-teal-50 transition-all shrink-0"
           >

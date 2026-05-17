@@ -430,7 +430,7 @@ function ReviewsModeration() {
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
-                    key={i}
+                    key={i} // eslint-disable-line react/no-array-index-key -- decorative star rating, no stable id
                     size={14}
                     fill={i < r.rating ? "#F59E0B" : "#e5e7eb"}
                     className={i < r.rating ? "text-amber-400" : "text-gray-200"}

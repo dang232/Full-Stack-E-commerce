@@ -109,6 +109,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
       {canFetch && tracking.isLoading ? (
         <div className="space-y-3" aria-label="Đang tải tracking">
           {Array.from({ length: 4 }).map((_, i) => (
+            // eslint-disable-next-line react/no-array-index-key -- decorative skeleton placeholders, no stable id
             <div key={i} className="flex gap-4">
               <div className="w-6 h-6 rounded-full bg-gray-100" />
               <div className="flex-1 h-4 rounded bg-gray-100" />
@@ -118,6 +119,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
       ) : showRealTimeline ? (
         <div className="space-y-4">
           {events.map((ev, i) => (
+            // eslint-disable-next-line react/no-array-index-key -- TrackingEvent has no stable id; ordering is server-defined
             <div key={i} className="flex gap-4">
               <div className="flex flex-col items-center">
                 <div
@@ -142,7 +144,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
           {TRACKING_STEPS_FALLBACK.map((label, i) => {
             const done = i < completedThrough;
             return (
-              <div key={i} className="flex gap-4">
+              <div key={label} className="flex gap-4">
                 <div className="flex flex-col items-center">
                   <div
                     className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
@@ -374,8 +376,11 @@ function OrderCard({
           {order.items.length === 0 ? (
             <p className="text-sm text-gray-400 italic mb-3">Đang tải chi tiết sản phẩm...</p>
           ) : null}
-          {order.items.map((item, i) => (
-            <div key={i} className="flex items-center gap-4 mb-3">
+          {order.items.map((item) => (
+            <div
+              key={`${item.productId}-${item.variant ?? ""}`}
+              className="flex items-center gap-4 mb-3"
+            >
               <ImageWithFallback
                 src={item.image ?? ""}
                 alt={item.name}

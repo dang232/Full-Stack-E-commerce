@@ -36,6 +36,7 @@ function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number
         const filled = i < Math.floor(value);
         const half = !filled && i < value;
         return (
+          // eslint-disable-next-line react/no-array-index-key -- decorative star rating, no stable id
           <svg key={i} width={size} height={size} viewBox="0 0 24 24">
             <defs>
               <linearGradient id={`half-${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -224,7 +225,7 @@ export function ProductPage() {
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {images.map((img, i) => (
               <button
-                key={i}
+                key={img}
                 onClick={() => setImageIdx(i)}
                 className="shrink-0 w-18 h-18 w-[72px] h-[72px] rounded-xl overflow-hidden border-2 transition-colors"
                 style={{ borderColor: i === imageIdx ? "#00BFB3" : "#e5e7eb" }}
@@ -429,9 +430,9 @@ export function ProductPage() {
               },
               { icon: Shield, text: "Bảo vệ quyền lợi", sub: "Hoàn tiền 100%" },
               { icon: RefreshCw, text: "Đổi trả miễn phí", sub: "Trong 30 ngày" },
-            ].map((item, i) => (
+            ].map((item) => (
               <div
-                key={i}
+                key={item.text}
                 className="flex flex-col items-center text-center p-3 rounded-xl bg-gray-50"
               >
                 <item.icon size={20} className="mb-1.5" style={{ color: "#00BFB3" }} />
@@ -653,9 +654,9 @@ export function ProductPage() {
                       ) : null}
                       {review.images && review.images.length > 0 ? (
                         <div className="flex gap-2 mb-3">
-                          {review.images.map((img, i) => (
+                          {review.images.map((img) => (
                             <img
-                              key={i}
+                              key={`${review.id}-${img}`}
                               src={img}
                               alt=""
                               className="w-16 h-16 rounded-lg object-cover border border-gray-200"
@@ -699,9 +700,9 @@ export function ProductPage() {
                         </p>
                         {review.images && review.images.length > 0 ? (
                           <div className="flex gap-2 mb-3">
-                            {review.images.map((img, i) => (
+                            {review.images.map((img) => (
                               <img
-                                key={i}
+                                key={`${review.id}-${img}`}
                                 src={img}
                                 alt=""
                                 className="w-16 h-16 rounded-lg object-cover border border-gray-200"
