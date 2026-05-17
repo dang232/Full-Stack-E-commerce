@@ -11,25 +11,24 @@ import {
   Store,
   MessageSquare,
   ThumbsUp,
-  CheckCircle,
   Package,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
-import { products, reviews as reviewsMock, sellers } from "../components/vnshop-data";
 import { useAuth } from "../hooks/use-auth";
+import { useProductReviews } from "../hooks/use-product-reviews";
 import { useProduct } from "../hooks/use-products";
 import { useFrequentlyBoughtTogether, useYouMayAlsoLike } from "../hooks/use-recommendations";
 import { ApiError } from "../lib/api";
 import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions";
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
-import { reviewsByProduct, createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
+import { createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
 import { formatPrice } from "../lib/format";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {
@@ -65,24 +64,17 @@ export function ProductPage() {
   const { t } = useTranslation();
 
   const productQuery = useProduct(id ?? "");
-  const product = productQuery.data ?? products.find((p) => p.id === id);
+  const product = productQuery.data;
   // Recommendations come from the recommendations-service (BE) — see
   // services/recommendations-service. The previous incarnation filtered the
   // full catalog by category client-side (`useProducts()` -> `.filter(...)`)
   // which neither scaled nor reflected real co-purchase signal.
   const fbtQuery = useFrequentlyBoughtTogether(id);
   const ymalQuery = useYouMayAlsoLike(id);
-  const productReviews = useMemo(() => reviewsMock.filter((r) => r.productId === id), [id]);
-  const seller = useMemo(() => sellers.find((s) => s.id === product?.sellerId), [product]);
   const { authenticated, login } = useAuth();
   const qc = useQueryClient();
 
-  const liveReviewsQuery = useQuery({
-    queryKey: ["reviews", "product", id],
-    queryFn: () => reviewsByProduct(id!),
-    enabled: !!id,
-    retry: false,
-  });
+  const liveReviewsQuery = useProductReviews(id ?? "");
 
   const liveQuestionsQuery = useQuery({
     queryKey: ["questions", "product", id],
@@ -95,7 +87,7 @@ export function ProductPage() {
     mutationFn: (input: { rating: number; comment: string }) =>
       createReview({ productId: id!, ...input }),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["reviews", "product", id] });
+      void qc.invalidateQueries({ queryKey: ["catalog", "reviews", "product", id] });
       toast.success(t("product.reviews.submitOk"));
       setReviewDraft({ rating: 5, comment: "" });
     },
@@ -105,7 +97,7 @@ export function ProductPage() {
 
   const voteHelpful = useMutation({
     mutationFn: (reviewId: string) => voteReviewHelpful(reviewId),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["reviews", "product", id] }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["catalog", "reviews", "product", id] }),
     onError: (err) =>
       toast.error(err instanceof ApiError ? err.message : t("product.reviews.voteErr")),
   });
@@ -464,57 +456,13 @@ export function ProductPage() {
         </div>
       </div>
 
-      {/* Seller Info */}
-      {seller ? (
-        <div className="mt-8 bg-white rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <ImageWithFallback
-                src={seller.avatar}
-                alt={seller.name}
-                className="w-16 h-16 rounded-2xl object-cover"
-              />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-gray-800">{seller.name}</h3>
-                  {seller.verified ? (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-green-600 bg-green-50 font-medium">
-                      <CheckCircle size={11} /> {t("product.seller.verified")}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Star size={13} fill="#F59E0B" className="text-amber-400" /> {seller.rating}
-                  </span>
-                  <span>{t("product.seller.products", { count: seller.products })}</span>
-                  <span>{t("product.seller.responseRate", { pct: seller.responseRate })}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  if (!seller?.id) return;
-                  const params = new URLSearchParams({ with: seller.id });
-                  if (product?.id) params.set("product", product.id);
-                  void navigate(`/messages?${params.toString()}`);
-                }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50"
-              >
-                <MessageSquare size={15} /> {t("product.seller.chatNow")}
-              </button>
-              <button
-                onClick={() => navigate(`/search?seller=${seller.id}`)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white"
-                style={{ background: "#00BFB3" }}
-              >
-                <Store size={15} /> {t("product.seller.viewShop")}
-              </button>
-            </div>
-          </div>
+      {/* Seller Info — empty state until a public sellers endpoint exists. */}
+      <div className="mt-8 bg-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 text-sm text-gray-500">
+          <Store size={18} className="text-gray-300" />
+          <span>{t("product.seller.comingSoon")}</span>
         </div>
-      ) : null}
+      </div>
 
       {/* Tabs */}
       <div className="mt-8 bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -707,55 +655,12 @@ export function ProductPage() {
                       </button>
                     </div>
                   ))
-                : !liveReviewsQuery.isLoading && productReviews.length > 0
-                  ? productReviews.map((review) => (
-                      <div key={review.id} className="border-b border-gray-100 pb-5">
-                        <div className="flex items-center gap-3 mb-2">
-                          <img
-                            src={review.avatar}
-                            alt={review.userName}
-                            className="w-9 h-9 rounded-full object-cover"
-                            loading="lazy"
-                          />
-                          <div>
-                            <p className="font-medium text-sm text-gray-800">{review.userName}</p>
-                            <div className="flex items-center gap-2">
-                              <StarRating value={review.rating} size={13} />
-                              {review.variant ? (
-                                <span className="text-xs text-gray-400">· {review.variant}</span>
-                              ) : null}
-                              <span className="text-xs text-gray-400">· {review.date}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                          {review.comment}
-                        </p>
-                        {review.images && review.images.length > 0 ? (
-                          <div className="flex gap-2 mb-3">
-                            {review.images.map((img) => (
-                              <img
-                                key={`${review.id}-${img}`}
-                                src={img}
-                                alt=""
-                                className="w-16 h-16 rounded-lg object-cover border border-gray-200"
-                                loading="lazy"
-                              />
-                            ))}
-                          </div>
-                        ) : null}
-                        <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                          <ThumbsUp size={13} />{" "}
-                          {t("product.reviews.helpful", { count: review.helpful })}
-                        </button>
-                      </div>
-                    ))
-                  : !liveReviewsQuery.isLoading && (
-                      <div className="py-8 text-center">
-                        <MessageSquare size={40} className="mx-auto mb-3 text-gray-300" />
-                        <p className="text-gray-500">{t("product.reviews.empty")}</p>
-                      </div>
-                    )}
+                : !liveReviewsQuery.isLoading && (
+                    <div className="py-8 text-center">
+                      <MessageSquare size={40} className="mx-auto mb-3 text-gray-300" />
+                      <p className="text-gray-500">{t("product.reviews.empty")}</p>
+                    </div>
+                  )}
             </div>
           ) : null}
 
