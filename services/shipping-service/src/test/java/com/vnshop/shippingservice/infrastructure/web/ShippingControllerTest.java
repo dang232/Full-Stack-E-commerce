@@ -1,6 +1,7 @@
 package com.vnshop.shippingservice.infrastructure.web;
 
 import com.vnshop.shippingservice.application.GetTrackingUseCase;
+import com.vnshop.shippingservice.domain.exception.CarrierTrackingNotFoundException;
 import com.vnshop.shippingservice.domain.model.CarrierCode;
 import com.vnshop.shippingservice.domain.model.LabelRequest;
 import com.vnshop.shippingservice.domain.model.RateQuote;
@@ -47,13 +48,25 @@ class ShippingControllerTest {
     }
 
     @Test
-    void returns404WhenCarrierGatewayThrows() throws Exception {
-        gateway.failure = new RuntimeException("not found");
+    void returns404WhenCarrierConfirmsTrackingNotFound() throws Exception {
+        gateway.failure = new CarrierTrackingNotFoundException("carrier has no record");
 
         mockMvc.perform(get("/shipping/tracking/MISSING").param("carrier", "GHN"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value("TRACKING_NOT_FOUND"));
+    }
+
+    @Test
+    void returns500WhenCarrierFailsForOtherReasons() throws Exception {
+        // Timeouts, 5xx, network errors and any non-not-found RuntimeException
+        // must not be reported as "tracking code doesn't exist".
+        gateway.failure = new RuntimeException("carrier timeout");
+
+        mockMvc.perform(get("/shipping/tracking/GHN-1").param("carrier", "GHN"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"));
     }
 
     @Test
@@ -87,3 +100,4 @@ class ShippingControllerTest {
         }
     }
 }
+

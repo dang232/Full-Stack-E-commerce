@@ -1,5 +1,6 @@
 package com.vnshop.shippingservice.infrastructure.carrier;
 
+import com.vnshop.shippingservice.domain.exception.CarrierTrackingNotFoundException;
 import com.vnshop.shippingservice.domain.model.LabelRequest;
 import com.vnshop.shippingservice.domain.model.RateQuote;
 import com.vnshop.shippingservice.domain.model.RateQuoteRequest;
@@ -25,6 +26,14 @@ public class StubCarrierGateway implements CarrierGatewayPort {
 
     @Override
     public TrackingInfo track(TrackingRequest request) {
-        return new TrackingInfo(request.carrier(), request.trackingCode(), "CREATED", "Stub shipment created", null);
+        // Test hook: tracking codes that start with MISSING- model the real
+        // carrier "we have never seen this code" response so the use case can
+        // surface a 404 to the buyer. Anything else returns a normal stub.
+        String code = request.trackingCode();
+        if (code != null && code.startsWith("MISSING-")) {
+            throw new CarrierTrackingNotFoundException("Stub carrier has no record of " + code);
+        }
+        return new TrackingInfo(request.carrier(), code, "CREATED", "Stub shipment created", null);
     }
 }
+

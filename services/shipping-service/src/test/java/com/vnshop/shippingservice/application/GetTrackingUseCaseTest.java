@@ -1,5 +1,6 @@
 package com.vnshop.shippingservice.application;
 
+import com.vnshop.shippingservice.domain.exception.CarrierTrackingNotFoundException;
 import com.vnshop.shippingservice.domain.model.CarrierCode;
 import com.vnshop.shippingservice.domain.model.TrackingInfo;
 import com.vnshop.shippingservice.domain.model.TrackingRequest;
@@ -28,14 +29,25 @@ class GetTrackingUseCaseTest {
     }
 
     @Test
-    void returnsEmptyWhenCarrierThrows() {
+    void returnsEmptyWhenCarrierConfirmsNotFound() {
         StubGateway gateway = new StubGateway();
-        gateway.failure = new RuntimeException("not found");
+        gateway.failure = new CarrierTrackingNotFoundException("not found");
         GetTrackingUseCase useCase = new GetTrackingUseCase(gateway);
 
         Optional<TrackingInfo> result = useCase.get(CarrierCode.GHN, "GHN-MISS");
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void propagatesCarrierFailureSoControllerCanReport500() {
+        StubGateway gateway = new StubGateway();
+        gateway.failure = new RuntimeException("carrier timeout");
+        GetTrackingUseCase useCase = new GetTrackingUseCase(gateway);
+
+        assertThatThrownBy(() -> useCase.get(CarrierCode.GHN, "GHN-001"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("carrier timeout");
     }
 
     @Test
@@ -72,3 +84,4 @@ class GetTrackingUseCaseTest {
         }
     }
 }
+
