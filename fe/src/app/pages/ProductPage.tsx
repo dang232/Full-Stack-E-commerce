@@ -482,7 +482,12 @@ export function ProductPage() {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => toast.info("Tin nhắn người bán đang được phát triển")}
+                onClick={() => {
+                  if (!seller?.id) return;
+                  const params = new URLSearchParams({ with: seller.id });
+                  if (product?.id) params.set("product", product.id);
+                  void navigate(`/messages?${params.toString()}`);
+                }}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50"
               >
                 <MessageSquare size={15} /> Chat ngay

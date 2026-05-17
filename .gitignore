@@ -19,3 +19,5 @@
 /services/*/target
 **/.idea
 **/*.tsbuildinfo
+/services/messaging-service/node_modules
+/services/messaging-service/dist

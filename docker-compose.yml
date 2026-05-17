@@ -721,6 +721,31 @@ services:
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
+  messaging-service:
+    profiles: ["apps"]
+    build: ./services/messaging-service
+    container_name: vnshop-messaging-service
+    ports:
+      - "8095:8095"
+    depends_on:
+      postgres-legacy:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres-legacy
+      DB_PORT: 5432
+      DB_USERNAME: vnshop
+      DB_PASSWORD: vnshop123
+      DB_DATABASE: vnshop
+      DATABASE_URL: postgresql://vnshop:vnshop123@postgres-legacy:5432/vnshop?currentSchema=messaging_svc
+      PORT: 8095
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: always_on
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
+
 volumes:
   postgres-legacy-data:
   postgres-keycloak-data:
