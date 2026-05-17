@@ -157,7 +157,8 @@
       "products": "{{count}} sản phẩm",
       "responseRate": "Phản hồi {{pct}}%",
       "chatNow": "Chat ngay",
-      "viewShop": "Xem Shop"
+      "viewShop": "Xem Shop",
+      "comingSoon": "Thông tin shop sẽ được cập nhật."
     },
     "tabs": {
       "desc": "Mô tả sản phẩm",
@@ -223,7 +224,13 @@
     "verified": "Đã xác minh",
     "products": "Sản phẩm",
     "response": "Phản hồi",
-    "salesCount": "Đã bán"
+    "salesCount": "Đã bán",
+    "comingSoon": {
+      "hero": "Các chiến dịch nổi bật sẽ sớm xuất hiện ở đây.",
+      "promo": "Khuyến mãi sẽ hiển thị tại đây khi được phát hành.",
+      "trending": "Xu hướng tìm kiếm sẽ hiển thị tại đây.",
+      "sellers": "Shop uy tín sẽ được giới thiệu tại đây."
+    }
   },
   "footer": {
     "tagline": "Nền tảng mua sắm trực tuyến hàng đầu Việt Nam. Uy tín - Nhanh chóng - Tiết kiệm.",

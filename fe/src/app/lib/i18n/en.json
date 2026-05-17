@@ -157,7 +157,8 @@
       "products": "{{count}} products",
       "responseRate": "Response {{pct}}%",
       "chatNow": "Chat now",
-      "viewShop": "View shop"
+      "viewShop": "View shop",
+      "comingSoon": "Seller details are not available yet."
     },
     "tabs": {
       "desc": "Description",
@@ -223,7 +224,13 @@
     "verified": "Verified",
     "products": "Products",
     "response": "Response",
-    "salesCount": "Sold"
+    "salesCount": "Sold",
+    "comingSoon": {
+      "hero": "Featured campaigns are on the way.",
+      "promo": "Promotions will appear here once published.",
+      "trending": "Trending searches will appear here as they emerge.",
+      "sellers": "Verified shops will be showcased here soon."
+    }
   },
   "footer": {
     "tagline": "Vietnam's leading online shopping platform — trusted, fast, affordable.",
