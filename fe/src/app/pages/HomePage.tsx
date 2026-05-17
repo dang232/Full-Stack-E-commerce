@@ -22,9 +22,8 @@ import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
 import { products, categories, sellers, type Product } from "../components/vnshop-data";
 import { useCountdown } from "../hooks/use-countdown";
-import { useFlashSaleCampaigns } from "../hooks/use-flash-sale";
+import { useFlashSaleWithProducts, type FlashSaleItem } from "../hooks/use-flash-sale";
 import { useProducts } from "../hooks/use-products";
-import type { ActiveFlashSaleCampaign } from "../lib/api/endpoints/flash-sale";
 import { formatPrice } from "../lib/format";
 
 // ─── Section Header ────────────────────────────────────────────────────────────
@@ -439,21 +438,21 @@ function pctOff(originalPrice: number, salePrice: number): number {
 }
 
 function FlashSaleSection() {
-  const { campaigns, isLoading } = useFlashSaleCampaigns();
+  const { items, isLoading } = useFlashSaleWithProducts();
   const navigate = useNavigate();
 
   // Drive the countdown off the earliest active campaign so the chrome
   // disappears as soon as the first sale ends.
   const earliestEnd = useMemo(() => {
-    if (campaigns.length === 0) return null;
-    const ms = campaigns
-      .map((c) => Date.parse(c.endsAt))
+    if (items.length === 0) return null;
+    const ms = items
+      .map((item) => Date.parse(item.campaign.endsAt))
       .filter((n) => Number.isFinite(n));
     return ms.length > 0 ? Math.min(...ms) : null;
-  }, [campaigns]);
+  }, [items]);
 
   const { h, m, s, isExpired } = useCountdown(earliestEnd ?? Date.now());
-  const hasCampaigns = campaigns.length > 0 && !isExpired;
+  const hasCampaigns = items.length > 0 && !isExpired;
 
   return (
     <section>
@@ -517,7 +516,7 @@ function FlashSaleSection() {
           </div>
 
           {hasCampaigns ? (
-            <FlashSaleStrip campaigns={campaigns} />
+            <FlashSaleStrip items={items} />
           ) : (
             <FlashSaleEmpty isLoading={isLoading} />
           )}
@@ -527,17 +526,23 @@ function FlashSaleSection() {
   );
 }
 
-function FlashSaleStrip({ campaigns }: { campaigns: ActiveFlashSaleCampaign[] }) {
+function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
   const navigate = useNavigate();
   return (
     <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-      {campaigns.map((c, i) => {
+      {items.map(({ campaign: c, product, isLoading: productLoading, isError }, i) => {
         const discount = pctOff(c.originalPrice, c.salePrice);
         const remaining = c.stockRemaining;
         const soldPct =
           c.stockTotal > 0 && remaining !== null && remaining !== undefined
-            ? Math.min(100, Math.max(0, Math.round(((c.stockTotal - remaining) / c.stockTotal) * 100)))
+            ? Math.min(
+                100,
+                Math.max(0, Math.round(((c.stockTotal - remaining) / c.stockTotal) * 100)),
+              )
             : null;
+        const imageSrc = product?.image ?? product?.images?.[0] ?? "";
+        const showProductImage = !!product && !productLoading && !isError && !!imageSrc;
+        const productName = product?.name;
         return (
           <motion.button
             key={c.id}
@@ -552,10 +557,19 @@ function FlashSaleStrip({ campaigns }: { campaigns: ActiveFlashSaleCampaign[] })
               className="rounded-xl overflow-hidden mb-2 relative bg-white/10 flex items-center justify-center"
               style={{ aspectRatio: "1" }}
             >
-              <Zap
-                size={36}
-                className="text-white/70 group-hover:scale-110 transition-transform"
-              />
+              {showProductImage ? (
+                <ImageWithFallback
+                  src={imageSrc}
+                  alt={productName ?? c.productId}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  placeholder={<Zap size={36} className="text-white/70" />}
+                />
+              ) : (
+                <Zap
+                  size={36}
+                  className="text-white/70 group-hover:scale-110 transition-transform"
+                />
+              )}
               {discount > 0 ? (
                 <div
                   className="absolute bottom-0 left-0 right-0 py-1 text-center"
@@ -565,8 +579,11 @@ function FlashSaleStrip({ campaigns }: { campaigns: ActiveFlashSaleCampaign[] })
                 </div>
               ) : null}
             </div>
-            <p className="text-white text-xs font-medium line-clamp-1 mb-0.5 font-mono">
-              #{c.productId.slice(0, 8)}
+            <p
+              className={`text-white text-xs font-medium line-clamp-1 mb-0.5 ${productName ? "" : "font-mono"}`}
+              title={productName ?? c.productId}
+            >
+              {productName ?? (isError ? `#${c.productId.slice(0, 8)} (lỗi)` : `#${c.productId.slice(0, 8)}`)}
             </p>
             <p className="text-yellow-300 font-bold text-sm">{formatPrice(c.salePrice)}</p>
             {c.originalPrice > c.salePrice ? (
