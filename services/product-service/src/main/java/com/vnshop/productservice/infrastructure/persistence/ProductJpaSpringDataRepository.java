@@ -26,8 +26,8 @@ interface ProductJpaSpringDataRepository extends JpaRepository<ProductJpaEntity,
      */
     @Query("""
             select product from ProductJpaEntity product
-            where (:categoryId is null or product.categoryId = :categoryId)
-              and (:q is null or lower(product.name) like lower(concat('%', :q, '%')))
+            where (:categoryId is null or product.categoryId = cast(:categoryId as string))
+              and (:q is null or lower(product.name) like lower(concat('%', cast(:q as string), '%')))
             """)
     Page<ProductJpaEntity> findCatalog(
             @Param("categoryId") String categoryId,
