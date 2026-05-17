@@ -28,7 +28,7 @@ const WishlistPage = lazy(() =>
 const SellerPage = lazy(() =>
   import("./pages/SellerPage").then((m) => ({ default: m.SellerPage })),
 );
-const AdminPage = lazy(() => import("./pages/AdminPage").then((m) => ({ default: m.AdminPage })));
+const AdminPage = lazy(() => import("./pages/admin").then((m) => ({ default: m.AdminPage })));
 const DesignSystemPage = lazy(() =>
   import("./pages/DesignSystemPage").then((m) => ({ default: m.DesignSystemPage })),
 );

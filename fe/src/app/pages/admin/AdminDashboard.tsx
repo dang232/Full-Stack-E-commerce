@@ -1,0 +1,215 @@
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, BarChart3, Package, TrendingUp, Users, Wallet } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+import {
+  dashboardRevenue,
+  dashboardSummary,
+  dashboardTopProducts,
+  dashboardTopSellers,
+} from "../../lib/api/endpoints/admin";
+import { ApiError } from "../../lib/api/envelope";
+import { formatPrice } from "../../lib/format";
+
+import { AdminKPICard } from "./AdminKPICard";
+
+export function AdminDashboard() {
+  const { t } = useTranslation();
+  const summaryQuery = useQuery({
+    queryKey: ["admin", "dashboard", "summary"],
+    queryFn: dashboardSummary,
+    retry: false,
+  });
+  const revenueQuery = useQuery({
+    queryKey: ["admin", "dashboard", "revenue"],
+    queryFn: () => dashboardRevenue({ granularity: "month" }),
+    retry: false,
+  });
+  const topProductsQuery = useQuery({
+    queryKey: ["admin", "dashboard", "top-products"],
+    queryFn: () => dashboardTopProducts({ limit: 5 }),
+    retry: false,
+  });
+  const topSellersQuery = useQuery({
+    queryKey: ["admin", "dashboard", "top-sellers"],
+    queryFn: () => dashboardTopSellers({ limit: 5 }),
+    retry: false,
+  });
+
+  const totalRevenue = summaryQuery.data?.totalRevenue ?? null;
+  const totalUsers = summaryQuery.data?.totalUsers ?? null;
+  const totalOrders = summaryQuery.data?.totalOrders ?? null;
+  const totalSellers = summaryQuery.data?.totalSellers ?? null;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">{t("admin.dashboard.title")}</h2>
+          <p className="text-sm text-gray-500">{t("admin.dashboard.subtitle")}</p>
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-600">
+          <BarChart3 size={15} /> {t("admin.dashboard.exportReport")}
+        </button>
+      </div>
+
+      {summaryQuery.error instanceof ApiError ? (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
+          <AlertCircle size={14} className="shrink-0 mt-0.5" />
+          <p>{t("admin.dashboard.kpiLoadFail", { message: summaryQuery.error.message })}</p>
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <AdminKPICard
+          icon={TrendingUp}
+          label={t("admin.dashboard.kpi.totalRevenue")}
+          value={totalRevenue !== null ? formatPrice(totalRevenue) : "—"}
+          color="#00BFB3"
+        />
+        <AdminKPICard
+          icon={Users}
+          label={t("admin.dashboard.kpi.totalUsers")}
+          value={totalUsers !== null ? totalUsers.toLocaleString() : "—"}
+          color="#3B82F6"
+        />
+        <AdminKPICard
+          icon={Package}
+          label={t("admin.dashboard.kpi.totalOrders")}
+          value={totalOrders !== null ? totalOrders.toLocaleString() : "—"}
+          color="#FF6200"
+        />
+        <AdminKPICard
+          icon={Wallet}
+          label={t("admin.dashboard.kpi.totalSellers")}
+          value={totalSellers !== null ? totalSellers.toLocaleString() : "—"}
+          color="#F59E0B"
+        />
+      </div>
+
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.revenueTitle")}</h3>
+        {revenueQuery.isLoading ? (
+          <p className="text-sm text-gray-400">{t("admin.dashboard.loading")}</p>
+        ) : null}
+        {revenueQuery.data && revenueQuery.data.length > 0 ? (
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={revenueQuery.data}>
+              <defs>
+                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#00BFB3" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#00BFB3" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#9ca3af", fontSize: 11 }}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#9ca3af", fontSize: 11 }}
+                tickFormatter={(v) => `${(v / 1_000_000).toFixed(0)}tr`}
+              />
+              <Tooltip
+                formatter={(v: number) => formatPrice(v)}
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "none",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="amount"
+                stroke="#00BFB3"
+                strokeWidth={2.5}
+                fill="url(#revGrad)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          !revenueQuery.isLoading && (
+            <p className="text-sm text-gray-400 text-center py-12">
+              {t("admin.dashboard.revenueEmpty")}
+            </p>
+          )
+        )}
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.topProducts")}</h3>
+          {topProductsQuery.data && topProductsQuery.data.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={topProductsQuery.data} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
+                <XAxis
+                  type="number"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#9ca3af", fontSize: 10 }}
+                  tickFormatter={(v) => `${(v / 1_000_000).toFixed(0)}tr`}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#6b7280", fontSize: 11 }}
+                  width={120}
+                />
+                <Tooltip formatter={(v: number) => formatPrice(v)} />
+                <Bar dataKey="revenue" fill="#FF6200" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-gray-400 text-center py-8">{t("admin.dashboard.noData")}</p>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.topSellers")}</h3>
+          {topSellersQuery.data && topSellersQuery.data.length > 0 ? (
+            <div className="space-y-3">
+              {topSellersQuery.data.map((s, i) => (
+                <div key={s.sellerId} className="flex items-center gap-3">
+                  <span
+                    className="w-6 text-center text-sm font-black"
+                    style={{ color: i < 3 ? "#FF6200" : "#9ca3af" }}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-700 truncate">
+                      {s.shopName ?? s.sellerId}
+                    </p>
+                  </div>
+                  <span className="font-bold text-sm shrink-0" style={{ color: "#FF6200" }}>
+                    {formatPrice(s.revenue)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 text-center py-8">{t("admin.dashboard.noData")}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
