@@ -1,7 +1,7 @@
 # Session handover — 2026-05-17 (continuation: ambitious-features wave)
 
-**Last commit:** `f2a54425` (HEAD on main)
-**Session length:** 35 commits on top of `93a7ff2f` (the previous handover's tip)
+**Last commit:** `8216ca10` (HEAD on main)
+**Session length:** 38 commits on top of `93a7ff2f` (the previous handover's tip)
 **Branch state:** clean — only `.claude/worktrees/` directory is unstaged (locked agent worktrees)
 
 This file extends the original `SESSION-HANDOVER-2026-05-17.md` (still in this folder). Same date, same project, but a separate working block: 4 ambitious features delegated to sub-agents in parallel worktrees, then merged + quality-passed; followed by a complete i18n sweep across the entire FE; closed with a recs cold-start fallback so day-1 deploys feel real.
@@ -27,6 +27,9 @@ Then a comprehensive **i18n sweep**: every page in the app — Cart / Orders / W
 
 | Commit | What |
 |---|---|
+| `8216ca10` | chore(fe): prettier-format admin.ts |
+| `01b14c82` | chore(fe): zod .passthrough() → .loose() across endpoint schemas |
+| `08839643` | docs: final handover refresh after translation polish + format pass |
 | `f2a54425` | chore(fe): prettier-format use-countdown.ts |
 | `ff3be04f` | chore(fe): prettier auto-format across i18n-touched files |
 | `1f5f394c` | chore(fe): polish English i18n strings to be more idiomatic |
@@ -155,7 +158,7 @@ What I did NOT touch (logged as deferred, not silently accepted):
 
 ## How to resume
 
-1. `git log --oneline -36` — verify HEAD is `f2a54425` and last 35 commits match the table above.
+1. `git log --oneline -40` — verify HEAD is `8216ca10` and last 38 commits match the table above.
 2. `cd fe && npm run verify` — should be green (typecheck, lint 0/0, prettier clean, 112/112 tests, build).
 3. **The FE i18n sweep is complete.** Every page in the app flips language via the switcher in the top bar (`fe/src/app/components/language-switcher.tsx`). Pick from "Next-session candidates" — the live shipping rate-quote endpoint is the highest-leverage BE work, messaging E2E smoke is the highest-risk untested path.
 4. **For sub-agent delegation:** include the rule "report blockers loudly, don't silently bail, green commits + report OR no commits + clear blocker report." It's saved this session multiple times AND been violated twice. Verify the diff before trusting the report.
