@@ -303,11 +303,45 @@
       "secure": "Bảo mật tuyệt đối"
     },
     "title": "Đăng nhập VNShop",
-    "subtitle": "Bạn sẽ được chuyển sang Keycloak để xác thực an toàn",
-    "withKeycloak": "Đăng nhập với Keycloak",
-    "initializing": "Đang khởi tạo...",
-    "ssoNotice": "Tài khoản, mật khẩu và xác thực 2 lớp do Keycloak quản lý. Việc tạo tài khoản mới và đặt lại mật khẩu được thực hiện trực tiếp trên trang đăng nhập.",
-    "termsNotice": "Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của VNShop."
+    "subtitle": "Nhập thông tin tài khoản để tiếp tục.",
+    "initializing": "Đang tải...",
+    "termsNotice": "Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của VNShop.",
+    "form": {
+      "identifierLabel": "Email hoặc tên đăng nhập",
+      "identifierPlaceholder": "ban@example.com",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "••••••••",
+      "remember": "Duy trì đăng nhập",
+      "submit": "Đăng nhập",
+      "submitting": "Đang đăng nhập...",
+      "errorInvalidCredentials": "Sai email/tên đăng nhập hoặc mật khẩu.",
+      "errorGeneric": "Không thể đăng nhập. Vui lòng thử lại.",
+      "noAccount": "Chưa có tài khoản?",
+      "signUp": "Đăng ký ngay",
+      "forgot": "Quên mật khẩu?"
+    }
+  },
+  "register": {
+    "title": "Tạo tài khoản VNShop",
+    "subtitle": "Miễn phí, không cần thẻ thanh toán.",
+    "haveAccount": "Đã có tài khoản?",
+    "signIn": "Đăng nhập",
+    "form": {
+      "firstNameLabel": "Tên",
+      "lastNameLabel": "Họ",
+      "emailLabel": "Email",
+      "phoneLabel": "Số điện thoại (tùy chọn, +84...)",
+      "passwordLabel": "Mật khẩu",
+      "confirmLabel": "Xác nhận mật khẩu",
+      "submit": "Tạo tài khoản",
+      "submitting": "Đang tạo tài khoản...",
+      "errorEmailTaken": "Email này đã được sử dụng.",
+      "errorWeakPassword": "Mật khẩu quá yếu. Cần ít nhất 8 ký tự.",
+      "errorMismatch": "Mật khẩu xác nhận không khớp.",
+      "errorEmailInvalid": "Vui lòng nhập email hợp lệ.",
+      "errorPasswordShort": "Mật khẩu phải có ít nhất 8 ký tự.",
+      "errorGeneric": "Không thể tạo tài khoản. Vui lòng thử lại."
+    }
   },
   "checkout": {
     "initSession": "Đang khởi tạo phiên đăng nhập...",

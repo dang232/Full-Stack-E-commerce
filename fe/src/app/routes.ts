@@ -4,6 +4,7 @@ import { createBrowserRouter } from "react-router";
 import { RequireAuth, RequireRole } from "./lib/auth/role-guard";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 import { Root } from "./pages/Root";
 
 const SearchPage = lazy(() =>
@@ -70,6 +71,7 @@ export const router = createBrowserRouter([
       { path: "profile", element: guarded(createElement(ProfilePage)) },
       { path: "wishlist", element: guarded(createElement(WishlistPage)) },
       { path: "login", Component: LoginPage },
+      { path: "register", Component: RegisterPage },
       { path: "seller/*", element: sellerOnly(createElement(SellerPage)) },
       { path: "admin/*", element: adminOnly(createElement(AdminPage)) },
       { path: "design-system", element: lazyRoute(createElement(DesignSystemPage)) },

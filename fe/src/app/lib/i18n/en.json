@@ -303,11 +303,45 @@
       "secure": "Bank-grade security"
     },
     "title": "Sign in to VNShop",
-    "subtitle": "You'll be redirected to Keycloak for secure authentication",
-    "withKeycloak": "Sign in with Keycloak",
-    "initializing": "Initialising...",
-    "ssoNotice": "Accounts, passwords and 2FA are managed by Keycloak. Sign-up and password reset happen directly on the Keycloak login page.",
-    "termsNotice": "By signing in you agree to VNShop's Terms of Service and Privacy Policy."
+    "subtitle": "Enter your credentials to access your account.",
+    "initializing": "Loading...",
+    "termsNotice": "By signing in you agree to VNShop's Terms of Service and Privacy Policy.",
+    "form": {
+      "identifierLabel": "Email or username",
+      "identifierPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "remember": "Keep me signed in",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "errorInvalidCredentials": "Wrong email/username or password.",
+      "errorGeneric": "Couldn't sign in. Try again in a moment.",
+      "noAccount": "Don't have an account?",
+      "signUp": "Create one",
+      "forgot": "Forgot password?"
+    }
+  },
+  "register": {
+    "title": "Create your VNShop account",
+    "subtitle": "Free forever. No credit card needed.",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "form": {
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone (optional, +84...)",
+      "passwordLabel": "Password",
+      "confirmLabel": "Confirm password",
+      "submit": "Create account",
+      "submitting": "Creating account...",
+      "errorEmailTaken": "An account with that email already exists.",
+      "errorWeakPassword": "Password is too weak. Use at least 8 characters.",
+      "errorMismatch": "Passwords don't match.",
+      "errorEmailInvalid": "Enter a valid email address.",
+      "errorPasswordShort": "Password must be at least 8 characters.",
+      "errorGeneric": "Couldn't create account. Try again in a moment."
+    }
   },
   "checkout": {
     "initSession": "Initialising your session...",
