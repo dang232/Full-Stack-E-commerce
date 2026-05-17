@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Package,
   Truck,
@@ -26,6 +26,7 @@ import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useCancelOrder, useMyOrders } from "../hooks/use-orders";
 import { requestReturn } from "../lib/api/endpoints/orders";
+import { getTracking } from "../lib/api/endpoints/shipping";
 import { ApiError } from "../lib/api/envelope";
 import { TRACKING_STEPS_FALLBACK } from "../lib/domain-constants";
 import { parseOrderStatus } from "../lib/domain-enums";
@@ -68,6 +69,7 @@ function fromServer(o: ServerOrder): UIOrder {
     discount: o.discount ?? 0,
     address: o.address ? [o.address.line1, o.address.city].filter(Boolean).join(", ") : "",
     trackingCode: sub?.trackingCode ?? undefined,
+    carrier: sub?.carrier ?? undefined,
     seller: sub?.sellerName ?? "",
     paymentMethod: o.paymentMethod ?? "",
     estimatedDelivery: o.estimatedDelivery ?? undefined,
@@ -75,6 +77,19 @@ function fromServer(o: ServerOrder): UIOrder {
 }
 
 function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void }) {
+  // Real tracking is only fetchable when the order has both a tracking code
+  // and a carrier — otherwise we degrade gracefully to the static timeline.
+  const canFetch = !!(order.trackingCode && order.carrier);
+  const tracking = useQuery({
+    queryKey: ["shipping", "tracking", order.trackingCode, order.carrier],
+    queryFn: () => getTracking(order.trackingCode ?? "", order.carrier ?? ""),
+    enabled: canFetch,
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  const events = tracking.data?.events ?? [];
+  const showRealTimeline = canFetch && tracking.isSuccess && events.length > 0;
   const completedThrough =
     order.status === "delivered"
       ? TRACKING_STEPS_FALLBACK.length
@@ -91,55 +106,98 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
       title="Theo dõi đơn hàng"
       subtitle={<span className="font-mono">{order.trackingCode ?? order.id}</span>}
     >
-      <div className="space-y-4">
-        {TRACKING_STEPS_FALLBACK.map((label, i) => {
-          const done = i < completedThrough;
-          return (
+      {canFetch && tracking.isLoading ? (
+        <div className="space-y-3" aria-label="Đang tải tracking">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex gap-4">
+              <div className="w-6 h-6 rounded-full bg-gray-100" />
+              <div className="flex-1 h-4 rounded bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      ) : showRealTimeline ? (
+        <div className="space-y-4">
+          {events.map((ev, i) => (
             <div key={i} className="flex gap-4">
               <div className="flex flex-col items-center">
                 <div
                   className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
+                  style={{ background: i === 0 ? "#00BFB3" : "#9ca3af" }}
                 >
-                  {done ? (
-                    <CheckCircle size={14} color="white" />
-                  ) : (
-                    <div className="w-2 h-2 rounded-full bg-gray-400" />
-                  )}
+                  <CheckCircle size={14} color="white" />
                 </div>
-                {i < TRACKING_STEPS_FALLBACK.length - 1 ? (
-                  <div
-                    className="w-0.5 h-8 mt-1"
-                    style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
-                  />
-                ) : null}
+                {i < events.length - 1 ? <div className="w-0.5 h-8 mt-1 bg-gray-200" /> : null}
               </div>
-              <div className="pb-4">
-                <p className={`text-sm font-medium ${done ? "text-gray-800" : "text-gray-400"}`}>
-                  {label}
-                </p>
+              <div className="pb-4 flex-1">
+                <p className="text-sm font-medium text-gray-800">{ev.status ?? "Cập nhật"}</p>
+                {ev.location ? <p className="text-xs text-gray-500 mt-0.5">{ev.location}</p> : null}
+                {ev.note ? <p className="text-xs text-gray-500 mt-0.5">{ev.note}</p> : null}
+                {ev.at ? <p className="text-[11px] text-gray-400 mt-1">{ev.at}</p> : null}
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {TRACKING_STEPS_FALLBACK.map((label, i) => {
+            const done = i < completedThrough;
+            return (
+              <div key={i} className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
+                  >
+                    {done ? (
+                      <CheckCircle size={14} color="white" />
+                    ) : (
+                      <div className="w-2 h-2 rounded-full bg-gray-400" />
+                    )}
+                  </div>
+                  {i < TRACKING_STEPS_FALLBACK.length - 1 ? (
+                    <div
+                      className="w-0.5 h-8 mt-1"
+                      style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
+                    />
+                  ) : null}
+                </div>
+                <div className="pb-4">
+                  <p className={`text-sm font-medium ${done ? "text-gray-800" : "text-gray-400"}`}>
+                    {label}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      {order.estimatedDelivery ? (
+      {(showRealTimeline ? tracking.data?.estimatedDelivery : order.estimatedDelivery) ? (
         <div
           className="mt-2 p-3 rounded-xl flex items-center gap-2 text-sm"
           style={{ background: "rgba(0,191,179,0.08)" }}
         >
           <MapPin size={15} style={{ color: "#00BFB3" }} />
           <span className="text-gray-600">
-            Dự kiến giao: <strong>{order.estimatedDelivery}</strong>
+            Dự kiến giao:{" "}
+            <strong>
+              {showRealTimeline ? tracking.data?.estimatedDelivery : order.estimatedDelivery}
+            </strong>
           </span>
         </div>
       ) : null}
 
-      <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1.5">
-        <AlertCircle size={12} /> Tích hợp theo dõi thời gian thực với GHN/GHTK đang được phát triển
-        (BE-3).
-      </p>
+      {canFetch && tracking.isError ? (
+        <p className="text-[11px] text-amber-600 mt-4 flex items-center gap-1.5">
+          <AlertCircle size={12} /> Không lấy được trạng thái mới nhất từ đơn vị vận chuyển — đang
+          hiển thị tiến trình ước tính.
+        </p>
+      ) : !canFetch ? (
+        <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1.5">
+          <AlertCircle size={12} /> Đơn hàng chưa có mã vận đơn — sẽ cập nhật khi người bán giao cho
+          đơn vị vận chuyển.
+        </p>
+      ) : null}
     </Modal>
   );
 }

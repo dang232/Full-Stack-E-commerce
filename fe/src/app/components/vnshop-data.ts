@@ -67,6 +67,7 @@ export interface Order {
   discount: number;
   address: string;
   trackingCode?: string;
+  carrier?: string;
   seller: string;
   paymentMethod: string;
   estimatedDelivery?: string;
