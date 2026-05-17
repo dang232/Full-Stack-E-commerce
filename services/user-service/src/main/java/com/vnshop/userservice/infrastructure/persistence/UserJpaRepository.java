@@ -7,13 +7,20 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+/**
+ * EntityManager is constructor-injected with {@link Lazy} so the bean can be
+ * instantiated in test contexts that exclude JPA autoconfiguration. The real
+ * persistence calls still resolve the EntityManager from the application
+ * context at first use.
+ */
 @Repository
 public class UserJpaRepository implements UserRepositoryPort {
     private final EntityManager entityManager;
 
-    public UserJpaRepository(EntityManager entityManager) {
+    public UserJpaRepository(@Lazy EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
