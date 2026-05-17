@@ -22,6 +22,16 @@ spring:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/vnshop}
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs}
 
+# Service-account credentials for the Keycloak Admin API. Used by AuthController
+# to create users on POST /auth/register. The realm import in
+# infra/keycloak/vnshop-realm.json defines the matching client.
+keycloak:
+  admin:
+    base-url: ${KEYCLOAK_ADMIN_BASE_URL:http://keycloak:8080}
+    realm: ${KEYCLOAK_ADMIN_REALM:vnshop}
+    client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:vnshop-admin-api}
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:vnshop-admin-api-secret}
+
 springdoc:
   api-docs:
     path: /api-docs
