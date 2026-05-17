@@ -159,6 +159,31 @@
     "ssoNotice": "Accounts, passwords and 2FA are managed by Keycloak. Sign-up and password reset happen directly on the Keycloak login page.",
     "termsNotice": "By signing in you agree to VNShop's Terms of Service and Privacy Policy."
   },
+  "messaging": {
+    "pageTitle": "Messages",
+    "back": "Back",
+    "loginPrompt": "Log in to view your messages.",
+    "listHeader": "Messages",
+    "searchPlaceholder": "Search conversations",
+    "loading": "Loading...",
+    "loadingMessages": "Loading messages...",
+    "noThreads": "No conversations yet.",
+    "emptyThread": "Start a conversation",
+    "selectThreadPrompt": "Pick a conversation to start chatting.",
+    "openThreadError": "Couldn't open conversation",
+    "headerWith": "Chatting with",
+    "headerThread": "Conversation {{id}}",
+    "headerThreadFallback": "Conversation",
+    "noMessagesYet": "Send the first message.",
+    "composerPlaceholder": "Type a message...",
+    "send": "Send",
+    "sendError": "Couldn't send message",
+    "relative": {
+      "justNow": "just now",
+      "minutesAgo": "{{m}} min ago",
+      "hoursAgo": "{{h}} hr ago"
+    }
+  },
   "wishlist": {
     "pageTitle": "My Wishlist",
     "countLabel": "{{count}} items",

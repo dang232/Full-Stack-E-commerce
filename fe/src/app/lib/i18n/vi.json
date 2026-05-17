@@ -159,6 +159,31 @@
     "ssoNotice": "Tài khoản, mật khẩu và xác thực 2 lớp do Keycloak quản lý. Việc tạo tài khoản mới và đặt lại mật khẩu được thực hiện trực tiếp trên trang đăng nhập.",
     "termsNotice": "Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của VNShop."
   },
+  "messaging": {
+    "pageTitle": "Tin nhắn",
+    "back": "Quay lại",
+    "loginPrompt": "Đăng nhập để xem tin nhắn của bạn.",
+    "listHeader": "Tin nhắn",
+    "searchPlaceholder": "Tìm cuộc trò chuyện",
+    "loading": "Đang tải...",
+    "loadingMessages": "Đang tải tin nhắn...",
+    "noThreads": "Chưa có cuộc trò chuyện nào.",
+    "emptyThread": "Bắt đầu cuộc trò chuyện",
+    "selectThreadPrompt": "Chọn một cuộc trò chuyện để bắt đầu.",
+    "openThreadError": "Không mở được cuộc trò chuyện",
+    "headerWith": "Đang nhắn với",
+    "headerThread": "Cuộc trò chuyện {{id}}",
+    "headerThreadFallback": "Cuộc trò chuyện",
+    "noMessagesYet": "Hãy gửi tin nhắn đầu tiên.",
+    "composerPlaceholder": "Nhập tin nhắn...",
+    "send": "Gửi",
+    "sendError": "Không gửi được tin nhắn",
+    "relative": {
+      "justNow": "vừa xong",
+      "minutesAgo": "{{m}} phút trước",
+      "hoursAgo": "{{h}} giờ trước"
+    }
+  },
   "wishlist": {
     "pageTitle": "Yêu thích của tôi",
     "countLabel": "{{count}} sản phẩm",

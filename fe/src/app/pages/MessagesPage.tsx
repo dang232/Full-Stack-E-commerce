@@ -1,33 +1,29 @@
-import {
-  Loader2,
-  MessageCircle,
-  Search,
-  Send,
-} from "lucide-react";
+import { Loader2, MessageCircle, Search, Send } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "../hooks/use-auth";
-import {
-  useMarkThreadRead,
-  useMessages,
-  useSendMessage,
-} from "../hooks/use-messages";
+import { useMarkThreadRead, useMessages, useSendMessage } from "../hooks/use-messages";
 import { useThreads } from "../hooks/use-threads";
 import { openThread } from "../lib/api/endpoints/messaging";
 import type { ChatMessage, MessageThreadSummary } from "../lib/api/endpoints/messaging";
 import { ApiError } from "../lib/api/envelope";
 
-function relativeTime(iso: string | undefined): string {
-  if (!iso) return "";
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  const diff = Math.max(0, now - then);
-  if (diff < 60_000) return "vừa xong";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} phút trước`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} giờ trước`;
-  return new Date(iso).toLocaleDateString("vi-VN");
+function useRelativeTime() {
+  const { t, i18n } = useTranslation();
+  return (iso: string | undefined): string => {
+    if (!iso) return "";
+    const then = new Date(iso).getTime();
+    const now = Date.now();
+    const diff = Math.max(0, now - then);
+    if (diff < 60_000) return t("messaging.relative.justNow");
+    if (diff < 3_600_000)
+      return t("messaging.relative.minutesAgo", { m: Math.floor(diff / 60_000) });
+    if (diff < 86_400_000) return t("messaging.relative.hoursAgo", { h: Math.floor(diff / 3_600_000) });
+    return new Date(iso).toLocaleDateString(i18n.resolvedLanguage === "en" ? "en-US" : "vi-VN");
+  };
 }
 
 function ThreadList({
@@ -45,11 +41,13 @@ function ThreadList({
   onFilterChange: (value: string) => void;
   isLoading: boolean;
 }) {
+  const { t } = useTranslation();
+  const relativeTime = useRelativeTime();
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return threads;
-    return threads.filter((t) => {
-      const haystack = [t.otherPartyId, t.lastMessageBody ?? "", t.productId ?? ""]
+    return threads.filter((thread) => {
+      const haystack = [thread.otherPartyId, thread.lastMessageBody ?? "", thread.productId ?? ""]
         .join(" ")
         .toLowerCase();
       return haystack.includes(q);
@@ -60,14 +58,14 @@ function ThreadList({
     <aside className="flex flex-col w-full md:w-80 border-r border-gray-100 bg-white">
       <div className="p-4 border-b border-gray-100">
         <h2 className="font-bold text-base text-gray-800 flex items-center gap-2">
-          <MessageCircle size={18} style={{ color: "#00BFB3" }} /> Tin nhắn
+          <MessageCircle size={18} style={{ color: "#00BFB3" }} /> {t("messaging.listHeader")}
         </h2>
         <label className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
           <Search size={14} className="text-gray-400" />
           <input
             value={filter}
             onChange={(e) => onFilterChange(e.target.value)}
-            placeholder="Tìm cuộc trò chuyện"
+            placeholder={t("messaging.searchPlaceholder")}
             className="flex-1 bg-transparent text-sm outline-none"
           />
         </label>
@@ -76,39 +74,39 @@ function ThreadList({
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="p-6 flex items-center justify-center text-gray-400 text-sm gap-2">
-            <Loader2 size={14} className="animate-spin" /> Đang tải...
+            <Loader2 size={14} className="animate-spin" /> {t("messaging.loading")}
           </div>
         ) : filtered.length === 0 ? (
-          <p className="p-6 text-sm text-gray-400 text-center">Chưa có cuộc trò chuyện nào.</p>
+          <p className="p-6 text-sm text-gray-400 text-center">{t("messaging.noThreads")}</p>
         ) : (
-          filtered.map((t) => {
-            const active = t.id === selectedId;
+          filtered.map((thread) => {
+            const active = thread.id === selectedId;
             return (
               <button
-                key={t.id}
-                onClick={() => onSelect(t.id)}
+                key={thread.id}
+                onClick={() => onSelect(thread.id)}
                 className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors ${
                   active ? "bg-[rgba(0,191,179,0.08)]" : "hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-sm text-gray-800 truncate">
-                    {t.otherPartyId}
+                    {thread.otherPartyId}
                   </span>
                   <span className="text-[11px] text-gray-400 shrink-0">
-                    {relativeTime(t.lastMessageAt)}
+                    {relativeTime(thread.lastMessageAt)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-2 mt-1">
                   <span className="text-xs text-gray-500 truncate flex-1">
-                    {t.lastMessageBody ?? "Bắt đầu cuộc trò chuyện"}
+                    {thread.lastMessageBody ?? t("messaging.emptyThread")}
                   </span>
-                  {t.unreadCount > 0 ? (
+                  {thread.unreadCount > 0 ? (
                     <span
                       className="ml-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
                       style={{ background: "#FF6200" }}
                     >
-                      {t.unreadCount}
+                      {thread.unreadCount}
                     </span>
                   ) : null}
                 </div>
@@ -122,6 +120,8 @@ function ThreadList({
 }
 
 function MessageBubble({ message, isMine }: { message: ChatMessage; isMine: boolean }) {
+  const { i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage === "en" ? "en-US" : "vi-VN";
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
       <div
@@ -132,7 +132,7 @@ function MessageBubble({ message, isMine }: { message: ChatMessage; isMine: bool
       >
         <p className="whitespace-pre-wrap break-words">{message.body}</p>
         <p className={`text-[10px] mt-1 ${isMine ? "text-white/80" : "text-gray-400"}`}>
-          {new Date(message.sentAt).toLocaleTimeString("vi-VN", {
+          {new Date(message.sentAt).toLocaleTimeString(locale, {
             hour: "2-digit",
             minute: "2-digit",
           })}
@@ -149,6 +149,7 @@ function MessagePane({
   threadId: string | null;
   callerId: string | undefined;
 }) {
+  const { t } = useTranslation();
   const messagesQuery = useMessages(threadId ?? undefined);
   const sendMessage = useSendMessage(threadId ?? undefined);
   const markRead = useMarkThreadRead();
@@ -177,7 +178,7 @@ function MessagePane({
   if (!threadId) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400 text-sm bg-gray-50">
-        Chọn một cuộc trò chuyện để bắt đầu.
+        {t("messaging.selectThreadPrompt")}
       </div>
     );
   }
@@ -190,23 +191,28 @@ function MessagePane({
       { body: trimmed },
       {
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Không gửi được tin nhắn"),
+          toast.error(err instanceof ApiError ? err.message : t("messaging.sendError")),
       },
     );
   };
 
+  const headerLatest = messagesQuery.data?.content[0];
+  const headerThread = headerLatest?.threadId
+    ? t("messaging.headerThread", { id: headerLatest.threadId.slice(0, 8) })
+    : t("messaging.headerThreadFallback");
+
   return (
     <section className="flex flex-col flex-1 bg-gray-50">
       <div className="px-5 py-3 bg-white border-b border-gray-100">
-        <p className="text-xs text-gray-400">Đang nhắn với</p>
-        <p className="font-semibold text-sm text-gray-800">{messageHeader(messagesQuery.data?.content[0])}</p>
+        <p className="text-xs text-gray-400">{t("messaging.headerWith")}</p>
+        <p className="font-semibold text-sm text-gray-800">{headerThread}</p>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
         {messagesQuery.isLoading ? (
-          <p className="text-center text-sm text-gray-400">Đang tải tin nhắn...</p>
+          <p className="text-center text-sm text-gray-400">{t("messaging.loadingMessages")}</p>
         ) : ordered.length === 0 ? (
-          <p className="text-center text-sm text-gray-400">Hãy gửi tin nhắn đầu tiên.</p>
+          <p className="text-center text-sm text-gray-400">{t("messaging.noMessagesYet")}</p>
         ) : (
           ordered.map((m) => (
             <MessageBubble
@@ -235,7 +241,7 @@ function MessagePane({
             }
           }}
           rows={1}
-          placeholder="Nhập tin nhắn..."
+          placeholder={t("messaging.composerPlaceholder")}
           className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-2 text-sm focus:outline-none focus:border-[#00BFB3]"
           maxLength={4000}
         />
@@ -250,15 +256,11 @@ function MessagePane({
           ) : (
             <Send size={14} />
           )}
-          Gửi
+          {t("messaging.send")}
         </button>
       </form>
     </section>
   );
-}
-
-function messageHeader(latest: ChatMessage | undefined): string {
-  return latest?.threadId ? `Cuộc trò chuyện ${latest.threadId.slice(0, 8)}` : "Cuộc trò chuyện";
 }
 
 export function MessagesPage() {
@@ -268,6 +270,7 @@ export function MessagesPage() {
   const threads = useThreads();
   const [filter, setFilter] = useState("");
   const [resolving, setResolving] = useState(false);
+  const { t } = useTranslation();
 
   const requestedThreadId = params.get("thread");
   const requestedRecipient = params.get("with");
@@ -294,7 +297,7 @@ export function MessagesPage() {
         setParams(next, { replace: true });
       })
       .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "Không mở được cuộc trò chuyện");
+        toast.error(err instanceof ApiError ? err.message : t("messaging.openThreadError"));
       })
       .finally(() => {
         if (!cancelled) setResolving(false);
@@ -305,10 +308,7 @@ export function MessagesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, authenticated, requestedRecipient, requestedThreadId, requestedProduct]);
 
-  const selectedId =
-    requestedThreadId ??
-    threads.items.find((t) => !!t.id)?.id ??
-    null;
+  const selectedId = requestedThreadId ?? threads.items.find((thread) => !!thread.id)?.id ?? null;
 
   const selectThread = (id: string) => {
     const next = new URLSearchParams(params);
@@ -319,13 +319,13 @@ export function MessagesPage() {
   if (ready && !authenticated) {
     return (
       <div className="max-w-md mx-auto px-4 py-24 text-center">
-        <p className="text-sm text-gray-500 mb-4">Đăng nhập để xem tin nhắn của bạn.</p>
+        <p className="text-sm text-gray-500 mb-4">{t("messaging.loginPrompt")}</p>
         <button
           onClick={() => login("/messages")}
           className="px-4 py-2 rounded-xl text-white text-sm font-medium"
           style={{ background: "#FF6200" }}
         >
-          Đăng nhập
+          {t("auth.login")}
         </button>
       </div>
     );
@@ -334,12 +334,12 @@ export function MessagesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-gray-800">Tin nhắn</h1>
+        <h1 className="text-xl font-bold text-gray-800">{t("messaging.pageTitle")}</h1>
         <button
           onClick={() => navigate(-1)}
           className="text-xs text-gray-500 hover:text-gray-700"
         >
-          Quay lại
+          {t("messaging.back")}
         </button>
       </div>
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 flex flex-col md:flex-row min-h-[70vh]">
