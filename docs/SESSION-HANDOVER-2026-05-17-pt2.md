@@ -1,7 +1,7 @@
 # Session handover — 2026-05-17 (continuation: ambitious-features wave)
 
-**Last commit:** `1feddb8d` (HEAD on main)
-**Session length:** 31 commits on top of `93a7ff2f` (the previous handover's tip)
+**Last commit:** `f2a54425` (HEAD on main)
+**Session length:** 35 commits on top of `93a7ff2f` (the previous handover's tip)
 **Branch state:** clean — only `.claude/worktrees/` directory is unstaged (locked agent worktrees)
 
 This file extends the original `SESSION-HANDOVER-2026-05-17.md` (still in this folder). Same date, same project, but a separate working block: 4 ambitious features delegated to sub-agents in parallel worktrees, then merged + quality-passed; followed by a complete i18n sweep across the entire FE; closed with a recs cold-start fallback so day-1 deploys feel real.
@@ -27,6 +27,10 @@ Then a comprehensive **i18n sweep**: every page in the app — Cart / Orders / W
 
 | Commit | What |
 |---|---|
+| `f2a54425` | chore(fe): prettier-format use-countdown.ts |
+| `ff3be04f` | chore(fe): prettier auto-format across i18n-touched files |
+| `1f5f394c` | chore(fe): polish English i18n strings to be more idiomatic |
+| `341ff70b` | docs: mark recs cold-start fallback done in handover |
 | `1feddb8d` | feat(recommendations): cold-start fallback for frequently-bought-together |
 | `9def7a96` | docs: refresh handover after AdminPage completes the i18n sweep |
 | `86d69e49` | feat(fe): translate AdminPage strings via i18n |
@@ -130,12 +134,12 @@ cd services/messaging-service      && npm test                             # 28/
 
 | Effort | Item | Why |
 |---|---|---|
+| ~half day | Live shipping rate-quote endpoint | `ShippingRateCalculator` exists in application layer + `CarrierGatewayPort.quote()` is implemented by both live adapters, but no REST endpoint exposes it. Domain types are split between `domain/` (older — `RateQuoteCommand`/`Result`) and `domain/model/` (newer — `RateQuoteRequest`/`RateQuote`); pick one, retire the other. Then wire a controller + add tests + plumb to FE checkout estimate. |
 | ~half day | Messaging E2E smoke (compose up, real Kafka, send a message between two users) | Highest-risk untested path — Kafka wiring + WebSocket gateway are the bits hardest to unit-test |
-| ~half day | Live shipping rate-quote endpoint | Carryover from prior handover — only tracking + label creation are wired to live GHN/GHTK; rate quote falls through to stub. Buyer-side "estimate before checkout" UX wants this. |
 | ~1 day | OpenSearch migration (Phase 4B from original plan) — only when catalog grows past ~100K |
 | ~1-2 days | SMS / push notification channel — handover-flagged "Amazon-class" gap |
 | ~2-3 days | Saved payment methods on Profile (F62/F63 pending in original handover) |
-| ~half day | Translation review pass | Some `en.json` strings are direct translations and could be more idiomatic. Worth a sweep when an English-native reviewer is available — especially on CheckoutPage and AdminPage where the agent (me) was guessing at marketplace conventions. |
+| ~half day | Translation review pass (round 2) | First polish pass landed in `1f5f394c` — flagged the obvious "Shock deals", "1800 6789 free", `,000₫` reversed-currency tells. Round 2 should focus on CheckoutPage and AdminPage where I was guessing at marketplace conventions; ideally with an English-native reviewer. |
 
 ## Quality-pass discipline (durable rule from this session)
 
@@ -151,8 +155,8 @@ What I did NOT touch (logged as deferred, not silently accepted):
 
 ## How to resume
 
-1. `git log --oneline -32` — verify HEAD is `86d69e49` and last 30 commits match the table above.
-2. `cd fe && npm run verify` — should be green (0 lint, 112/112 tests).
-3. **The FE i18n sweep is complete.** Every page in the app flips language via the switcher in the top bar (`fe/src/app/components/language-switcher.tsx`). Pick from "Next-session candidates" — recs cold-start fallback or messaging E2E smoke is the highest-leverage next move. The translation review pass is a nice-to-have when an English-native reviewer is available.
+1. `git log --oneline -36` — verify HEAD is `f2a54425` and last 35 commits match the table above.
+2. `cd fe && npm run verify` — should be green (typecheck, lint 0/0, prettier clean, 112/112 tests, build).
+3. **The FE i18n sweep is complete.** Every page in the app flips language via the switcher in the top bar (`fe/src/app/components/language-switcher.tsx`). Pick from "Next-session candidates" — the live shipping rate-quote endpoint is the highest-leverage BE work, messaging E2E smoke is the highest-risk untested path.
 4. **For sub-agent delegation:** include the rule "report blockers loudly, don't silently bail, green commits + report OR no commits + clear blocker report." It's saved this session multiple times AND been violated twice. Verify the diff before trusting the report.
 5. **For post-agent merges:** always run the clean-code / DDD / DRY / SOLID quality pass and fix violations as a `refactor(...)` commit on top of the merge. Don't accept slop just because tests are green.
