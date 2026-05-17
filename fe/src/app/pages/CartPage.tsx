@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import {
   Trash2,
   Plus,
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
+import { validateCouponCode } from "../lib/api/endpoints/coupons";
 import { ApiError } from "../lib/api/envelope";
 import { FREE_SHIPPING_THRESHOLD, FLAT_SHIPPING_FEE } from "../lib/domain-constants";
 import { formatPrice } from "../lib/format";
@@ -29,29 +31,49 @@ export function CartPage() {
   const { items, itemCount, totalAmount, isLoading, error, updateItem, removeItem } = useCart();
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
 
-  // Coupon validation will move to /checkout/validate-coupon. For now keep the local preview
-  // so the UX shell still functions; the real discount lands at checkout.
-  const VALID_COUPONS: Record<string, number> = {
-    VNSHOP50: 50_000,
-    SALE100: 100_000,
-    GIAM20: Math.floor(totalAmount * 0.2),
-  };
+  // The real discount lands at checkout (/checkout/calculate is server-authoritative).
+  // For the cart preview we hit /coupons/validate so the buyer sees the same code/discount
+  // they will see on the checkout summary.
+  const couponMutation = useMutation({
+    mutationFn: validateCouponCode,
+    onSuccess: (result, variables) => {
+      if (result.valid) {
+        setAppliedCoupon(variables.code);
+        setCouponDiscount(result.discount ?? 0);
+        setCouponError("");
+        return;
+      }
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+      setCouponError(result.message || "Mã giảm giá không hợp lệ hoặc đã hết hạn");
+    },
+    onError: (err) => {
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+      setCouponError(
+        err instanceof ApiError ? err.message : "Mã giảm giá không hợp lệ hoặc đã hết hạn",
+      );
+    },
+  });
 
-  const couponDiscount = appliedCoupon ? (VALID_COUPONS[appliedCoupon] ?? 0) : 0;
   const shippingFee = totalAmount >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_FEE;
   const finalTotal = Math.max(0, totalAmount - couponDiscount) + shippingFee;
 
   const handleApplyCoupon = () => {
     const code = coupon.toUpperCase().trim();
-    if (VALID_COUPONS[code] !== undefined) {
-      setAppliedCoupon(code);
-      setCouponError("");
-    } else {
-      setCouponError("Mã giảm giá không hợp lệ hoặc đã hết hạn");
-      setAppliedCoupon(null);
-    }
+    if (!code || couponMutation.isPending) return;
+    couponMutation.mutate({ code, orderAmount: totalAmount });
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponError("");
+    setCoupon("");
+    couponMutation.reset();
   };
 
   const onUpdate = (productId: string, quantity: number) => {
@@ -288,15 +310,17 @@ export function CartPage() {
               <input
                 value={coupon}
                 onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
                 placeholder="Nhập mã voucher..."
                 className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] uppercase tracking-wider"
               />
               <button
                 onClick={handleApplyCoupon}
-                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+                disabled={!coupon.trim() || couponMutation.isPending}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: "#FF6200" }}
               >
-                Áp dụng
+                {couponMutation.isPending ? "Đang kiểm tra..." : "Áp dụng"}
               </button>
             </div>
             {couponError ? <p className="text-xs text-red-500 mt-1.5">{couponError}</p> : null}
@@ -305,12 +329,12 @@ export function CartPage() {
                 className="mt-2 flex items-center justify-between px-3 py-2 rounded-lg text-sm"
                 style={{ background: "rgba(0,191,179,0.08)" }}
               >
-                <span style={{ color: "#00BFB3" }}>🎉 Đã áp dụng: {appliedCoupon}</span>
+                <span style={{ color: "#00BFB3" }}>
+                  🎉 Đã áp dụng: {appliedCoupon}
+                  {couponDiscount > 0 ? ` · -${formatPrice(couponDiscount)}` : ""}
+                </span>
                 <button
-                  onClick={() => {
-                    setAppliedCoupon(null);
-                    setCoupon("");
-                  }}
+                  onClick={handleRemoveCoupon}
                   className="text-gray-400 hover:text-red-400 text-xs"
                 >
                   Xóa
