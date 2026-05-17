@@ -50,7 +50,9 @@
   "product": {
     "sold": "Sold",
     "new": "New",
-    "viewMore": "View more products →"
+    "viewMore": "View more products →",
+    "frequentlyBoughtTogether": "Frequently bought together",
+    "youMayAlsoLike": "Similar products"
   },
   "home": {
     "forYou": "Just for you",

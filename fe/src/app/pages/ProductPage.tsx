@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -64,6 +65,7 @@ export function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, toggleWishlist, isWishlisted } = useVNShop();
+  const { t } = useTranslation();
 
   const productQuery = useProduct(id ?? "");
   const product = productQuery.data ?? products.find((p) => p.id === id);
@@ -798,7 +800,7 @@ export function ProductPage() {
       {/* Frequently bought together — co-purchase aggregate from recommendations-service. */}
       {fbtQuery.data && fbtQuery.data.length > 0 ? (
         <RecommendationGrid
-          title="Khách hàng thường mua cùng"
+          title={t("product.frequentlyBoughtTogether")}
           items={fbtQuery.data}
           onSelect={(productId) => navigate(`/product/${productId}`)}
         />
@@ -807,7 +809,7 @@ export function ProductPage() {
       {/* You may also like — same-category, ±30% price proximity from recommendations-service. */}
       {ymalQuery.data && ymalQuery.data.length > 0 ? (
         <RecommendationGrid
-          title="Sản phẩm tương tự"
+          title={t("product.youMayAlsoLike")}
           items={ymalQuery.data}
           onSelect={(productId) => navigate(`/product/${productId}`)}
         />

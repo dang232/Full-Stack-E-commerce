@@ -50,7 +50,9 @@
   "product": {
     "sold": "Đã bán",
     "new": "Mới",
-    "viewMore": "Xem thêm sản phẩm →"
+    "viewMore": "Xem thêm sản phẩm →",
+    "frequentlyBoughtTogether": "Khách hàng thường mua cùng",
+    "youMayAlsoLike": "Sản phẩm tương tự"
   },
   "home": {
     "forYou": "Dành riêng cho bạn",
