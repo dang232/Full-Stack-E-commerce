@@ -1,5 +1,6 @@
 package com.vnshop.recommendationsservice.application;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,18 +50,18 @@ public class YouMayAlsoLikeUseCase {
         if (source == null || source.categoryId() == null || source.categoryId().isBlank()) {
             return List.of();
         }
-        java.math.BigDecimal sourcePrice = source.price();
-        java.math.BigDecimal lowerBound = null;
-        java.math.BigDecimal upperBound = null;
+        BigDecimal sourcePrice = source.price();
+        BigDecimal lowerBound = null;
+        BigDecimal upperBound = null;
         if (sourcePrice != null && sourcePrice.signum() > 0) {
-            java.math.BigDecimal band = sourcePrice
-                    .multiply(java.math.BigDecimal.valueOf(priceProximityPercent))
-                    .divide(java.math.BigDecimal.valueOf(100));
+            BigDecimal band = sourcePrice
+                    .multiply(BigDecimal.valueOf(priceProximityPercent))
+                    .divide(BigDecimal.valueOf(100));
             lowerBound = sourcePrice.subtract(band);
             upperBound = sourcePrice.add(band);
         }
-        java.math.BigDecimal lowerFinal = lowerBound;
-        java.math.BigDecimal upperFinal = upperBound;
+        BigDecimal lowerFinal = lowerBound;
+        BigDecimal upperFinal = upperBound;
         return productServicePort.listByCategory(source.categoryId(), candidatePool).stream()
                 .filter(p -> !productId.equals(p.id()))
                 .filter(p -> withinPriceBand(p.price(), lowerFinal, upperFinal))
@@ -74,9 +75,9 @@ public class YouMayAlsoLikeUseCase {
     }
 
     private static boolean withinPriceBand(
-            java.math.BigDecimal candidate,
-            java.math.BigDecimal lowerBound,
-            java.math.BigDecimal upperBound
+            BigDecimal candidate,
+            BigDecimal lowerBound,
+            BigDecimal upperBound
     ) {
         // No source price means no band — fall back to "anything in the same category".
         if (lowerBound == null || upperBound == null) {
