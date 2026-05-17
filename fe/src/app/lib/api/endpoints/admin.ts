@@ -1,17 +1,21 @@
 import { z } from "zod";
 
-import { reviewSchema } from "../../../types/api";
+import {
+  adminPayoutSchema,
+  couponSchema,
+  dashboardRevenuePointSchema,
+  dashboardSummarySchema,
+  dashboardTopProductSchema,
+  dashboardTopSellerSchema,
+  disputeSchema,
+  reviewSchema,
+  sellerSummarySchema,
+  type DashboardSummary,
+} from "../../../types/api";
 import type { COUPON_TYPES } from "../../domain-enums";
 import { api } from "../client";
 
-const sellerSummarySchema = z
-  .object({
-    id: z.string(),
-    shopName: z.string(),
-    status: z.string(),
-    appliedAt: z.string().optional(),
-  })
-  .passthrough();
+export type { DashboardSummary };
 
 export const adminListSellers = () => api.get("/admin/sellers", z.array(sellerSummarySchema));
 export const adminApproveSeller = (id: string) =>
@@ -22,20 +26,6 @@ export const adminApproveReview = (id: string) =>
   api.put(`/admin/reviews/${encodeURIComponent(id)}/approve`, reviewSchema);
 export const adminRejectReview = (id: string, body: { reason: string }) =>
   api.put(`/admin/reviews/${encodeURIComponent(id)}/reject`, reviewSchema, body);
-
-const couponSchema = z
-  .object({
-    id: z.string(),
-    code: z.string(),
-    type: z.string(),
-    value: z.number(),
-    minOrderValue: z.number().optional(),
-    maxDiscount: z.number().optional(),
-    startsAt: z.string().optional(),
-    endsAt: z.string().optional(),
-    active: z.boolean().optional(),
-  })
-  .passthrough();
 
 export interface CouponWriteBody {
   code: string;
@@ -56,30 +46,12 @@ export const adminUpdateCoupon = (id: string, body: CouponWriteBody) =>
 export const adminDeactivateCoupon = (id: string) =>
   api.post(`/admin/coupons/${encodeURIComponent(id)}/deactivate`, couponSchema);
 
-const disputeSchema = z
-  .object({
-    id: z.string(),
-    returnId: z.string(),
-    status: z.string(),
-    description: z.string().optional(),
-    createdAt: z.string().optional(),
-  })
-  .passthrough();
 export const adminOpenDisputes = () => api.get("/admin/disputes/open", z.array(disputeSchema));
 export const adminResolveDispute = (
   id: string,
   body: { resolution: string; refundAmount?: number },
 ) => api.post(`/admin/disputes/${encodeURIComponent(id)}/resolve`, disputeSchema, body);
 
-const adminPayoutSchema = z
-  .object({
-    id: z.string(),
-    sellerId: z.string(),
-    amount: z.number(),
-    status: z.string(),
-    requestedAt: z.string().optional(),
-  })
-  .passthrough();
 export const adminPendingPayouts = () =>
   api.get("/admin/finance/payouts/pending", z.array(adminPayoutSchema));
 export const adminCompletePayout = (id: string) =>
@@ -90,54 +62,18 @@ export const adminFailPayout = (id: string, body: { reason: string }) =>
 // Dashboard
 //
 // Backend names for the same conceptual KPI vary (`totalRevenue` vs `revenue`).
-// Each field accepts every alias we have seen and the consumer just reads
-// `.totalRevenue`, so the UI no longer needs runtime key probing.
-const dashboardSummarySchema = z
-  .object({
-    totalRevenue: z.number().optional(),
-    revenue: z.number().optional(),
-    total: z.number().optional(),
-    totalUsers: z.number().optional(),
-    users: z.number().optional(),
-    totalOrders: z.number().optional(),
-    orders: z.number().optional(),
-    totalSellers: z.number().optional(),
-    sellers: z.number().optional(),
-  })
-  .passthrough()
-  .transform((s) => ({
-    totalRevenue: s.totalRevenue ?? s.revenue ?? s.total ?? null,
-    totalUsers: s.totalUsers ?? s.users ?? null,
-    totalOrders: s.totalOrders ?? s.orders ?? null,
-    totalSellers: s.totalSellers ?? s.sellers ?? null,
-  }));
-export type DashboardSummary = z.infer<typeof dashboardSummarySchema>;
+// The dashboard summary schema (in types/api/admin.ts) accepts every alias and
+// the consumer just reads `.totalRevenue`, so the UI no longer needs runtime
+// key probing.
 export const dashboardSummary = () => api.get("/admin/dashboard/summary", dashboardSummarySchema);
 export const dashboardRevenue = (
   params: { from?: string; to?: string; granularity?: "day" | "week" | "month" } = {},
-) =>
-  api.get(
-    "/admin/dashboard/revenue",
-    z.array(z.object({ date: z.string(), amount: z.number() }).passthrough()),
-    params,
-  );
+) => api.get("/admin/dashboard/revenue", z.array(dashboardRevenuePointSchema), params);
 export const dashboardTopProducts = (params: { limit?: number } = {}) =>
-  api.get(
-    "/admin/dashboard/top-products",
-    z.array(
-      z
-        .object({ productId: z.string(), name: z.string().optional(), revenue: z.number() })
-        .passthrough(),
-    ),
-    { limit: params.limit ?? 10 },
-  );
+  api.get("/admin/dashboard/top-products", z.array(dashboardTopProductSchema), {
+    limit: params.limit ?? 10,
+  });
 export const dashboardTopSellers = (params: { limit?: number } = {}) =>
-  api.get(
-    "/admin/dashboard/top-sellers",
-    z.array(
-      z
-        .object({ sellerId: z.string(), shopName: z.string().optional(), revenue: z.number() })
-        .passthrough(),
-    ),
-    { limit: params.limit ?? 10 },
-  );
+  api.get("/admin/dashboard/top-sellers", z.array(dashboardTopSellerSchema), {
+    limit: params.limit ?? 10,
+  });
