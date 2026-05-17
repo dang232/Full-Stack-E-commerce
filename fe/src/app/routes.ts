@@ -14,7 +14,7 @@ const ProductPage = lazy(() =>
 );
 const CartPage = lazy(() => import("./pages/CartPage").then((m) => ({ default: m.CartPage })));
 const CheckoutPage = lazy(() =>
-  import("./pages/CheckoutPage").then((m) => ({ default: m.CheckoutPage })),
+  import("./pages/checkout").then((m) => ({ default: m.CheckoutPage })),
 );
 const OrdersPage = lazy(() =>
   import("./pages/OrdersPage").then((m) => ({ default: m.OrdersPage })),
