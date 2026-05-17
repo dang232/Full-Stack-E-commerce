@@ -200,10 +200,16 @@ export function CheckoutPage() {
   });
 
   const shipping = shippingOptions.find((m) => m.id === selectedShippingId) ?? shippingOptions[0];
+  // Shipping fee is computed client-side from the selected option. The BE
+  // /checkout/calculate endpoint does not currently accept shipping choices, so
+  // its `shippingFee` reflects a single default. Using the client-selected fee
+  // keeps the total in sync when the user toggles shipping options. We still
+  // pull `subtotal` and `discount` from the BE so server-authoritative coupon
+  // pricing wins.
   const subtotal = calcQuery.data?.subtotal ?? totalAmount;
-  const shippingFee = calcQuery.data?.shippingFee ?? shipping?.fee ?? 0;
+  const shippingFee = shipping?.fee ?? 0;
   const discount = calcQuery.data?.discount ?? 0;
-  const finalTotal = calcQuery.data?.total ?? Math.max(0, subtotal - discount) + shippingFee;
+  const finalTotal = Math.max(0, subtotal - discount) + shippingFee;
 
   const stepOrder: Step[] = ["address", "shipping", "payment", "review", "success"];
   const stepIdx = stepOrder.indexOf(step);
