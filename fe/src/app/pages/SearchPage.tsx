@@ -712,7 +712,7 @@ export function SearchPage() {
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
                   style={{ background: "#00BFB3" }}
                 >
-                  ≥ {minRating}★
+                  {t("search.ratingAtLeast", { r: minRating })}
                   <button onClick={() => setMinRating(0)}>
                     <X size={12} />
                   </button>
