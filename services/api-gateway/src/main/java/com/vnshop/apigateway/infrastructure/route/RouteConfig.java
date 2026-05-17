@@ -34,6 +34,7 @@ public class RouteConfig {
     private final String notificationServiceUri;
     private final String couponServiceUri;
     private final String sellerFinanceServiceUri;
+    private final String recommendationsServiceUri;
 
     public RouteConfig(
         @Value("${vnshop.routes.product-service:http://product-service:8082}") String productServiceUri,
@@ -46,7 +47,8 @@ public class RouteConfig {
         @Value("${vnshop.routes.shipping-service:http://shipping-service:8093}") String shippingServiceUri,
         @Value("${vnshop.routes.notification-service:http://notification-service:8087}") String notificationServiceUri,
         @Value("${vnshop.routes.coupon-service:http://coupon-service:8088}") String couponServiceUri,
-        @Value("${vnshop.routes.seller-finance-service:http://seller-finance-service:8090}") String sellerFinanceServiceUri
+        @Value("${vnshop.routes.seller-finance-service:http://seller-finance-service:8090}") String sellerFinanceServiceUri,
+        @Value("${vnshop.routes.recommendations-service:http://recommendations-service:8094}") String recommendationsServiceUri
     ) {
         this.productServiceUri = productServiceUri;
         this.userServiceUri = userServiceUri;
@@ -59,6 +61,7 @@ public class RouteConfig {
         this.notificationServiceUri = notificationServiceUri;
         this.couponServiceUri = couponServiceUri;
         this.sellerFinanceServiceUri = sellerFinanceServiceUri;
+        this.recommendationsServiceUri = recommendationsServiceUri;
     }
 
     @Bean
@@ -147,6 +150,12 @@ public class RouteConfig {
             .route("seller-finance", route -> route.path("/seller-finance/**")
                 .filters(filters -> resilient(filters, "seller-finance-service"))
                 .uri(sellerFinanceServiceUri))
+            // Recommendations endpoints (frequently-bought-together, you-may-also-like)
+            // are public reads — no rate limit, just a circuit breaker so a slow
+            // recommendations-service can't stall product detail page renders.
+            .route("recommendations", route -> route.path("/recommendations/**")
+                .filters(filters -> resilient(filters, "recommendations-service"))
+                .uri(recommendationsServiceUri))
             // Admin sub-routes — more specific patterns must come before the
             // catch-all /admin/** route below. Each maps to the service that owns
             // the corresponding domain endpoints.

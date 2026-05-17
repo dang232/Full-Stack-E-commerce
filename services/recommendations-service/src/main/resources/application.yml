@@ -1,0 +1,41 @@
+server:
+  port: 8094
+
+spring:
+  application:
+    name: recommendations-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=recommendations_svc
+    username: vnshop
+    password: vnshop123
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    schemas: recommendations_svc
+    default-schema: recommendations_svc
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: recommendations-service
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+vnshop:
+  recommendations:
+    # Base URL the service uses for cross-service product lookups (BE→BE).
+    # Inside docker-compose this resolves to product-service:8082; locally to localhost:8082.
+    product-service-url: ${PRODUCT_SERVICE_URL:http://product-service:8082}
+    # ±N% price band for the "you may also like" same-category filter.
+    price-proximity-percent: 30
+    # Max categories worth of candidates to consider before ranking.
+    you-may-also-like-candidate-pool: 100
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

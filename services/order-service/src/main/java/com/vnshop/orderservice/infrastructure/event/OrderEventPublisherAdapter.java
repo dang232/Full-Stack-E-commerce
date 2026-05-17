@@ -50,7 +50,15 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
         }
     }
 
-    public record OrderEvent(String eventType, String orderId, String orderNumber, String buyerId, String paymentStatus, java.util.List<SellerTotal> sellerTotals) {
+    public record OrderEvent(
+            String eventType,
+            String orderId,
+            String orderNumber,
+            String buyerId,
+            String paymentStatus,
+            java.util.List<SellerTotal> sellerTotals,
+            java.util.List<OrderEventItem> items
+    ) {
         static OrderEvent fromDomain(String eventType, Order order) {
             return new OrderEvent(
                     eventType,
@@ -60,11 +68,23 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
                     order.paymentStatus().name(),
                     order.subOrders().stream()
                             .map(subOrder -> new SellerTotal(subOrder.sellerId(), subOrder.itemsTotal().amount(), "STANDARD"))
+                            .toList(),
+                    order.subOrders().stream()
+                            .flatMap(subOrder -> subOrder.items().stream()
+                                    .map(item -> new OrderEventItem(item.productId(), item.sellerId(), item.quantity())))
                             .toList()
             );
         }
     }
 
     public record SellerTotal(String sellerId, java.math.BigDecimal amount, String commissionTier) {
+    }
+
+    /**
+     * Per-line-item projection embedded in {@code order.created} / {@code order.updated}
+     * envelopes. Recommendations-service consumes this to maintain co-purchase counts;
+     * existing listeners (finance, projection) ignore unknown fields.
+     */
+    public record OrderEventItem(String productId, String sellerId, int quantity) {
     }
 }

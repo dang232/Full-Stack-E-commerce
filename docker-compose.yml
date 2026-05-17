@@ -612,6 +612,25 @@ services:
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
+  recommendations-service:
+    profiles: ["apps"]
+    build: ./services/recommendations-service
+    container_name: vnshop-recommendations-service
+    ports:
+      - "8094:8094"
+    depends_on:
+      postgres-legacy:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8094
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=recommendations_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: vnshop123
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PRODUCT_SERVICE_URL: http://product-service:8082
+
   order-service:
     profiles: ["apps"]
     build:
