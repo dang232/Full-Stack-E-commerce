@@ -8,24 +8,23 @@ import {
   Headphones,
   TrendingUp,
   Award,
-  ChevronLeft,
   Sparkles,
-  ArrowRight,
   Gift,
   BadgeCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
-import { products, categories, sellers, type Product } from "../components/vnshop-data";
+import { categoryDisplayLabel, useCategories } from "../hooks/use-categories";
 import { useCountdown } from "../hooks/use-countdown";
 import { useFlashSaleWithProducts, type FlashSaleItem } from "../hooks/use-flash-sale";
 import { useProducts } from "../hooks/use-products";
 import { formatPrice } from "../lib/format";
+import type { Product } from "../types/ui";
 
 // ─── Section Header ────────────────────────────────────────────────────────────
 function SectionHeader({
@@ -192,243 +191,46 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
 }
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
-const heroSlides = [
-  {
-    id: 1,
-    eyebrow: "🔥 Flash Sale — Giảm đến 50%",
-    title: "Mua Sắm\nThả Ga Không Lo",
-    subtitle: "Hàng ngàn sản phẩm chính hãng, giao hàng tận nơi, hoàn tiền 100%.",
-    cta: "Mua ngay",
-    ctaPath: "/search?flash=true",
-    secondaryCta: "Khám phá",
-    secondaryPath: "/search",
-    bg: "linear-gradient(135deg, #006B65 0%, #009990 45%, #00BFB3 100%)",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=85",
-    imageAlign: "right",
-  },
-  {
-    id: 2,
-    eyebrow: "💻 Công Nghệ — Bảo hành 12 tháng",
-    title: "Điện Tử\nChính Hãng",
-    subtitle: "Laptop, điện thoại, tai nghe cao cấp — Chính hãng, giá tốt nhất thị trường.",
-    cta: "Xem ngay",
-    ctaPath: "/search?cat=electronics",
-    secondaryCta: "Flash Deal",
-    secondaryPath: "/search?flash=true",
-    bg: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1D4ED8 100%)",
-    image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=900&q=85",
-    imageAlign: "right",
-  },
-  {
-    id: 3,
-    eyebrow: "👗 Fashion Week — Xu hướng 2026",
-    title: "Phong Cách\nMỗi Ngày",
-    subtitle: "Cập nhật bộ sưu tập thời trang mới nhất, miễn phí vận chuyển toàn quốc.",
-    cta: "Khám phá",
-    ctaPath: "/search?cat=fashion",
-    secondaryCta: "Hàng mới về",
-    secondaryPath: "/search?cat=fashion&sort=new",
-    bg: "linear-gradient(135deg, #7C3AED 0%, #C026D3 50%, #FF6200 100%)",
-    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&q=85",
-    imageAlign: "right",
-  },
-];
+function ComingSoonCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-3xl border border-dashed border-gray-200 bg-white px-8 py-12 text-center">
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 text-gray-400">
+        {icon}
+      </div>
+      <p className="text-base font-semibold text-gray-700">{title}</p>
+      <p className="mt-1 text-sm text-gray-500">{description}</p>
+    </div>
+  );
+}
 
 function HeroSection() {
-  const navigate = useNavigate();
-  const [slide, setSlide] = useState(0);
-  const [direction, setDirection] = useState(1);
-
-  const go = useCallback((next: number) => {
-    setSlide((curr) => {
-      const target = ((next % heroSlides.length) + heroSlides.length) % heroSlides.length;
-      setDirection(target > curr ? 1 : -1);
-      return target;
-    });
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setSlide((s) => {
-        setDirection(1);
-        return (s + 1) % heroSlides.length;
-      });
-    }, 6000);
-    return () => clearInterval(id);
-  }, []);
-
-  const current = heroSlides[slide];
-
+  const { t } = useTranslation();
   return (
-    <div
-      className="relative overflow-hidden rounded-3xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)]"
-      style={{ minHeight: 440, background: current.bg }}
-    >
-      {/* Background photo with overlay */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={slide + "-bg"}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${current.image})`,
-            filter: "brightness(0.35) saturate(1.1)",
-          }}
-        />
-      </AnimatePresence>
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(105deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.05) 100%)",
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          background: "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.18), transparent 50%)",
-        }}
-      />
-
-      {/* Content */}
-      <div className="relative z-10 h-full flex items-center px-10 md:px-14 py-14 md:py-20 max-w-2xl">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={slide}
-            initial={{ opacity: 0, x: direction * -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * 30 }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-          >
-            <span
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white mb-6 tracking-wide"
-              style={{
-                background: "rgba(255,255,255,0.12)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.22)",
-              }}
-            >
-              {current.eyebrow}
-            </span>
-            <h1
-              className="text-4xl md:text-6xl font-black text-white leading-[1.05] mb-5 tracking-tight"
-              style={{
-                fontFamily: "'Be Vietnam Pro', sans-serif",
-                whiteSpace: "pre-line",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {current.title}
-            </h1>
-            <p className="text-white/80 text-base md:text-lg mb-9 leading-relaxed max-w-md font-light">
-              {current.subtitle}
-            </p>
-            <div className="flex gap-3 flex-wrap">
-              <button
-                onClick={() => navigate(current.ctaPath)}
-                className="px-7 py-3.5 rounded-2xl font-bold text-white text-sm shadow-[0_10px_30px_-8px_rgba(255,98,0,0.6)] hover:shadow-[0_14px_40px_-8px_rgba(255,98,0,0.7)] transition-all hover:-translate-y-0.5 flex items-center gap-2"
-                style={{ background: "linear-gradient(135deg, #FF6200 0%, #FF8C00 100%)" }}
-              >
-                {current.cta} <ArrowRight size={16} />
-              </button>
-              <button
-                onClick={() => navigate(current.secondaryPath)}
-                className="px-6 py-3.5 rounded-2xl font-semibold text-sm text-white border border-white/30 hover:bg-white/10 hover:border-white/50 transition-all backdrop-blur-sm"
-              >
-                {current.secondaryCta}
-              </button>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Controls */}
-      <div className="absolute bottom-5 left-8 flex items-center gap-3">
-        <div className="flex gap-1.5">
-          {heroSlides.map((slide_, i) => (
-            <button
-              key={slide_.id}
-              onClick={() => go(i)}
-              className="h-1.5 rounded-full transition-all duration-400"
-              style={{
-                background: i === slide ? "#fff" : "rgba(255,255,255,0.35)",
-                width: i === slide ? 28 : 8,
-              }}
-            />
-          ))}
-        </div>
-        <span className="text-white/40 text-xs tabular-nums">
-          {slide + 1}/{heroSlides.length}
-        </span>
-      </div>
-      <button
-        onClick={() => go(slide - 1)}
-        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white transition-colors"
-        style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}
-      >
-        <ChevronLeft size={18} />
-      </button>
-      <button
-        onClick={() => go(slide + 1)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white transition-colors"
-        style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}
-      >
-        <ChevronRight size={18} />
-      </button>
-    </div>
+    <ComingSoonCard
+      icon={<Sparkles size={20} />}
+      title={t("home.bestsellers")}
+      description={t("home.comingSoon.hero")}
+    />
   );
 }
 
 // ─── Promo Strip ──────────────────────────────────────────────────────────────
 function PromoStrip() {
-  const navigate = useNavigate();
-  const items = [
-    {
-      emoji: "⚡",
-      label: "Flash Sale",
-      sub: "Đến -50%",
-      path: "/search?flash=true",
-      color: "#E53E3E",
-    },
-    {
-      emoji: "🚀",
-      label: "Giao Hỏa Tốc",
-      sub: "2 giờ nhận hàng",
-      path: "/search",
-      color: "#FF6200",
-    },
-    { emoji: "🎁", label: "Voucher 50k", sub: "Code: VNSHOP50", path: "/search", color: "#8B5CF6" },
-    {
-      emoji: "🛡️",
-      label: "Hàng Chính Hãng",
-      sub: "Bảo đảm 100%",
-      path: "/search",
-      color: "#10B981",
-    },
-  ];
+  const { t } = useTranslation();
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {items.map((item) => (
-        <button
-          key={item.label}
-          onClick={() => navigate(item.path)}
-          className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all text-left group"
-        >
-          <span className="text-2xl">{item.emoji}</span>
-          <div>
-            <p className="text-sm font-semibold text-gray-800 group-hover:text-[#00BFB3] transition-colors">
-              {item.label}
-            </p>
-            <p className="text-xs" style={{ color: item.color }}>
-              {item.sub}
-            </p>
-          </div>
-        </button>
-      ))}
-    </div>
+    <ComingSoonCard
+      icon={<Gift size={20} />}
+      title={t("home.suggestions")}
+      description={t("home.comingSoon.promo")}
+    />
   );
 }
 
@@ -639,23 +441,28 @@ function FlashSaleEmpty({ isLoading }: { isLoading: boolean }) {
 // ─── Categories ────────────────────────────────────────────────────────────────
 function CategoriesSection() {
   const navigate = useNavigate();
-  const catColors: Record<string, string> = {
-    electronics: "#3B82F6",
-    fashion: "#EC4899",
-    beauty: "#F59E0B",
-    home: "#10B981",
-    sports: "#FF6200",
-    books: "#8B5CF6",
-    food: "#EF4444",
-    toys: "#F97316",
-  };
+  const { t } = useTranslation();
+  const { data: categories = [], isLoading } = useCategories();
   return (
     <section>
-      <SectionHeader title="Danh Mục Sản Phẩm" ctaLabel="Tất cả danh mục" ctaPath="/search" />
-      <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-        {categories.map((cat, i) => {
-          const color = catColors[cat.id] || "#00BFB3";
-          return (
+      <SectionHeader
+        title={t("home.categories")}
+        ctaLabel={t("home.allCategoriesLabel")}
+        ctaPath="/search"
+      />
+      {isLoading ? (
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              // eslint-disable-next-line react/no-array-index-key -- skeleton placeholder, no stable id
+              key={i}
+              className="h-24 rounded-2xl bg-gray-50 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+          {categories.map((cat, i) => (
             <motion.button
               key={cat.id}
               initial={{ opacity: 0, scale: 0.88 }}
@@ -666,22 +473,13 @@ function CategoriesSection() {
               onClick={() => navigate(`/search?cat=${cat.id}`)}
               className="flex flex-col items-center gap-2.5 py-5 px-2 rounded-2xl bg-white border border-gray-100 hover:border-transparent hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.18)] transition-all cursor-pointer"
             >
-              <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center text-[26px]"
-                style={{ background: `${color}14` }}
-              >
-                {cat.emoji}
-              </div>
               <span className="text-[13px] font-semibold text-gray-800 text-center leading-tight">
-                {cat.label}
-              </span>
-              <span className="text-[11px] text-gray-400 font-medium">
-                {(cat.count / 1000).toFixed(0)}k sản phẩm
+                {categoryDisplayLabel(cat)}
               </span>
             </motion.button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -719,221 +517,40 @@ function TrustBar() {
 
 // ─── Promo Banners ────────────────────────────────────────────────────────────
 function PromoBanners() {
-  const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Xem điện tử giảm giá"
-        className="md:col-span-2 rounded-2xl p-7 cursor-pointer hover:opacity-95 transition-opacity relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)", minHeight: 160 }}
-        onClick={() => navigate("/search?cat=electronics")}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            void navigate("/search?cat=electronics");
-          }
-        }}
-      >
-        <div
-          className="absolute right-0 top-0 bottom-0 w-1/2 opacity-15"
-          style={{
-            backgroundImage:
-              "url(https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=60)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
-        <div className="relative z-10">
-          <span className="text-xs font-bold text-blue-300 tracking-wider uppercase">
-            Flash Deal • Hôm Nay
-          </span>
-          <h3
-            className="text-2xl font-black text-white mt-1.5 mb-2"
-            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-          >
-            Điện Tử Giảm 40%
-          </h3>
-          <p className="text-gray-400 text-sm mb-5 max-w-xs">
-            Laptop, tai nghe Sony, smartwatch — Bảo hành 12 tháng chính hãng
-          </p>
-          <button
-            className="flex items-center gap-1.5 text-sm font-semibold text-white px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
-            style={{ border: "1px solid rgba(255,255,255,0.2)" }}
-          >
-            Mua ngay <ArrowRight size={15} />
-          </button>
-        </div>
-      </div>
-      <div className="flex flex-col gap-4">
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label="Xem thời trang hè mới về"
-          className="flex-1 rounded-2xl p-5 cursor-pointer hover:opacity-95 transition-opacity"
-          style={{ background: "linear-gradient(135deg, #FF6200 0%, #FF8C00 100%)" }}
-          onClick={() => navigate("/search?cat=fashion")}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              void navigate("/search?cat=fashion");
-            }
-          }}
-        >
-          <span className="text-xs font-bold text-yellow-100 tracking-wider uppercase">Mới về</span>
-          <h3
-            className="text-lg font-black text-white mt-1 mb-1"
-            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-          >
-            Thời Trang Hè
-          </h3>
-          <p className="text-yellow-100/80 text-xs mb-3">Xu hướng mới nhất 2026</p>
-          <button className="text-xs font-semibold text-white flex items-center gap-1 opacity-80 hover:opacity-100">
-            Khám phá <ChevronRight size={13} />
-          </button>
-        </div>
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label="Xem khuyến mãi làm đẹp"
-          className="flex-1 rounded-2xl p-5 cursor-pointer hover:opacity-95 transition-opacity"
-          style={{ background: "linear-gradient(135deg, #7C3AED 0%, #9333EA 100%)" }}
-          onClick={() => navigate("/search?cat=beauty")}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              void navigate("/search?cat=beauty");
-            }
-          }}
-        >
-          <span className="text-xs font-bold text-purple-200 tracking-wider uppercase">
-            Beauty Sale
-          </span>
-          <h3
-            className="text-lg font-black text-white mt-1 mb-1"
-            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-          >
-            Làm Đẹp -30%
-          </h3>
-          <p className="text-purple-200 text-xs mb-3">Skincare Hàn Quốc chính hãng</p>
-          <button className="text-xs font-semibold text-white flex items-center gap-1 opacity-80 hover:opacity-100">
-            Xem ngay <ChevronRight size={13} />
-          </button>
-        </div>
-      </div>
-    </div>
+    <ComingSoonCard
+      icon={<BadgeCheck size={20} />}
+      title={t("home.bestsellers")}
+      description={t("home.comingSoon.promo")}
+    />
   );
 }
 
 // ─── Seller Showcase ──────────────────────────────────────────────────────────
 function SellerShowcase() {
-  const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
-    <section>
-      <SectionHeader title="Shop Uy Tín" subtitle="Được xác minh bởi VNShop" ctaPath="/search" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sellers.slice(0, 3).map((seller, i) => (
-          <motion.div
-            key={seller.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            whileHover={{ y: -5 }}
-            className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#00BFB3] hover:shadow-xl transition-all cursor-pointer group"
-            style={{ transitionDuration: "300ms" }}
-            onClick={() => navigate(`/search?seller=${seller.id}`)}
-          >
-            {/* Banner */}
-            <div
-              className="h-24 relative overflow-hidden"
-              style={{ background: "linear-gradient(135deg, #E6FAF9, #B3F0ED)" }}
-            >
-              <ImageWithFallback
-                src={seller.banner}
-                alt={seller.name}
-                className="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-500"
-              />
-              <div
-                className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-xs font-bold text-white"
-                style={{ background: "#00BFB3" }}
-              >
-                Mall
-              </div>
-            </div>
-            <div className="px-4 pb-4">
-              <div className="flex items-end justify-between -mt-7 mb-3">
-                <img
-                  src={seller.avatar}
-                  alt={seller.name}
-                  className="w-14 h-14 rounded-2xl object-cover border-4 border-white shadow-lg"
-                />
-                <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600 mb-1">
-                  <BadgeCheck size={11} className="fill-green-600 text-white" />
-                  Đã xác minh
-                </div>
-              </div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="font-bold text-gray-900 text-sm">{seller.name}</h3>
-                {seller.verified ? <Award size={13} style={{ color: "#F59E0B" }} /> : null}
-              </div>
-              <div className="flex items-center gap-1.5 mb-3 text-xs text-gray-500">
-                <Star size={11} fill="#FF6200" stroke="#FF6200" />
-                <span className="font-semibold text-gray-700">{seller.rating}</span>
-                <span>•</span>
-                <span>{(seller.followers / 1000).toFixed(1)}k followers</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">
-                {[
-                  { label: "Sản phẩm", value: seller.products },
-                  { label: "Phản hồi", value: `${seller.responseRate}%` },
-                  { label: "Đã bán", value: `${(seller.sales / 1000).toFixed(0)}k` },
-                ].map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <p className="font-bold text-sm text-gray-900">{stat.value}</p>
-                    <p className="text-xs text-gray-400">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </section>
+    <ComingSoonCard
+      icon={<Award size={20} />}
+      title={t("home.trustedSellers")}
+      description={t("home.comingSoon.sellers")}
+    />
   );
 }
 
 // ─── Trending ─────────────────────────────────────────────────────────────────
 function TrendingBar() {
-  const navigate = useNavigate();
-  const trending = [
-    { emoji: "🔥", text: "Tai nghe Sony WH", path: "/search?q=sony" },
-    { emoji: "👟", text: "Nike Air Max 2026", path: "/search?q=nike" },
-    { emoji: "💄", text: "Skincare Hàn Quốc", path: "/search?cat=beauty" },
-    { emoji: "📱", text: "iPhone 16 Pro Max", path: "/search?cat=electronics" },
-    { emoji: "👗", text: "Áo thun basic", path: "/search?q=ao+thun" },
-    { emoji: "⌚", text: "Apple Watch 10", path: "/search?q=smartwatch" },
-    { emoji: "💻", text: "MacBook Air M4", path: "/search?q=macbook" },
-    { emoji: "🎧", text: "AirPods Pro 3", path: "/search?q=airpods" },
-  ];
+  const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+    <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-dashed border-gray-200">
       <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-gray-100">
         <TrendingUp size={16} style={{ color: "#FF6200" }} />
-        <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">Đang Hot</span>
+        <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+          {t("home.trending")}
+        </span>
       </div>
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-nowrap">
-        {trending.map((t) => (
-          <button
-            key={t.text}
-            onClick={() => navigate(t.path)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border border-gray-100 whitespace-nowrap hover:border-[#00BFB3] hover:text-[#00BFB3] hover:bg-teal-50 transition-all shrink-0"
-          >
-            <span>{t.emoji}</span>
-            <span className="text-gray-600 hover:text-[#00BFB3]">{t.text}</span>
-          </button>
-        ))}
-      </div>
+      <span className="text-sm text-gray-500">{t("home.comingSoon.trending")}</span>
     </div>
   );
 }
@@ -942,7 +559,7 @@ function TrendingBar() {
 function ProductsSection() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all");
-  const { data: catalog = products } = useProducts();
+  const { data: catalog = [] as Product[] } = useProducts();
   const tabs = [
     { id: "all", label: "Tất cả", emoji: "✨" },
     { id: "electronics", label: "Điện Tử", emoji: "📱" },
@@ -1038,7 +655,7 @@ function ProductsSection() {
 // ─── Bestsellers Sidebar ──────────────────────────────────────────────────────
 function Bestsellers() {
   const navigate = useNavigate();
-  const { data: catalog = products } = useProducts();
+  const { data: catalog = [] as Product[] } = useProducts();
   const items = useMemo(() => [...catalog].sort((a, b) => b.sold - a.sold).slice(0, 5), [catalog]);
   return (
     <section>
@@ -1168,8 +785,8 @@ function UserWidget() {
               {[
                 { label: "Giỏ hàng", value: cartCount, color: "#00BFB3", path: "/cart" },
                 { label: "Yêu thích", value: wishlist.length, color: "#FF6200", path: "/wishlist" },
-                { label: "Đơn hàng", value: 3, color: "#3B82F6", path: "/orders" },
-                { label: "Voucher", value: 5, color: "#10B981", path: "/profile" },
+                { label: "Đơn hàng", value: "—", color: "#3B82F6", path: "/orders" },
+                { label: "Voucher", value: "—", color: "#10B981", path: "/profile" },
               ].map((item) => (
                 <button
                   key={item.label}
