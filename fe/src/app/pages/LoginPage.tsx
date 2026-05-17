@@ -1,4 +1,5 @@
 import { Sparkles, ChevronRight, ShieldCheck } from "lucide-react";
+import { Trans, useTranslation } from "react-i18next";
 import { Navigate, useSearchParams } from "react-router";
 
 import { useAuth } from "../hooks/use-auth";
@@ -6,12 +7,20 @@ import { useAuth } from "../hooks/use-auth";
 export function LoginPage() {
   const [params] = useSearchParams();
   const { ready, authenticated, login } = useAuth();
+  const { t } = useTranslation();
   const next = params.get("next") ?? "/";
 
   // Already signed in → bounce to the requested next page (no effect needed).
   if (ready && authenticated) {
     return <Navigate to={next} replace />;
   }
+
+  const trustItems = [
+    { emoji: "🚀", labelKey: "login.trustItems.fastDelivery", val: "2h" },
+    { emoji: "⭐", labelKey: "login.trustItems.ratingAvg", val: "4.9★" },
+    { emoji: "🛍️", labelKey: "login.trustItems.authentic", val: "10k+" },
+    { emoji: "🔒", labelKey: "login.trustItems.secure", val: "SSL" },
+  ];
 
   return (
     <div
@@ -43,30 +52,26 @@ export function LoginPage() {
           >
             VNShop
           </h1>
-          <p className="text-white/80 text-lg mb-8">
-            Nền tảng mua sắm trực tuyến hàng đầu Việt Nam
-          </p>
+          <p className="text-white/80 text-lg mb-8">{t("login.tagline")}</p>
 
           <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto">
-            {[
-              { emoji: "🚀", label: "Giao hàng siêu tốc", val: "2h" },
-              { emoji: "⭐", label: "Đánh giá trung bình", val: "4.9★" },
-              { emoji: "🛍️", label: "Sản phẩm chính hãng", val: "10k+" },
-              { emoji: "🔒", label: "Bảo mật tuyệt đối", val: "SSL" },
-            ].map((item) => (
+            {trustItems.map((item) => (
               <div
-                key={item.label}
+                key={item.labelKey}
                 className="bg-white/10 rounded-2xl p-4 text-center backdrop-blur-sm"
               >
                 <p className="text-2xl mb-1">{item.emoji}</p>
                 <p className="font-black text-lg">{item.val}</p>
-                <p className="text-white/70 text-xs">{item.label}</p>
+                <p className="text-white/70 text-xs">{t(item.labelKey)}</p>
               </div>
             ))}
           </div>
 
           <p className="mt-10 text-white/60 text-sm">
-            Tin dùng bởi hơn <span className="text-white font-bold">5 triệu</span> khách hàng
+            <Trans
+              i18nKey="login.trust5m"
+              components={{ 1: <span className="text-white font-bold" /> }}
+            />
           </p>
         </div>
       </div>
@@ -90,10 +95,8 @@ export function LoginPage() {
           </div>
 
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Đăng nhập VNShop</h2>
-            <p className="text-sm text-gray-500">
-              Bạn sẽ được chuyển sang Keycloak để xác thực an toàn
-            </p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{t("login.title")}</h2>
+            <p className="text-sm text-gray-500">{t("login.subtitle")}</p>
           </div>
 
           <button
@@ -105,27 +108,22 @@ export function LoginPage() {
           >
             {ready ? (
               <>
-                Đăng nhập với Keycloak <ChevronRight size={18} />
+                {t("login.withKeycloak")} <ChevronRight size={18} />
               </>
             ) : (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Đang khởi tạo...
+                {t("login.initializing")}
               </span>
             )}
           </button>
 
           <div className="mt-6 flex items-start gap-3 p-4 rounded-xl bg-gray-50 text-sm text-gray-600">
             <ShieldCheck size={20} className="text-teal-600 flex-shrink-0 mt-0.5" />
-            <p>
-              Tài khoản, mật khẩu và xác thực 2 lớp do Keycloak quản lý. Việc tạo tài khoản mới và
-              đặt lại mật khẩu được thực hiện trực tiếp trên trang đăng nhập.
-            </p>
+            <p>{t("login.ssoNotice")}</p>
           </div>
 
-          <p className="mt-8 text-center text-xs text-gray-400">
-            Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của VNShop.
-          </p>
+          <p className="mt-8 text-center text-xs text-gray-400">{t("login.termsNotice")}</p>
         </div>
       </div>
     </div>

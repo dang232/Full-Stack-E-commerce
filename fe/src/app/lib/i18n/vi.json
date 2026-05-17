@@ -143,6 +143,22 @@
     "vi": "VI",
     "en": "EN"
   },
+  "login": {
+    "tagline": "Nền tảng mua sắm trực tuyến hàng đầu Việt Nam",
+    "trust5m": "Tin dùng bởi hơn <1>5 triệu</1> khách hàng",
+    "trustItems": {
+      "fastDelivery": "Giao hàng siêu tốc",
+      "ratingAvg": "Đánh giá trung bình",
+      "authentic": "Sản phẩm chính hãng",
+      "secure": "Bảo mật tuyệt đối"
+    },
+    "title": "Đăng nhập VNShop",
+    "subtitle": "Bạn sẽ được chuyển sang Keycloak để xác thực an toàn",
+    "withKeycloak": "Đăng nhập với Keycloak",
+    "initializing": "Đang khởi tạo...",
+    "ssoNotice": "Tài khoản, mật khẩu và xác thực 2 lớp do Keycloak quản lý. Việc tạo tài khoản mới và đặt lại mật khẩu được thực hiện trực tiếp trên trang đăng nhập.",
+    "termsNotice": "Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của VNShop."
+  },
   "wishlist": {
     "pageTitle": "Yêu thích của tôi",
     "countLabel": "{{count}} sản phẩm",

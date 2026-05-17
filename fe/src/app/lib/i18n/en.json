@@ -143,6 +143,22 @@
     "vi": "VI",
     "en": "EN"
   },
+  "login": {
+    "tagline": "Vietnam's leading online shopping platform",
+    "trust5m": "Trusted by over <1>5 million</1> customers",
+    "trustItems": {
+      "fastDelivery": "Lightning-fast delivery",
+      "ratingAvg": "Average rating",
+      "authentic": "Authentic products",
+      "secure": "Absolute security"
+    },
+    "title": "Sign in to VNShop",
+    "subtitle": "You'll be redirected to Keycloak for secure authentication",
+    "withKeycloak": "Sign in with Keycloak",
+    "initializing": "Initialising...",
+    "ssoNotice": "Accounts, passwords and 2FA are managed by Keycloak. Sign-up and password reset happen directly on the Keycloak login page.",
+    "termsNotice": "By signing in you agree to VNShop's Terms of Service and Privacy Policy."
+  },
   "wishlist": {
     "pageTitle": "My Wishlist",
     "countLabel": "{{count}} items",
