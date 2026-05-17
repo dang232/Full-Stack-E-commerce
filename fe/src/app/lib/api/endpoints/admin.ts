@@ -125,9 +125,7 @@ export const dashboardTopProducts = (params: { limit?: number } = {}) =>
   api.get(
     "/admin/dashboard/top-products",
     z.array(
-      z
-        .object({ productId: z.string(), name: z.string().optional(), revenue: z.number() })
-        .loose(),
+      z.object({ productId: z.string(), name: z.string().optional(), revenue: z.number() }).loose(),
     ),
     { limit: params.limit ?? 10 },
   );
