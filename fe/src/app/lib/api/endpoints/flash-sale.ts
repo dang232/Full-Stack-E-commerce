@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+import {
+  activeFlashSaleCampaignSchema,
+  flashSaleStockResponseSchema,
+  reserveFlashSaleResponseSchema,
+  type ActiveFlashSaleCampaign,
+  type FlashSaleReservation,
+} from "../../../types/api";
 import { api } from "../client";
 
 /**
@@ -8,29 +15,18 @@ import { api } from "../client";
  * `/stock` and `/release` are present for completeness and admin tooling.
  */
 
-const reserveResponseSchema = z
-  .object({
-    reservationId: z.string(),
-    status: z.string(),
-    expiresAt: z.string().optional().nullable(),
-  })
-  .passthrough();
-export type FlashSaleReservation = z.infer<typeof reserveResponseSchema>;
+export type { ActiveFlashSaleCampaign, FlashSaleReservation };
 
 export const reserveFlashSale = (body: { productId: string; buyerId: string; quantity: number }) =>
-  api.post("/flash-sale/reserve", reserveResponseSchema, body);
-
-const stockResponseSchema = z
-  .object({
-    productId: z.string(),
-    stock: z.number(),
-  })
-  .passthrough();
+  api.post("/flash-sale/reserve", reserveFlashSaleResponseSchema, body);
 
 export const flashSaleStock = (productId: string) =>
-  api.get(`/flash-sale/stock/${encodeURIComponent(productId)}`, stockResponseSchema, undefined, {
-    auth: false,
-  });
+  api.get(
+    `/flash-sale/stock/${encodeURIComponent(productId)}`,
+    flashSaleStockResponseSchema,
+    undefined,
+    { auth: false },
+  );
 
 export const releaseFlashSale = (reservationId: string) =>
   api.post(`/flash-sale/release/${encodeURIComponent(reservationId)}`, z.null());
@@ -41,19 +37,6 @@ export const releaseFlashSale = (reservationId: string) =>
  * absent or null when the Redis-backed counter isn't live yet, in which case
  * callers can fall back to per-item {@link flashSaleStock} polling.
  */
-const activeFlashSaleCampaignSchema = z
-  .object({
-    id: z.string(),
-    productId: z.string(),
-    originalPrice: z.number(),
-    salePrice: z.number(),
-    stockTotal: z.number(),
-    stockRemaining: z.number().nullable().optional(),
-    endsAt: z.string(),
-  })
-  .passthrough();
-export type ActiveFlashSaleCampaign = z.infer<typeof activeFlashSaleCampaignSchema>;
-
 export const listActiveFlashSaleCampaigns = () =>
   api.get("/flash-sale/active", z.array(activeFlashSaleCampaignSchema), undefined, {
     auth: false,

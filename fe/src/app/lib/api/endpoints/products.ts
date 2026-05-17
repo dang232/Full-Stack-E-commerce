@@ -1,6 +1,10 @@
-import { z } from "zod";
-
-import { pageSchema, productDetailSchema, productSummarySchema } from "../../../types/api";
+import {
+  pageSchema,
+  productDetailSchema,
+  productImageActivateSchema,
+  productImageUploadUrlSchema,
+  productSummarySchema,
+} from "../../../types/api";
 import { api } from "../client";
 
 export interface ProductListParams {
@@ -52,13 +56,13 @@ export const sellerProductImageUploadUrl = (
 ) =>
   api.post(
     `/sellers/me/products/${encodeURIComponent(productId)}/images/upload-url`,
-    z.object({ uploadUrl: z.string(), key: z.string().optional() }).passthrough(),
+    productImageUploadUrlSchema,
     body,
   );
 
 export const sellerProductImageActivate = (productId: string, body: { key: string }) =>
   api.post(
     `/sellers/me/products/${encodeURIComponent(productId)}/images/activate`,
-    z.object({ url: z.string() }).passthrough(),
+    productImageActivateSchema,
     body,
   );

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { sellerRevenuePointSchema, type SellerRevenuePoint } from "../../../types/api";
 import { api } from "../client";
 
 /**
@@ -7,14 +8,7 @@ import { api } from "../client";
  * revenue + order-count series resolved from the JWT principal — admin already
  * has the cross-seller view via the admin dashboard endpoints.
  */
-const sellerRevenuePointSchema = z
-  .object({
-    date: z.string(),
-    revenue: z.number(),
-    orderCount: z.number(),
-  })
-  .passthrough();
-export type SellerRevenuePoint = z.infer<typeof sellerRevenuePointSchema>;
+export type { SellerRevenuePoint };
 
 export interface SellerRevenueParams {
   /** Window size in days. Backend clamps to 1-365 and defaults to 30. */

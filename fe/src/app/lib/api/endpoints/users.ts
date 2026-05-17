@@ -1,6 +1,4 @@
-import { z } from "zod";
-
-import { userProfileSchema, type Address } from "../../../types/api";
+import { sellerRegisterResponseSchema, userProfileSchema, type Address } from "../../../types/api";
 import { api } from "../client";
 
 export const myProfile = () => api.get("/users/me", userProfileSchema);
@@ -24,6 +22,6 @@ export const removeAddress = (index: number) =>
 
 // Seller onboarding
 export const registerSeller = (body: { shopName: string; description?: string; phone: string }) =>
-  api.post("/sellers/register", z.object({ status: z.string() }).passthrough(), body);
+  api.post("/sellers/register", sellerRegisterResponseSchema, body);
 
 export const sellerProfile = () => api.get("/sellers/me", userProfileSchema);

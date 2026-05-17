@@ -1,6 +1,9 @@
-import { z } from "zod";
-
-import { notificationSchema, pageSchema } from "../../../types/api";
+import {
+  markAllNotificationsReadResponseSchema,
+  notificationSchema,
+  pageSchema,
+  unreadNotificationCountResponseSchema,
+} from "../../../types/api";
 import { api } from "../client";
 
 export const listNotifications = (params: { page?: number; size?: number } = {}) =>
@@ -15,10 +18,8 @@ export const getNotification = (id: string) =>
 export const markNotificationRead = (id: string) =>
   api.post(`/notifications/${encodeURIComponent(id)}/read`, notificationSchema);
 
-const markAllReadResponseSchema = z.object({ updated: z.number() }).passthrough();
 export const markAllNotificationsRead = () =>
-  api.post("/notifications/mark-all-read", markAllReadResponseSchema);
+  api.post("/notifications/mark-all-read", markAllNotificationsReadResponseSchema);
 
-const unreadCountResponseSchema = z.object({ count: z.number() }).passthrough();
 export const unreadNotificationCount = () =>
-  api.get("/notifications/unread-count", unreadCountResponseSchema);
+  api.get("/notifications/unread-count", unreadNotificationCountResponseSchema);

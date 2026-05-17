@@ -1,8 +1,17 @@
 import { z } from "zod";
 
-import { orderSchema, pageSchema } from "../../../types/api";
+import {
+  orderSchema,
+  pageSchema,
+  pendingSubOrderSchema,
+  returnSchema,
+  type PendingSubOrder,
+  type Return,
+} from "../../../types/api";
 import type { PaymentMethod } from "../../domain-enums";
 import { api } from "../client";
+
+export type { PendingSubOrder, Return };
 
 export interface PlaceOrderInput {
   items: { productId: string; quantity: number }[];
@@ -28,18 +37,6 @@ export const orderById = (id: string) => api.get(`/orders/${encodeURIComponent(i
 export const cancelOrder = (id: string) =>
   api.delete(`/orders/${encodeURIComponent(id)}/cancel`, orderSchema);
 
-const returnSchema = z
-  .object({
-    id: z.string(),
-    orderId: z.string(),
-    status: z.string(),
-    reason: z.string().optional(),
-    refundAmount: z.number().optional(),
-    createdAt: z.string().optional(),
-  })
-  .passthrough();
-export type Return = z.infer<typeof returnSchema>;
-
 export const requestReturn = (body: {
   orderId: string;
   subOrderId: string;
@@ -58,17 +55,6 @@ export const sellerRejectReturn = (returnId: string, body: { reason: string }) =
   api.post(`/returns/${encodeURIComponent(returnId)}/reject`, returnSchema, body);
 export const sellerCompleteReturn = (returnId: string) =>
   api.post(`/returns/${encodeURIComponent(returnId)}/complete`, returnSchema);
-
-const pendingSubOrderSchema = z
-  .object({
-    id: z.string(),
-    orderId: z.string(),
-    status: z.string(),
-    items: z.array(z.unknown()).optional(),
-    createdAt: z.string().optional(),
-  })
-  .passthrough();
-export type PendingSubOrder = z.infer<typeof pendingSubOrderSchema>;
 
 export const sellerPendingOrders = () =>
   api.get("/seller/orders/pending", z.array(pendingSubOrderSchema));
