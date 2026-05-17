@@ -1,21 +1,24 @@
 # Session handover — 2026-05-17
 
-**Last commit:** `f69f14f` (HEAD on main)
-**Session length:** 62 commits
+**Last commit:** `118b5c8` (HEAD on main)
+**Session length:** 64 commits
 **Branch state:** clean — local working tree only has gitignored coverage artifacts
 
 ## TL;DR
 
-- Every audit-flagged 🔴 critical and 🟠 real-bug item shipped. 🟡 cleanup mostly done.
+- Every audit-flagged 🔴 critical and 🟠 real-bug item shipped. 🟡 cleanup done.
 - All BE security holes closed (notification IDOR, SecurityConfig permitAll, inventory oversell, payment TX boundary, coupon race).
 - Two pre-existing context-load test failures fixed.
 - FE+BE connectivity audit's "missing endpoints" list zeroed out (tracking events, /flash-sale/active, /sellers/me/revenue) and the FE consumes all three.
-- Lint warnings 121 → 69. All a11y label-has-control + click-events + array-index-key warnings cleared.
+- **FE lint: 0 warnings, 0 errors.** Was 121 at session start.
 
 ## What shipped (commit map)
 
 | Commit | What |
 |---|---|
+| `118b5c8` | fix(fe): clear remaining 9 lint warnings (baseline now 0) |
+| `f5d632e` | chore(fe): silence no-misused-promises on JSX event handlers |
+| `d0be575` | docs: 2026-05-17 session handover |
 | `f69f14f` | fix(fe): clickable divs become buttons for keyboard a11y |
 | `e5c0470` | test(user-service): allow context load without entityManagerFactory |
 | `731619c` | test(order-service): mock SagaStateSpringDataRepository |
@@ -53,7 +56,7 @@ Earlier in session (Phases 1-5B from the original FE↔BE plan): gateway routes,
 cd fe
 npm run typecheck   # ✓
 npm run test        # 94/94 ✓
-npm run lint        # 69 warnings, 0 errors ✓
+npm run lint        # 0 warnings, 0 errors ✓
 npm run build       # ✓
 
 # BE per-service (use -Djacoco.skip=true to bypass coverage gate):
@@ -104,7 +107,6 @@ Platform engineering is already strong: saga+compensation, three-layer idempoten
 
 | Effort | Item | Why |
 |---|---|---|
-| ~30 min | Single commit dropping lint warnings 69 → ~7 (project-disable no-misused-promises or void-wrap utility) | Tiny effort, large hygiene win, makes future lint output readable |
 | ~1 hour | Inventory-service flash-sale response join with product-service so cards have name+image | Ships a real-feeling flash sale instead of placeholder Zap glyphs |
 | ~half day | i18n framework (`react-i18next`) wired in fe/, extract maybe 200 strings | Visible product win, easy to demo |
 | ~1 day | Buyer-seller messaging MVP — new NestJS module with WebSocket + Kafka topic, FE thread list + composer | The single biggest "feels like Shopee/Lazada" gap |
@@ -122,7 +124,7 @@ Platform engineering is already strong: saga+compensation, three-layer idempoten
 
 ## How to resume
 
-1. `git log --oneline -30` to verify the last commit is `f69f14f`.
-2. `cd fe && npm run verify` — if green, the FE is intact.
-3. Pick from the "Next-session candidates" table above based on what matters most. The single-commit lint cleanup is the lowest-friction starting move.
+1. `git log --oneline -30` to verify the last commit is `118b5c8`.
+2. `cd fe && npm run verify` — if green, the FE is intact (0 lint warnings expected).
+3. Pick from the "Next-session candidates" table above based on what matters most. The flash-sale image join is the lowest-friction starting move now that lint is clean.
 4. **For any sub-agent delegation:** include the "report blockers loudly, don't silently bail, green commits + report OR no commits + clear blocker report" rule. It's saved this session multiple times.
