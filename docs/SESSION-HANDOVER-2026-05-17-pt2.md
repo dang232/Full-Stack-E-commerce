@@ -1,10 +1,10 @@
 # Session handover — 2026-05-17 (continuation: ambitious-features wave)
 
-**Last commit:** `86d69e49` (HEAD on main)
-**Session length:** 30 commits on top of `93a7ff2f` (the previous handover's tip)
+**Last commit:** `1feddb8d` (HEAD on main)
+**Session length:** 31 commits on top of `93a7ff2f` (the previous handover's tip)
 **Branch state:** clean — only `.claude/worktrees/` directory is unstaged (locked agent worktrees)
 
-This file extends the original `SESSION-HANDOVER-2026-05-17.md` (still in this folder). Same date, same project, but a separate working block: 4 ambitious features delegated to sub-agents in parallel worktrees, then merged + quality-passed; followed by a complete i18n sweep across the entire FE.
+This file extends the original `SESSION-HANDOVER-2026-05-17.md` (still in this folder). Same date, same project, but a separate working block: 4 ambitious features delegated to sub-agents in parallel worktrees, then merged + quality-passed; followed by a complete i18n sweep across the entire FE; closed with a recs cold-start fallback so day-1 deploys feel real.
 
 ## TL;DR
 
@@ -27,6 +27,8 @@ Then a comprehensive **i18n sweep**: every page in the app — Cart / Orders / W
 
 | Commit | What |
 |---|---|
+| `1feddb8d` | feat(recommendations): cold-start fallback for frequently-bought-together |
+| `9def7a96` | docs: refresh handover after AdminPage completes the i18n sweep |
 | `86d69e49` | feat(fe): translate AdminPage strings via i18n |
 | `bae66b82` | feat(fe): translate SellerPage sub-tabs (Products / Orders / Wallet) via i18n |
 | `a8dd97df` | docs: refresh handover after CheckoutPage + SellerPage shell i18n |
@@ -78,7 +80,7 @@ cd services/messaging-service      && npm test                             # 28/
 ## Outstanding follow-ups (flagged, not acted on)
 
 ### BE — recommendations-service
-1. **Cold-start fallback.** Until enough orders flow through `order.created`, `frequently-bought-together` returns `[]`. FE renders nothing — graceful but uninformative. Consider a popularity fallback (top sold in same category) as a third use case rather than complicating the aggregator.
+1. ✅ **Cold-start fallback for `frequently-bought-together`** — landed in `1feddb8d`. When the co-purchase index is empty for a product, falls back to same-category popularity (excluding the source itself). Section never collapses on day-1.
 2. **Backfill on first deploy.** `OrderEventListener` defaults to Kafka consumer reset = `latest`. Historical orders won't seed `co_purchases`. Either re-publish from order-service's outbox, or add a one-off backfill job.
 3. **No SecurityConfig.** Both endpoints are public reads. If/when personalised recs land, mirror `services/seller-finance-service/.../SecurityConfig.java` and add `spring-boot-starter-oauth2-resource-server`.
 4. **`RestProductServiceAdapter` doesn't propagate Authorization.** Product-service is `permitAll()` today; if that flips to authenticated, this needs a service-account token.
@@ -93,7 +95,7 @@ cd services/messaging-service      && npm test                             # 28/
 1. **Pre-existing FU still open.** Live GHN/GHTK rate-quote endpoint (separate from tracking) is still TODO — see commit `a812bc6` notes from the previous handover.
 
 ### FE
-1. **Recs cold-start banner.** When both `useFrequentlyBoughtTogether` and `useYouMayAlsoLike` return empty (cold start), the page just shows nothing. Worth a placeholder card so users know recs exist but aren't ready.
+1. ✅ **Recs cold-start handled at the BE layer.** Now that `frequently-bought-together` falls back to same-category popularity, the section stays alive on day-1 deploy. No FE banner needed — the user just sees recs that are coherent (they're all in the same category as the source). Once real co-purchase data accrues, it switches to the stronger signal automatically.
 2. **i18n coverage — DONE.** Every page in the app — Root header/footer, HomePage, ProductPage (full), CartPage, OrdersPage (full incl. modals/tabs), WishlistPage, LoginPage (with `<Trans>` for inline `<strong>`), MessagesPage (incl. locale-aware time formatting), ProfilePage (full), SearchPage (full), CheckoutPage (full incl. payment-saga + COD `<Trans>`), SellerPage (full incl. all 6 tabs and 3 modals), AdminPage (full incl. all 6 tabs and 3 modals). About 800 strings now flow through the catalog.
 3. **5 mock fallbacks to `vnshop-data.ts`** still exist — same as previous handover, untouched.
 
@@ -128,8 +130,8 @@ cd services/messaging-service      && npm test                             # 28/
 
 | Effort | Item | Why |
 |---|---|---|
-| ~1 hour | Recs cold-start fallback (popularity-by-category) + cold-start banner on FE | Makes recs feel real on day-1 deploy; today they're empty until orders accrue |
 | ~half day | Messaging E2E smoke (compose up, real Kafka, send a message between two users) | Highest-risk untested path — Kafka wiring + WebSocket gateway are the bits hardest to unit-test |
+| ~half day | Live shipping rate-quote endpoint | Carryover from prior handover — only tracking + label creation are wired to live GHN/GHTK; rate quote falls through to stub. Buyer-side "estimate before checkout" UX wants this. |
 | ~1 day | OpenSearch migration (Phase 4B from original plan) — only when catalog grows past ~100K |
 | ~1-2 days | SMS / push notification channel — handover-flagged "Amazon-class" gap |
 | ~2-3 days | Saved payment methods on Profile (F62/F63 pending in original handover) |
