@@ -800,9 +800,10 @@ export function ProductPage() {
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {related.map((p) => (
-              <div
+              <button
                 key={p.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer group transition-all"
+                type="button"
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer group transition-all text-left block w-full p-0 border-0"
                 onClick={() => navigate(`/product/${p.id}`)}
               >
                 <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
@@ -828,7 +829,7 @@ export function ProductPage() {
                     {formatPrice(p.price)}
                   </p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>

@@ -146,9 +146,18 @@ export function WishlistPage() {
                     className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
                   >
                     <div
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Xem ${p.name}`}
                       className="relative overflow-hidden cursor-pointer bg-gray-100"
                       style={{ aspectRatio: "1" }}
                       onClick={() => navigate(`/product/${id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          void navigate(`/product/${id}`);
+                        }
+                      }}
                     >
                       <ImageWithFallback
                         src={p.image ?? ""}

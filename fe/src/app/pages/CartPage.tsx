@@ -231,8 +231,10 @@ export function CartPage() {
                       exit={{ opacity: 0, x: -30 }}
                       className="flex gap-4 p-5"
                     >
-                      <div
-                        className="w-20 h-20 rounded-xl overflow-hidden shrink-0 cursor-pointer bg-gray-100"
+                      <button
+                        type="button"
+                        aria-label={`Xem ${item.name ?? "sản phẩm"}`}
+                        className="w-20 h-20 rounded-xl overflow-hidden shrink-0 cursor-pointer bg-gray-100 block p-0 border-0"
                         onClick={() => navigate(`/product/${item.productId}`)}
                       >
                         <ImageWithFallback
@@ -240,7 +242,7 @@ export function CartPage() {
                           alt={item.name ?? ""}
                           className="w-full h-full object-cover"
                         />
-                      </div>
+                      </button>
                       <div className="flex-1 min-w-0">
                         <button
                           onClick={() => navigate(`/product/${item.productId}`)}

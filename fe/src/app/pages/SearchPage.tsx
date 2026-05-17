@@ -19,8 +19,17 @@ function ProductListItem({ product }: { product: Product }) {
   const loved = isWishlisted(product.id);
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Xem chi tiết ${product.name}`}
       className="flex gap-4 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
       onClick={() => navigate(`/product/${product.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          void navigate(`/product/${product.id}`);
+        }
+      }}
     >
       <div className="relative shrink-0 w-36 h-36 rounded-xl overflow-hidden">
         <ImageWithFallback

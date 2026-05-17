@@ -697,9 +697,18 @@ function PromoBanners() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Xem điện tử giảm giá"
         className="md:col-span-2 rounded-2xl p-7 cursor-pointer hover:opacity-95 transition-opacity relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)", minHeight: 160 }}
         onClick={() => navigate("/search?cat=electronics")}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            void navigate("/search?cat=electronics");
+          }
+        }}
       >
         <div
           className="absolute right-0 top-0 bottom-0 w-1/2 opacity-15"
@@ -733,9 +742,18 @@ function PromoBanners() {
       </div>
       <div className="flex flex-col gap-4">
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Xem thời trang hè mới về"
           className="flex-1 rounded-2xl p-5 cursor-pointer hover:opacity-95 transition-opacity"
           style={{ background: "linear-gradient(135deg, #FF6200 0%, #FF8C00 100%)" }}
           onClick={() => navigate("/search?cat=fashion")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              void navigate("/search?cat=fashion");
+            }
+          }}
         >
           <span className="text-xs font-bold text-yellow-100 tracking-wider uppercase">Mới về</span>
           <h3
@@ -750,9 +768,18 @@ function PromoBanners() {
           </button>
         </div>
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="Xem khuyến mãi làm đẹp"
           className="flex-1 rounded-2xl p-5 cursor-pointer hover:opacity-95 transition-opacity"
           style={{ background: "linear-gradient(135deg, #7C3AED 0%, #9333EA 100%)" }}
           onClick={() => navigate("/search?cat=beauty")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              void navigate("/search?cat=beauty");
+            }
+          }}
         >
           <span className="text-xs font-bold text-purple-200 tracking-wider uppercase">
             Beauty Sale
