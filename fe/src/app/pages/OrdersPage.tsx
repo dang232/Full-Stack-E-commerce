@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -37,14 +38,39 @@ type OrderTab = "all" | "pending" | "confirmed" | "shipping" | "delivered" | "ca
 
 const STATUS_CONFIG: Record<
   UIOrder["status"],
-  { label: string; icon: typeof Package; color: string; bg: string }
+  { labelKey: string; icon: typeof Package; color: string; bg: string }
 > = {
-  pending: { label: "Chờ xác nhận", icon: Clock, color: "#F59E0B", bg: "#FEF3C7" },
-  confirmed: { label: "Đã xác nhận", icon: CheckCircle, color: "#3B82F6", bg: "#EFF6FF" },
-  shipping: { label: "Đang giao hàng", icon: Truck, color: "#00BFB3", bg: "rgba(0,191,179,0.08)" },
-  delivered: { label: "Đã giao hàng", icon: CheckCircle, color: "#10B981", bg: "#ECFDF5" },
-  cancelled: { label: "Đã hủy", icon: XCircle, color: "#EF4444", bg: "#FEF2F2" },
-  returned: { label: "Đã hoàn hàng", icon: RotateCcw, color: "#8B5CF6", bg: "#F5F3FF" },
+  pending: { labelKey: "orders.status.pending", icon: Clock, color: "#F59E0B", bg: "#FEF3C7" },
+  confirmed: {
+    labelKey: "orders.status.confirmed",
+    icon: CheckCircle,
+    color: "#3B82F6",
+    bg: "#EFF6FF",
+  },
+  shipping: {
+    labelKey: "orders.status.shipping",
+    icon: Truck,
+    color: "#00BFB3",
+    bg: "rgba(0,191,179,0.08)",
+  },
+  delivered: {
+    labelKey: "orders.status.delivered",
+    icon: CheckCircle,
+    color: "#10B981",
+    bg: "#ECFDF5",
+  },
+  cancelled: {
+    labelKey: "orders.status.cancelled",
+    icon: XCircle,
+    color: "#EF4444",
+    bg: "#FEF2F2",
+  },
+  returned: {
+    labelKey: "orders.status.returned",
+    icon: RotateCcw,
+    color: "#8B5CF6",
+    bg: "#F5F3FF",
+  },
 };
 
 function fromServer(o: ServerOrder): UIOrder {
@@ -77,6 +103,7 @@ function fromServer(o: ServerOrder): UIOrder {
 }
 
 function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void }) {
+  const { t } = useTranslation();
   // Real tracking is only fetchable when the order has both a tracking code
   // and a carrier — otherwise we degrade gracefully to the static timeline.
   const canFetch = !!(order.trackingCode && order.carrier);
@@ -103,11 +130,11 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
     <Modal
       open
       onClose={onClose}
-      title="Theo dõi đơn hàng"
+      title={t("orders.tracking.modalTitle")}
       subtitle={<span className="font-mono">{order.trackingCode ?? order.id}</span>}
     >
       {canFetch && tracking.isLoading ? (
-        <div className="space-y-3" aria-label="Đang tải tracking">
+        <div className="space-y-3" aria-label={t("orders.tracking.loadingAria")}>
           {Array.from({ length: 4 }).map((_, i) => (
             // eslint-disable-next-line react/no-array-index-key -- decorative skeleton placeholders, no stable id
             <div key={i} className="flex gap-4">
@@ -131,7 +158,9 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
                 {i < events.length - 1 ? <div className="w-0.5 h-8 mt-1 bg-gray-200" /> : null}
               </div>
               <div className="pb-4 flex-1">
-                <p className="text-sm font-medium text-gray-800">{ev.status ?? "Cập nhật"}</p>
+                <p className="text-sm font-medium text-gray-800">
+                  {ev.status ?? t("orders.tracking.stepFallback")}
+                </p>
                 {ev.location ? <p className="text-xs text-gray-500 mt-0.5">{ev.location}</p> : null}
                 {ev.note ? <p className="text-xs text-gray-500 mt-0.5">{ev.note}</p> : null}
                 {ev.at ? <p className="text-[11px] text-gray-400 mt-1">{ev.at}</p> : null}
@@ -181,7 +210,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
         >
           <MapPin size={15} style={{ color: "#00BFB3" }} />
           <span className="text-gray-600">
-            Dự kiến giao:{" "}
+            {t("orders.tracking.estimated")}{" "}
             <strong>
               {showRealTimeline ? tracking.data?.estimatedDelivery : order.estimatedDelivery}
             </strong>
@@ -191,13 +220,11 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
 
       {canFetch && tracking.isError ? (
         <p className="text-[11px] text-amber-600 mt-4 flex items-center gap-1.5">
-          <AlertCircle size={12} /> Không lấy được trạng thái mới nhất từ đơn vị vận chuyển — đang
-          hiển thị tiến trình ước tính.
+          <AlertCircle size={12} /> {t("orders.tracking.errorBanner")}
         </p>
       ) : !canFetch ? (
         <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1.5">
-          <AlertCircle size={12} /> Đơn hàng chưa có mã vận đơn — sẽ cập nhật khi người bán giao cho
-          đơn vị vận chuyển.
+          <AlertCircle size={12} /> {t("orders.tracking.noCodeBanner")}
         </p>
       ) : null}
     </Modal>
@@ -215,17 +242,18 @@ function ReturnModal({
   onSubmit: (input: { subOrderId: string; reason: string }) => void;
   isSubmitting: boolean;
 }) {
+  const { t } = useTranslation();
   const subOrders = order.subOrders ?? [];
   const [subOrderId, setSubOrderId] = useState(subOrders[0]?.id ?? "");
   const [reason, setReason] = useState("");
 
   const handleSubmit = () => {
     if (!subOrderId) {
-      toast.error("Đơn hàng này không có gói hàng nào để trả lại.");
+      toast.error(t("orders.return.noPackages"));
       return;
     }
     if (reason.trim().length < 10) {
-      toast.error("Vui lòng mô tả lý do trả hàng (ít nhất 10 ký tự).");
+      toast.error(t("orders.return.reasonTooShort"));
       return;
     }
     onSubmit({ subOrderId, reason: reason.trim() });
@@ -236,7 +264,7 @@ function ReturnModal({
       open
       onClose={onClose}
       dismissDisabled={isSubmitting}
-      title="Yêu cầu trả hàng"
+      title={t("orders.return.modalTitle")}
       subtitle={<span className="font-mono">{order.id}</span>}
       footer={
         <>
@@ -244,7 +272,7 @@ function ReturnModal({
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600"
           >
-            Huỷ
+            {t("orders.return.cancel")}
           </button>
           <button
             onClick={handleSubmit}
@@ -252,7 +280,7 @@ function ReturnModal({
             className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
             style={{ background: "#FF6200" }}
           >
-            {isSubmitting ? "Đang gửi..." : "Gửi yêu cầu"}
+            {isSubmitting ? t("orders.return.submitting") : t("orders.return.submit")}
           </button>
         </>
       }
@@ -263,7 +291,7 @@ function ReturnModal({
             htmlFor="orders-return-suborder"
             className="block text-sm font-semibold text-gray-700 mb-2"
           >
-            Chọn gói hàng cần trả
+            {t("orders.return.selectPackage")}
           </label>
           <select
             id="orders-return-suborder"
@@ -284,23 +312,20 @@ function ReturnModal({
         htmlFor="orders-return-reason"
         className="block text-sm font-semibold text-gray-700 mb-2"
       >
-        Lý do trả hàng
+        {t("orders.return.reasonLabel")}
       </label>
       <textarea
         id="orders-return-reason"
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         rows={4}
-        placeholder="Vui lòng mô tả chi tiết để người bán xử lý nhanh hơn..."
+        placeholder={t("orders.return.reasonPlaceholder")}
         className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-white"
       />
 
       <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
         <AlertCircle size={14} className="shrink-0 mt-0.5" />
-        <p>
-          Sau khi gửi yêu cầu, người bán có thể xác nhận hoặc từ chối. Nếu không có phản hồi, bạn có
-          thể leo lên thành khiếu nại từ trang chi tiết đơn hàng.
-        </p>
+        <p>{t("orders.return.footnote")}</p>
       </div>
     </Modal>
   );
@@ -321,6 +346,7 @@ function OrderCard({
 }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [showTracking, setShowTracking] = useState(false);
   const [showReturn, setShowReturn] = useState(false);
   const config = STATUS_CONFIG[order.status];
@@ -337,10 +363,10 @@ function OrderCard({
       void qc.invalidateQueries({ queryKey: ["orders"] });
       void qc.invalidateQueries({ queryKey: ["returns"] });
       setShowReturn(false);
-      toast.success("Đã gửi yêu cầu trả hàng");
+      toast.success(t("orders.return.submitOk"));
     },
     onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể gửi yêu cầu trả hàng"),
+      toast.error(err instanceof ApiError ? err.message : t("orders.return.submitErr")),
   });
 
   return (
@@ -361,7 +387,7 @@ function OrderCard({
       >
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-500">Mã đơn:</span>
+            <span className="text-xs font-medium text-gray-500">{t("orders.orderId")}</span>
             <span className="text-xs font-bold text-gray-700 font-mono">{order.id}</span>
           </div>
           <div
@@ -369,13 +395,13 @@ function OrderCard({
             style={{ background: config.bg, color: config.color }}
           >
             <StatusIcon size={12} />
-            {config.label}
+            {t(config.labelKey)}
           </div>
         </div>
 
         <div className="p-5">
           {order.items.length === 0 ? (
-            <p className="text-sm text-gray-400 italic mb-3">Đang tải chi tiết sản phẩm...</p>
+            <p className="text-sm text-gray-400 italic mb-3">{t("orders.loadingItems")}</p>
           ) : null}
           {order.items.map((item) => (
             <div
@@ -405,7 +431,7 @@ function OrderCard({
               {order.seller ? <span> · {order.seller}</span> : null}
             </div>
             <div className="text-right">
-              <span className="text-xs text-gray-500">Tổng: </span>
+              <span className="text-xs text-gray-500">{t("orders.totalLabel")} </span>
               <span className="font-black" style={{ color: "#FF6200" }}>
                 {formatPrice(order.total)}
               </span>
@@ -420,7 +446,7 @@ function OrderCard({
               className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2"
               style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
             >
-              <MapPin size={15} /> Theo dõi đơn hàng
+              <MapPin size={15} /> {t("orders.actions.track")}
             </button>
           ) : null}
           {order.status === "delivered" ? (
@@ -429,24 +455,24 @@ function OrderCard({
                 onClick={() => onReorder(order.items)}
                 className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 border-gray-200 text-gray-600 hover:bg-gray-50"
               >
-                <RefreshCw size={14} /> Mua lại
+                <RefreshCw size={14} /> {t("orders.actions.reorder")}
               </button>
               <button
                 onClick={() => setShowReturn(true)}
                 className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 border-amber-200 text-amber-600 hover:bg-amber-50"
               >
-                <ArrowLeftRight size={14} /> Trả hàng
+                <ArrowLeftRight size={14} /> {t("orders.actions.return")}
               </button>
               <button
                 onClick={() => {
                   const firstProduct = order.items[0]?.productId;
                   if (firstProduct) onReview(firstProduct);
-                  else toast.info("Không tìm thấy sản phẩm để đánh giá");
+                  else toast.info(t("orders.noReviewableProduct"));
                 }}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 text-white"
                 style={{ background: "#FF6200" }}
               >
-                <Star size={14} /> Đánh giá
+                <Star size={14} /> {t("orders.actions.review")}
               </button>
             </>
           ) : null}
@@ -455,21 +481,21 @@ function OrderCard({
               onClick={() => onCancel(order.id)}
               className="flex items-center gap-2 py-2.5 px-4 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50"
             >
-              <XCircle size={14} /> Hủy đơn
+              <XCircle size={14} /> {t("orders.actions.cancel")}
             </button>
           ) : null}
           <button
             onClick={() => {
               const sellerId = rawOrder.subOrders?.[0]?.sellerId;
               if (!sellerId) {
-                toast.info("Đơn hàng này không gắn với người bán cụ thể.");
+                toast.info(t("orders.noSellerForChat"));
                 return;
               }
               void navigate(`/messages?with=${encodeURIComponent(sellerId)}`);
             }}
             className="py-2.5 px-4 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-1 hover:bg-gray-50"
           >
-            <MessageSquare size={14} /> Chat
+            <MessageSquare size={14} /> {t("orders.actions.chat")}
           </button>
         </div>
       </motion.div>
@@ -484,10 +510,11 @@ export function OrdersPage() {
   const ordersQuery = useMyOrders({ size: 50 });
   const cancelOrder = useCancelOrder();
   const { addItemAsync } = useCart();
+  const { t } = useTranslation();
 
   const handleReorder = async (items: UIOrder["items"]) => {
     if (items.length === 0) {
-      toast.info("Đơn hàng này không có sản phẩm để thêm lại.");
+      toast.info(t("orders.reorder.noItems"));
       return;
     }
     let added = 0;
@@ -498,17 +525,13 @@ export function OrdersPage() {
       } catch (err) {
         // Continue trying remaining items, but report the first failure.
         if (added === 0) {
-          toast.error(
-            err instanceof ApiError
-              ? err.message
-              : "Không thể thêm sản phẩm vào giỏ. Có thể sản phẩm đã hết hàng.",
-          );
+          toast.error(err instanceof ApiError ? err.message : t("orders.reorder.addError"));
           return;
         }
       }
     }
     if (added > 0) {
-      toast.success(`Đã thêm ${added} sản phẩm vào giỏ`);
+      toast.success(t("orders.reorder.added", { count: added }));
       void navigate("/cart");
     }
   };
@@ -523,26 +546,25 @@ export function OrdersPage() {
     [allOrders, activeTab],
   );
 
-  const tabs: { id: OrderTab; label: string }[] = [
-    { id: "all", label: "Tất cả" },
-    { id: "pending", label: "Chờ xác nhận" },
-    { id: "shipping", label: "Đang giao" },
-    { id: "delivered", label: "Đã giao" },
-    { id: "cancelled", label: "Đã hủy" },
+  const tabs: { id: OrderTab; labelKey: string }[] = [
+    { id: "all", labelKey: "orders.tabs.all" },
+    { id: "pending", labelKey: "orders.tabs.pending" },
+    { id: "shipping", labelKey: "orders.tabs.shipping" },
+    { id: "delivered", labelKey: "orders.tabs.delivered" },
+    { id: "cancelled", labelKey: "orders.tabs.cancelled" },
   ];
 
   const handleCancel = (id: string) => {
     cancelOrder.mutate(id, {
-      onSuccess: () => toast.success("Đã huỷ đơn hàng"),
-      onError: (err) =>
-        toast.error(err instanceof ApiError ? err.message : "Không thể huỷ đơn hàng"),
+      onSuccess: () => toast.success(t("orders.cancelOk")),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : t("orders.cancelErr")),
     });
   };
 
   if (!ready) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
-        Đang khởi tạo phiên đăng nhập...
+        {t("orders.initSession")}
       </div>
     );
   }
@@ -551,13 +573,13 @@ export function OrdersPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
         <Package size={64} className="mx-auto mb-6 text-gray-200" />
-        <h2 className="text-xl font-bold text-gray-600 mb-3">Đăng nhập để xem đơn hàng</h2>
+        <h2 className="text-xl font-bold text-gray-600 mb-3">{t("orders.loginPromptTitle")}</h2>
         <button
           onClick={() => login("/orders")}
           className="px-8 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
           style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
         >
-          <LogIn size={16} /> Đăng nhập
+          <LogIn size={16} /> {t("auth.login")}
         </button>
       </div>
     );
@@ -569,7 +591,7 @@ export function OrdersPage() {
         className="text-2xl font-bold text-gray-800 mb-6"
         style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
       >
-        Đơn mua của tôi
+        {t("orders.pageTitle")}
       </h1>
 
       <div className="flex gap-1 overflow-x-auto pb-1 mb-6 scrollbar-hide">
@@ -584,14 +606,14 @@ export function OrdersPage() {
                 : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
             }
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>
 
       <div className="space-y-4">
         {ordersQuery.isLoading ? (
-          <div className="py-16 text-center text-sm text-gray-400">Đang tải đơn hàng...</div>
+          <div className="py-16 text-center text-sm text-gray-400">{t("orders.loading")}</div>
         ) : null}
         {ordersQuery.error && !ordersQuery.isLoading ? (
           <div className="py-16 text-center bg-white rounded-2xl">
@@ -599,14 +621,14 @@ export function OrdersPage() {
             <p className="text-gray-600 font-medium mb-2">
               {ordersQuery.error instanceof ApiError
                 ? ordersQuery.error.message
-                : "Không thể tải đơn hàng"}
+                : t("orders.loadError")}
             </p>
             <button
               onClick={() => navigate("/")}
               className="text-sm font-medium"
               style={{ color: "#00BFB3" }}
             >
-              Về trang chủ
+              {t("orders.backToHome")}
             </button>
           </div>
         ) : null}
@@ -625,7 +647,7 @@ export function OrdersPage() {
         {!ordersQuery.isLoading && !ordersQuery.error && filtered.length === 0 ? (
           <div className="py-16 text-center bg-white rounded-2xl">
             <Package size={48} className="mx-auto mb-4 text-gray-200" />
-            <p className="text-gray-500 font-medium">Không có đơn hàng nào</p>
+            <p className="text-gray-500 font-medium">{t("orders.empty")}</p>
           </div>
         ) : null}
       </div>

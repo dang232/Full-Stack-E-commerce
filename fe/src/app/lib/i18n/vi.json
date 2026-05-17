@@ -142,5 +142,71 @@
   "language": {
     "vi": "VI",
     "en": "EN"
+  },
+  "orders": {
+    "pageTitle": "Đơn mua của tôi",
+    "loginPromptTitle": "Đăng nhập để xem đơn hàng",
+    "initSession": "Đang khởi tạo phiên đăng nhập...",
+    "loading": "Đang tải đơn hàng...",
+    "loadError": "Không thể tải đơn hàng",
+    "backToHome": "Về trang chủ",
+    "empty": "Không có đơn hàng nào",
+    "orderId": "Mã đơn:",
+    "loadingItems": "Đang tải chi tiết sản phẩm...",
+    "totalLabel": "Tổng:",
+    "actions": {
+      "track": "Theo dõi đơn hàng",
+      "reorder": "Mua lại",
+      "return": "Trả hàng",
+      "review": "Đánh giá",
+      "cancel": "Hủy đơn",
+      "chat": "Chat"
+    },
+    "tabs": {
+      "all": "Tất cả",
+      "pending": "Chờ xác nhận",
+      "shipping": "Đang giao",
+      "delivered": "Đã giao",
+      "cancelled": "Đã hủy"
+    },
+    "status": {
+      "pending": "Chờ xác nhận",
+      "confirmed": "Đã xác nhận",
+      "shipping": "Đang giao hàng",
+      "delivered": "Đã giao hàng",
+      "cancelled": "Đã hủy",
+      "returned": "Đã hoàn hàng"
+    },
+    "tracking": {
+      "modalTitle": "Theo dõi đơn hàng",
+      "loadingAria": "Đang tải tracking",
+      "stepFallback": "Cập nhật",
+      "estimated": "Dự kiến giao:",
+      "errorBanner": "Không lấy được trạng thái mới nhất từ đơn vị vận chuyển — đang hiển thị tiến trình ước tính.",
+      "noCodeBanner": "Đơn hàng chưa có mã vận đơn — sẽ cập nhật khi người bán giao cho đơn vị vận chuyển."
+    },
+    "return": {
+      "modalTitle": "Yêu cầu trả hàng",
+      "noPackages": "Đơn hàng này không có gói hàng nào để trả lại.",
+      "reasonTooShort": "Vui lòng mô tả lý do trả hàng (ít nhất 10 ký tự).",
+      "submit": "Gửi yêu cầu",
+      "submitting": "Đang gửi...",
+      "cancel": "Huỷ",
+      "selectPackage": "Chọn gói hàng cần trả",
+      "reasonLabel": "Lý do trả hàng",
+      "reasonPlaceholder": "Vui lòng mô tả chi tiết để người bán xử lý nhanh hơn...",
+      "footnote": "Sau khi gửi yêu cầu, người bán có thể xác nhận hoặc từ chối. Nếu không có phản hồi, bạn có thể leo lên thành khiếu nại từ trang chi tiết đơn hàng.",
+      "submitOk": "Đã gửi yêu cầu trả hàng",
+      "submitErr": "Không thể gửi yêu cầu trả hàng"
+    },
+    "reorder": {
+      "noItems": "Đơn hàng này không có sản phẩm để thêm lại.",
+      "addError": "Không thể thêm sản phẩm vào giỏ. Có thể sản phẩm đã hết hàng.",
+      "added": "Đã thêm {{count}} sản phẩm vào giỏ"
+    },
+    "cancelOk": "Đã huỷ đơn hàng",
+    "cancelErr": "Không thể huỷ đơn hàng",
+    "noReviewableProduct": "Không tìm thấy sản phẩm để đánh giá",
+    "noSellerForChat": "Đơn hàng này không gắn với người bán cụ thể."
   }
 }
