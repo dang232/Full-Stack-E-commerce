@@ -38,6 +38,7 @@ import { SellerProductModal } from "../components/seller-product-modal";
 import { Modal } from "../components/ui/modal";
 import { type Product } from "../components/vnshop-data";
 import { useProducts } from "../hooks/use-products";
+import { useSellerRevenue } from "../hooks/use-seller-revenue";
 import {
   sellerAcceptOrder,
   sellerPendingOrders,
@@ -45,6 +46,7 @@ import {
   sellerShipOrder,
   type PendingSubOrder,
 } from "../lib/api/endpoints/orders";
+import type { SellerRevenuePoint } from "../lib/api/endpoints/seller-analytics";
 import {
   myPayouts,
   myWallet,
@@ -55,17 +57,32 @@ import { sellerProfile } from "../lib/api/endpoints/users";
 import { ApiError } from "../lib/api/envelope";
 import { formatPrice } from "../lib/format";
 
-const SAMPLE_REVENUE = [
-  { day: "T2", revenue: 12500000, orders: 8 },
-  { day: "T3", revenue: 18700000, orders: 14 },
-  { day: "T4", revenue: 9800000, orders: 6 },
-  { day: "T5", revenue: 25600000, orders: 19 },
-  { day: "T6", revenue: 31200000, orders: 24 },
-  { day: "T7", revenue: 42500000, orders: 31 },
-  { day: "CN", revenue: 38900000, orders: 28 },
-];
-
 type SellerTab = "dashboard" | "products" | "orders" | "reviews" | "wallet" | "settings";
+
+interface RevenueChartPoint {
+  day: string;
+  revenue: number;
+  orders: number;
+}
+
+/**
+ * Map an ISO date (YYYY-MM-DD) to a short Vietnamese weekday label so the
+ * chart axis matches the legacy mock formatting.
+ */
+function dateToWeekdayLabel(iso: string): string {
+  const labels = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return labels[d.getDay()] ?? iso;
+}
+
+function toChartData(points: SellerRevenuePoint[]): RevenueChartPoint[] {
+  return points.map((p) => ({
+    day: dateToWeekdayLabel(p.date),
+    revenue: Number(p.revenue) || 0,
+    orders: p.orderCount,
+  }));
+}
 
 function KPICard({
   icon: Icon,
@@ -109,6 +126,10 @@ function Dashboard({
   pendingOrders: PendingSubOrder[];
   walletBalance: number | null;
 }) {
+  const { points, isLoading: revenueLoading, error: revenueError } = useSellerRevenue({ days: 30 });
+  const chartData = useMemo(() => toChartData(points), [points]);
+  const hasRevenue = chartData.length > 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -137,73 +158,92 @@ function Dashboard({
 
       <div className="bg-white rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-bold text-gray-800">Doanh thu (mẫu)</h3>
+          <h3 className="font-bold text-gray-800">Doanh thu 30 ngày</h3>
           <span className="text-[11px] text-gray-400">
-            Sẽ thay bằng dữ liệu thật khi backend cung cấp
+            Cập nhật theo dữ liệu đơn của bạn
           </span>
         </div>
-        <ResponsiveContainer width="100%" height={200}>
-          <AreaChart data={SAMPLE_REVENUE}>
-            <defs>
-              <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#00BFB3" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#00BFB3" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#9ca3af", fontSize: 12 }}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#9ca3af", fontSize: 11 }}
-              tickFormatter={(v) => `${(v / 1000000).toFixed(0)}tr`}
-            />
-            <Tooltip
-              formatter={(v: number) => formatPrice(v)}
-              contentStyle={{
-                borderRadius: "12px",
-                border: "none",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              stroke="#00BFB3"
-              strokeWidth={2.5}
-              fill="url(#revenueGrad)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {revenueError instanceof ApiError ? (
+          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 mb-3">
+            Không tải được doanh thu: {revenueError.message}
+          </div>
+        ) : null}
+        {revenueLoading ? (
+          <p className="text-sm text-gray-400 py-12 text-center">Đang tải doanh thu...</p>
+        ) : hasRevenue ? (
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#00BFB3" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#00BFB3" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis
+                dataKey="day"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#9ca3af", fontSize: 12 }}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#9ca3af", fontSize: 11 }}
+                tickFormatter={(v) => `${(v / 1000000).toFixed(0)}tr`}
+              />
+              <Tooltip
+                formatter={(v: number) => formatPrice(v)}
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "none",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#00BFB3"
+                strokeWidth={2.5}
+                fill="url(#revenueGrad)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-sm text-gray-400 py-12 text-center">
+            Chưa có dữ liệu doanh thu trong 30 ngày qua.
+          </p>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm">
-        <h3 className="font-bold text-gray-800 mb-4">Số đơn (mẫu)</h3>
-        <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={SAMPLE_REVENUE}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#9ca3af", fontSize: 12 }}
-            />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
-            <Tooltip
-              contentStyle={{
-                borderRadius: "12px",
-                border: "none",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
-              }}
-            />
-            <Bar dataKey="orders" fill="#FF6200" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <h3 className="font-bold text-gray-800 mb-4">Số đơn 30 ngày</h3>
+        {revenueLoading ? (
+          <p className="text-sm text-gray-400 py-10 text-center">Đang tải...</p>
+        ) : hasRevenue ? (
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+              <XAxis
+                dataKey="day"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#9ca3af", fontSize: 12 }}
+              />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "none",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
+                }}
+              />
+              <Bar dataKey="orders" fill="#FF6200" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-sm text-gray-400 py-10 text-center">Chưa có đơn nào trong 30 ngày qua.</p>
+        )}
       </div>
     </div>
   );
