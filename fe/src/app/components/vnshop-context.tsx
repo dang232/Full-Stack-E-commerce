@@ -112,8 +112,9 @@ export function VNShopProvider({ children }: { children: ReactNode }) {
       id: auth.subject ?? profile?.id ?? "",
       name: fullName,
       email: profile?.email ?? "",
-      phone:
-        (profile?.attributes as Record<string, string[] | undefined> | undefined)?.phone?.[0] ?? "",
+      // Phone now lives on the BuyerProfile in user-service, not on the JWT.
+      // Pages that need it (Profile, Checkout) fetch /users/me directly.
+      phone: "",
       avatar: "",
       role: pickRole(auth.roles),
     };

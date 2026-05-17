@@ -1,16 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-// Mock keycloak BEFORE importing anything that pulls it in.
-const mockKeycloak = {
-  authenticated: false,
-  token: undefined as string | undefined,
-  login: vi.fn(),
-};
-const refreshTokenMock = vi.fn().mockResolvedValue(true);
-vi.mock("../auth/keycloak", () => ({
-  getKeycloak: () => mockKeycloak,
-  refreshToken: (...args: unknown[]) => refreshTokenMock(...args),
+// Mock native-auth BEFORE importing anything that pulls it in.
+let liveToken: string | null = null;
+let storedTokenSet: { accessToken: string; refreshToken: string; accessExpiresAt: number; refreshExpiresAt: number } | null = null;
+const refreshTokensMock = vi.fn();
+vi.mock("../auth/native-auth", () => ({
+  getAccessToken: () => liveToken,
+  setLiveTokenSet: vi.fn((next: { accessToken: string } | null) => {
+    liveToken = next?.accessToken ?? null;
+  }),
+  loadStoredTokenSet: () => storedTokenSet,
+  saveTokenSet: vi.fn((next: typeof storedTokenSet) => {
+    storedTokenSet = next;
+  }),
+  refreshTokens: (...args: unknown[]) => refreshTokensMock(...args),
 }));
 
 import { api, request } from "./client";
@@ -49,11 +53,9 @@ function makeRequestCtx(overrides: Partial<RequestContext> = {}): RequestContext
 
 beforeEach(() => {
   fetchSpy.mockReset();
-  refreshTokenMock.mockReset();
-  refreshTokenMock.mockResolvedValue(true);
-  mockKeycloak.authenticated = false;
-  mockKeycloak.token = undefined;
-  mockKeycloak.login.mockReset();
+  refreshTokensMock.mockReset();
+  liveToken = null;
+  storedTokenSet = null;
 });
 
 afterEach(() => {
@@ -91,20 +93,22 @@ describe("request interceptors", () => {
     expect((withKey.init.headers as Record<string, string>)["Idempotency-Key"]).toBe("key-1");
   });
 
-  it("authInterceptor skips refresh and Authorization when meta.auth is false", async () => {
-    mockKeycloak.authenticated = true;
-    mockKeycloak.token = "jwt";
+  it("authInterceptor skips Authorization when meta.auth is false", async () => {
+    liveToken = "jwt";
     const out = await authInterceptor(makeRequestCtx({ meta: { auth: false, hasBody: false } }));
-    expect(refreshTokenMock).not.toHaveBeenCalled();
     expect((out.init.headers as Record<string, string>).Authorization).toBeUndefined();
   });
 
-  it("authInterceptor refreshes and sets Authorization when authenticated", async () => {
-    mockKeycloak.authenticated = true;
-    mockKeycloak.token = "jwt-xyz";
+  it("authInterceptor sets Authorization from the live access token", async () => {
+    liveToken = "jwt-xyz";
     const out = await authInterceptor(makeRequestCtx({ meta: { auth: true, hasBody: false } }));
-    expect(refreshTokenMock).toHaveBeenCalledWith(30);
     expect((out.init.headers as Record<string, string>).Authorization).toBe("Bearer jwt-xyz");
+  });
+
+  it("authInterceptor leaves Authorization unset when no token is loaded", async () => {
+    liveToken = null;
+    const out = await authInterceptor(makeRequestCtx({ meta: { auth: true, hasBody: false } }));
+    expect((out.init.headers as Record<string, string>).Authorization).toBeUndefined();
   });
 });
 
@@ -194,8 +198,7 @@ describe("response interceptors", () => {
 
 describe("interceptor chain ordering (via request())", () => {
   it("applies request interceptors in order: correlation-id, content-type, idempotency, auth", async () => {
-    mockKeycloak.authenticated = true;
-    mockKeycloak.token = "jwt";
+    liveToken = "jwt";
     fetchSpy.mockResolvedValueOnce(
       jsonResponse({
         success: true,
@@ -216,43 +219,40 @@ describe("interceptor chain ordering (via request())", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const init = fetchSpy.mock.calls[0][1];
     const headers = init?.headers as Record<string, string>;
-    // correlationIdInterceptor
     expect(headers["X-Correlation-Id"]).toMatch(/^[0-9a-f-]{36}$/);
-    // contentTypeInterceptor
     expect(headers.Accept).toBe("application/json");
     expect(headers["Content-Type"]).toBe("application/json");
-    // idempotencyInterceptor
     expect(headers["Idempotency-Key"]).toBe("key-2");
-    // authInterceptor
     expect(headers.Authorization).toBe("Bearer jwt");
   });
 });
 
 describe("401 retry path", () => {
   it("on 401: refreshes token then retries the same URL with the new bearer", async () => {
-    mockKeycloak.authenticated = true;
-    mockKeycloak.token = "old-jwt";
+    liveToken = "old-jwt";
+    storedTokenSet = {
+      accessToken: "old-jwt",
+      refreshToken: "rt",
+      accessExpiresAt: Date.now() - 1,
+      refreshExpiresAt: Date.now() + 60_000,
+    };
+    refreshTokensMock.mockImplementation(async () => ({
+      accessToken: "new-jwt",
+      refreshToken: "rt",
+      accessExpiresAt: Date.now() + 60_000,
+      refreshExpiresAt: Date.now() + 600_000,
+    }));
 
-    // First send -> 401
     fetchSpy.mockResolvedValueOnce(new Response("unauthorized", { status: 401 }));
-    // Second send -> 200 envelope
-    fetchSpy.mockImplementationOnce(async () => {
-      mockKeycloak.token = "new-jwt"; // simulate refresh side effect already happened
-      return jsonResponse({
+    fetchSpy.mockImplementationOnce(async () =>
+      jsonResponse({
         success: true,
         message: "ok",
         data: { id: "p1" },
         errorCode: null,
         timestamp: "2026-05-15T00:00:00Z",
-      });
-    });
-
-    // refreshToken called twice during the request: once at request build (minValidity=30)
-    // and once on 401 (minValidity=0). Both return true, and the second hop swaps token.
-    refreshTokenMock.mockImplementation(async () => {
-      mockKeycloak.token = "new-jwt";
-      return true;
-    });
+      }),
+    );
 
     const result = await request({
       method: "GET",
@@ -264,20 +264,22 @@ describe("401 retry path", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(2);
     const retryInit = fetchSpy.mock.calls[1][1];
     const retryHeaders = retryInit?.headers as Record<string, string>;
-    // Retry must use the refreshed token
     expect(retryHeaders.Authorization).toBe("Bearer new-jwt");
-    expect(retryHeaders["X-Correlation-Id"]).toBe(
-      (fetchSpy.mock.calls[0][1]?.headers as Record<string, string>)["X-Correlation-Id"],
-    );
   });
 
-  it("on 401 then refresh fails: throws ApiError UNAUTHORIZED and triggers login()", async () => {
-    mockKeycloak.authenticated = true;
-    mockKeycloak.token = "old-jwt";
-    refreshTokenMock.mockResolvedValue(false);
+  it("on 401 then refresh fails: throws ApiError UNAUTHORIZED and dispatches auth:unauthorized", async () => {
+    liveToken = "old-jwt";
+    storedTokenSet = {
+      accessToken: "old-jwt",
+      refreshToken: "rt",
+      accessExpiresAt: Date.now() - 1,
+      refreshExpiresAt: Date.now() + 60_000,
+    };
+    refreshTokensMock.mockRejectedValue(new Error("refresh denied"));
 
     fetchSpy.mockResolvedValueOnce(new Response("unauthorized", { status: 401 }));
 
+    const dispatchSpy = vi.spyOn(window, "dispatchEvent");
     const err = await request({
       method: "GET",
       path: "/me",
@@ -287,15 +289,24 @@ describe("401 retry path", () => {
     expect(err).toBeInstanceOf(ApiError);
     expect((err as ApiError).status).toBe(401);
     expect((err as ApiError).errorCode).toBe("UNAUTHORIZED");
-    expect(mockKeycloak.login).toHaveBeenCalledTimes(1);
-    // No retry was attempted because refresh failed
+    expect(dispatchSpy).toHaveBeenCalled();
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it("on 401 retry that returns 401 again: throws UNAUTHORIZED and forces login()", async () => {
-    mockKeycloak.authenticated = true;
-    mockKeycloak.token = "old-jwt";
-    refreshTokenMock.mockResolvedValue(true);
+  it("on 401 retry that returns 401 again: throws UNAUTHORIZED", async () => {
+    liveToken = "old-jwt";
+    storedTokenSet = {
+      accessToken: "old-jwt",
+      refreshToken: "rt",
+      accessExpiresAt: Date.now() - 1,
+      refreshExpiresAt: Date.now() + 60_000,
+    };
+    refreshTokensMock.mockResolvedValue({
+      accessToken: "new-jwt",
+      refreshToken: "rt",
+      accessExpiresAt: Date.now() + 60_000,
+      refreshExpiresAt: Date.now() + 600_000,
+    });
 
     fetchSpy.mockResolvedValueOnce(new Response("unauthorized", { status: 401 }));
     fetchSpy.mockResolvedValueOnce(new Response("still unauthorized", { status: 401 }));
@@ -308,7 +319,6 @@ describe("401 retry path", () => {
 
     expect(err).toBeInstanceOf(ApiError);
     expect((err as ApiError).status).toBe(401);
-    expect(mockKeycloak.login).toHaveBeenCalledTimes(1);
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 });

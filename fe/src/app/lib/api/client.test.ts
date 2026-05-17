@@ -1,15 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-// Mock keycloak BEFORE importing the client.
-const mockKeycloak = {
-  authenticated: false,
-  token: undefined as string | undefined,
-  login: vi.fn(),
-};
-vi.mock("../auth/keycloak", () => ({
-  getKeycloak: () => mockKeycloak,
-  refreshToken: vi.fn().mockResolvedValue(true),
+// Mock native-auth BEFORE importing the client.
+let liveToken: string | null = null;
+const refreshTokensMock = vi.fn();
+vi.mock("../auth/native-auth", () => ({
+  getAccessToken: () => liveToken,
+  setLiveTokenSet: vi.fn((next: { accessToken: string } | null) => {
+    liveToken = next?.accessToken ?? null;
+  }),
+  loadStoredTokenSet: vi.fn(() => null),
+  saveTokenSet: vi.fn(),
+  refreshTokens: (...args: unknown[]) => refreshTokensMock(...args),
 }));
 
 import { api, request } from "./client";
@@ -35,8 +37,8 @@ const fetchSpy = vi.spyOn(global, "fetch");
 
 beforeEach(() => {
   fetchSpy.mockReset();
-  mockKeycloak.authenticated = false;
-  mockKeycloak.token = undefined;
+  liveToken = null;
+  refreshTokensMock.mockReset();
 });
 
 afterEach(() => {
@@ -162,8 +164,7 @@ describe("request", () => {
   });
 
   it("attaches Authorization, Idempotency-Key, and JSON body for POST", async () => {
-    mockKeycloak.authenticated = true;
-    mockKeycloak.token = "jwt-abc";
+    liveToken = "jwt-abc";
     fetchSpy.mockResolvedValueOnce(
       mockResponse({
         body: {

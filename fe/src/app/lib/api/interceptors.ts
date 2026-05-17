@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { getKeycloak, refreshToken } from "../auth/keycloak";
+import { getAccessToken, loadStoredTokenSet, refreshTokens, saveTokenSet, setLiveTokenSet } from "../auth/native-auth";
 
 import { apiResponseSchema, ApiError } from "./envelope";
 
@@ -80,16 +80,12 @@ export const idempotencyInterceptor: RequestInterceptor = (ctx) => {
   return ctx;
 };
 
-export const authInterceptor: RequestInterceptor = async (ctx) => {
+export const authInterceptor: RequestInterceptor = (ctx) => {
   if (!ctx.meta.auth) return ctx;
-  const kc = getKeycloak();
-  if (!kc.authenticated) return ctx;
-  // Refresh if it expires in <30s; ignore failure here, the 401 retry path will handle it.
-  await refreshToken(30).catch(() => undefined);
-  if (kc.token) {
-    const headers = ensureHeaders(ctx.init);
-    headers.Authorization = `Bearer ${kc.token}`;
-  }
+  const token = getAccessToken();
+  if (!token) return ctx;
+  const headers = ensureHeaders(ctx.init);
+  headers.Authorization = `Bearer ${token}`;
   return ctx;
 };
 
@@ -181,19 +177,32 @@ export class UnauthorizedError extends Error {
 }
 
 /**
- * On a 401 for an authenticated request, attempt a forced token refresh and
- * retry the request once. Resolves to the new `Response` (which may itself be
- * a 401 — caller handles the final fallback). Returns `void` for any other error
- * so the runner re-throws.
+ * On a 401 for an authenticated request, try once to refresh tokens via the
+ * stored refresh token. On success, replay the request. On failure (or no
+ * refresh token at all) clear local auth state and dispatch
+ * `auth:unauthorized` so AuthProvider boots us back to /login.
  */
 export const unauthorizedInterceptor: ErrorInterceptor = async (err, ctx) => {
   if (!(err instanceof UnauthorizedError)) return undefined;
   if (!ctx.meta.auth) return undefined;
-  const refreshed = await refreshToken(0).catch(() => false);
-  if (!refreshed) return undefined;
-  // Re-build headers for the retry: a freshly refreshed kc.token must replace the old one.
-  const headers = ensureHeaders(ctx.init);
-  const kc = getKeycloak();
-  if (kc.token) headers.Authorization = `Bearer ${kc.token}`;
-  return fetch(ctx.url, ctx.init);
+  const stored = loadStoredTokenSet();
+  if (!stored?.refreshToken) {
+    setLiveTokenSet(null);
+    saveTokenSet(null);
+    window.dispatchEvent(new Event("auth:unauthorized"));
+    return undefined;
+  }
+  try {
+    const next = await refreshTokens(stored.refreshToken);
+    setLiveTokenSet(next);
+    saveTokenSet(next);
+    const headers = ensureHeaders(ctx.init);
+    headers.Authorization = `Bearer ${next.accessToken}`;
+    return fetch(ctx.url, ctx.init);
+  } catch {
+    setLiveTokenSet(null);
+    saveTokenSet(null);
+    window.dispatchEvent(new Event("auth:unauthorized"));
+    return undefined;
+  }
 };

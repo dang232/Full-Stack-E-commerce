@@ -2,7 +2,6 @@
  * AuthProvider colocates with its hooks intentionally — splitting them across
  * files would require updating every import site for marginal HMR benefit.
  */
-import type { KeycloakProfile, KeycloakTokenParsed } from "keycloak-js";
 import {
   createContext,
   useCallback,
@@ -14,104 +13,220 @@ import {
   type ReactNode,
 } from "react";
 
-import { getKeycloak } from "../lib/auth/keycloak";
+import {
+  AuthError,
+  decodeJwt,
+  loadStoredTokenSet,
+  passwordLogin,
+  refreshTokens,
+  revokeTokens,
+  saveTokenSet,
+  setLiveTokenSet,
+  type JwtClaims,
+  type TokenSet,
+} from "../lib/auth/native-auth";
 
 export type Role = "BUYER" | "SELLER" | "ADMIN";
+
+export interface RegisterInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+}
+
+export interface AuthProfile {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+}
 
 interface AuthState {
   ready: boolean;
   authenticated: boolean;
   token: string | undefined;
-  profile: KeycloakProfile | undefined;
+  profile: AuthProfile | undefined;
   roles: Role[];
   subject: string | undefined;
+  /**
+   * Back-compat shim. Existing call sites navigated away to Keycloak via
+   * `login(redirectTo)`. Now we redirect to the in-app /login page with the
+   * desired `next=` so the native form takes over.
+   */
   login: (redirectTo?: string) => void;
+  loginWithCredentials: (username: string, password: string) => Promise<void>;
+  register: (input: RegisterInput) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
 
-function parseRoles(parsed: KeycloakTokenParsed | undefined): Role[] {
-  const realm = parsed?.realm_access?.roles ?? [];
+const REGISTER_ENDPOINT = `${(import.meta.env as Record<string, string | undefined>).VITE_API_URL ?? "http://localhost:8080"}/auth/register`;
+
+function parseRoles(claims: JwtClaims | null): Role[] {
+  const realm = claims?.realm_access?.roles ?? [];
   return realm.filter((r): r is Role => r === "BUYER" || r === "SELLER" || r === "ADMIN");
+}
+
+function profileFromClaims(claims: JwtClaims | null): AuthProfile | undefined {
+  if (!claims?.sub) return undefined;
+  return {
+    id: claims.sub,
+    email: claims.email ?? "",
+    firstName: claims.given_name,
+    lastName: claims.family_name,
+    username: claims.preferred_username,
+  };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [authenticated, setAuthenticated] = useState(false);
-  const [profile, setProfile] = useState<KeycloakProfile | undefined>(undefined);
-  // Bumped on every token rotation. Used to recompute the memoised auth state.
-  const [tokenVersion, setTokenVersion] = useState(0);
-  const initStarted = useRef(false);
+  const [tokenSet, setTokenSet] = useState<TokenSet | null>(null);
+  const refreshTimeoutRef = useRef<number | null>(null);
+
+  const applyTokenSet = useCallback((next: TokenSet | null) => {
+    setTokenSet(next);
+    setLiveTokenSet(next);
+    saveTokenSet(next);
+  }, []);
+
+  const clearRefreshTimer = useCallback(() => {
+    if (refreshTimeoutRef.current !== null) {
+      window.clearTimeout(refreshTimeoutRef.current);
+      refreshTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleRefresh = useCallback(
+    (current: TokenSet) => {
+      clearRefreshTimer();
+      const skewMs = 30_000;
+      const delay = Math.max(0, current.accessExpiresAt - Date.now() - skewMs);
+      refreshTimeoutRef.current = window.setTimeout(() => {
+        void (async () => {
+          try {
+            const next = await refreshTokens(current.refreshToken);
+            applyTokenSet(next);
+          } catch {
+            applyTokenSet(null);
+          }
+        })();
+      }, delay);
+    },
+    [applyTokenSet, clearRefreshTimer],
+  );
+
+  // Rehydrate on mount.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const stored = loadStoredTokenSet();
+      if (!stored) {
+        setReady(true);
+        return;
+      }
+      const now = Date.now();
+      if (stored.refreshExpiresAt <= now) {
+        applyTokenSet(null);
+        setReady(true);
+        return;
+      }
+      if (stored.accessExpiresAt <= now) {
+        try {
+          const refreshed = await refreshTokens(stored.refreshToken);
+          if (!cancelled) applyTokenSet(refreshed);
+        } catch {
+          if (!cancelled) applyTokenSet(null);
+        }
+      } else {
+        if (!cancelled) applyTokenSet(stored);
+      }
+      if (!cancelled) setReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyTokenSet]);
 
   useEffect(() => {
-    if (initStarted.current) return;
-    initStarted.current = true;
-    const kc = getKeycloak();
+    if (!tokenSet) {
+      clearRefreshTimer();
+      return;
+    }
+    scheduleRefresh(tokenSet);
+    return clearRefreshTimer;
+  }, [tokenSet, scheduleRefresh, clearRefreshTimer]);
 
-    kc.onTokenExpired = () => {
-      kc.updateToken(30).catch(() => kc.login());
-    };
-    const bump = () => setTokenVersion((n) => n + 1);
-    kc.onAuthSuccess = bump;
-    kc.onAuthRefreshSuccess = bump;
-    kc.onAuthLogout = () => {
-      setAuthenticated(false);
-      setProfile(undefined);
-      bump();
-    };
+  // Listen for the unrecoverable 401 signal dispatched by the api interceptor.
+  useEffect(() => {
+    const handler = () => applyTokenSet(null);
+    window.addEventListener("auth:unauthorized", handler);
+    return () => window.removeEventListener("auth:unauthorized", handler);
+  }, [applyTokenSet]);
 
-    kc.init({
-      onLoad: "check-sso",
-      pkceMethod: "S256",
-      silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`,
-      checkLoginIframe: false,
-    })
-      .then(async (auth) => {
-        setAuthenticated(auth);
-        if (auth) {
-          try {
-            const p = await kc.loadUserProfile();
-            setProfile(p);
-          } catch {
-            // Profile is optional; the token is what matters for API calls.
-          }
-        }
-      })
-      .catch(() => {
-        // Network failure or invalid config: stay anonymous and let the UI render.
-      })
-      .finally(() => setReady(true));
-  }, []);
+  const loginWithCredentials = useCallback(
+    async (username: string, password: string) => {
+      const next = await passwordLogin(username, password);
+      applyTokenSet(next);
+    },
+    [applyTokenSet],
+  );
 
-  const login = useCallback((redirectTo?: string) => {
-    const kc = getKeycloak();
-    void kc.login({
-      redirectUri: redirectTo ? `${window.location.origin}${redirectTo}` : window.location.href,
-    });
-  }, []);
+  const register = useCallback(
+    async (input: RegisterInput) => {
+      const res = await fetch(REGISTER_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as
+          | { message?: string; errorCode?: string }
+          | null;
+        const message =
+          body?.message && typeof body.message === "string"
+            ? body.message
+            : `Registration failed (HTTP ${res.status})`;
+        const code =
+          body?.errorCode && typeof body.errorCode === "string" ? body.errorCode : "register_failed";
+        throw new AuthError(res.status, code, message);
+      }
+      // Auto-login with the credentials we just submitted.
+      await loginWithCredentials(input.email, input.password);
+    },
+    [loginWithCredentials],
+  );
 
   const logout = useCallback(() => {
-    const kc = getKeycloak();
-    void kc.logout({ redirectUri: window.location.origin });
+    if (tokenSet?.refreshToken) {
+      void revokeTokens(tokenSet.refreshToken);
+    }
+    applyTokenSet(null);
+  }, [tokenSet, applyTokenSet]);
+
+  const login = useCallback((redirectTo?: string) => {
+    const next = redirectTo ?? window.location.pathname + window.location.search;
+    window.location.assign(`/login?next=${encodeURIComponent(next)}`);
   }, []);
 
-  // Read the live token state once per render — `tokenVersion` is in deps so
-  // we re-snapshot whenever Keycloak fires onAuthRefreshSuccess.
   const value = useMemo<AuthState>(() => {
-    const kc = getKeycloak();
+    const claims = tokenSet ? decodeJwt(tokenSet.accessToken) : null;
     return {
       ready,
-      authenticated,
-      token: kc.token,
-      profile,
-      roles: parseRoles(kc.tokenParsed),
-      subject: kc.tokenParsed?.sub,
+      authenticated: !!tokenSet,
+      token: tokenSet?.accessToken,
+      profile: profileFromClaims(claims),
+      roles: parseRoles(claims),
+      subject: claims?.sub,
       login,
+      loginWithCredentials,
+      register,
       logout,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, authenticated, profile, tokenVersion, login, logout]);
+  }, [ready, tokenSet, login, loginWithCredentials, register, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

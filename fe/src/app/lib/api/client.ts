@@ -1,8 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
 
-import { getKeycloak } from "../auth/keycloak";
-
 import { ApiError } from "./envelope";
 import {
   authInterceptor,
@@ -125,18 +123,18 @@ export async function request<TSchema extends z.ZodType>(
   let response = await fetch(requestCtx.url, requestCtx.init);
 
   // 401 path: surface a sentinel through the error chain so interceptors can
-  // attempt token refresh + retry. If still 401 after, force re-login.
+  // attempt token refresh + retry. If still 401 after, the unauthorized
+  // interceptor has already cleared local auth state and dispatched
+  // `auth:unauthorized` — surfacing a thrown ApiError lets callers render
+  // their own error UI while AuthProvider redirects.
   if (response.status === 401 && auth) {
     try {
       response = await runErrorChain(new UnauthorizedError(response), requestCtx);
     } catch {
-      const kc = getKeycloak();
-      void kc.login();
       throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
     }
     if (response.status === 401) {
-      const kc = getKeycloak();
-      void kc.login();
+      window.dispatchEvent(new Event("auth:unauthorized"));
       throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
     }
   }
