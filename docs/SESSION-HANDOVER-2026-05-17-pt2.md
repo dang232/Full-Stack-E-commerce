@@ -1,7 +1,7 @@
 # Session handover — 2026-05-17 (continuation: ambitious-features wave)
 
-**Last commit:** `47c312f8` (HEAD on main)
-**Session length:** 14 commits on top of `93a7ff2f` (the previous handover's tip)
+**Last commit:** `348c07f0` (HEAD on main)
+**Session length:** 16 commits on top of `93a7ff2f` (the previous handover's tip)
 **Branch state:** clean — only `.claude/worktrees/` directory is unstaged (locked agent worktrees)
 
 This file extends the original `SESSION-HANDOVER-2026-05-17.md` (still in this folder). Same date, same project, but a separate working block: 4 ambitious features delegated to sub-agents in parallel worktrees, then merged + quality-passed.
@@ -25,6 +25,9 @@ Two post-agent quality passes shipped as their own `refactor(...)` commits:
 
 | Commit | What |
 |---|---|
+| `348c07f0` | feat(fe): translate OrdersPage strings via i18n |
+| `dd84f7c0` | feat(fe): translate CartPage strings via i18n |
+| `f1b7f1ad` | docs: SESSION-HANDOVER pt2 for ambitious-features wave |
 | `47c312f8` | refactor(messaging): use BadRequestException + drop dead import |
 | `9b56d8b3` | Merge branch 'worktree-agent-a6fce52349f812e62' (messaging MVP) |
 | `179fd17d` | feat(messaging): NestJS messaging-service + FE thread/message UI |
@@ -76,7 +79,7 @@ cd services/messaging-service      && npm test                             # 28/
 
 ### FE
 1. **Recs cold-start banner.** When both `useFrequentlyBoughtTogether` and `useYouMayAlsoLike` return empty (cold start), the page just shows nothing. Worth a placeholder card so users know recs exist but aren't ready.
-2. **i18n coverage gaps.** ~50 strings translated; CartPage / CheckoutPage / OrdersPage / SearchPage / ProductPage (most strings) still hardcoded. Pattern is established, just mechanical work.
+2. **i18n coverage — done so far:** Root header/footer, HomePage flash sale, CartPage (full), OrdersPage (full incl. tracking modal, return modal, status pills, tabs). **Still hardcoded:** CheckoutPage (1036 lines, intricate saga + payment dispatch — recommend a dedicated session, do NOT half-translate the highest-traffic path), SearchPage, ProductPage detail copy, ProfilePage, SellerPage, AdminPage, WishlistPage, MessagesPage. Pattern is mechanical; ~150 strings remain.
 3. **5 mock fallbacks to `vnshop-data.ts`** still exist — same as previous handover, untouched.
 
 ## Operational notes / gotchas
@@ -110,7 +113,8 @@ cd services/messaging-service      && npm test                             # 28/
 
 | Effort | Item | Why |
 |---|---|---|
-| ~30 min | Translate remaining FE pages (Cart/Checkout/Orders/Search/Product details) | Pattern is mechanical now that scaffold exists; biggest visible product win for least effort |
+| ~30 min | Translate ProfilePage / WishlistPage / SearchPage tab labels | Smaller pages, mechanical extraction; same pattern as CartPage/OrdersPage |
+| ~1 hour | CheckoutPage i18n — **dedicated session** | 1036 lines, payment-dispatch + saga + idempotency. Don't rush; this is the buyer's most critical flow. Suggested: write all keys first under `checkout.*`, then wire in step-by-step (address → shipping → payment → review → success) so a partial translation is at least atomically scoped to one step. |
 | ~1 hour | Recs cold-start fallback (popularity-by-category) + cold-start banner on FE | Makes recs feel real on day-1 deploy; today they're empty until orders accrue |
 | ~half day | Messaging E2E smoke (compose up, real Kafka, send a message between two users) | Highest-risk untested path — Kafka wiring + WebSocket gateway are the bits hardest to unit-test |
 | ~1 day | OpenSearch migration (Phase 4B from original plan) — only when catalog grows past ~100K |
@@ -131,8 +135,8 @@ What I did NOT touch (logged as deferred, not silently accepted):
 
 ## How to resume
 
-1. `git log --oneline -20` — verify HEAD is `47c312f8` and last 14 commits match the table above.
+1. `git log --oneline -20` — verify HEAD is `348c07f0` and last 16 commits match the table above.
 2. `cd fe && npm run verify` — should be green (0 lint, 112/112 tests).
-3. Pick from "Next-session candidates" — translating the remaining FE pages is the lowest-friction follow-up now that the i18n scaffold exists.
+3. Pick from "Next-session candidates" — the ProfilePage / WishlistPage / SearchPage i18n is the lowest-friction follow-up. CheckoutPage deserves its own session.
 4. **For sub-agent delegation:** include the rule "report blockers loudly, don't silently bail, green commits + report OR no commits + clear blocker report." It's saved this session multiple times AND been violated twice. Verify the diff before trusting the report.
 5. **For post-agent merges:** always run the clean-code / DDD / DRY / SOLID quality pass and fix violations as a `refactor(...)` commit on top of the merge. Don't accept slop just because tests are green.
