@@ -34,6 +34,14 @@ public class SecurityConfig {
             .authorizeExchange(exchanges -> exchanges
                 .pathMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/search/**", "/health").permitAll()
                 .pathMatchers("/auth/**", "/payment/*/callback", "/payment/*/ipn").permitAll()
+                // The WebSocket handshake on /ws/messaging carries the JWT via the
+                // `?token=` query parameter (browsers can't set Authorization headers
+                // on `new WebSocket(...)`), so it cannot pass the gateway's resource
+                // server filter — and we can't relay query params into the
+                // Authorization header before the security filter chain. The
+                // downstream messaging-service verifies the token itself via
+                // WsJwtVerifier before binding the socket to a user.
+                .pathMatchers("/ws/messaging").permitAll()
                 .pathMatchers("/admin/**").hasRole("ADMIN")
                 .anyExchange().authenticated()
             )

@@ -34,6 +34,7 @@ public class RouteConfig {
     private final String notificationServiceUri;
     private final String couponServiceUri;
     private final String sellerFinanceServiceUri;
+    private final String messagingServiceUri;
 
     public RouteConfig(
         @Value("${vnshop.routes.product-service:http://product-service:8082}") String productServiceUri,
@@ -46,7 +47,8 @@ public class RouteConfig {
         @Value("${vnshop.routes.shipping-service:http://shipping-service:8093}") String shippingServiceUri,
         @Value("${vnshop.routes.notification-service:http://notification-service:8087}") String notificationServiceUri,
         @Value("${vnshop.routes.coupon-service:http://coupon-service:8088}") String couponServiceUri,
-        @Value("${vnshop.routes.seller-finance-service:http://seller-finance-service:8090}") String sellerFinanceServiceUri
+        @Value("${vnshop.routes.seller-finance-service:http://seller-finance-service:8090}") String sellerFinanceServiceUri,
+        @Value("${vnshop.routes.messaging-service:http://messaging-service:8094}") String messagingServiceUri
     ) {
         this.productServiceUri = productServiceUri;
         this.userServiceUri = userServiceUri;
@@ -59,6 +61,7 @@ public class RouteConfig {
         this.notificationServiceUri = notificationServiceUri;
         this.couponServiceUri = couponServiceUri;
         this.sellerFinanceServiceUri = sellerFinanceServiceUri;
+        this.messagingServiceUri = messagingServiceUri;
     }
 
     @Bean
@@ -138,6 +141,17 @@ public class RouteConfig {
             .route("notifications", route -> route.path("/notifications/**")
                 .filters(filters -> resilient(filters, "notification-service"))
                 .uri(notificationServiceUri))
+            // Buyer-seller messaging (REST). The matching WebSocket upgrade lives on
+            // /ws/messaging — Spring Cloud Gateway proxies HTTP-Upgrade requests
+            // through to the downstream `http://` URI without extra config. The circuit
+            // breaker is intentionally omitted on the ws route because Resilience4j's
+            // ReactiveCircuitBreaker doesn't reliably wrap the Upgrade lifecycle and
+            // would surface 5xx during a reconnect storm; the FE handles reconnects.
+            .route("messaging", route -> route.path("/messaging/**")
+                .filters(filters -> resilient(filters, "messaging-service"))
+                .uri(messagingServiceUri))
+            .route("messaging-ws", route -> route.path("/ws/messaging")
+                .uri(messagingServiceUri))
             .route("coupons", route -> route.path("/coupons/**")
                 .filters(filters -> resilient(filters, "coupon-service"))
                 .uri(couponServiceUri))

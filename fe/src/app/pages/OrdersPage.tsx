@@ -320,6 +320,7 @@ function OrderCard({
   onReorder: (items: UIOrder["items"]) => void;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [showTracking, setShowTracking] = useState(false);
   const [showReturn, setShowReturn] = useState(false);
   const config = STATUS_CONFIG[order.status];
@@ -458,7 +459,14 @@ function OrderCard({
             </button>
           ) : null}
           <button
-            onClick={() => toast.info("Tin nhắn người bán đang được phát triển")}
+            onClick={() => {
+              const sellerId = rawOrder.subOrders?.[0]?.sellerId;
+              if (!sellerId) {
+                toast.info("Đơn hàng này không gắn với người bán cụ thể.");
+                return;
+              }
+              void navigate(`/messages?with=${encodeURIComponent(sellerId)}`);
+            }}
             className="py-2.5 px-4 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-1 hover:bg-gray-50"
           >
             <MessageSquare size={14} /> Chat
