@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { reviewSchema } from "../../../types/api";
+import {
+  reviewImageActivateSchema,
+  reviewImageUploadUrlSchema,
+  reviewSchema,
+} from "../../../types/api";
 import { api } from "../client";
 
 export const reviewsByProduct = (productId: string) =>
@@ -24,13 +28,13 @@ export const voteReviewHelpful = (id: string) =>
 export const reviewImageUploadUrl = (reviewId: string, body: { contentType: string }) =>
   api.post(
     `/reviews/${encodeURIComponent(reviewId)}/images/upload-url`,
-    z.object({ uploadUrl: z.string(), key: z.string().optional() }).loose(),
+    reviewImageUploadUrlSchema,
     body,
   );
 
 export const reviewImageActivate = (reviewId: string, body: { key: string }) =>
   api.post(
     `/reviews/${encodeURIComponent(reviewId)}/images/activate`,
-    z.object({ url: z.string() }).loose(),
+    reviewImageActivateSchema,
     body,
   );

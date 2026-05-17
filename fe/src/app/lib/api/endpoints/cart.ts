@@ -1,6 +1,4 @@
-import { z } from "zod";
-
-import { cartSchema } from "../../../types/api";
+import { cartSchema, emptyResponseSchema } from "../../../types/api";
 import { api } from "../client";
 
 export const getCart = () => api.get("/cart", cartSchema);
@@ -18,5 +16,4 @@ export const removeCartItem = (productId: string) =>
  * The clear-cart endpoint returns 204 / empty body on success. We don't read the
  * value, just the resolved promise.
  */
-const emptyResponseSchema = z.union([z.null(), z.undefined(), z.object({}).loose()]);
 export const clearCart = () => api.delete("/cart", emptyResponseSchema);

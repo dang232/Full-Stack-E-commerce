@@ -1,28 +1,16 @@
 import { z } from "zod";
 
+import {
+  calculateCheckoutSchema,
+  paymentMethodSchema,
+  shippingOptionSchema,
+  validateCouponResponseSchema,
+  type CheckoutCalculation,
+} from "../../../types/api";
 import { api } from "../client";
 
-export const calculateCheckoutSchema = z
-  .object({
-    subtotal: z.number(),
-    shippingFee: z.number(),
-    discount: z.number().default(0),
-    total: z.number(),
-    sellerBreakdown: z
-      .array(
-        z
-          .object({
-            sellerId: z.string(),
-            sellerName: z.string().optional(),
-            subtotal: z.number(),
-            shippingFee: z.number().optional(),
-          })
-          .loose(),
-      )
-      .optional(),
-  })
-  .loose();
-export type CheckoutCalculation = z.infer<typeof calculateCheckoutSchema>;
+export type { CheckoutCalculation };
+export { calculateCheckoutSchema };
 
 export interface CheckoutCalculateInput {
   items: { productId: string; quantity: number }[];
@@ -33,26 +21,8 @@ export interface CheckoutCalculateInput {
 export const calculateCheckout = (body: CheckoutCalculateInput) =>
   api.post("/checkout/calculate", calculateCheckoutSchema, body);
 
-const paymentMethodSchema = z
-  .object({
-    code: z.string(),
-    name: z.string(),
-    description: z.string().optional(),
-    enabled: z.boolean().default(true),
-  })
-  .loose();
 export const paymentMethods = () =>
   api.get("/checkout/payment-methods", z.array(paymentMethodSchema));
-
-const shippingOptionSchema = z
-  .object({
-    sellerId: z.string().optional(),
-    code: z.string(),
-    name: z.string(),
-    fee: z.number(),
-    estimatedDays: z.number().optional(),
-  })
-  .loose();
 
 export const shippingOptions = (body: {
   items: { productId: string; quantity: number }[];
@@ -60,14 +30,4 @@ export const shippingOptions = (body: {
 }) => api.post("/checkout/shipping-options", z.array(shippingOptionSchema), body);
 
 export const validateCoupon = (body: { code: string; subtotal?: number }) =>
-  api.post(
-    "/checkout/validate-coupon",
-    z
-      .object({
-        valid: z.boolean(),
-        discount: z.number().optional(),
-        message: z.string().optional(),
-      })
-      .loose(),
-    body,
-  );
+  api.post("/checkout/validate-coupon", validateCouponResponseSchema, body);

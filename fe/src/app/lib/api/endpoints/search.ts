@@ -1,7 +1,15 @@
 import { z } from "zod";
 
-import { pageSchema, productSummarySchema } from "../../../types/api";
+import {
+  pageSchema,
+  productSummarySchema,
+  searchFacetsSchema,
+  type SearchFacets,
+} from "../../../types/api";
 import { api } from "../client";
+
+export type { SearchFacets };
+export { searchFacetsSchema };
 
 export interface SearchParams {
   q?: string;
@@ -30,21 +38,6 @@ export const searchProducts = (params: SearchParams) =>
     },
     { auth: false },
   );
-
-const facetEntrySchema = z
-  .object({
-    key: z.string(),
-    count: z.number(),
-  })
-  .loose();
-
-export const searchFacetsSchema = z
-  .object({
-    categories: z.array(facetEntrySchema),
-    brands: z.array(facetEntrySchema),
-  })
-  .loose();
-export type SearchFacets = z.infer<typeof searchFacetsSchema>;
 
 /**
  * Aggregated category + brand counts for a search. Each axis drops its own
