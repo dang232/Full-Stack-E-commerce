@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.domain;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
@@ -64,8 +65,15 @@ public class Order {
     }
 
     public static String generateOrderNumber() {
+        // The in-memory counter resets to 0 on every restart, which means the
+        // first order created after a restart collides with the prior day's
+        // VNS-...-00001 row and the unique constraint trips. Stamping the
+        // millisecond-of-day onto the sequence makes a same-second collision
+        // require both the same wall-clock millisecond and the same in-process
+        // sequence — extremely unlikely under any realistic load.
         int sequence = ORDER_COUNTER.updateAndGet(current -> current >= 99999 ? 1 : current + 1);
-        return "VNS-" + LocalDate.now().format(ORDER_DATE_FORMAT) + "-" + String.format("%05d", sequence);
+        long millis = LocalTime.now().toNanoOfDay() / 1_000_000;
+        return "VNS-" + LocalDate.now().format(ORDER_DATE_FORMAT) + "-" + String.format("%08d", millis) + "-" + String.format("%05d", sequence);
     }
 
     public UUID id() {

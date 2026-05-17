@@ -12,6 +12,8 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "outbox_events", schema = "order_svc")
@@ -33,6 +35,12 @@ public class OutboxEventJpaEntity extends BaseJpaEntity {
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
+    // Postgres JSONB needs Hibernate to bind via SqlTypes.JSON, otherwise
+    // the JDBC driver sends the String as VARCHAR and Postgres rejects it
+    // with: "column payload is of type jsonb but expression is of type
+    // character varying". columnDefinition alone is not enough — that only
+    // affects schema generation, not parameter binding.
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String payload;
 

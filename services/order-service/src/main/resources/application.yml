@@ -16,6 +16,15 @@ spring:
     default-schema: order_svc
   kafka:
     bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # OutboxEvent + saga events are domain records; without an explicit
+      # JsonSerializer here the producer falls back to StringSerializer and
+      # every outbox publish fails with ClassCastException, leaving the
+      # OrderSummaryProjection table empty.
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
   data:
     redis:
       host: localhost
