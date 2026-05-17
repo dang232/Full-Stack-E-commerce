@@ -1,4 +1,4 @@
-package com.vnshop.user_service;
+package com.vnshop.userservice;
 
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
 import com.vnshop.userservice.domain.port.out.WishlistRepositoryPort;
