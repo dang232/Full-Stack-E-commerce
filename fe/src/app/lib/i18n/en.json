@@ -159,6 +159,80 @@
     "ssoNotice": "Accounts, passwords and 2FA are managed by Keycloak. Sign-up and password reset happen directly on the Keycloak login page.",
     "termsNotice": "By signing in you agree to VNShop's Terms of Service and Privacy Policy."
   },
+  "profile": {
+    "displayNameFallback": "User",
+    "loggedInVia": "Signed in via Keycloak",
+    "logout": "Log out",
+    "initSession": "Initialising your session...",
+    "loginRequired": "Please sign in",
+    "tabs": {
+      "info": "Account info",
+      "addresses": "Addresses",
+      "payment": "Payment methods",
+      "security": "Security"
+    },
+    "menu": {
+      "ordersLabel": "My Orders",
+      "ordersDesc": "View order history",
+      "wishlistLabel": "Wishlist",
+      "wishlistDesc": "Saved products",
+      "reviewsLabel": "My Reviews",
+      "reviewsDesc": "Reviews on past purchases",
+      "notificationsLabel": "Notifications",
+      "notificationsDesc": "Notification preferences"
+    },
+    "info": {
+      "title": "Personal info",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "loading": "Loading profile...",
+      "fallbackBanner": "Couldn't load your profile from the server — showing what Keycloak has. Some features may be unavailable.",
+      "fields": {
+        "name": "Full name",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "notSet": "Not set yet",
+      "emailHint": "Email is managed by Keycloak — update it in your Keycloak account.",
+      "updatedOk": "Profile updated",
+      "updatedErr": "Couldn't update profile"
+    },
+    "addresses": {
+      "title": "My addresses",
+      "addToggleOpen": "Add address",
+      "addToggleClose": "Close",
+      "fields": {
+        "line1": "Street, house number",
+        "ward": "Ward",
+        "district": "District",
+        "city": "City / Province",
+        "phone": "Contact phone"
+      },
+      "setDefault": "Set as default",
+      "isDefaultBadge": "Default",
+      "saveAddress": "Save address",
+      "saving": "Saving...",
+      "empty": "You don't have any addresses yet.",
+      "validateMissing": "Please enter the street and city",
+      "addedOk": "Address added",
+      "addedErr": "Couldn't add address",
+      "defaultedOk": "Set as default address",
+      "updateErr": "Couldn't update address",
+      "removedOk": "Address removed",
+      "removeErr": "Couldn't remove address"
+    },
+    "payment": {
+      "title": "Payment methods",
+      "comingSoonBanner": "Saved payment methods are coming later (F62, F63). For now you pick the method per order."
+    },
+    "security": {
+      "title": "Account security",
+      "subtitle": "Passwords, 2FA and signed-in devices are managed by Keycloak.",
+      "openKeycloak": "Open Keycloak account console"
+    }
+  },
   "messaging": {
     "pageTitle": "Messages",
     "back": "Back",

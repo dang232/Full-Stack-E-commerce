@@ -18,6 +18,7 @@ import {
   Save,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -34,11 +35,11 @@ import type { Address, UserProfile } from "../types/api";
 
 type ProfileTab = "info" | "addresses" | "payment" | "security";
 
-const TABS: { id: ProfileTab; label: string; icon: typeof User }[] = [
-  { id: "info", label: "Thông tin tài khoản", icon: User },
-  { id: "addresses", label: "Địa chỉ", icon: MapPin },
-  { id: "payment", label: "Phương thức thanh toán", icon: CreditCard },
-  { id: "security", label: "Bảo mật", icon: Shield },
+const TABS: { id: ProfileTab; labelKey: string; icon: typeof User }[] = [
+  { id: "info", labelKey: "profile.tabs.info", icon: User },
+  { id: "addresses", labelKey: "profile.tabs.addresses", icon: MapPin },
+  { id: "payment", labelKey: "profile.tabs.payment", icon: CreditCard },
+  { id: "security", labelKey: "profile.tabs.security", icon: Shield },
 ];
 
 const EMPTY_ADDRESS: Address = {
@@ -61,6 +62,7 @@ export function ProfilePage() {
   const qc = useQueryClient();
   const { authenticated, ready, profile: kcProfile, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<ProfileTab>("info");
+  const { t } = useTranslation();
 
   const profileQuery = useQuery({
     queryKey: ["users", "me"],
@@ -111,11 +113,11 @@ export function ProfilePage() {
     mutationFn: () => updateProfile({ name: formData.name, phone: formData.phone }),
     onSuccess: (next) => {
       qc.setQueryData(["users", "me"], next);
-      toast.success("Đã cập nhật hồ sơ");
+      toast.success(t("profile.info.updatedOk"));
       setEditing(false);
     },
     onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật hồ sơ"),
+      toast.error(err instanceof ApiError ? err.message : t("profile.info.updatedErr")),
   });
 
   // Address state
@@ -132,11 +134,12 @@ export function ProfilePage() {
       qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
         prev ? { ...prev, addresses: next.addresses ?? [] } : next,
       );
-      toast.success("Đã thêm địa chỉ");
+      toast.success(t("profile.addresses.addedOk"));
       setShowAddForm(false);
       setNewAddress(EMPTY_ADDRESS);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể thêm địa chỉ"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("profile.addresses.addedErr")),
   });
 
   const setDefaultMutation = useMutation({
@@ -145,10 +148,10 @@ export function ProfilePage() {
       qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
         prev ? { ...prev, addresses: next.addresses ?? [] } : next,
       );
-      toast.success("Đã đặt làm địa chỉ mặc định");
+      toast.success(t("profile.addresses.defaultedOk"));
     },
     onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật địa chỉ"),
+      toast.error(err instanceof ApiError ? err.message : t("profile.addresses.updateErr")),
   });
 
   const removeAddressMutation = useMutation({
@@ -157,25 +160,46 @@ export function ProfilePage() {
       qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
         prev ? { ...prev, addresses: next.addresses ?? [] } : next,
       );
-      toast.success("Đã xoá địa chỉ");
+      toast.success(t("profile.addresses.removedOk"));
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể xoá địa chỉ"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("profile.addresses.removeErr")),
   });
 
   const menuItems = useMemo(
     () => [
-      { icon: Package, label: "Đơn mua", desc: "Xem lịch sử đơn hàng", path: "/orders" },
-      { icon: Heart, label: "Yêu thích", desc: "Danh sách sản phẩm yêu thích", path: "/wishlist" },
-      { icon: Star, label: "Đánh giá của tôi", desc: "Đánh giá sản phẩm đã mua", path: "/orders" },
-      { icon: Bell, label: "Thông báo", desc: "Cài đặt thông báo", path: "/profile" },
+      {
+        icon: Package,
+        label: t("profile.menu.ordersLabel"),
+        desc: t("profile.menu.ordersDesc"),
+        path: "/orders",
+      },
+      {
+        icon: Heart,
+        label: t("profile.menu.wishlistLabel"),
+        desc: t("profile.menu.wishlistDesc"),
+        path: "/wishlist",
+      },
+      {
+        icon: Star,
+        label: t("profile.menu.reviewsLabel"),
+        desc: t("profile.menu.reviewsDesc"),
+        path: "/orders",
+      },
+      {
+        icon: Bell,
+        label: t("profile.menu.notificationsLabel"),
+        desc: t("profile.menu.notificationsDesc"),
+        path: "/profile",
+      },
     ],
-    [],
+    [t],
   );
 
   if (!ready) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
-        Đang khởi tạo phiên đăng nhập...
+        {t("profile.initSession")}
       </div>
     );
   }
@@ -183,13 +207,13 @@ export function ProfilePage() {
   if (!authenticated) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <h2 className="text-xl font-bold text-gray-600 mb-3">Vui lòng đăng nhập</h2>
+        <h2 className="text-xl font-bold text-gray-600 mb-3">{t("profile.loginRequired")}</h2>
         <button
           onClick={() => navigate("/login?next=%2Fprofile")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
           style={{ background: "#00BFB3" }}
         >
-          Đăng nhập
+          {t("auth.login")}
         </button>
       </div>
     );
@@ -199,7 +223,7 @@ export function ProfilePage() {
     profile?.name ||
     [kcProfile?.firstName, kcProfile?.lastName].filter(Boolean).join(" ").trim() ||
     kcProfile?.username ||
-    "Người dùng";
+    t("profile.displayNameFallback");
   const displayEmail = profile?.email ?? kcProfile?.email ?? "";
 
   return (
@@ -225,7 +249,7 @@ export function ProfilePage() {
             <p className="text-sm text-gray-500 mt-0.5">{displayEmail}</p>
             <div className="flex items-center justify-center gap-2 mt-2">
               <div className="w-2 h-2 rounded-full bg-green-400" />
-              <span className="text-xs text-green-600 font-medium">Đã đăng nhập qua Keycloak</span>
+              <span className="text-xs text-green-600 font-medium">{t("profile.loggedInVia")}</span>
             </div>
           </div>
 
@@ -255,7 +279,7 @@ export function ProfilePage() {
             onClick={logout}
             className="w-full py-3 rounded-2xl text-red-500 border border-red-200 flex items-center justify-center gap-2 text-sm font-medium hover:bg-red-50 transition-colors bg-white shadow-sm"
           >
-            <LogOut size={16} /> Đăng xuất
+            <LogOut size={16} /> {t("profile.logout")}
           </button>
         </div>
 
@@ -273,7 +297,7 @@ export function ProfilePage() {
                 }}
               >
                 <tab.icon size={15} />
-                {tab.label}
+                {t(tab.labelKey)}
               </button>
             ))}
           </div>
@@ -282,14 +306,14 @@ export function ProfilePage() {
             {activeTab === "info" ? (
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-bold text-gray-800">Thông tin cá nhân</h3>
+                  <h3 className="font-bold text-gray-800">{t("profile.info.title")}</h3>
                   {editing ? (
                     <div className="flex gap-2">
                       <button
                         onClick={cancelEditing}
                         className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-500"
                       >
-                        Huỷ
+                        {t("profile.info.cancel")}
                       </button>
                       <button
                         onClick={() => updateProfileMutation.mutate()}
@@ -298,7 +322,9 @@ export function ProfilePage() {
                         style={{ background: "#00BFB3" }}
                       >
                         <Save size={14} />
-                        {updateProfileMutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                        {updateProfileMutation.isPending
+                          ? t("profile.info.saving")
+                          : t("profile.info.save")}
                       </button>
                     </div>
                   ) : (
@@ -307,34 +333,46 @@ export function ProfilePage() {
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border"
                       style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
                     >
-                      <Edit3 size={14} /> Chỉnh sửa
+                      <Edit3 size={14} /> {t("profile.info.edit")}
                     </button>
                   )}
                 </div>
 
                 {profileQuery.isLoading ? (
-                  <p className="text-sm text-gray-400">Đang tải hồ sơ...</p>
+                  <p className="text-sm text-gray-400">{t("profile.info.loading")}</p>
                 ) : null}
 
                 {profileQuery.error && !profileQuery.isLoading ? (
                   <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 flex items-start gap-2">
                     <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                    <p>
-                      Không tải được hồ sơ từ máy chủ. Hiển thị thông tin từ Keycloak. Một số tính
-                      năng có thể chưa hoạt động.
-                    </p>
+                    <p>{t("profile.info.fallbackBanner")}</p>
                   </div>
                 ) : null}
 
                 <div className="space-y-5 mt-4">
                   {[
-                    { label: "Họ và tên", key: "name" as const, type: "text", editable: true },
-                    { label: "Email", key: "email" as const, type: "email", editable: false },
-                    { label: "Số điện thoại", key: "phone" as const, type: "tel", editable: true },
+                    {
+                      labelKey: "profile.info.fields.name",
+                      key: "name" as const,
+                      type: "text",
+                      editable: true,
+                    },
+                    {
+                      labelKey: "profile.info.fields.email",
+                      key: "email" as const,
+                      type: "email",
+                      editable: false,
+                    },
+                    {
+                      labelKey: "profile.info.fields.phone",
+                      key: "phone" as const,
+                      type: "tel",
+                      editable: true,
+                    },
                   ].map((field) => (
                     <div key={field.key}>
                       <label className="block text-sm font-medium text-gray-600 mb-1.5">
-                        {field.label}
+                        {t(field.labelKey)}
                       </label>
                       {editing && field.editable ? (
                         <input
@@ -351,13 +389,13 @@ export function ProfilePage() {
                           style={{ background: "#f9fafb" }}
                         >
                           {formData[field.key] || (
-                            <span className="text-gray-400">Chưa cập nhật</span>
+                            <span className="text-gray-400">{t("profile.info.notSet")}</span>
                           )}
                         </div>
                       )}
                       {field.key === "email" ? (
                         <p className="text-[11px] text-gray-400 mt-1">
-                          Email được Keycloak quản lý — cập nhật trong tài khoản Keycloak.
+                          {t("profile.info.emailHint")}
                         </p>
                       ) : null}
                     </div>
@@ -369,13 +407,16 @@ export function ProfilePage() {
             {activeTab === "addresses" ? (
               <div>
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-bold text-gray-800">Địa chỉ của tôi</h3>
+                  <h3 className="font-bold text-gray-800">{t("profile.addresses.title")}</h3>
                   <button
                     onClick={() => setShowAddForm((v) => !v)}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white"
                     style={{ background: "#00BFB3" }}
                   >
-                    <Plus size={14} /> {showAddForm ? "Đóng" : "Thêm địa chỉ"}
+                    <Plus size={14} />{" "}
+                    {showAddForm
+                      ? t("profile.addresses.addToggleClose")
+                      : t("profile.addresses.addToggleOpen")}
                   </button>
                 </div>
 
@@ -383,16 +424,16 @@ export function ProfilePage() {
                   <div className="border border-dashed border-gray-200 rounded-2xl p-4 mb-4 space-y-3">
                     {(
                       [
-                        { key: "line1", label: "Số nhà, đường" },
-                        { key: "ward", label: "Phường/Xã" },
-                        { key: "district", label: "Quận/Huyện" },
-                        { key: "city", label: "Tỉnh/Thành phố" },
-                        { key: "phone", label: "Số điện thoại liên hệ" },
+                        { key: "line1", labelKey: "profile.addresses.fields.line1" },
+                        { key: "ward", labelKey: "profile.addresses.fields.ward" },
+                        { key: "district", labelKey: "profile.addresses.fields.district" },
+                        { key: "city", labelKey: "profile.addresses.fields.city" },
+                        { key: "phone", labelKey: "profile.addresses.fields.phone" },
                       ] as const
                     ).map((field) => (
                       <div key={field.key}>
                         <label className="block text-xs font-medium text-gray-600 mb-1">
-                          {field.label}
+                          {t(field.labelKey)}
                         </label>
                         <input
                           value={newAddress[field.key] ?? ""}
@@ -411,12 +452,12 @@ export function ProfilePage() {
                           setNewAddress((prev) => ({ ...prev, isDefault: e.target.checked }))
                         }
                       />
-                      Đặt làm địa chỉ mặc định
+                      {t("profile.addresses.setDefault")}
                     </label>
                     <button
                       onClick={() => {
                         if (!newAddress.line1 || !newAddress.city) {
-                          toast.error("Vui lòng nhập số nhà/đường và thành phố");
+                          toast.error(t("profile.addresses.validateMissing"));
                           return;
                         }
                         addAddressMutation.mutate(newAddress);
@@ -425,14 +466,16 @@ export function ProfilePage() {
                       className="w-full py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
                       style={{ background: "#FF6200" }}
                     >
-                      {addAddressMutation.isPending ? "Đang lưu..." : "Lưu địa chỉ"}
+                      {addAddressMutation.isPending
+                        ? t("profile.addresses.saving")
+                        : t("profile.addresses.saveAddress")}
                     </button>
                   </div>
                 ) : null}
 
                 {addresses.length === 0 && !showAddForm ? (
                   <div className="text-center py-12 text-sm text-gray-400">
-                    Bạn chưa có địa chỉ nào.
+                    {t("profile.addresses.empty")}
                   </div>
                 ) : null}
 
@@ -457,7 +500,7 @@ export function ProfilePage() {
                                 className="px-2 py-0.5 rounded text-xs font-medium border"
                                 style={{ borderColor: "#FF6200", color: "#FF6200" }}
                               >
-                                Mặc định
+                                {t("profile.addresses.isDefaultBadge")}
                               </span>
                             ) : null}
                           </div>
@@ -486,7 +529,7 @@ export function ProfilePage() {
                           className="mt-3 text-xs font-medium disabled:opacity-50"
                           style={{ color: "#00BFB3" }}
                         >
-                          Đặt làm mặc định
+                          {t("profile.addresses.setDefault")}
                         </button>
                       ) : null}
                     </div>
@@ -497,23 +540,18 @@ export function ProfilePage() {
 
             {activeTab === "payment" ? (
               <div>
-                <h3 className="font-bold text-gray-800 mb-3">Phương thức thanh toán</h3>
+                <h3 className="font-bold text-gray-800 mb-3">{t("profile.payment.title")}</h3>
                 <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 flex items-start gap-2">
                   <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                  <p>
-                    Tính năng lưu phương thức thanh toán sẽ được hỗ trợ sau (F62, F63). Hiện tại,
-                    bạn chọn phương thức thanh toán tại từng đơn hàng.
-                  </p>
+                  <p>{t("profile.payment.comingSoonBanner")}</p>
                 </div>
               </div>
             ) : null}
 
             {activeTab === "security" ? (
               <div>
-                <h3 className="font-bold text-gray-800 mb-3">Bảo mật tài khoản</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Mật khẩu, xác thực 2 lớp và thiết bị đăng nhập do Keycloak quản lý.
-                </p>
+                <h3 className="font-bold text-gray-800 mb-3">{t("profile.security.title")}</h3>
+                <p className="text-sm text-gray-500 mb-4">{t("profile.security.subtitle")}</p>
                 <button
                   onClick={() => {
                     const env = import.meta.env as Record<string, string | undefined>;
@@ -524,7 +562,7 @@ export function ProfilePage() {
                   className="px-4 py-2.5 rounded-xl text-white text-sm font-semibold"
                   style={{ background: "#00BFB3" }}
                 >
-                  Mở trang quản lý tài khoản Keycloak
+                  {t("profile.security.openKeycloak")}
                 </button>
               </div>
             ) : null}

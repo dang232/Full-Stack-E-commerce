@@ -159,6 +159,80 @@
     "ssoNotice": "Tài khoản, mật khẩu và xác thực 2 lớp do Keycloak quản lý. Việc tạo tài khoản mới và đặt lại mật khẩu được thực hiện trực tiếp trên trang đăng nhập.",
     "termsNotice": "Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của VNShop."
   },
+  "profile": {
+    "displayNameFallback": "Người dùng",
+    "loggedInVia": "Đã đăng nhập qua Keycloak",
+    "logout": "Đăng xuất",
+    "initSession": "Đang khởi tạo phiên đăng nhập...",
+    "loginRequired": "Vui lòng đăng nhập",
+    "tabs": {
+      "info": "Thông tin tài khoản",
+      "addresses": "Địa chỉ",
+      "payment": "Phương thức thanh toán",
+      "security": "Bảo mật"
+    },
+    "menu": {
+      "ordersLabel": "Đơn mua",
+      "ordersDesc": "Xem lịch sử đơn hàng",
+      "wishlistLabel": "Yêu thích",
+      "wishlistDesc": "Danh sách sản phẩm yêu thích",
+      "reviewsLabel": "Đánh giá của tôi",
+      "reviewsDesc": "Đánh giá sản phẩm đã mua",
+      "notificationsLabel": "Thông báo",
+      "notificationsDesc": "Cài đặt thông báo"
+    },
+    "info": {
+      "title": "Thông tin cá nhân",
+      "edit": "Chỉnh sửa",
+      "cancel": "Huỷ",
+      "save": "Lưu thay đổi",
+      "saving": "Đang lưu...",
+      "loading": "Đang tải hồ sơ...",
+      "fallbackBanner": "Không tải được hồ sơ từ máy chủ. Hiển thị thông tin từ Keycloak. Một số tính năng có thể chưa hoạt động.",
+      "fields": {
+        "name": "Họ và tên",
+        "email": "Email",
+        "phone": "Số điện thoại"
+      },
+      "notSet": "Chưa cập nhật",
+      "emailHint": "Email được Keycloak quản lý — cập nhật trong tài khoản Keycloak.",
+      "updatedOk": "Đã cập nhật hồ sơ",
+      "updatedErr": "Không thể cập nhật hồ sơ"
+    },
+    "addresses": {
+      "title": "Địa chỉ của tôi",
+      "addToggleOpen": "Thêm địa chỉ",
+      "addToggleClose": "Đóng",
+      "fields": {
+        "line1": "Số nhà, đường",
+        "ward": "Phường/Xã",
+        "district": "Quận/Huyện",
+        "city": "Tỉnh/Thành phố",
+        "phone": "Số điện thoại liên hệ"
+      },
+      "setDefault": "Đặt làm địa chỉ mặc định",
+      "isDefaultBadge": "Mặc định",
+      "saveAddress": "Lưu địa chỉ",
+      "saving": "Đang lưu...",
+      "empty": "Bạn chưa có địa chỉ nào.",
+      "validateMissing": "Vui lòng nhập số nhà/đường và thành phố",
+      "addedOk": "Đã thêm địa chỉ",
+      "addedErr": "Không thể thêm địa chỉ",
+      "defaultedOk": "Đã đặt làm địa chỉ mặc định",
+      "updateErr": "Không thể cập nhật địa chỉ",
+      "removedOk": "Đã xoá địa chỉ",
+      "removeErr": "Không thể xoá địa chỉ"
+    },
+    "payment": {
+      "title": "Phương thức thanh toán",
+      "comingSoonBanner": "Tính năng lưu phương thức thanh toán sẽ được hỗ trợ sau (F62, F63). Hiện tại, bạn chọn phương thức thanh toán tại từng đơn hàng."
+    },
+    "security": {
+      "title": "Bảo mật tài khoản",
+      "subtitle": "Mật khẩu, xác thực 2 lớp và thiết bị đăng nhập do Keycloak quản lý.",
+      "openKeycloak": "Mở trang quản lý tài khoản Keycloak"
+    }
+  },
   "messaging": {
     "pageTitle": "Tin nhắn",
     "back": "Quay lại",
