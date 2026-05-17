@@ -14,7 +14,7 @@ const trackingEventSchema = z
     location: z.string().nullable().optional(),
     note: z.string().nullable().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const trackingResponseSchema = z
   .object({
@@ -24,7 +24,7 @@ export const trackingResponseSchema = z
     estimatedDelivery: z.string().nullable().optional(),
     events: z.array(trackingEventSchema).default([]),
   })
-  .passthrough();
+  .loose();
 
 export type TrackingResponse = z.infer<typeof trackingResponseSchema>;
 export type TrackingEvent = z.infer<typeof trackingEventSchema>;

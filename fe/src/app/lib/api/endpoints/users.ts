@@ -24,6 +24,6 @@ export const removeAddress = (index: number) =>
 
 // Seller onboarding
 export const registerSeller = (body: { shopName: string; description?: string; phone: string }) =>
-  api.post("/sellers/register", z.object({ status: z.string() }).passthrough(), body);
+  api.post("/sellers/register", z.object({ status: z.string() }).loose(), body);
 
 export const sellerProfile = () => api.get("/sellers/me", userProfileSchema);

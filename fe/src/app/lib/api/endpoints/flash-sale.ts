@@ -14,7 +14,7 @@ const reserveResponseSchema = z
     status: z.string(),
     expiresAt: z.string().optional().nullable(),
   })
-  .passthrough();
+  .loose();
 export type FlashSaleReservation = z.infer<typeof reserveResponseSchema>;
 
 export const reserveFlashSale = (body: { productId: string; buyerId: string; quantity: number }) =>
@@ -25,7 +25,7 @@ const stockResponseSchema = z
     productId: z.string(),
     stock: z.number(),
   })
-  .passthrough();
+  .loose();
 
 export const flashSaleStock = (productId: string) =>
   api.get(`/flash-sale/stock/${encodeURIComponent(productId)}`, stockResponseSchema, undefined, {
@@ -51,7 +51,7 @@ const activeFlashSaleCampaignSchema = z
     stockRemaining: z.number().nullable().optional(),
     endsAt: z.string(),
   })
-  .passthrough();
+  .loose();
 export type ActiveFlashSaleCampaign = z.infer<typeof activeFlashSaleCampaignSchema>;
 
 export const listActiveFlashSaleCampaigns = () =>

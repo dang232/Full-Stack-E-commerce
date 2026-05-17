@@ -17,11 +17,11 @@ export const calculateCheckoutSchema = z
             subtotal: z.number(),
             shippingFee: z.number().optional(),
           })
-          .passthrough(),
+          .loose(),
       )
       .optional(),
   })
-  .passthrough();
+  .loose();
 export type CheckoutCalculation = z.infer<typeof calculateCheckoutSchema>;
 
 export interface CheckoutCalculateInput {
@@ -40,7 +40,7 @@ const paymentMethodSchema = z
     description: z.string().optional(),
     enabled: z.boolean().default(true),
   })
-  .passthrough();
+  .loose();
 export const paymentMethods = () =>
   api.get("/checkout/payment-methods", z.array(paymentMethodSchema));
 
@@ -52,7 +52,7 @@ const shippingOptionSchema = z
     fee: z.number(),
     estimatedDays: z.number().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const shippingOptions = (body: {
   items: { productId: string; quantity: number }[];
@@ -68,6 +68,6 @@ export const validateCoupon = (body: { code: string; subtotal?: number }) =>
         discount: z.number().optional(),
         message: z.string().optional(),
       })
-      .passthrough(),
+      .loose(),
     body,
   );

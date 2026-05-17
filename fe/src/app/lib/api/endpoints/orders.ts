@@ -37,7 +37,7 @@ const returnSchema = z
     refundAmount: z.number().optional(),
     createdAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type Return = z.infer<typeof returnSchema>;
 
 export const requestReturn = (body: {
@@ -67,7 +67,7 @@ const pendingSubOrderSchema = z
     items: z.array(z.unknown()).optional(),
     createdAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type PendingSubOrder = z.infer<typeof pendingSubOrderSchema>;
 
 export const sellerPendingOrders = () =>

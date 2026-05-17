@@ -54,7 +54,7 @@ describe("users endpoint Zod schemas", () => {
     expect(() => userProfileSchema.parse(bareArray)).toThrow();
   });
 
-  it("userProfileSchema tolerates BE-side extras through .passthrough()", () => {
+  it("userProfileSchema tolerates BE-side extras through .loose()", () => {
     const parsed = userProfileSchema.parse({
       ...buyerProfileResponse,
       // Hypothetical future fields — must not break parsing.

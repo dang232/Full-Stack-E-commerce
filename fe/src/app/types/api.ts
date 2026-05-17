@@ -5,7 +5,7 @@ export const moneySchema = z
     amount: z.number(),
     currency: z.string().default("VND"),
   })
-  .passthrough();
+  .loose();
 
 export const pageSchema = <T extends z.ZodType>(item: T) =>
   z
@@ -18,7 +18,7 @@ export const pageSchema = <T extends z.ZodType>(item: T) =>
       first: z.boolean().optional(),
       last: z.boolean().optional(),
     })
-    .passthrough();
+    .loose();
 
 export interface Page<T> {
   content: T[];
@@ -46,7 +46,7 @@ export const productSummarySchema = z
     sold: z.number().optional(),
     stock: z.number().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const productDetailSchema = productSummarySchema
   .extend({
@@ -55,7 +55,7 @@ export const productDetailSchema = productSummarySchema
     sizes: z.array(z.string()).optional(),
     tags: z.array(z.string()).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type ProductSummary = z.infer<typeof productSummarySchema>;
 export type ProductDetail = z.infer<typeof productDetailSchema>;
@@ -68,7 +68,7 @@ export const categorySchema = z
     parentId: z.string().nullable().optional(),
     children: z.array(z.lazy((): z.ZodType => categorySchema)).optional(),
   })
-  .passthrough();
+  .loose();
 export type Category = z.infer<typeof categorySchema>;
 
 export const reviewSchema = z
@@ -83,7 +83,7 @@ export const reviewSchema = z
     helpful: z.number().optional(),
     createdAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type Review = z.infer<typeof reviewSchema>;
 
 export const questionSchema = z
@@ -96,7 +96,7 @@ export const questionSchema = z
     answeredAt: z.string().nullable().optional(),
     createdAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type Question = z.infer<typeof questionSchema>;
 
 export const addressSchema = z
@@ -111,7 +111,7 @@ export const addressSchema = z
     phone: z.string().optional(),
     isDefault: z.boolean().optional(),
   })
-  .passthrough();
+  .loose();
 export type Address = z.infer<typeof addressSchema>;
 
 export const userProfileSchema = z
@@ -124,7 +124,7 @@ export const userProfileSchema = z
     addresses: z.array(addressSchema).optional(),
     role: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type UserProfile = z.infer<typeof userProfileSchema>;
 
 export const cartItemSchema = z
@@ -136,7 +136,7 @@ export const cartItemSchema = z
     quantity: z.number(),
     sellerId: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const cartSchema = z
   .object({
@@ -146,7 +146,7 @@ export const cartSchema = z
     totalAmount: z.number().optional(),
     updatedAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type Cart = z.infer<typeof cartSchema>;
 export type CartItem = z.infer<typeof cartItemSchema>;
 
@@ -161,7 +161,7 @@ export const subOrderSchema = z
     carrier: z.string().nullable().optional(),
     shippingFee: z.number().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const orderSchema = z
   .object({
@@ -178,7 +178,7 @@ export const orderSchema = z
     createdAt: z.string().optional(),
     estimatedDelivery: z.string().nullable().optional(),
   })
-  .passthrough();
+  .loose();
 export type Order = z.infer<typeof orderSchema>;
 
 export const notificationSchema = z
@@ -191,5 +191,5 @@ export const notificationSchema = z
     createdAt: z.string().optional(),
     deepLink: z.string().nullable().optional(),
   })
-  .passthrough();
+  .loose();
 export type Notification = z.infer<typeof notificationSchema>;

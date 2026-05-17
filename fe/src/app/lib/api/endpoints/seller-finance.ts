@@ -10,7 +10,7 @@ const walletSchema = z
     currency: z.string().default("VND"),
     updatedAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 const payoutSchema = z
   .object({
@@ -21,7 +21,7 @@ const payoutSchema = z
     completedAt: z.string().nullable().optional(),
     bankAccount: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type Payout = z.infer<typeof payoutSchema>;
 
 export const myWallet = () => api.get("/sellers/me/finance/wallet", walletSchema);

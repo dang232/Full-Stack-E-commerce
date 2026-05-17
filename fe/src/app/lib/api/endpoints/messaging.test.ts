@@ -33,7 +33,7 @@ describe("messaging endpoint Zod schemas", () => {
     ).not.toThrow();
   });
 
-  it("messageThreadSummarySchema tolerates server-side extras through .passthrough()", () => {
+  it("messageThreadSummarySchema tolerates server-side extras through .loose()", () => {
     expect(() =>
       messageThreadSummarySchema.parse({
         ...validThread,

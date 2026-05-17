@@ -23,7 +23,7 @@ const recommendationItemSchema = z
     rating: z.number().nullable().optional(),
     sold: z.number().nullable().optional(),
   })
-  .passthrough();
+  .loose();
 
 export type RecommendationItem = z.infer<typeof recommendationItemSchema>;
 

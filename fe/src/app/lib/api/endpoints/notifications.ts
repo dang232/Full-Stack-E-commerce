@@ -15,10 +15,10 @@ export const getNotification = (id: string) =>
 export const markNotificationRead = (id: string) =>
   api.post(`/notifications/${encodeURIComponent(id)}/read`, notificationSchema);
 
-const markAllReadResponseSchema = z.object({ updated: z.number() }).passthrough();
+const markAllReadResponseSchema = z.object({ updated: z.number() }).loose();
 export const markAllNotificationsRead = () =>
   api.post("/notifications/mark-all-read", markAllReadResponseSchema);
 
-const unreadCountResponseSchema = z.object({ count: z.number() }).passthrough();
+const unreadCountResponseSchema = z.object({ count: z.number() }).loose();
 export const unreadNotificationCount = () =>
   api.get("/notifications/unread-count", unreadCountResponseSchema);

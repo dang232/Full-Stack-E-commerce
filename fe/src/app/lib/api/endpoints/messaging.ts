@@ -15,10 +15,10 @@ export const messageThreadSummarySchema = z
     lastMessageSenderId: z.string().nullable().optional(),
     unreadCount: z.number().optional().default(0),
   })
-  .passthrough();
+  .loose();
 export type MessageThreadSummary = z.infer<typeof messageThreadSummarySchema>;
 
-const threadListSchema = z.object({ content: z.array(messageThreadSummarySchema) }).passthrough();
+const threadListSchema = z.object({ content: z.array(messageThreadSummarySchema) }).loose();
 
 export const messageSchema = z
   .object({
@@ -28,7 +28,7 @@ export const messageSchema = z
     body: z.string(),
     sentAt: z.string(),
   })
-  .passthrough();
+  .loose();
 export type ChatMessage = z.infer<typeof messageSchema>;
 
 const messagesPageSchema = z
@@ -37,7 +37,7 @@ const messagesPageSchema = z
     nextCursor: z.string().nullable(),
     hasMore: z.boolean(),
   })
-  .passthrough();
+  .loose();
 export type MessagesPage = z.infer<typeof messagesPageSchema>;
 
 const threadCreatedSchema = z
@@ -49,10 +49,10 @@ const threadCreatedSchema = z
     productId: z.string().nullable().optional(),
     lastMessageAt: z.string(),
   })
-  .passthrough();
+  .loose();
 export type ThreadCreated = z.infer<typeof threadCreatedSchema>;
 
-const readResponseSchema = z.object({ readAt: z.string() }).passthrough();
+const readResponseSchema = z.object({ readAt: z.string() }).loose();
 
 export const listThreads = (params: { limit?: number } = {}) =>
   api.get("/messaging/threads", threadListSchema, { limit: params.limit });

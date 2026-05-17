@@ -45,7 +45,7 @@ describe("recommendations endpoint Zod schema", () => {
     expect(() => recommendationItemsSchema.parse({ items: [] })).toThrow();
   });
 
-  it("tolerates BE-side extras through .passthrough()", () => {
+  it("tolerates BE-side extras through .loose()", () => {
     const parsed = recommendationItemsSchema.parse([
       {
         ...wireItem,

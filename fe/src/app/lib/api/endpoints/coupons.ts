@@ -21,7 +21,7 @@ const couponSchema = z
     validUntil: z.string().optional(),
     active: z.boolean().optional(),
   })
-  .passthrough();
+  .loose();
 export type Coupon = z.infer<typeof couponSchema>;
 
 /** Public list of currently active coupons. */
@@ -34,7 +34,7 @@ const validateResponseSchema = z
     discount: z.number().optional(),
     message: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 /**
  * Pre-apply validation. Backend exposes both `/coupons/validate` and the
@@ -51,7 +51,7 @@ const applyResponseSchema = z
     discount: z.number(),
     finalTotal: z.number().optional(),
   })
-  .passthrough();
+  .loose();
 
 /** Apply (consumes one usage). Use during order placement, not preview. */
 export const applyCoupon = (body: { code: string; orderAmount: number; orderId?: number }) =>

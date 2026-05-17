@@ -8,7 +8,7 @@ const initiatePaymentSchema = z
     redirectUrl: z.string().url(),
     transactionId: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 const paymentStatusSchema = z
   .object({
@@ -17,7 +17,7 @@ const paymentStatusSchema = z
     paidAt: z.string().nullable().optional(),
     method: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 
 export const codConfirm = (body: { orderId: string }, idempotencyKey?: string) =>

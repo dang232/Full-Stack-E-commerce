@@ -36,14 +36,14 @@ const facetEntrySchema = z
     key: z.string(),
     count: z.number(),
   })
-  .passthrough();
+  .loose();
 
 export const searchFacetsSchema = z
   .object({
     categories: z.array(facetEntrySchema),
     brands: z.array(facetEntrySchema),
   })
-  .passthrough();
+  .loose();
 export type SearchFacets = z.infer<typeof searchFacetsSchema>;
 
 /**

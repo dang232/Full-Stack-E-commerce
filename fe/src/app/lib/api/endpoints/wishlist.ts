@@ -7,14 +7,14 @@ const wishlistEntrySchema = z
     productId: z.string(),
     createdAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const wishlistResponseSchema = z
   .object({
     productIds: z.array(z.string()),
     items: z.array(wishlistEntrySchema),
   })
-  .passthrough();
+  .loose();
 export type WishlistResponse = z.infer<typeof wishlistResponseSchema>;
 
 const wishlistToggleResponseSchema = z
@@ -23,14 +23,14 @@ const wishlistToggleResponseSchema = z
     changed: z.boolean(),
     inWishlist: z.boolean(),
   })
-  .passthrough();
+  .loose();
 export type WishlistToggleResponse = z.infer<typeof wishlistToggleResponseSchema>;
 
 const wishlistClearResponseSchema = z
   .object({
     removed: z.number(),
   })
-  .passthrough();
+  .loose();
 
 export const getWishlist = () => api.get("/users/me/wishlist", wishlistResponseSchema);
 

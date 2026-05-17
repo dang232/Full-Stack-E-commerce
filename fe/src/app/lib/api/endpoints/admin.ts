@@ -11,7 +11,7 @@ const sellerSummarySchema = z
     status: z.string(),
     appliedAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const adminListSellers = () => api.get("/admin/sellers", z.array(sellerSummarySchema));
 export const adminApproveSeller = (id: string) =>
@@ -35,7 +35,7 @@ const couponSchema = z
     endsAt: z.string().optional(),
     active: z.boolean().optional(),
   })
-  .passthrough();
+  .loose();
 
 export interface CouponWriteBody {
   code: string;
@@ -64,7 +64,7 @@ const disputeSchema = z
     description: z.string().optional(),
     createdAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export const adminOpenDisputes = () => api.get("/admin/disputes/open", z.array(disputeSchema));
 export const adminResolveDispute = (
   id: string,
@@ -79,7 +79,7 @@ const adminPayoutSchema = z
     status: z.string(),
     requestedAt: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 export const adminPendingPayouts = () =>
   api.get("/admin/finance/payouts/pending", z.array(adminPayoutSchema));
 export const adminCompletePayout = (id: string) =>
@@ -104,7 +104,7 @@ const dashboardSummarySchema = z
     totalSellers: z.number().optional(),
     sellers: z.number().optional(),
   })
-  .passthrough()
+  .loose()
   .transform((s) => ({
     totalRevenue: s.totalRevenue ?? s.revenue ?? s.total ?? null,
     totalUsers: s.totalUsers ?? s.users ?? null,
@@ -118,7 +118,7 @@ export const dashboardRevenue = (
 ) =>
   api.get(
     "/admin/dashboard/revenue",
-    z.array(z.object({ date: z.string(), amount: z.number() }).passthrough()),
+    z.array(z.object({ date: z.string(), amount: z.number() }).loose()),
     params,
   );
 export const dashboardTopProducts = (params: { limit?: number } = {}) =>
@@ -127,7 +127,7 @@ export const dashboardTopProducts = (params: { limit?: number } = {}) =>
     z.array(
       z
         .object({ productId: z.string(), name: z.string().optional(), revenue: z.number() })
-        .passthrough(),
+        .loose(),
     ),
     { limit: params.limit ?? 10 },
   );
@@ -137,7 +137,7 @@ export const dashboardTopSellers = (params: { limit?: number } = {}) =>
     z.array(
       z
         .object({ sellerId: z.string(), shopName: z.string().optional(), revenue: z.number() })
-        .passthrough(),
+        .loose(),
     ),
     { limit: params.limit ?? 10 },
   );

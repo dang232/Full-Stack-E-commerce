@@ -13,7 +13,7 @@ const sellerRevenuePointSchema = z
     revenue: z.number(),
     orderCount: z.number(),
   })
-  .passthrough();
+  .loose();
 export type SellerRevenuePoint = z.infer<typeof sellerRevenuePointSchema>;
 
 export interface SellerRevenueParams {

@@ -52,13 +52,13 @@ export const sellerProductImageUploadUrl = (
 ) =>
   api.post(
     `/sellers/me/products/${encodeURIComponent(productId)}/images/upload-url`,
-    z.object({ uploadUrl: z.string(), key: z.string().optional() }).passthrough(),
+    z.object({ uploadUrl: z.string(), key: z.string().optional() }).loose(),
     body,
   );
 
 export const sellerProductImageActivate = (productId: string, body: { key: string }) =>
   api.post(
     `/sellers/me/products/${encodeURIComponent(productId)}/images/activate`,
-    z.object({ url: z.string() }).passthrough(),
+    z.object({ url: z.string() }).loose(),
     body,
   );
