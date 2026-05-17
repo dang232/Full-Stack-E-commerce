@@ -30,7 +30,7 @@ import {
   removeAddress,
 } from "../lib/api/endpoints/users";
 import { ApiError } from "../lib/api/envelope";
-import type { Address } from "../types/api";
+import type { Address, UserProfile } from "../types/api";
 
 type ProfileTab = "info" | "addresses" | "payment" | "security";
 
@@ -124,9 +124,13 @@ export function ProfilePage() {
 
   const addAddressMutation = useMutation({
     mutationFn: (body: Address) => addAddress(body),
-    onSuccess: (list) => {
-      qc.setQueryData(["users", "me"], (prev: typeof profile) =>
-        prev ? { ...prev, addresses: list } : prev,
+    onSuccess: (next) => {
+      // The address endpoints return the full up-to-date profile, so we use it
+      // as-is. Falling back to a `prev ? merge : prev` pattern would silently
+      // drop the response when the cache is empty (first address, cache miss,
+      // or a mid-flight invalidation).
+      qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
+        prev ? { ...prev, addresses: next.addresses ?? [] } : next,
       );
       toast.success("Đã thêm địa chỉ");
       setShowAddForm(false);
@@ -137,9 +141,9 @@ export function ProfilePage() {
 
   const setDefaultMutation = useMutation({
     mutationFn: (index: number) => setDefaultAddress(index),
-    onSuccess: (list) => {
-      qc.setQueryData(["users", "me"], (prev: typeof profile) =>
-        prev ? { ...prev, addresses: list } : prev,
+    onSuccess: (next) => {
+      qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
+        prev ? { ...prev, addresses: next.addresses ?? [] } : next,
       );
       toast.success("Đã đặt làm địa chỉ mặc định");
     },
@@ -149,9 +153,9 @@ export function ProfilePage() {
 
   const removeAddressMutation = useMutation({
     mutationFn: (index: number) => removeAddress(index),
-    onSuccess: (list) => {
-      qc.setQueryData(["users", "me"], (prev: typeof profile) =>
-        prev ? { ...prev, addresses: list } : prev,
+    onSuccess: (next) => {
+      qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
+        prev ? { ...prev, addresses: next.addresses ?? [] } : next,
       );
       toast.success("Đã xoá địa chỉ");
     },
