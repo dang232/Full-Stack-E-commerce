@@ -77,13 +77,13 @@ export function PaymentReturnPage() {
         }
         // Not terminal yet: backoff and retry up to ~30 attempts (~60s).
         bumpAttempts();
-        timeout = setTimeout(poll, attemptsRef.current < 5 ? 1000 : 2000);
+        timeout = setTimeout(() => void poll(), attemptsRef.current < 5 ? 1000 : 2000);
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError) {
           if (err.status >= 500 && attemptsRef.current < 10) {
             bumpAttempts();
-            timeout = setTimeout(poll, 2000);
+            timeout = setTimeout(() => void poll(), 2000);
             return;
           }
           setPhase("error");

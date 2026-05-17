@@ -468,6 +468,7 @@ function ShipDialogBody({
             onChange={(e) => setTrackingNumber(e.target.value)}
             placeholder="VD: GHN1234567890"
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- inside a modal opened by explicit user click; focusing the first input is expected UX
             autoFocus
           />
         </div>

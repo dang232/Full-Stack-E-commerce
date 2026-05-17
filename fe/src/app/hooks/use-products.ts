@@ -14,7 +14,10 @@ function pct(originalPrice: number | undefined, price: number | undefined): numb
  * Detail-only fields collapse to their defaults when called with a summary.
  */
 function fromServer(p: ProductSummary | ProductDetail): Product {
-  const detail = p as ProductDetail;
+  // Optional ProductDetail-only fields. Reading them off the union directly
+  // keeps the types honest (TypeScript narrows them to `... | undefined`)
+  // without an unsafe cast.
+  const detail = p as Partial<ProductDetail>;
   return {
     id: p.id,
     name: p.name,

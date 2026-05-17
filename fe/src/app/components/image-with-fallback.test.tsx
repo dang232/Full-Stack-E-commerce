@@ -6,7 +6,7 @@ import { ImageWithFallback } from "./image-with-fallback";
 describe("ImageWithFallback", () => {
   it("renders the image when src is provided", () => {
     render(<ImageWithFallback src="https://cdn/x.jpg" alt="Product" className="w-10 h-10" />);
-    const img = screen.getByAltText("Product") as HTMLImageElement;
+    const img = screen.getByAltText<HTMLImageElement>("Product");
     expect(img.tagName).toBe("IMG");
     expect(img.src).toBe("https://cdn/x.jpg");
     expect(img.loading).toBe("lazy");
@@ -29,7 +29,7 @@ describe("ImageWithFallback", () => {
     const img = screen.getByAltText("Product");
     fireEvent.error(img);
     // Still in image mode but using the fallback URL.
-    const after = screen.getByAltText("Product") as HTMLImageElement;
+    const after = screen.getByAltText<HTMLImageElement>("Product");
     expect(after.src).toBe("https://cdn/fallback.jpg");
 
     fireEvent.error(after);
