@@ -18,6 +18,7 @@ import type { Product } from "../types/ui";
 function ProductListItem({ product }: { product: Product }) {
   const navigate = useNavigate();
   const { addToCart, toggleWishlist, isWishlisted } = useVNShop();
+  const { t } = useTranslation();
   const loved = isWishlisted(product.id);
   return (
     <div
@@ -79,7 +80,7 @@ function ProductListItem({ product }: { product: Product }) {
               className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
               style={{ background: "rgba(0,191,179,0.1)", color: "#00BFB3" }}
             >
-              <Truck size={10} /> Miễn phí ship
+              <Truck size={10} /> {t("search.freeShippingTag")}
             </span>
           ) : null}
           {product.colors?.slice(0, 3).map((c) => (
@@ -572,7 +573,7 @@ export function SearchPage() {
                     style={{ transform: freeShipOnly ? "translateX(20px)" : "none" }}
                   />
                 </div>
-                <span className="text-gray-700">Miễn phí vận chuyển</span>
+                <span className="text-gray-700">{t("search.freeShipping")}</span>
               </button>
             </div>
 

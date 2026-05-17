@@ -30,7 +30,7 @@ import type { Product } from "../types/ui";
 function SectionHeader({
   title,
   subtitle,
-  ctaLabel = "Xem tất cả",
+  ctaLabel,
   ctaPath,
   accent = "teal",
 }: {
@@ -41,7 +41,9 @@ function SectionHeader({
   accent?: "teal" | "orange";
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const color = accent === "teal" ? "#00BFB3" : "#FF6200";
+  const cta = ctaLabel ?? t("home.viewAll");
   return (
     <div className="flex items-end justify-between mb-6">
       <div>
@@ -59,7 +61,7 @@ function SectionHeader({
           className="group flex items-center gap-1.5 text-sm font-semibold transition-all shrink-0 px-3 py-1.5 rounded-full hover:bg-gray-50"
           style={{ color }}
         >
-          {ctaLabel}{" "}
+          {cta}{" "}
           <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
       ) : null}
@@ -213,12 +215,55 @@ function ComingSoonCard({
 
 function HeroSection() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { isLoggedIn } = useVNShop();
   return (
-    <ComingSoonCard
-      icon={<Sparkles size={20} />}
-      title={t("home.bestsellers")}
-      description={t("home.comingSoon.hero")}
-    />
+    <div
+      className="relative overflow-hidden rounded-3xl text-white shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)]"
+      style={{ background: "linear-gradient(135deg, #006B65 0%, #009990 50%, #00BFB3 100%)" }}
+    >
+      <div
+        className="absolute -right-24 -top-24 w-72 h-72 rounded-full opacity-20"
+        style={{ background: "rgba(255,255,255,0.5)", filter: "blur(80px)" }}
+      />
+      <div
+        className="absolute -left-24 -bottom-24 w-72 h-72 rounded-full opacity-15"
+        style={{ background: "#FF6200", filter: "blur(80px)" }}
+      />
+      <div className="relative z-10 px-8 md:px-12 py-12 md:py-16 max-w-2xl">
+        <span
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-6 tracking-wide bg-white/15 border border-white/25 backdrop-blur-sm"
+        >
+          <Sparkles size={14} /> {t("home.hero.eyebrow")}
+        </span>
+        <h1
+          className="text-3xl md:text-5xl font-black leading-tight tracking-tight mb-4"
+          style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+        >
+          {t("home.hero.title")}
+        </h1>
+        <p className="text-white/80 text-base md:text-lg mb-8 max-w-md font-light">
+          {t("home.hero.subtitle")}
+        </p>
+        <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={() => navigate("/search")}
+            className="px-6 py-3 rounded-2xl font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center gap-2"
+            style={{ background: "linear-gradient(135deg, #FF6200 0%, #FF8C00 100%)" }}
+          >
+            {t("home.hero.ctaShop")} <ChevronRight size={16} />
+          </button>
+          {!isLoggedIn ? (
+            <button
+              onClick={() => navigate("/login")}
+              className="px-6 py-3 rounded-2xl font-semibold text-sm border border-white/40 hover:bg-white/10 transition-all"
+            >
+              {t("home.hero.ctaSignIn")}
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -486,17 +531,18 @@ function CategoriesSection() {
 
 // ─── Trust Bar ────────────────────────────────────────────────────────────────
 function TrustBar() {
+  const { t } = useTranslation();
   const items = [
-    { icon: Truck, text: "Miễn phí vận chuyển", sub: "Đơn từ 150.000đ", color: "#00BFB3" },
-    { icon: Shield, text: "Hàng chính hãng 100%", sub: "Cam kết hoàn tiền", color: "#3B82F6" },
-    { icon: RefreshCw, text: "Đổi trả 30 ngày", sub: "Không cần lý do", color: "#10B981" },
-    { icon: Headphones, text: "Hỗ trợ 24/7", sub: "1800 6789 miễn phí", color: "#F59E0B" },
+    { icon: Truck, textKey: "trust.freeShipping", subKey: "trust.freeShippingSub", color: "#00BFB3" },
+    { icon: Shield, textKey: "trust.authentic", subKey: "trust.authenticSub", color: "#3B82F6" },
+    { icon: RefreshCw, textKey: "trust.returns", subKey: "trust.returnsSub", color: "#10B981" },
+    { icon: Headphones, textKey: "trust.support247", subKey: "trust.support247Sub", color: "#F59E0B" },
   ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100">
       {items.map((item) => (
         <div
-          key={item.text}
+          key={item.textKey}
           className="flex items-center gap-3.5 p-5 bg-white hover:bg-gray-50/50 transition-colors"
         >
           <div
@@ -506,8 +552,8 @@ function TrustBar() {
             <item.icon size={20} style={{ color: item.color }} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900 leading-tight">{item.text}</p>
-            <p className="text-xs text-gray-500 mt-1">{item.sub}</p>
+            <p className="text-sm font-semibold text-gray-900 leading-tight">{t(item.textKey)}</p>
+            <p className="text-xs text-gray-500 mt-1">{t(item.subKey)}</p>
           </div>
         </div>
       ))}
@@ -558,14 +604,15 @@ function TrendingBar() {
 // ─── Products Section ─────────────────────────────────────────────────────────
 function ProductsSection() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("all");
   const { data: catalog = [] as Product[] } = useProducts();
   const tabs = [
-    { id: "all", label: "Tất cả", emoji: "✨" },
-    { id: "electronics", label: "Điện Tử", emoji: "📱" },
-    { id: "fashion", label: "Thời Trang", emoji: "👗" },
-    { id: "beauty", label: "Làm Đẹp", emoji: "💄" },
-    { id: "sports", label: "Thể Thao", emoji: "⚽" },
+    { id: "all", labelKey: "home.tabs.all", emoji: "✨" },
+    { id: "electronics", labelKey: "home.tabs.electronics", emoji: "📱" },
+    { id: "fashion", labelKey: "home.tabs.fashion", emoji: "👗" },
+    { id: "beauty", labelKey: "home.tabs.beauty", emoji: "💄" },
+    { id: "sports", labelKey: "home.tabs.sports", emoji: "⚽" },
   ];
   const filtered = useMemo(
     () => (activeTab === "all" ? catalog : catalog.filter((p) => p.category === activeTab)),
@@ -582,23 +629,23 @@ function ProductsSection() {
               className="text-xs font-bold uppercase tracking-widest"
               style={{ color: "#00BFB3" }}
             >
-              Dành riêng cho bạn
+              {t("home.forYou")}
             </span>
           </div>
           <h2
             className="text-2xl md:text-[26px] font-bold tracking-tight text-gray-900 leading-tight"
             style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
           >
-            Gợi Ý Cho Bạn
+            {t("home.suggestions")}
           </h2>
-          <p className="text-sm text-gray-500 mt-1.5">Được cá nhân hóa dựa trên sở thích mua sắm</p>
+          <p className="text-sm text-gray-500 mt-1.5">{t("home.suggestionsSubtitle")}</p>
         </div>
         <button
           onClick={() => navigate("/search")}
           className="group flex items-center gap-1.5 text-sm font-semibold transition-all px-3 py-1.5 rounded-full hover:bg-gray-50"
           style={{ color: "#00BFB3" }}
         >
-          Xem tất cả{" "}
+          {t("home.viewAll")}{" "}
           <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
@@ -620,7 +667,7 @@ function ProductsSection() {
                 : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
             }
           >
-            <span>{tab.emoji}</span> {tab.label}
+            <span>{tab.emoji}</span> {t(tab.labelKey)}
           </button>
         ))}
       </div>
@@ -645,7 +692,7 @@ function ProductsSection() {
             e.currentTarget.style.background = "transparent";
           }}
         >
-          Xem thêm sản phẩm →
+          {t("home.viewMore")} →
         </button>
       </div>
     </section>
@@ -655,11 +702,12 @@ function ProductsSection() {
 // ─── Bestsellers Sidebar ──────────────────────────────────────────────────────
 function Bestsellers() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data: catalog = [] as Product[] } = useProducts();
   const items = useMemo(() => [...catalog].sort((a, b) => b.sold - a.sold).slice(0, 5), [catalog]);
   return (
     <section>
-      <SectionHeader title="Bán Chạy Nhất" accent="orange" />
+      <SectionHeader title={t("home.bestsellers")} accent="orange" />
       <div className="space-y-2.5">
         {items.map((p, i) => (
           <motion.div
@@ -712,6 +760,7 @@ function Bestsellers() {
 
 // ─── App Download Banner ──────────────────────────────────────────────────────
 function AppBanner() {
+  const { t } = useTranslation();
   return (
     <div
       className="rounded-2xl overflow-hidden relative"
@@ -734,24 +783,22 @@ function AppBanner() {
             className="font-black text-white text-lg mb-0.5"
             style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
           >
-            Tải App VNShop
+            {t("home.downloadApp")}
           </h3>
-          <p className="text-white/75 text-sm">
-            Nhận thêm ưu đãi độc quyền — Voucher 100k cho lần mua đầu qua app
-          </p>
+          <p className="text-white/75 text-sm">{t("home.downloadAppSub")}</p>
         </div>
         <div className="flex gap-2.5 shrink-0">
           <button
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
             style={{ color: "#009990" }}
           >
-            <span>🍎</span> App Store
+            <span>🍎</span> {t("home.appStore")}
           </button>
           <button
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
             style={{ color: "#009990" }}
           >
-            <span>🤖</span> Google Play
+            <span>🤖</span> {t("home.googlePlay")}
           </button>
         </div>
       </div>
@@ -762,6 +809,7 @@ function AppBanner() {
 // ─── User Sidebar Widget ──────────────────────────────────────────────────────
 function UserWidget() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, isLoggedIn, cartCount, wishlist } = useVNShop();
   return (
     <div className="space-y-4">
@@ -783,10 +831,10 @@ function UserWidget() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Giỏ hàng", value: cartCount, color: "#00BFB3", path: "/cart" },
-                { label: "Yêu thích", value: wishlist.length, color: "#FF6200", path: "/wishlist" },
-                { label: "Đơn hàng", value: "—", color: "#3B82F6", path: "/orders" },
-                { label: "Voucher", value: "—", color: "#10B981", path: "/profile" },
+                { label: t("home.userStats.cart"), value: cartCount, color: "#00BFB3", path: "/cart" },
+                { label: t("home.userStats.wishlist"), value: wishlist.length, color: "#FF6200", path: "/wishlist" },
+                { label: t("home.userStats.orders"), value: "—", color: "#3B82F6", path: "/orders" },
+                { label: t("home.userStats.vouchers"), value: "—", color: "#10B981", path: "/profile" },
               ].map((item) => (
                 <button
                   key={item.label}
@@ -810,22 +858,22 @@ function UserWidget() {
             >
               <span className="text-3xl">👋</span>
             </div>
-            <p className="font-semibold text-gray-800 mb-1">Chào bạn!</p>
-            <p className="text-xs text-gray-500 mb-4">Đăng nhập để nhận ưu đãi cá nhân</p>
+            <p className="font-semibold text-gray-800 mb-1">{t("home.greetingTitle")}</p>
+            <p className="text-xs text-gray-500 mb-4">{t("home.greetingSubtitle")}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => navigate("/login")}
                 className="flex-1 py-2 rounded-xl text-sm font-semibold text-white"
                 style={{ background: "#00BFB3" }}
               >
-                Đăng nhập
+                {t("home.signIn")}
               </button>
               <button
                 onClick={() => navigate("/login")}
                 className="flex-1 py-2 rounded-xl text-sm font-semibold border"
                 style={{ color: "#00BFB3", borderColor: "#00BFB3" }}
               >
-                Đăng ký
+                {t("home.signUp")}
               </button>
             </div>
           </div>
@@ -843,13 +891,13 @@ function UserWidget() {
         />
         <div className="flex items-center gap-2 mb-2">
           <Gift size={16} className="text-white" />
-          <p className="font-bold text-sm">Voucher hôm nay</p>
+          <p className="font-bold text-sm">{t("home.voucherToday")}</p>
         </div>
-        <p className="text-white/70 text-xs mb-3">Giảm 50k cho đơn từ 299k</p>
+        <p className="text-white/70 text-xs mb-3">{t("home.voucherSub")}</p>
         <div className="bg-white/20 rounded-xl px-3 py-2 text-center border border-white/20">
           <span className="font-black text-xl tracking-[0.2em]">VNSHOP50</span>
         </div>
-        <p className="text-white/50 text-xs mt-2 text-center">Nhấn để sao chép</p>
+        <p className="text-white/50 text-xs mt-2 text-center">{t("home.copyHint")}</p>
       </div>
 
       {/* Mini bestsellers */}

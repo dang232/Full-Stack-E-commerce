@@ -225,6 +225,29 @@
     "products": "Sản phẩm",
     "response": "Phản hồi",
     "salesCount": "Đã bán",
+    "viewMore": "Xem thêm sản phẩm",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "tabs": {
+      "all": "Tất cả",
+      "electronics": "Điện Tử",
+      "fashion": "Thời Trang",
+      "beauty": "Làm Đẹp",
+      "sports": "Thể Thao"
+    },
+    "userStats": {
+      "cart": "Giỏ hàng",
+      "wishlist": "Yêu thích",
+      "orders": "Đơn hàng",
+      "vouchers": "Voucher"
+    },
+    "hero": {
+      "eyebrow": "Chào mừng đến VNShop",
+      "title": "Mua hàng chính hãng. Giao nhanh. Sống dễ.",
+      "subtitle": "Sàn đa người bán với shop được xác minh, giao hàng nhanh, đổi trả 30 ngày.",
+      "ctaShop": "Khám phá sản phẩm",
+      "ctaSignIn": "Đăng nhập để nhận ưu đãi"
+    },
     "comingSoon": {
       "hero": "Các chiến dịch nổi bật sẽ sớm xuất hiện ở đây.",
       "promo": "Khuyến mãi sẽ hiển thị tại đây khi được phát hành.",

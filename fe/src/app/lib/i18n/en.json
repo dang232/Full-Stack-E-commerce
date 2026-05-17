@@ -225,6 +225,29 @@
     "products": "Products",
     "response": "Response",
     "salesCount": "Sold",
+    "viewMore": "View more products",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "tabs": {
+      "all": "All",
+      "electronics": "Electronics",
+      "fashion": "Fashion",
+      "beauty": "Beauty",
+      "sports": "Sports"
+    },
+    "userStats": {
+      "cart": "Cart",
+      "wishlist": "Wishlist",
+      "orders": "Orders",
+      "vouchers": "Vouchers"
+    },
+    "hero": {
+      "eyebrow": "Welcome to VNShop",
+      "title": "Shop authentic. Ship fast. Live easy.",
+      "subtitle": "Multi-seller marketplace with verified sellers, fast delivery, and a 30-day return policy.",
+      "ctaShop": "Browse catalog",
+      "ctaSignIn": "Sign in for personalised deals"
+    },
     "comingSoon": {
       "hero": "Featured campaigns are on the way.",
       "promo": "Promotions will appear here once published.",
