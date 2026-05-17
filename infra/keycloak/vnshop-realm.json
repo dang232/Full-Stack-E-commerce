@@ -247,8 +247,39 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "vnshop-admin-api",
+      "name": "VNShop Admin API",
+      "description": "Confidential service-account client used by user-service to call the Keycloak Admin API (create users on self-registration). Local-dev secret committed; production should rotate via kcadm post-import.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "vnshop-admin-api-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "frontchannelLogout": false,
+      "fullScopeAllowed": false,
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"],
+      "optionalClientScopes": ["address", "phone", "offline_access"],
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false"
+      }
     }
   ],
+  "clientScopeMappings": {
+    "realm-management": [
+      {
+        "client": "vnshop-admin-api",
+        "roles": ["manage-users", "view-users", "query-users"]
+      }
+    ]
+  },
   "users": [
     {
       "username": "buyer1",
