@@ -15,3 +15,7 @@
 /fe/*.tsbuildinfo
 /fe/**/*.tsbuildinfo
 .claude/settings.local.json
+/services/*/coverage
+/services/*/target
+**/.idea
+**/*.tsbuildinfo
