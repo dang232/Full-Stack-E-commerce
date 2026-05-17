@@ -83,18 +83,11 @@ public class GhtkCarrierGateway implements CarrierGatewayAdapter {
     }
 
     private Map<String, String> headers() {
-        return Map.of("Token", require(properties.token(), "GHTK token"));
+        return Map.of("Token", CarrierConfig.require(properties.token(), "GHTK token"));
     }
 
     private String url(String path) {
-        return require(properties.baseUrl(), "GHTK baseUrl") + path;
-    }
-
-    private static String require(String value, String name) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalStateException(name + " is required for live carrier mode");
-        }
-        return value;
+        return CarrierConfig.require(properties.baseUrl(), "GHTK baseUrl") + path;
     }
 
     record GhtkFeeRequest(String pickProvince, String pickDistrict, String province, String district,

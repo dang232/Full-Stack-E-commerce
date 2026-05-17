@@ -88,25 +88,18 @@ public class GhnCarrierGateway implements CarrierGatewayAdapter {
 
     private Map<String, String> headers() {
         return Map.of(
-                "Token", require(properties.token(), "GHN token"),
-                "ShopId", require(properties.shopId(), "GHN shopId")
+                "Token", CarrierConfig.require(properties.token(), "GHN token"),
+                "ShopId", CarrierConfig.require(properties.shopId(), "GHN shopId")
         );
     }
 
     private String url(String path) {
-        return require(properties.baseUrl(), "GHN baseUrl") + path;
-    }
-
-    private static String require(String value, String name) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalStateException(name + " is required for live carrier mode");
-        }
-        return value;
+        return CarrierConfig.require(properties.baseUrl(), "GHN baseUrl") + path;
     }
 
     private static int parseInt(String value, String name) {
         try {
-            return Integer.parseInt(require(value, name));
+            return Integer.parseInt(CarrierConfig.require(value, name));
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException(name + " must be numeric", exception);
         }
