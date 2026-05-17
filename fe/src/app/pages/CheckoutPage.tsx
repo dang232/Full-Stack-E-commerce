@@ -366,7 +366,8 @@ export function CheckoutPage() {
 
       setStep("success");
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : t("checkout.payment.placeOrderFailed");
+      const message =
+        err instanceof ApiError ? err.message : t("checkout.payment.placeOrderFailed");
       toast.error(message, {
         description:
           err instanceof ApiError && err.correlationId
@@ -631,7 +632,8 @@ export function CheckoutPage() {
                           <div>
                             <p className="font-semibold text-sm text-gray-800">{method.name}</p>
                             <p className="text-xs text-gray-500">
-                              {method.desc} · {t("checkout.shipping.etaPrefix", { eta: method.eta })}
+                              {method.desc} ·{" "}
+                              {t("checkout.shipping.etaPrefix", { eta: method.eta })}
                             </p>
                           </div>
                         </div>
@@ -640,7 +642,9 @@ export function CheckoutPage() {
                             className="font-bold text-sm"
                             style={{ color: method.fee === 0 ? "#00BFB3" : "#374151" }}
                           >
-                            {method.fee === 0 ? t("checkout.shipping.free") : formatPrice(method.fee)}
+                            {method.fee === 0
+                              ? t("checkout.shipping.free")
+                              : formatPrice(method.fee)}
                           </p>
                         </div>
                       </div>

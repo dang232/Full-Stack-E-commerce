@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  messageSchema,
-  messageThreadSummarySchema,
-} from "./messaging";
+import { messageSchema, messageThreadSummarySchema } from "./messaging";
 
 /**
  * Regression coverage for the messaging service Zod envelopes. The BE wire

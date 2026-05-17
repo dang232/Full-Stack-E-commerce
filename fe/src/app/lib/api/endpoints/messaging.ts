@@ -18,9 +18,7 @@ export const messageThreadSummarySchema = z
   .passthrough();
 export type MessageThreadSummary = z.infer<typeof messageThreadSummarySchema>;
 
-const threadListSchema = z
-  .object({ content: z.array(messageThreadSummarySchema) })
-  .passthrough();
+const threadListSchema = z.object({ content: z.array(messageThreadSummarySchema) }).passthrough();
 
 export const messageSchema = z
   .object({

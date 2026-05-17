@@ -575,9 +575,7 @@ function CouponDialogBody({
             className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
             style={{ background: "#6366F1" }}
           >
-            {isSubmitting
-              ? t("admin.coupons.dialog.submitting")
-              : t("admin.coupons.dialog.submit")}
+            {isSubmitting ? t("admin.coupons.dialog.submitting") : t("admin.coupons.dialog.submit")}
           </button>
         </>
       }

@@ -16,7 +16,10 @@ const YMAL_DEFAULT_LIMIT = 8;
  * error state, so a missing recommender feels like "no suggestions yet"
  * rather than a broken page.
  */
-export function useFrequentlyBoughtTogether(productId: string | undefined, limit = FBT_DEFAULT_LIMIT) {
+export function useFrequentlyBoughtTogether(
+  productId: string | undefined,
+  limit = FBT_DEFAULT_LIMIT,
+) {
   return useQuery<RecommendationItem[]>({
     queryKey: ["recommendations", "fbt", productId, limit],
     queryFn: () => frequentlyBoughtTogether(productId ?? "", limit),

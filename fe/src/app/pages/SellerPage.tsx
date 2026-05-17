@@ -420,7 +420,11 @@ function ShipDialogBody({
       onClose={onClose}
       dismissDisabled={isSubmitting}
       title={t("seller.shipDialog.title")}
-      subtitle={<span className="font-mono">{t("seller.shipDialog.subOrderLabel", { id: subOrderId })}</span>}
+      subtitle={
+        <span className="font-mono">
+          {t("seller.shipDialog.subOrderLabel", { id: subOrderId })}
+        </span>
+      }
       footer={
         <>
           <button
@@ -539,7 +543,8 @@ function OrdersManagement({
       toast.success(t("seller.orders.shipOk"));
       setShipFor(null);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("seller.orders.shipErr")),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("seller.orders.shipErr")),
   });
 
   return (
@@ -669,7 +674,8 @@ function WalletTab({
       toast.success(t("seller.wallet.payoutOk"));
       setShowPayoutDialog(false);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("seller.wallet.payoutErr")),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("seller.wallet.payoutErr")),
   });
 
   return (
@@ -722,11 +728,7 @@ function WalletTab({
       >
         <p className="text-white/70 text-sm mb-2">{t("seller.wallet.balanceLabel")}</p>
         <p className="text-4xl font-black mb-4">
-          {balance !== null
-            ? formatPrice(balance)
-            : isLoading
-              ? t("seller.wallet.loading")
-              : "—"}
+          {balance !== null ? formatPrice(balance) : isLoading ? t("seller.wallet.loading") : "—"}
         </p>
         <div className="flex gap-3">
           <button

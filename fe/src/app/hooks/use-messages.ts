@@ -74,9 +74,7 @@ export function useSendMessage(threadId: string | undefined) {
         if (!prev) return { content: [saved], nextCursor: null, hasMore: false };
         return {
           ...prev,
-          content: prev.content.map((m) =>
-            m.id === context.placeholderId ? saved : m,
-          ),
+          content: prev.content.map((m) => (m.id === context.placeholderId ? saved : m)),
         };
       });
       void qc.invalidateQueries({ queryKey: THREADS_KEY });

@@ -21,7 +21,8 @@ function useRelativeTime() {
     if (diff < 60_000) return t("messaging.relative.justNow");
     if (diff < 3_600_000)
       return t("messaging.relative.minutesAgo", { m: Math.floor(diff / 60_000) });
-    if (diff < 86_400_000) return t("messaging.relative.hoursAgo", { h: Math.floor(diff / 3_600_000) });
+    if (diff < 86_400_000)
+      return t("messaging.relative.hoursAgo", { h: Math.floor(diff / 3_600_000) });
     return new Date(iso).toLocaleDateString(i18n.resolvedLanguage === "en" ? "en-US" : "vi-VN");
   };
 }
@@ -335,10 +336,7 @@ export function MessagesPage() {
     <div className="max-w-7xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold text-gray-800">{t("messaging.pageTitle")}</h1>
-        <button
-          onClick={() => navigate(-1)}
-          className="text-xs text-gray-500 hover:text-gray-700"
-        >
+        <button onClick={() => navigate(-1)} className="text-xs text-gray-500 hover:text-gray-700">
           {t("messaging.back")}
         </button>
       </div>

@@ -25,10 +25,7 @@ import { useVNShop } from "../components/vnshop-context";
 import { products, reviews as reviewsMock, sellers } from "../components/vnshop-data";
 import { useAuth } from "../hooks/use-auth";
 import { useProduct } from "../hooks/use-products";
-import {
-  useFrequentlyBoughtTogether,
-  useYouMayAlsoLike,
-} from "../hooks/use-recommendations";
+import { useFrequentlyBoughtTogether, useYouMayAlsoLike } from "../hooks/use-recommendations";
 import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions";
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { reviewsByProduct, createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
@@ -109,7 +106,8 @@ export function ProductPage() {
   const voteHelpful = useMutation({
     mutationFn: (reviewId: string) => voteReviewHelpful(reviewId),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["reviews", "product", id] }),
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("product.reviews.voteErr")),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("product.reviews.voteErr")),
   });
 
   const submitQuestion = useMutation({
@@ -119,7 +117,8 @@ export function ProductPage() {
       toast.success(t("product.qa.submitOk"));
       setQuestionDraft("");
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("product.qa.submitErr")),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("product.qa.submitErr")),
   });
 
   const [reviewDraft, setReviewDraft] = useState({ rating: 5, comment: "" });
@@ -286,7 +285,9 @@ export function ProductPage() {
                 {t("product.reviewsCount", { count: product.reviewCount })}
               </button>
               <span className="text-gray-300">·</span>
-              <span className="text-sm text-gray-500">{t("product.soldCount", { count: product.sold })}</span>
+              <span className="text-sm text-gray-500">
+                {t("product.soldCount", { count: product.sold })}
+              </span>
             </div>
           </div>
 
@@ -762,7 +763,9 @@ export function ProductPage() {
             <div className="space-y-5">
               {authenticated ? (
                 <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">{t("product.qa.askTitle")}</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    {t("product.qa.askTitle")}
+                  </p>
                   <textarea
                     value={questionDraft}
                     onChange={(e) => setQuestionDraft(e.target.value)}
@@ -776,9 +779,7 @@ export function ProductPage() {
                     className="mt-3 px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
                     style={{ background: "#00BFB3" }}
                   >
-                    {submitQuestion.isPending
-                      ? t("product.qa.submitting")
-                      : t("product.qa.submit")}
+                    {submitQuestion.isPending ? t("product.qa.submitting") : t("product.qa.submit")}
                   </button>
                 </div>
               ) : (

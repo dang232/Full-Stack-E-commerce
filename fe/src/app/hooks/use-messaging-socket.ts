@@ -1,11 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
-import {
-  messageSchema,
-  type ChatMessage,
-  type MessagesPage,
-} from "../lib/api/endpoints/messaging";
+import { messageSchema, type ChatMessage, type MessagesPage } from "../lib/api/endpoints/messaging";
 
 import { useAuth } from "./use-auth";
 import { messagesKey } from "./use-messages";
@@ -13,10 +9,13 @@ import { THREADS_KEY } from "./use-threads";
 
 interface ServerEnvelope {
   type?: string;
-  payload?: { threadId?: string; senderId?: string; messageId?: string; body?: string; sentAt?: string } & Record<
-    string,
-    unknown
-  >;
+  payload?: {
+    threadId?: string;
+    senderId?: string;
+    messageId?: string;
+    body?: string;
+    sentAt?: string;
+  } & Record<string, unknown>;
 }
 
 const BASE_WS_URL = (() => {
@@ -125,7 +124,8 @@ function appendIfNew(qc: ReturnType<typeof useQueryClient>, message: ChatMessage
     const filtered = base.content.filter((m) => {
       if (!m.id.startsWith("pending-")) return true;
       if (m.body !== message.body) return true;
-      const sameBucket = Math.abs(new Date(m.sentAt).getTime() - new Date(message.sentAt).getTime()) < 30_000;
+      const sameBucket =
+        Math.abs(new Date(m.sentAt).getTime() - new Date(message.sentAt).getTime()) < 30_000;
       return !sameBucket;
     });
     return { ...base, content: [message, ...filtered] };
