@@ -20,16 +20,11 @@ import { useNavigate } from "react-router";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
-import {
-  products,
-  categories,
-  sellers,
-  flashSaleProducts,
-  flashSaleEnd,
-  type Product,
-} from "../components/vnshop-data";
+import { products, categories, sellers, type Product } from "../components/vnshop-data";
 import { useCountdown } from "../hooks/use-countdown";
+import { useFlashSaleCampaigns } from "../hooks/use-flash-sale";
 import { useProducts } from "../hooks/use-products";
+import type { ActiveFlashSaleCampaign } from "../lib/api/endpoints/flash-sale";
 import { formatPrice } from "../lib/format";
 
 // ─── Section Header ────────────────────────────────────────────────────────────
@@ -438,14 +433,30 @@ function PromoStrip() {
 }
 
 // ─── Flash Sale ────────────────────────────────────────────────────────────────
+function pctOff(originalPrice: number, salePrice: number): number {
+  if (originalPrice <= 0 || salePrice >= originalPrice) return 0;
+  return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
+}
+
 function FlashSaleSection() {
-  const { h, m, s, isExpired } = useCountdown(flashSaleEnd.getTime());
+  const { campaigns, isLoading } = useFlashSaleCampaigns();
   const navigate = useNavigate();
-  if (isExpired) return null;
+
+  // Drive the countdown off the earliest active campaign so the chrome
+  // disappears as soon as the first sale ends.
+  const earliestEnd = useMemo(() => {
+    if (campaigns.length === 0) return null;
+    const ms = campaigns
+      .map((c) => Date.parse(c.endsAt))
+      .filter((n) => Number.isFinite(n));
+    return ms.length > 0 ? Math.min(...ms) : null;
+  }, [campaigns]);
+
+  const { h, m, s, isExpired } = useCountdown(earliestEnd ?? Date.now());
+  const hasCampaigns = campaigns.length > 0 && !isExpired;
 
   return (
     <section>
-      {/* Header */}
       <div
         className="rounded-2xl overflow-hidden"
         style={{ background: "linear-gradient(135deg, #7f0000 0%, #cc0000 35%, #FF6200 100%)" }}
@@ -469,91 +480,133 @@ function FlashSaleSection() {
                 <p className="text-white/60 text-xs">Giảm sốc — Số lượng có hạn!</p>
               </div>
             </div>
-            <div className="sm:ml-auto flex items-center gap-3">
-              <span className="text-white/60 text-sm hidden sm:block">Kết thúc sau</span>
-              <div className="flex items-center gap-1.5">
-                {[
-                  { v: h, l: "Giờ" },
-                  { v: m, l: "Phút" },
-                  { v: s, l: "Giây" },
-                ].map(({ v, l }, i) => (
-                  <div key={l} className="flex items-center gap-1.5">
-                    <div className="flex flex-col items-center">
-                      <span
-                        className="text-white font-black text-xl tabular-nums w-12 h-12 flex items-center justify-center rounded-xl"
-                        style={{ background: "rgba(0,0,0,0.3)" }}
-                      >
-                        {v}
-                      </span>
-                      <span className="text-white/50 text-[10px] mt-0.5">{l}</span>
+            {hasCampaigns ? (
+              <div className="sm:ml-auto flex items-center gap-3">
+                <span className="text-white/60 text-sm hidden sm:block">Kết thúc sau</span>
+                <div className="flex items-center gap-1.5">
+                  {[
+                    { v: h, l: "Giờ" },
+                    { v: m, l: "Phút" },
+                    { v: s, l: "Giây" },
+                  ].map(({ v, l }, i) => (
+                    <div key={l} className="flex items-center gap-1.5">
+                      <div className="flex flex-col items-center">
+                        <span
+                          className="text-white font-black text-xl tabular-nums w-12 h-12 flex items-center justify-center rounded-xl"
+                          style={{ background: "rgba(0,0,0,0.3)" }}
+                        >
+                          {v}
+                        </span>
+                        <span className="text-white/50 text-[10px] mt-0.5">{l}</span>
+                      </div>
+                      {i < 2 ? (
+                        <span className="text-white/50 font-bold text-lg mb-4">:</span>
+                      ) : null}
                     </div>
-                    {i < 2 ? <span className="text-white/50 font-bold text-lg mb-4">:</span> : null}
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <button
+                  onClick={() => navigate("/search?flash=true")}
+                  className="ml-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-white transition-opacity hover:opacity-90"
+                  style={{ color: "#E53E3E" }}
+                >
+                  Xem tất cả
+                </button>
               </div>
-              <button
-                onClick={() => navigate("/search?flash=true")}
-                className="ml-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-white transition-opacity hover:opacity-90"
-                style={{ color: "#E53E3E" }}
-              >
-                Xem tất cả
-              </button>
-            </div>
+            ) : null}
           </div>
 
-          {/* Product strip */}
-          <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-            {flashSaleProducts.map((p, i) => (
-              <motion.button
-                key={p.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                onClick={() => navigate(`/product/${p.id}`)}
-                className="shrink-0 group"
-                style={{ width: 130 }}
-              >
-                <div
-                  className="rounded-xl overflow-hidden mb-2 relative"
-                  style={{ aspectRatio: "1" }}
-                >
-                  <ImageWithFallback
-                    src={p.image}
-                    alt={p.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div
-                    className="absolute bottom-0 left-0 right-0 py-1 text-center"
-                    style={{ background: "rgba(229,53,62,0.9)" }}
-                  >
-                    <span className="text-white font-black text-xs">-{p.discount}%</span>
-                  </div>
-                </div>
-                <p className="text-white text-xs font-medium text-left line-clamp-1 mb-0.5">
-                  {p.name.split(" ").slice(0, 5).join(" ")}
-                </p>
-                <p className="text-yellow-300 font-bold text-sm text-left">
-                  {formatPrice(p.price)}
-                </p>
-                {/* Sold progress */}
-                <div className="mt-1.5">
-                  <div
-                    className="h-1.5 rounded-full overflow-hidden"
-                    style={{ background: "rgba(255,255,255,0.2)" }}
-                  >
-                    <div
-                      className="h-full rounded-full bg-yellow-300"
-                      style={{ width: `${(i % 4) * 15 + 35}%` }}
-                    />
-                  </div>
-                  <p className="text-white/50 text-[10px] mt-0.5">Đã bán {(i % 4) * 15 + 35}%</p>
-                </div>
-              </motion.button>
-            ))}
-          </div>
+          {hasCampaigns ? (
+            <FlashSaleStrip campaigns={campaigns} />
+          ) : (
+            <FlashSaleEmpty isLoading={isLoading} />
+          )}
         </div>
       </div>
     </section>
+  );
+}
+
+function FlashSaleStrip({ campaigns }: { campaigns: ActiveFlashSaleCampaign[] }) {
+  const navigate = useNavigate();
+  return (
+    <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+      {campaigns.map((c, i) => {
+        const discount = pctOff(c.originalPrice, c.salePrice);
+        const remaining = c.stockRemaining;
+        const soldPct =
+          c.stockTotal > 0 && remaining !== null && remaining !== undefined
+            ? Math.min(100, Math.max(0, Math.round(((c.stockTotal - remaining) / c.stockTotal) * 100)))
+            : null;
+        return (
+          <motion.button
+            key={c.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08 }}
+            onClick={() => navigate(`/product/${c.productId}`)}
+            className="shrink-0 group text-left"
+            style={{ width: 130 }}
+          >
+            <div
+              className="rounded-xl overflow-hidden mb-2 relative bg-white/10 flex items-center justify-center"
+              style={{ aspectRatio: "1" }}
+            >
+              <Zap
+                size={36}
+                className="text-white/70 group-hover:scale-110 transition-transform"
+              />
+              {discount > 0 ? (
+                <div
+                  className="absolute bottom-0 left-0 right-0 py-1 text-center"
+                  style={{ background: "rgba(229,53,62,0.9)" }}
+                >
+                  <span className="text-white font-black text-xs">-{discount}%</span>
+                </div>
+              ) : null}
+            </div>
+            <p className="text-white text-xs font-medium line-clamp-1 mb-0.5 font-mono">
+              #{c.productId.slice(0, 8)}
+            </p>
+            <p className="text-yellow-300 font-bold text-sm">{formatPrice(c.salePrice)}</p>
+            {c.originalPrice > c.salePrice ? (
+              <p className="text-white/40 text-[10px] line-through">
+                {formatPrice(c.originalPrice)}
+              </p>
+            ) : null}
+            <div className="mt-1.5">
+              <div
+                className="h-1.5 rounded-full overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.2)" }}
+              >
+                <div
+                  className="h-full rounded-full bg-yellow-300"
+                  style={{ width: `${soldPct ?? 0}%` }}
+                />
+              </div>
+              <p className="text-white/50 text-[10px] mt-0.5">
+                {soldPct !== null ? `Đã bán ${soldPct}%` : `Còn ${c.stockTotal} suất`}
+              </p>
+            </div>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
+function FlashSaleEmpty({ isLoading }: { isLoading: boolean }) {
+  return (
+    <div className="flex items-center justify-center py-10 text-center">
+      <div>
+        <p className="text-white font-bold text-base mb-1">
+          {isLoading ? "Đang tải flash sale..." : "Sắp ra mắt"}
+        </p>
+        <p className="text-white/60 text-xs">
+          {isLoading ? "Vui lòng chờ trong giây lát" : "Hết flash sale — Quay lại sớm để săn deal mới"}
+        </p>
+      </div>
+    </div>
   );
 }
 

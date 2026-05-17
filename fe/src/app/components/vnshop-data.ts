@@ -734,10 +734,6 @@ export const products: Product[] = [
   },
 ];
 
-export const flashSaleProducts = products
-  .filter((p) => p.badge === "flash" || p.discount! >= 30)
-  .slice(0, 6);
-
 export const reviews: Review[] = [
   {
     id: "r1",
@@ -881,5 +877,3 @@ export const sampleOrders: Order[] = [
 ];
 
 export { formatPrice } from "../lib/format";
-
-export const flashSaleEnd = new Date(Date.now() + 6 * 3600 * 1000 + 23 * 60 * 1000 + 45 * 1000);
