@@ -160,7 +160,7 @@ public class RouteConfig {
                 .filters(filters -> resilient(filters, "coupon-service"))
                 .uri(couponServiceUri))
             .route("admin-finance", route -> route.path("/admin/finance/**")
-                .filters(filters -> resilient(filters, "order-service"))
+                .filters(filters -> resilient(filters, "seller-finance-service"))
                 .uri(sellerFinanceServiceUri))
             .route("admin-reviews", route -> route.path("/admin/reviews/**")
                 .filters(filters -> resilient(filters, "product-service"))
