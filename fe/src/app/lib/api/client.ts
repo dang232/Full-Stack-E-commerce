@@ -1,9 +1,25 @@
 import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
 
-import { getKeycloak, refreshToken } from "../auth/keycloak";
+import { getKeycloak } from "../auth/keycloak";
 
-import { apiResponseSchema, ApiError } from "./envelope";
+import { ApiError } from "./envelope";
+import {
+  authInterceptor,
+  contentTypeInterceptor,
+  correlationIdInterceptor,
+  envelopeInterceptor,
+  errorStatusInterceptor,
+  idempotencyInterceptor,
+  jsonParseInterceptor,
+  unauthorizedInterceptor,
+  UnauthorizedError,
+  type ErrorInterceptor,
+  type RequestContext,
+  type RequestInterceptor,
+  type ResponseContext,
+  type ResponseInterceptor,
+} from "./interceptors";
 
 const BASE_URL = (
   (import.meta.env as Record<string, string | undefined>).VITE_API_URL ?? "http://localhost:8080"
@@ -35,27 +51,51 @@ function buildUrl(path: string, query?: RequestOptions<z.ZodType>["query"]): str
   return url.toString();
 }
 
-async function buildHeaders(opts: {
-  auth: boolean;
-  correlationId: string;
-  idempotencyKey?: string;
-  hasBody: boolean;
-}) {
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    "X-Correlation-Id": opts.correlationId,
-  };
-  if (opts.hasBody) headers["Content-Type"] = "application/json";
-  if (opts.idempotencyKey) headers["Idempotency-Key"] = opts.idempotencyKey;
-  if (opts.auth) {
-    const kc = getKeycloak();
-    if (kc.authenticated) {
-      // Refresh if it expires in <30s; ignore failure here, the 401 retry path will handle it.
-      await refreshToken(30).catch(() => undefined);
-      if (kc.token) headers.Authorization = `Bearer ${kc.token}`;
-    }
+/**
+ * Default request interceptor chain. Order matters: correlation id first so it
+ * appears on every request, content-type/idempotency before auth so an auth
+ * refresh failure doesn't strip headers we already set.
+ */
+const REQUEST_CHAIN: readonly RequestInterceptor[] = [
+  correlationIdInterceptor,
+  contentTypeInterceptor,
+  idempotencyInterceptor,
+  authInterceptor,
+];
+
+/** Error interceptor chain. Currently only handles 401-with-refresh. */
+const ERROR_CHAIN: readonly ErrorInterceptor[] = [unauthorizedInterceptor];
+
+async function runRequestChain(ctx: RequestContext): Promise<RequestContext> {
+  let current = ctx;
+  for (const interceptor of REQUEST_CHAIN) {
+    current = await interceptor(current);
   }
-  return headers;
+  return current;
+}
+
+async function runResponseChain(
+  ctx: ResponseContext,
+  responseChain: readonly ResponseInterceptor[],
+): Promise<ResponseContext> {
+  let current = ctx;
+  for (const interceptor of responseChain) {
+    current = await interceptor(current);
+  }
+  return current;
+}
+
+/**
+ * Walks the error interceptor chain. The first interceptor that returns a
+ * `Response` short-circuits and that response becomes the new pipeline result.
+ * If every interceptor returns `void`, the original error is re-thrown.
+ */
+async function runErrorChain(err: unknown, ctx: RequestContext): Promise<Response> {
+  for (const interceptor of ERROR_CHAIN) {
+    const result = await interceptor(err, ctx);
+    if (result instanceof Response) return result;
+  }
+  throw err;
 }
 
 export async function request<TSchema extends z.ZodType>(
@@ -67,89 +107,51 @@ export async function request<TSchema extends z.ZodType>(
   const url = buildUrl(opts.path, opts.query);
   const hasBody = opts.body !== undefined && method !== "GET";
 
-  const send = async (): Promise<Response> => {
-    const headers = await buildHeaders({
-      auth,
-      correlationId,
-      idempotencyKey: opts.idempotencyKey,
-      hasBody,
-    });
-    return fetch(url, {
-      method,
-      headers,
-      body: hasBody ? JSON.stringify(opts.body) : undefined,
-      signal: opts.signal,
-      credentials: "omit",
-    });
+  const init: RequestInit = {
+    method,
+    headers: {},
+    body: hasBody ? JSON.stringify(opts.body) : undefined,
+    signal: opts.signal,
+    credentials: "omit",
   };
 
-  let response = await send();
+  const requestCtx = await runRequestChain({
+    url,
+    init,
+    correlationId,
+    meta: { auth, idempotencyKey: opts.idempotencyKey, hasBody },
+  });
 
+  let response = await fetch(requestCtx.url, requestCtx.init);
+
+  // 401 path: surface a sentinel through the error chain so interceptors can
+  // attempt token refresh + retry. If still 401 after, force re-login.
   if (response.status === 401 && auth) {
-    const refreshed = await refreshToken(0).catch(() => false);
-    if (refreshed) {
-      response = await send();
+    try {
+      response = await runErrorChain(new UnauthorizedError(response), requestCtx);
+    } catch {
+      const kc = getKeycloak();
+      void kc.login();
+      throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
     }
     if (response.status === 401) {
       const kc = getKeycloak();
-      // Best-effort redirect to login. Caller still gets the rejection so React Query stops.
       void kc.login();
       throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
     }
   }
 
-  const serverCorrelationId = response.headers.get("x-correlation-id") ?? correlationId;
-  const text = await response.text();
-  let parsed: unknown = null;
-  if (text.length > 0) {
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw new ApiError(
-        response.status,
-        "INVALID_JSON",
-        "Server returned non-JSON response",
-        serverCorrelationId,
-      );
-    }
-  }
+  const responseChain: readonly ResponseInterceptor[] = [
+    jsonParseInterceptor,
+    errorStatusInterceptor,
+    envelopeInterceptor(opts.schema),
+  ];
 
-  if (!response.ok) {
-    const code =
-      parsed &&
-      typeof parsed === "object" &&
-      "errorCode" in parsed &&
-      typeof (parsed as Record<string, unknown>).errorCode === "string"
-        ? ((parsed as Record<string, unknown>).errorCode as string)
-        : null;
-    const message =
-      parsed &&
-      typeof parsed === "object" &&
-      "message" in parsed &&
-      typeof (parsed as Record<string, unknown>).message === "string"
-        ? ((parsed as Record<string, unknown>).message as string)
-        : `HTTP ${response.status}`;
-    throw new ApiError(response.status, code, message, serverCorrelationId);
-  }
-
-  const envelope = apiResponseSchema(opts.schema).safeParse(parsed);
-  if (!envelope.success) {
-    throw new ApiError(
-      response.status,
-      "MALFORMED_RESPONSE",
-      envelope.error.message,
-      serverCorrelationId,
-    );
-  }
-  if (!envelope.data.success) {
-    throw new ApiError(
-      response.status,
-      envelope.data.errorCode,
-      envelope.data.message,
-      serverCorrelationId,
-    );
-  }
-  return envelope.data.data;
+  const finalCtx = await runResponseChain(
+    { request: requestCtx, response, parsed: null },
+    responseChain,
+  );
+  return finalCtx.parsed as z.infer<TSchema>;
 }
 
 export const api = {
