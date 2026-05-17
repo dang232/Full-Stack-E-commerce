@@ -13,6 +13,8 @@ import com.vnshop.paymentservice.infrastructure.gateway.VnpayProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Configuration
 @EnableConfigurationProperties({VnpayProperties.class, MomoProperties.class})
@@ -27,9 +29,16 @@ public class UseCaseConfig {
             PaymentRepositoryPort paymentRepositoryPort,
             PaymentGatewayPort paymentGatewayPort,
             LedgerService ledgerService,
-            PaymentIdempotencyKeyRepositoryPort paymentIdempotencyKeyRepository
+            PaymentIdempotencyKeyRepositoryPort paymentIdempotencyKeyRepository,
+            PlatformTransactionManager transactionManager
     ) {
-        return new ProcessPaymentUseCase(paymentRepositoryPort, paymentGatewayPort, ledgerService, paymentIdempotencyKeyRepository);
+        return new ProcessPaymentUseCase(
+                paymentRepositoryPort,
+                paymentGatewayPort,
+                ledgerService,
+                paymentIdempotencyKeyRepository,
+                new TransactionTemplate(transactionManager)
+        );
     }
 
     @Bean
