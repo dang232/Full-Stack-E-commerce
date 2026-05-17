@@ -22,7 +22,6 @@ import { toast } from "sonner";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { Modal } from "../components/ui/modal";
-import { type Order as UIOrder } from "../components/vnshop-data";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useCancelOrder, useMyOrders } from "../hooks/use-orders";
@@ -33,6 +32,7 @@ import { TRACKING_STEPS_FALLBACK } from "../lib/domain-constants";
 import { parseOrderStatus } from "../lib/domain-enums";
 import { formatPrice } from "../lib/format";
 import type { Order as ServerOrder } from "../types/api";
+import { type UIOrder } from "../types/ui";
 
 type OrderTab = "all" | "pending" | "confirmed" | "shipping" | "delivered" | "cancelled";
 

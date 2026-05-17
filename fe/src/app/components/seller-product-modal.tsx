@@ -10,10 +10,10 @@ import {
   sellerProductImageUploadUrl,
   sellerProductUpdate,
 } from "../lib/api/endpoints/products";
+import type { Product } from "../types/ui";
 
 import { ImageWithFallback } from "./image-with-fallback";
 import { Modal } from "./ui/modal";
-import type { Product } from "./vnshop-data";
 
 interface SellerProductModalProps {
   open: boolean;

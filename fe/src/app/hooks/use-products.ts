@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { Product } from "../components/vnshop-data";
 import { productById, productList } from "../lib/api/endpoints/products";
 import type { ProductSummary, ProductDetail } from "../types/api";
+import type { Product } from "../types/ui";
 
 function pct(originalPrice: number | undefined, price: number | undefined): number | undefined {
   if (!originalPrice || !price || originalPrice <= price) return undefined;

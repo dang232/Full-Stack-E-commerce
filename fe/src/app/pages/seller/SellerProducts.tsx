@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SellerProductModal } from "../../components/seller-product-modal";
-import { type Product } from "../../components/vnshop-data";
 import { useProducts } from "../../hooks/use-products";
 import { formatPrice } from "../../lib/format";
+import { type Product } from "../../types/ui";
 
 export function SellerProducts() {
   const [search, setSearch] = useState("");

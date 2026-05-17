@@ -10,8 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
 import { useWishlist } from "../hooks/use-wishlist";
-
-import type { Product } from "./vnshop-data";
+import type { Product } from "../types/ui";
 
 interface User {
   id: string;

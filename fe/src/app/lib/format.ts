@@ -1,7 +1,4 @@
-/**
- * Shared formatting helpers. Extracted from `components/vnshop-data.ts` so production
- * code does not import from a mock-data module.
- */
+/** Shared formatting helpers (currency / date) used across pages. */
 
 const VND_FORMATTER = new Intl.NumberFormat("vi-VN", {
   style: "currency",
