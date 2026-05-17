@@ -73,7 +73,19 @@ export default tseslint.config(
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/no-floating-promises": "error",
-      "@typescript-eslint/no-misused-promises": "warn",
+      "@typescript-eslint/no-misused-promises": [
+        "warn",
+        {
+          // Async event handlers (onClick, onChange, onSubmit, ...) and
+          // react-router v7's navigate() returning a Promise are the dominant
+          // sources of this rule firing. Both are intentional and harmless —
+          // React fires the handler and ignores the returned promise. Turning
+          // off the JSX-attribute check keeps the rule's value (catching real
+          // bugs like passing async fn to Promise.all that expects sync) without
+          // 60+ noise warnings on every onClick.
+          checksVoidReturn: { attributes: false },
+        },
+      ],
       "@typescript-eslint/no-base-to-string": "error",
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
