@@ -1,10 +1,10 @@
 # Session handover — 2026-05-17 (continuation: ambitious-features wave)
 
-**Last commit:** `71e2c2f0` (HEAD on main)
-**Session length:** 22 commits on top of `93a7ff2f` (the previous handover's tip)
+**Last commit:** `044b4625` (HEAD on main)
+**Session length:** 27 commits on top of `93a7ff2f` (the previous handover's tip)
 **Branch state:** clean — only `.claude/worktrees/` directory is unstaged (locked agent worktrees)
 
-This file extends the original `SESSION-HANDOVER-2026-05-17.md` (still in this folder). Same date, same project, but a separate working block: 4 ambitious features delegated to sub-agents in parallel worktrees, then merged + quality-passed; followed by an i18n sweep across most of the FE pages.
+This file extends the original `SESSION-HANDOVER-2026-05-17.md` (still in this folder). Same date, same project, but a separate working block: 4 ambitious features delegated to sub-agents in parallel worktrees, then merged + quality-passed; followed by a sweeping i18n pass across the entire FE.
 
 ## TL;DR
 
@@ -21,12 +21,16 @@ Three post-agent quality passes shipped as their own `refactor(...)` commits:
 - messaging use-cases switched from raw `Error` to `BadRequestException` (was returning HTTP 500 instead of 400)
 - recs `YouMayAlsoLikeUseCase` cleaned up 6× FQN `java.math.BigDecimal` references
 
-Then an **i18n sweep**: CartPage, OrdersPage, WishlistPage, LoginPage, MessagesPage, ProfilePage, SearchPage all wired through `t()` with matching `vi.json` / `en.json` keys. Roughly 250 strings now flow through the catalog. Only **CheckoutPage** remains untranslated (deliberately deferred — 1036 lines, payment-saga heavy, deserves a dedicated session).
+Then a comprehensive **i18n sweep**: CartPage, OrdersPage, WishlistPage, LoginPage, MessagesPage, ProfilePage, SearchPage, ProductPage, **CheckoutPage** (full — including payment-saga + COD `<Trans>` segments), and SellerPage shell+dashboard all wired through `t()` with matching `vi.json` / `en.json` keys. Roughly 500 strings now flow through the catalog. Only **AdminPage** + the deeper SellerPage sub-tabs (Products table, Orders modals, Wallet, Settings) remain untranslated — those are admin/seller surfaces with lower buyer-traffic.
 
 ## What shipped (commit map)
 
 | Commit | What |
 |---|---|
+| `044b4625` | feat(fe): translate CheckoutPage strings via i18n |
+| `080a9fc1` | feat(fe): translate SellerPage shell + dashboard via i18n |
+| `bcb155b9` | feat(fe): translate ProductPage strings via i18n |
+| `717edddc` | docs: update handover with 7-page i18n sweep |
 | `71e2c2f0` | feat(fe): translate SearchPage strings via i18n |
 | `ca9e325a` | feat(fe): translate ProfilePage strings via i18n |
 | `08e1fb59` | feat(fe): translate MessagesPage strings via i18n |
@@ -87,7 +91,7 @@ cd services/messaging-service      && npm test                             # 28/
 
 ### FE
 1. **Recs cold-start banner.** When both `useFrequentlyBoughtTogether` and `useYouMayAlsoLike` return empty (cold start), the page just shows nothing. Worth a placeholder card so users know recs exist but aren't ready.
-2. **i18n coverage — done so far:** Root header/footer, HomePage flash sale, ProductPage recommendation titles, **CartPage**, **OrdersPage** (incl. tracking modal, return modal, status pills, tabs), **WishlistPage**, **LoginPage** (with `<Trans>` for inline `<strong>` segment), **MessagesPage** (incl. locale-aware time formatting), **ProfilePage** (full incl. addresses tab), **SearchPage** (full incl. filter sidebar). **Still hardcoded:** **CheckoutPage** — 1036 lines with payment dispatch, saga, idempotency. Recommend a dedicated session: write all `checkout.*` keys first, then wire step-by-step (address → shipping → payment → review → success). ProductPage detail copy (review section, Q&A, breadcrumb) and SellerPage / AdminPage are also still hardcoded but lower-traffic.
+2. **i18n coverage — done so far:** Root header/footer, HomePage flash sale, ProductPage detail copy, **CartPage**, **OrdersPage** (incl. tracking modal, return modal, status pills, tabs), **WishlistPage**, **LoginPage** (with `<Trans>` for inline `<strong>` segment), **MessagesPage** (incl. locale-aware time formatting), **ProfilePage** (full incl. addresses tab), **SearchPage** (full incl. filter sidebar), **CheckoutPage** (full — payment saga + 5-step flow + COD `<Trans>` segment), **SellerPage shell + Dashboard tab**. **Still hardcoded:** **AdminPage** (1113 lines, admin-only — KPI dashboard + dispute queue + finance views, lowest priority since admins are an internal audience), **SellerPage deeper sub-tabs** (Products table headers + ShipDialog modal + reject modal + payout request modal + ~50 strings). Roughly ~80 strings remain.
 3. **5 mock fallbacks to `vnshop-data.ts`** still exist — same as previous handover, untouched.
 
 ## Operational notes / gotchas
@@ -121,8 +125,8 @@ cd services/messaging-service      && npm test                             # 28/
 
 | Effort | Item | Why |
 |---|---|---|
-| ~1.5 hours | **CheckoutPage i18n — dedicated session** | 1036 lines, payment-dispatch + saga + idempotency. Suggested: write all `checkout.*` keys under sections (steps, address, shipping, payment, review, success, summary, errors) first, then wire in step-by-step so a partial commit is at least atomically scoped to one step. This is the buyer's most critical flow, don't rush. |
-| ~30 min | ProductPage detail copy / SellerPage / AdminPage i18n | Lower-traffic than Checkout but easy mechanical extraction with the established pattern. |
+| ~30 min | Finish SellerPage sub-tabs i18n | ~50 strings across ProductsManagement, ShipDialog, RejectModal, PayoutRequest. Pattern is mechanical — keys are obvious extensions of `seller.*`. |
+| ~30 min | AdminPage i18n | Lowest priority (internal audience), but the only major page left. ~30 strings. |
 | ~1 hour | Recs cold-start fallback (popularity-by-category) + cold-start banner on FE | Makes recs feel real on day-1 deploy; today they're empty until orders accrue |
 | ~half day | Messaging E2E smoke (compose up, real Kafka, send a message between two users) | Highest-risk untested path — Kafka wiring + WebSocket gateway are the bits hardest to unit-test |
 | ~1 day | OpenSearch migration (Phase 4B from original plan) — only when catalog grows past ~100K |
@@ -143,13 +147,14 @@ What I did NOT touch (logged as deferred, not silently accepted):
 
 ## How to resume
 
-1. `git log --oneline -25` — verify HEAD is `71e2c2f0` and last 23 commits match the table above.
+1. `git log --oneline -30` — verify HEAD is `044b4625` and last 27 commits match the table above.
 2. `cd fe && npm run verify` — should be green (0 lint, 112/112 tests).
-3. **Tip for the i18n sweep continuation:** the existing pattern across the 7 translated pages uses a few consistent mechanics worth following:
+3. **Tip for the i18n sweep continuation:** the existing pattern across the 10 translated pages uses a few consistent mechanics worth following:
    - Hook order: import `useTranslation` from `react-i18next`, call `const { t } = useTranslation()` after the other state hooks.
    - Lookup tables (status configs, tab arrays) keep the `id` and structural fields inline but swap `label` → `labelKey: string`; resolve via `t(item.labelKey)` at render time. Don't pre-compute the string at module scope — that's what froze the language toggle on early agent attempts.
    - Interpolation: prefer i18next's `{{var}}` syntax (e.g. `t("cart.titleWithCount", { count: itemCount })`) over template literals.
-   - For inline rich-text (single bold span / link / etc.) use `<Trans i18nKey="..." components={{ 1: <span ... /> }} />` and reference the slot in the catalog as `<1>...</1>`. See `LoginPage.tsx:trust5m` for the canonical example.
+   - For inline rich-text (single bold span / link / etc.) use `<Trans i18nKey="..." values={{ amount }} components={{ 1: <strong /> }} />` and reference the slot in the catalog as `<1>...</1>`. See `LoginPage.tsx:trust5m` and `CheckoutPage.tsx` success screen `codNotice` for canonical examples.
    - For locale-aware date/time formatting, gate `toLocale*` calls on `i18n.resolvedLanguage === "en" ? "en-US" : "vi-VN"`. See `MessagesPage.tsx`.
+   - For dynamic toast/error wording with API messages, the convention is `err instanceof ApiError ? err.message : t("...")` — the BE message wins when it's specific.
 4. **For sub-agent delegation:** include the rule "report blockers loudly, don't silently bail, green commits + report OR no commits + clear blocker report." It's saved this session multiple times AND been violated twice. Verify the diff before trusting the report.
 5. **For post-agent merges:** always run the clean-code / DDD / DRY / SOLID quality pass and fix violations as a `refactor(...)` commit on top of the merge. Don't accept slop just because tests are green.
