@@ -281,7 +281,10 @@ export function SearchPage() {
   });
 
   const { data: localCatalog = products } = useProducts();
-  const usedBackend = searchEnabled && !search.error && !search.isLoading;
+  // With keepPreviousData on the search hook, isLoading is only true on the
+  // very first fetch (before any successful data) — so we can safely treat
+  // a non-error successful query as "use backend" without flicker on refetch.
+  const usedBackend = searchEnabled && !search.error;
   const catalog = usedBackend ? search.products : localCatalog;
 
   const filtered = useMemo(() => {
@@ -594,8 +597,8 @@ export function SearchPage() {
                 {query ? `Kết quả cho "${query}"` : "Tất cả sản phẩm"}
               </p>
               <p className="text-sm text-gray-500 mt-0.5">
-                {(usedBackend ? search.totalElements : filtered.length).toLocaleString("vi-VN")}{" "}
-                sản phẩm được tìm thấy
+                {(usedBackend ? search.totalElements : filtered.length).toLocaleString("vi-VN")} sản
+                phẩm được tìm thấy
               </p>
             </div>
             <div className="flex items-center gap-2">

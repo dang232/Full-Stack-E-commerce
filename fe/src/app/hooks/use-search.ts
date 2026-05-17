@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type { Product } from "../components/vnshop-data";
 import { searchProducts, type SearchParams } from "../lib/api/endpoints/search";
@@ -51,6 +51,9 @@ export function useSearch(params: SearchParams, enabled = true): UseSearchResult
     queryFn: () => searchProducts(params),
     enabled,
     retry: false,
+    // Keep the previous successful page visible during refetches so callers
+    // don't flicker back to a local mock catalog on every filter change.
+    placeholderData: keepPreviousData,
   });
 
   const products = (query.data?.content ?? []).map(fromServer);
