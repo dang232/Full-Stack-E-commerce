@@ -99,26 +99,27 @@ export function ProductPage() {
       createReview({ productId: id!, ...input }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["reviews", "product", id] });
-      toast.success("Đã gửi đánh giá");
+      toast.success(t("product.reviews.submitOk"));
       setReviewDraft({ rating: 5, comment: "" });
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể gửi đánh giá"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("product.reviews.submitErr")),
   });
 
   const voteHelpful = useMutation({
     mutationFn: (reviewId: string) => voteReviewHelpful(reviewId),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["reviews", "product", id] }),
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể vote"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("product.reviews.voteErr")),
   });
 
   const submitQuestion = useMutation({
     mutationFn: (question: string) => askQuestion({ productId: id!, question }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["questions", "product", id] });
-      toast.success("Đã gửi câu hỏi");
+      toast.success(t("product.qa.submitOk"));
       setQuestionDraft("");
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể gửi câu hỏi"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("product.qa.submitErr")),
   });
 
   const [reviewDraft, setReviewDraft] = useState({ rating: 5, comment: "" });
@@ -135,13 +136,13 @@ export function ProductPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <Package size={64} className="mx-auto mb-4 text-gray-300" />
-        <h2 className="text-xl font-bold text-gray-600">Không tìm thấy sản phẩm</h2>
+        <h2 className="text-xl font-bold text-gray-600">{t("product.notFoundTitle")}</h2>
         <button
           onClick={() => navigate(-1)}
           className="mt-4 px-6 py-2.5 rounded-xl text-white font-medium"
           style={{ background: "#00BFB3" }}
         >
-          Quay lại
+          {t("product.back")}
         </button>
       </div>
     );
@@ -160,7 +161,7 @@ export function ProductPage() {
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <button onClick={() => navigate("/")} className="hover:text-gray-700">
-          Trang chủ
+          {t("product.breadcrumbHome")}
         </button>
         <ChevronRight size={14} />
         <button
@@ -221,12 +222,12 @@ export function ProductPage() {
                 }}
               >
                 {product.badge === "flash"
-                  ? "⚡ Flash"
+                  ? t("product.badge.flash")
                   : product.badge === "new"
-                    ? "Mới"
+                    ? t("product.badge.new")
                     : product.badge === "bestseller"
-                      ? "Bán chạy"
-                      : "Hot"}
+                      ? t("product.badge.bestseller")
+                      : t("product.badge.hot")}
               </span>
             ) : null}
           </div>
@@ -282,10 +283,10 @@ export function ProductPage() {
               <StarRating value={product.rating} />
               <span className="font-semibold text-gray-800">{product.rating}</span>
               <button className="text-sm text-gray-500 underline">
-                {product.reviewCount.toLocaleString()} đánh giá
+                {t("product.reviewsCount", { count: product.reviewCount })}
               </button>
               <span className="text-gray-300">·</span>
-              <span className="text-sm text-gray-500">{product.sold.toLocaleString()} đã bán</span>
+              <span className="text-sm text-gray-500">{t("product.soldCount", { count: product.sold })}</span>
             </div>
           </div>
 
@@ -379,8 +380,10 @@ export function ProductPage() {
           {/* Quantity */}
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-2.5">
-              Số lượng:{" "}
-              <span className="font-normal text-gray-500">({product.stock} sản phẩm có sẵn)</span>
+              {t("product.quantityLabel")}{" "}
+              <span className="font-normal text-gray-500">
+                {t("product.stockAvailable", { count: product.stock })}
+              </span>
             </p>
             <div className="flex items-center gap-3">
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
@@ -399,7 +402,7 @@ export function ProductPage() {
                 </button>
               </div>
               <span className="text-sm text-gray-500">
-                Tổng:{" "}
+                {t("product.totalLabel")}{" "}
                 <span className="font-bold" style={{ color: "#FF6200" }}>
                   {formatPrice(product.price * quantity)}
                 </span>
@@ -414,14 +417,14 @@ export function ProductPage() {
               className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition-all hover:bg-[rgba(0,191,179,0.06)]"
               style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
             >
-              🛒 Thêm vào giỏ
+              {t("product.addToCart")}
             </button>
             <button
               onClick={handleBuyNow}
               className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white shadow-lg hover:opacity-90 transition-opacity"
               style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
             >
-              ⚡ Mua ngay
+              {t("product.buyNow")}
             </button>
           </div>
 
@@ -432,12 +435,20 @@ export function ProductPage() {
                 icon: Truck,
                 text:
                   product.shippingFee === 0
-                    ? "Miễn phí vận chuyển"
-                    : `Ship ${formatPrice(product.shippingFee)}`,
-                sub: `Qua ${product.shipping}`,
+                    ? t("product.trust.freeShipping")
+                    : t("product.trust.shipFee", { fee: formatPrice(product.shippingFee) }),
+                sub: t("product.trust.shipVia", { method: product.shipping }),
               },
-              { icon: Shield, text: "Bảo vệ quyền lợi", sub: "Hoàn tiền 100%" },
-              { icon: RefreshCw, text: "Đổi trả miễn phí", sub: "Trong 30 ngày" },
+              {
+                icon: Shield,
+                text: t("product.trust.protection"),
+                sub: t("product.trust.protectionSub"),
+              },
+              {
+                icon: RefreshCw,
+                text: t("product.trust.returns"),
+                sub: t("product.trust.returnsSub"),
+              },
             ].map((item) => (
               <div
                 key={item.text}
@@ -467,7 +478,7 @@ export function ProductPage() {
                   <h3 className="font-bold text-gray-800">{seller.name}</h3>
                   {seller.verified ? (
                     <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-green-600 bg-green-50 font-medium">
-                      <CheckCircle size={11} /> Đã xác minh
+                      <CheckCircle size={11} /> {t("product.seller.verified")}
                     </span>
                   ) : null}
                 </div>
@@ -475,8 +486,8 @@ export function ProductPage() {
                   <span className="flex items-center gap-1">
                     <Star size={13} fill="#F59E0B" className="text-amber-400" /> {seller.rating}
                   </span>
-                  <span>{seller.products} sản phẩm</span>
-                  <span>Phản hồi {seller.responseRate}%</span>
+                  <span>{t("product.seller.products", { count: seller.products })}</span>
+                  <span>{t("product.seller.responseRate", { pct: seller.responseRate })}</span>
                 </div>
               </div>
             </div>
@@ -490,14 +501,14 @@ export function ProductPage() {
                 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50"
               >
-                <MessageSquare size={15} /> Chat ngay
+                <MessageSquare size={15} /> {t("product.seller.chatNow")}
               </button>
               <button
                 onClick={() => navigate(`/search?seller=${seller.id}`)}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white"
                 style={{ background: "#00BFB3" }}
               >
-                <Store size={15} /> Xem Shop
+                <Store size={15} /> {t("product.seller.viewShop")}
               </button>
             </div>
           </div>
@@ -518,10 +529,10 @@ export function ProductPage() {
               }}
             >
               {tab === "desc"
-                ? "Mô tả sản phẩm"
+                ? t("product.tabs.desc")
                 : tab === "reviews"
-                  ? `Đánh giá (${product.reviewCount.toLocaleString()})`
-                  : "Hỏi & Đáp"}
+                  ? t("product.tabs.reviews", { count: product.reviewCount })
+                  : t("product.tabs.qa")}
             </button>
           ))}
         </div>
@@ -532,10 +543,13 @@ export function ProductPage() {
               <p className="text-gray-700 leading-relaxed">{product.description}</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                 {[
-                  { label: "Danh mục", value: product.categoryLabel },
-                  { label: "Xuất xứ", value: product.location },
-                  { label: "Vận chuyển", value: product.shipping },
-                  { label: "Tình trạng", value: `Còn ${product.stock} SP` },
+                  { label: t("product.info.category"), value: product.categoryLabel },
+                  { label: t("product.info.origin"), value: product.location },
+                  { label: t("product.info.shipping"), value: product.shipping },
+                  {
+                    label: t("product.info.stockStatus"),
+                    value: t("product.info.stockValue", { count: product.stock }),
+                  },
                 ].map((info) => (
                   <div key={info.label} className="p-3 rounded-xl bg-gray-50">
                     <p className="text-xs text-gray-400 mb-0.5">{info.label}</p>
@@ -568,7 +582,7 @@ export function ProductPage() {
                   </p>
                   <StarRating value={product.rating} />
                   <p className="text-xs text-gray-500 mt-1">
-                    {product.reviewCount.toLocaleString()} đánh giá
+                    {t("product.reviewsCount", { count: product.reviewCount })}
                   </p>
                 </div>
                 <div className="flex-1 space-y-1.5">
@@ -595,7 +609,9 @@ export function ProductPage() {
               {/* Write review */}
               {authenticated ? (
                 <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Viết đánh giá của bạn</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    {t("product.reviews.writeTitle")}
+                  </p>
                   <div className="flex items-center gap-1 mb-3">
                     {[1, 2, 3, 4, 5].map((n) => (
                       <button
@@ -615,7 +631,7 @@ export function ProductPage() {
                     value={reviewDraft.comment}
                     onChange={(e) => setReviewDraft((d) => ({ ...d, comment: e.target.value }))}
                     rows={3}
-                    placeholder="Chia sẻ trải nghiệm về sản phẩm..."
+                    placeholder={t("product.reviews.placeholder")}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-white"
                   />
                   <button
@@ -624,7 +640,9 @@ export function ProductPage() {
                     className="mt-3 px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
                     style={{ background: "#00BFB3" }}
                   >
-                    {submitReview.isPending ? "Đang gửi..." : "Gửi đánh giá"}
+                    {submitReview.isPending
+                      ? t("product.reviews.submitting")
+                      : t("product.reviews.submit")}
                   </button>
                 </div>
               ) : (
@@ -633,13 +651,13 @@ export function ProductPage() {
                   className="text-sm font-medium"
                   style={{ color: "#00BFB3" }}
                 >
-                  Đăng nhập để viết đánh giá →
+                  {t("product.reviews.loginToWrite")}
                 </button>
               )}
 
               {/* Live review list */}
               {liveReviewsQuery.isLoading ? (
-                <p className="text-sm text-gray-400">Đang tải đánh giá...</p>
+                <p className="text-sm text-gray-400">{t("product.reviews.loading")}</p>
               ) : null}
               {liveReviewsQuery.data && liveReviewsQuery.data.length > 0
                 ? liveReviewsQuery.data.map((review) => (
@@ -650,7 +668,7 @@ export function ProductPage() {
                         </div>
                         <div>
                           <p className="font-medium text-sm text-gray-800">
-                            {review.userName ?? review.userId ?? "Khách hàng"}
+                            {review.userName ?? review.userId ?? t("product.reviews.anonGuest")}
                           </p>
                           <div className="flex items-center gap-2">
                             <StarRating value={review.rating} size={13} />
@@ -683,7 +701,8 @@ export function ProductPage() {
                         disabled={voteHelpful.isPending}
                         className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                       >
-                        <ThumbsUp size={13} /> Hữu ích ({review.helpful ?? 0})
+                        <ThumbsUp size={13} />{" "}
+                        {t("product.reviews.helpful", { count: review.helpful ?? 0 })}
                       </button>
                     </div>
                   ))
@@ -725,16 +744,15 @@ export function ProductPage() {
                           </div>
                         ) : null}
                         <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                          <ThumbsUp size={13} /> Hữu ích ({review.helpful})
+                          <ThumbsUp size={13} />{" "}
+                          {t("product.reviews.helpful", { count: review.helpful })}
                         </button>
                       </div>
                     ))
                   : !liveReviewsQuery.isLoading && (
                       <div className="py-8 text-center">
                         <MessageSquare size={40} className="mx-auto mb-3 text-gray-300" />
-                        <p className="text-gray-500">
-                          Chưa có đánh giá nào. Hãy là người đầu tiên!
-                        </p>
+                        <p className="text-gray-500">{t("product.reviews.empty")}</p>
                       </div>
                     )}
             </div>
@@ -744,12 +762,12 @@ export function ProductPage() {
             <div className="space-y-5">
               {authenticated ? (
                 <div className="border border-gray-100 rounded-2xl p-4 bg-gray-50">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Đặt câu hỏi</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">{t("product.qa.askTitle")}</p>
                   <textarea
                     value={questionDraft}
                     onChange={(e) => setQuestionDraft(e.target.value)}
                     rows={3}
-                    placeholder="Bạn muốn hỏi gì về sản phẩm?"
+                    placeholder={t("product.qa.placeholder")}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-white"
                   />
                   <button
@@ -758,7 +776,9 @@ export function ProductPage() {
                     className="mt-3 px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
                     style={{ background: "#00BFB3" }}
                   >
-                    {submitQuestion.isPending ? "Đang gửi..." : "Gửi câu hỏi"}
+                    {submitQuestion.isPending
+                      ? t("product.qa.submitting")
+                      : t("product.qa.submit")}
                   </button>
                 </div>
               ) : (
@@ -767,26 +787,30 @@ export function ProductPage() {
                   className="text-sm font-medium"
                   style={{ color: "#00BFB3" }}
                 >
-                  Đăng nhập để đặt câu hỏi →
+                  {t("product.qa.loginToAsk")}
                 </button>
               )}
 
               {liveQuestionsQuery.isLoading ? (
-                <p className="text-sm text-gray-400">Đang tải câu hỏi...</p>
+                <p className="text-sm text-gray-400">{t("product.qa.loading")}</p>
               ) : null}
 
               {liveQuestionsQuery.data && liveQuestionsQuery.data.length > 0 ? (
                 <div className="space-y-4">
                   {liveQuestionsQuery.data.map((q) => (
                     <div key={q.id} className="border border-gray-100 rounded-2xl p-4">
-                      <p className="text-sm font-medium text-gray-800">Q: {q.question}</p>
+                      <p className="text-sm font-medium text-gray-800">
+                        {t("product.qa.qPrefix")}
+                        {q.question}
+                      </p>
                       {q.answer ? (
                         <p className="mt-2 text-sm text-gray-600 pl-3 border-l-2 border-teal-400">
-                          A: {q.answer}
+                          {t("product.qa.aPrefix")}
+                          {q.answer}
                         </p>
                       ) : (
                         <p className="mt-2 text-xs text-gray-400 italic">
-                          Chưa có câu trả lời từ người bán.
+                          {t("product.qa.noAnswer")}
                         </p>
                       )}
                     </div>
@@ -794,7 +818,9 @@ export function ProductPage() {
                 </div>
               ) : (
                 !liveQuestionsQuery.isLoading && (
-                  <div className="text-center py-6 text-sm text-gray-400">Chưa có câu hỏi nào.</div>
+                  <div className="text-center py-6 text-sm text-gray-400">
+                    {t("product.qa.empty")}
+                  </div>
                 )
               )}
             </div>

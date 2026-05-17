@@ -126,7 +126,79 @@
     "new": "New",
     "viewMore": "View more products →",
     "frequentlyBoughtTogether": "Frequently bought together",
-    "youMayAlsoLike": "Similar products"
+    "youMayAlsoLike": "Similar products",
+    "notFoundTitle": "Product not found",
+    "back": "Go back",
+    "breadcrumbHome": "Home",
+    "badge": {
+      "flash": "⚡ Flash",
+      "new": "New",
+      "bestseller": "Bestseller",
+      "hot": "Hot"
+    },
+    "reviewsCount": "{{count}} reviews",
+    "soldCount": "{{count}} sold",
+    "quantityLabel": "Quantity:",
+    "stockAvailable": "({{count}} in stock)",
+    "totalLabel": "Total:",
+    "addToCart": "🛒 Add to cart",
+    "buyNow": "⚡ Buy now",
+    "trust": {
+      "freeShipping": "Free shipping",
+      "shipFee": "Ship {{fee}}",
+      "shipVia": "Via {{method}}",
+      "protection": "Buyer protection",
+      "protectionSub": "100% refund",
+      "returns": "Free returns",
+      "returnsSub": "Within 30 days"
+    },
+    "seller": {
+      "verified": "Verified",
+      "products": "{{count}} products",
+      "responseRate": "Response {{pct}}%",
+      "chatNow": "Chat now",
+      "viewShop": "View shop"
+    },
+    "tabs": {
+      "desc": "Description",
+      "reviews": "Reviews ({{count}})",
+      "qa": "Q & A"
+    },
+    "info": {
+      "category": "Category",
+      "origin": "Origin",
+      "shipping": "Shipping",
+      "stockStatus": "Stock",
+      "stockValue": "{{count}} left"
+    },
+    "reviews": {
+      "writeTitle": "Write your review",
+      "placeholder": "Share your experience with this product...",
+      "submit": "Submit review",
+      "submitting": "Submitting...",
+      "submitOk": "Review submitted",
+      "submitErr": "Couldn't submit review",
+      "voteErr": "Couldn't vote",
+      "loginToWrite": "Sign in to write a review →",
+      "loading": "Loading reviews...",
+      "anonGuest": "Customer",
+      "helpful": "Helpful ({{count}})",
+      "empty": "No reviews yet. Be the first!"
+    },
+    "qa": {
+      "askTitle": "Ask a question",
+      "placeholder": "What do you want to know about this product?",
+      "submit": "Submit question",
+      "submitting": "Submitting...",
+      "submitOk": "Question submitted",
+      "submitErr": "Couldn't submit question",
+      "loginToAsk": "Sign in to ask a question →",
+      "loading": "Loading questions...",
+      "noAnswer": "No answer from the seller yet.",
+      "empty": "No questions yet.",
+      "qPrefix": "Q: ",
+      "aPrefix": "A: "
+    }
   },
   "home": {
     "forYou": "Just for you",

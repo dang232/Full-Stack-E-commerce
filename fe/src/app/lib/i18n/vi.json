@@ -126,7 +126,79 @@
     "new": "Mới",
     "viewMore": "Xem thêm sản phẩm →",
     "frequentlyBoughtTogether": "Khách hàng thường mua cùng",
-    "youMayAlsoLike": "Sản phẩm tương tự"
+    "youMayAlsoLike": "Sản phẩm tương tự",
+    "notFoundTitle": "Không tìm thấy sản phẩm",
+    "back": "Quay lại",
+    "breadcrumbHome": "Trang chủ",
+    "badge": {
+      "flash": "⚡ Flash",
+      "new": "Mới",
+      "bestseller": "Bán chạy",
+      "hot": "Hot"
+    },
+    "reviewsCount": "{{count}} đánh giá",
+    "soldCount": "{{count}} đã bán",
+    "quantityLabel": "Số lượng:",
+    "stockAvailable": "({{count}} sản phẩm có sẵn)",
+    "totalLabel": "Tổng:",
+    "addToCart": "🛒 Thêm vào giỏ",
+    "buyNow": "⚡ Mua ngay",
+    "trust": {
+      "freeShipping": "Miễn phí vận chuyển",
+      "shipFee": "Ship {{fee}}",
+      "shipVia": "Qua {{method}}",
+      "protection": "Bảo vệ quyền lợi",
+      "protectionSub": "Hoàn tiền 100%",
+      "returns": "Đổi trả miễn phí",
+      "returnsSub": "Trong 30 ngày"
+    },
+    "seller": {
+      "verified": "Đã xác minh",
+      "products": "{{count}} sản phẩm",
+      "responseRate": "Phản hồi {{pct}}%",
+      "chatNow": "Chat ngay",
+      "viewShop": "Xem Shop"
+    },
+    "tabs": {
+      "desc": "Mô tả sản phẩm",
+      "reviews": "Đánh giá ({{count}})",
+      "qa": "Hỏi & Đáp"
+    },
+    "info": {
+      "category": "Danh mục",
+      "origin": "Xuất xứ",
+      "shipping": "Vận chuyển",
+      "stockStatus": "Tình trạng",
+      "stockValue": "Còn {{count}} SP"
+    },
+    "reviews": {
+      "writeTitle": "Viết đánh giá của bạn",
+      "placeholder": "Chia sẻ trải nghiệm về sản phẩm...",
+      "submit": "Gửi đánh giá",
+      "submitting": "Đang gửi...",
+      "submitOk": "Đã gửi đánh giá",
+      "submitErr": "Không thể gửi đánh giá",
+      "voteErr": "Không thể vote",
+      "loginToWrite": "Đăng nhập để viết đánh giá →",
+      "loading": "Đang tải đánh giá...",
+      "anonGuest": "Khách hàng",
+      "helpful": "Hữu ích ({{count}})",
+      "empty": "Chưa có đánh giá nào. Hãy là người đầu tiên!"
+    },
+    "qa": {
+      "askTitle": "Đặt câu hỏi",
+      "placeholder": "Bạn muốn hỏi gì về sản phẩm?",
+      "submit": "Gửi câu hỏi",
+      "submitting": "Đang gửi...",
+      "submitOk": "Đã gửi câu hỏi",
+      "submitErr": "Không thể gửi câu hỏi",
+      "loginToAsk": "Đăng nhập để đặt câu hỏi →",
+      "loading": "Đang tải câu hỏi...",
+      "noAnswer": "Chưa có câu trả lời từ người bán.",
+      "empty": "Chưa có câu hỏi nào.",
+      "qPrefix": "Q: ",
+      "aPrefix": "A: "
+    }
   },
   "home": {
     "forYou": "Dành riêng cho bạn",
