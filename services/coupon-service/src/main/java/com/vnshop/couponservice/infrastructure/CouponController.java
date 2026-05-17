@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class CouponController {
     private static final String DISCOUNT_TYPE_FIXED = "FIXED";
     private static final String DISCOUNT_TYPE_PERCENTAGE = "PERCENTAGE";
+    static final String CODE_COUPON_EXHAUSTED = "COUPON_EXHAUSTED";
 
     private final CouponRepository couponRepository;
 
@@ -26,37 +27,37 @@ public class CouponController {
 
     @PostMapping({"/coupons", "/admin/coupons"})
     @ResponseStatus(HttpStatus.CREATED)
-    public CouponJpaEntity createCoupon(@RequestBody CreateCouponRequest request) {
+    public CouponResponse createCoupon(@RequestBody CreateCouponRequest request) {
         CouponJpaEntity coupon = new CouponJpaEntity();
         applyRequest(coupon, request);
         coupon.setCurrentUses(0);
         coupon.setActive(true);
         coupon.setValidFrom(Instant.now());
-        return couponRepository.save(coupon);
+        return CouponResponse.from(couponRepository.save(coupon));
     }
 
     @GetMapping("/coupons")
-    public List<CouponJpaEntity> listActiveCoupons() {
-        return couponRepository.findByActiveTrue();
+    public List<CouponResponse> listActiveCoupons() {
+        return couponRepository.findByActiveTrue().stream().map(CouponResponse::from).toList();
     }
 
     @GetMapping("/admin/coupons")
-    public List<CouponJpaEntity> listCoupons() {
-        return couponRepository.findAll();
+    public List<CouponResponse> listCoupons() {
+        return couponRepository.findAll().stream().map(CouponResponse::from).toList();
     }
 
     @PutMapping("/admin/coupons/{id}")
-    public CouponJpaEntity updateCoupon(@PathVariable Long id, @RequestBody CreateCouponRequest request) {
+    public CouponResponse updateCoupon(@PathVariable Long id, @RequestBody CreateCouponRequest request) {
         CouponJpaEntity coupon = findCoupon(id);
         applyRequest(coupon, request);
-        return couponRepository.save(coupon);
+        return CouponResponse.from(couponRepository.save(coupon));
     }
 
     @PostMapping("/admin/coupons/{id}/deactivate")
-    public CouponJpaEntity deactivateCoupon(@PathVariable Long id) {
+    public CouponResponse deactivateCoupon(@PathVariable Long id) {
         CouponJpaEntity coupon = findCoupon(id);
         coupon.setActive(false);
-        return couponRepository.save(coupon);
+        return CouponResponse.from(couponRepository.save(coupon));
     }
 
     @PostMapping({"/coupons/validate", "/checkout/validate-coupon"})
@@ -67,18 +68,50 @@ public class CouponController {
                 .orElseGet(() -> new ValidateCouponResponse(false, BigDecimal.ZERO, "Coupon not found"));
     }
 
+    /**
+     * Issue 2 fix: the previous flow read currentUses, validated, then incremented + saved
+     * in three separate statements. Two concurrent requests on the last seat both observed
+     * room and both proceeded to consume — overselling. We now do an atomic conditional
+     * increment ({@link CouponRepository#tryConsumeUsage(Long)}); the DB enforces the
+     * invariant {@code currentUses &lt; maxUses} inside the UPDATE itself, so exactly one
+     * concurrent caller wins. Other validation (active, expiry, min order) still runs
+     * before the consume attempt so we can return a useful error message — the consume
+     * step is the only one that races.
+     */
     @PostMapping("/checkout/apply-coupon")
     public ApplyCouponResponse applyCoupon(@RequestBody ApplyCouponRequest request) {
         BigDecimal orderAmount = request.orderAmount() != null ? request.orderAmount() : request.orderTotal();
         CouponJpaEntity coupon = couponRepository.findByCode(request.code())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Coupon not found"));
-        ValidateCouponResponse validation = validateExistingCoupon(coupon, orderAmount);
-        if (!validation.valid()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, validation.message());
+
+        // Pre-flight checks that don't race (or for which a stale read still produces the
+        // correct outcome on retry): expiry / inactive / min-order. We surface those as 422
+        // with descriptive messages.
+        if (!coupon.isActive()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Coupon is inactive");
         }
-        coupon.setCurrentUses(coupon.getCurrentUses() + 1);
-        couponRepository.save(coupon);
-        return new ApplyCouponResponse(coupon.getCode(), validation.discount(), orderAmount.subtract(validation.discount()));
+        if (coupon.getValidUntil().isBefore(Instant.now())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Coupon is expired");
+        }
+        if (orderAmount.compareTo(coupon.getMinOrderValue()) < 0) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Order amount is below minimum");
+        }
+
+        // Atomic consume-or-fail. The conditional UPDATE is the synchronization point —
+        // returns 1 on success, 0 if the coupon was just exhausted by a concurrent caller.
+        int updated = couponRepository.tryConsumeUsage(coupon.getId());
+        if (updated == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    CODE_COUPON_EXHAUSTED + ": Coupon usage limit exceeded"
+            );
+        }
+
+        BigDecimal discount = calculateDiscount(coupon, orderAmount);
+        if (coupon.getMaxDiscount() != null && discount.compareTo(coupon.getMaxDiscount()) > 0) {
+            discount = coupon.getMaxDiscount();
+        }
+        return new ApplyCouponResponse(coupon.getCode(), discount, orderAmount.subtract(discount));
     }
 
     private CouponJpaEntity findCoupon(Long id) {
@@ -88,11 +121,15 @@ public class CouponController {
 
     private void applyRequest(CouponJpaEntity coupon, CreateCouponRequest request) {
         coupon.setCode(request.code());
-        coupon.setDiscountType(request.discountType() != null ? request.discountType() : request.type());
-        coupon.setDiscountValue(request.discountValue() != null ? request.discountValue() : request.value());
+        // Wire-format names (`type`/`value`/`maxUses`) map onto entity fields
+        // (`discountType`/`discountValue`/`maxUses`). The wire names match what FE
+        // admin and buyer code already sends and reads; the entity names match the
+        // existing column names.
+        coupon.setDiscountType(request.type());
+        coupon.setDiscountValue(request.value());
         coupon.setMinOrderValue(request.minOrderValue() != null ? request.minOrderValue() : BigDecimal.ZERO);
         coupon.setMaxDiscount(request.maxDiscount());
-        coupon.setMaxUses(request.maxUses() > 0 ? request.maxUses() : request.totalUsageLimit());
+        coupon.setMaxUses(request.maxUses());
         coupon.setValidUntil(request.validUntil());
     }
 
@@ -130,17 +167,21 @@ public class CouponController {
         return discount;
     }
 
+    /**
+     * Canonical create/update payload. The previous shape carried alias pairs
+     * ({@code discountType}/{@code type}, {@code discountValue}/{@code value},
+     * {@code maxUses}/{@code totalUsageLimit}, plus {@code perUserLimit}) where the
+     * controller only ever wrote one member of each pair to the entity. We now expose
+     * a single name per field — {@code type}/{@code value}/{@code maxUses} — matching
+     * the names FE admin's {@code CouponWriteBody} sends and FE buyer code reads.
+     */
     public record CreateCouponRequest(
             String code,
-            String discountType,
             String type,
-            BigDecimal discountValue,
             BigDecimal value,
             BigDecimal minOrderValue,
             BigDecimal maxDiscount,
             int maxUses,
-            int totalUsageLimit,
-            int perUserLimit,
             Instant validUntil) {
     }
 
@@ -154,5 +195,41 @@ public class CouponController {
     }
 
     public record ApplyCouponResponse(String code, BigDecimal discount, BigDecimal finalTotal) {
+    }
+
+    /**
+     * Wire-format DTO replacing the previous habit of returning {@link CouponJpaEntity}
+     * directly. Returning the entity leaked Hibernate proxy concerns and made the wire
+     * shape implicit; this record is the single source of truth for what the API exposes.
+     * Field names match the request DTO and FE schemas ({@code type}/{@code value}).
+     */
+    public record CouponResponse(
+            Long id,
+            String code,
+            String type,
+            BigDecimal value,
+            BigDecimal minOrderValue,
+            BigDecimal maxDiscount,
+            int maxUses,
+            int currentUses,
+            boolean active,
+            Instant validFrom,
+            Instant validUntil) {
+
+        public static CouponResponse from(CouponJpaEntity entity) {
+            return new CouponResponse(
+                    entity.getId(),
+                    entity.getCode(),
+                    entity.getDiscountType(),
+                    entity.getDiscountValue(),
+                    entity.getMinOrderValue(),
+                    entity.getMaxDiscount(),
+                    entity.getMaxUses(),
+                    entity.getCurrentUses(),
+                    entity.isActive(),
+                    entity.getValidFrom(),
+                    entity.getValidUntil()
+            );
+        }
     }
 }
