@@ -513,8 +513,14 @@ function InputsShowcase() {
           <Label>Input Fields</Label>
           {/* Default */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Họ và tên</label>
+            <label
+              htmlFor="ds-input-name"
+              className="text-sm font-medium text-gray-700 block mb-1.5"
+            >
+              Họ và tên
+            </label>
             <input
+              id="ds-input-name"
               type="text"
               placeholder="Nguyễn Văn A"
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:border-teal-400 focus:ring-2 transition-all"
@@ -523,8 +529,14 @@ function InputsShowcase() {
           </div>
           {/* Focused */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Email</label>
+            <label
+              htmlFor="ds-input-email"
+              className="text-sm font-medium text-gray-700 block mb-1.5"
+            >
+              Email
+            </label>
             <input
+              id="ds-input-email"
               type="email"
               defaultValue="nguyen@email.com"
               className="w-full px-4 py-2.5 rounded-xl border-2 bg-white text-gray-800"
@@ -533,8 +545,14 @@ function InputsShowcase() {
           </div>
           {/* Error */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Số điện thoại</label>
+            <label
+              htmlFor="ds-input-phone"
+              className="text-sm font-medium text-gray-700 block mb-1.5"
+            >
+              Số điện thoại
+            </label>
             <input
+              id="ds-input-phone"
               type="tel"
               defaultValue="0909abc123"
               className="w-full px-4 py-2.5 rounded-xl border-2 bg-white text-gray-800"
@@ -546,8 +564,14 @@ function InputsShowcase() {
           </div>
           {/* Disabled */}
           <div>
-            <label className="text-sm font-medium text-gray-400 block mb-1.5">Mã đơn hàng</label>
+            <label
+              htmlFor="ds-input-order"
+              className="text-sm font-medium text-gray-400 block mb-1.5"
+            >
+              Mã đơn hàng
+            </label>
             <input
+              id="ds-input-order"
               type="text"
               value="VNS-20240115-001"
               disabled
@@ -571,10 +595,16 @@ function InputsShowcase() {
           </div>
           {/* Select */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">
+            <label
+              htmlFor="ds-select-province"
+              className="text-sm font-medium text-gray-700 block mb-1.5"
+            >
               Tỉnh / Thành phố
             </label>
-            <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-800 focus:outline-none focus:border-teal-400 transition-all appearance-none">
+            <select
+              id="ds-select-province"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-800 focus:outline-none focus:border-teal-400 transition-all appearance-none"
+            >
               <option>Hồ Chí Minh</option>
               <option>Hà Nội</option>
               <option>Đà Nẵng</option>
@@ -582,10 +612,14 @@ function InputsShowcase() {
           </div>
           {/* Textarea */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">
+            <label
+              htmlFor="ds-textarea-address"
+              className="text-sm font-medium text-gray-700 block mb-1.5"
+            >
               Địa chỉ giao hàng
             </label>
             <textarea
+              id="ds-textarea-address"
               rows={3}
               placeholder="Số nhà, tên đường, phường/xã..."
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:border-teal-400 transition-all resize-none"

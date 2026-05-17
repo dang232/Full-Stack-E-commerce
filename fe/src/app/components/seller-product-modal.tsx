@@ -413,8 +413,14 @@ function SellerProductModalBody({
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tên sản phẩm</label>
+          <label
+            htmlFor="seller-product-name"
+            className="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Tên sản phẩm
+          </label>
           <input
+            id="seller-product-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="VD: Tai nghe Sony WH-1000XM5"
@@ -424,8 +430,14 @@ function SellerProductModalBody({
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mô tả</label>
+          <label
+            htmlFor="seller-product-description"
+            className="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Mô tả
+          </label>
           <textarea
+            id="seller-product-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
@@ -437,10 +449,14 @@ function SellerProductModalBody({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label
+              htmlFor="seller-product-price"
+              className="block text-sm font-semibold text-gray-700 mb-1.5"
+            >
               Giá bán (VND)
             </label>
             <input
+              id="seller-product-price"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="990000"
@@ -450,10 +466,14 @@ function SellerProductModalBody({
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label
+              htmlFor="seller-product-original-price"
+              className="block text-sm font-semibold text-gray-700 mb-1.5"
+            >
               Giá gốc (tuỳ chọn)
             </label>
             <input
+              id="seller-product-original-price"
               value={originalPrice}
               onChange={(e) => setOriginalPrice(e.target.value)}
               placeholder="1290000"
@@ -466,8 +486,14 @@ function SellerProductModalBody({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tồn kho</label>
+            <label
+              htmlFor="seller-product-stock"
+              className="block text-sm font-semibold text-gray-700 mb-1.5"
+            >
+              Tồn kho
+            </label>
             <input
+              id="seller-product-stock"
               value={stock}
               onChange={(e) => setStock(e.target.value)}
               placeholder="100"
@@ -477,8 +503,14 @@ function SellerProductModalBody({
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Danh mục</label>
+            <label
+              htmlFor="seller-product-category"
+              className="block text-sm font-semibold text-gray-700 mb-1.5"
+            >
+              Danh mục
+            </label>
             <input
+              id="seller-product-category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               placeholder="electronics"

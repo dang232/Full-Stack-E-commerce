@@ -387,9 +387,7 @@ function ShipDialogBody({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Đơn vị vận chuyển
-          </label>
+          <span className="block text-sm font-semibold text-gray-700 mb-2">Đơn vị vận chuyển</span>
           <div className="flex flex-wrap gap-2">
             {carriers.map((c) => (
               <button
@@ -418,8 +416,14 @@ function ShipDialogBody({
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mã vận đơn</label>
+          <label
+            htmlFor="seller-tracking-number"
+            className="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Mã vận đơn
+          </label>
           <input
+            id="seller-tracking-number"
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
             placeholder="VD: GHN1234567890"

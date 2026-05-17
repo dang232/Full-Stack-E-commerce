@@ -564,8 +564,14 @@ function CouponDialogBody({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mã coupon</label>
+          <label
+            htmlFor="admin-coupon-code"
+            className="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Mã coupon
+          </label>
           <input
+            id="admin-coupon-code"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder="VD: SALE50"
@@ -575,7 +581,7 @@ function CouponDialogBody({
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Loại giảm giá</label>
+          <span className="block text-sm font-semibold text-gray-700 mb-2">Loại giảm giá</span>
           <div className="grid grid-cols-2 gap-2">
             {(["PERCENT", "FIXED"] as const).map((t) => (
               <button
@@ -596,10 +602,14 @@ function CouponDialogBody({
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+          <label
+            htmlFor="admin-coupon-value"
+            className="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
             Giá trị {type === "PERCENT" ? "(%)" : "(VND)"}
           </label>
           <input
+            id="admin-coupon-value"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder={type === "PERCENT" ? "10" : "50000"}
@@ -609,10 +619,14 @@ function CouponDialogBody({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label
+              htmlFor="admin-coupon-min-order"
+              className="block text-sm font-semibold text-gray-700 mb-1.5"
+            >
               Đơn tối thiểu (VND)
             </label>
             <input
+              id="admin-coupon-min-order"
               value={minOrderValue}
               onChange={(e) => setMinOrderValue(e.target.value)}
               placeholder="200000"
@@ -621,10 +635,14 @@ function CouponDialogBody({
           </div>
           {type === "PERCENT" ? (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label
+                htmlFor="admin-coupon-max-discount"
+                className="block text-sm font-semibold text-gray-700 mb-1.5"
+              >
                 Giảm tối đa (VND)
               </label>
               <input
+                id="admin-coupon-max-discount"
                 value={maxDiscount}
                 onChange={(e) => setMaxDiscount(e.target.value)}
                 placeholder="100000"

@@ -257,10 +257,14 @@ function ReturnModal({
     >
       {subOrders.length > 1 ? (
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label
+            htmlFor="orders-return-suborder"
+            className="block text-sm font-semibold text-gray-700 mb-2"
+          >
             Chọn gói hàng cần trả
           </label>
           <select
+            id="orders-return-suborder"
             value={subOrderId}
             onChange={(e) => setSubOrderId(e.target.value)}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] bg-white"
@@ -274,8 +278,14 @@ function ReturnModal({
         </div>
       ) : null}
 
-      <label className="block text-sm font-semibold text-gray-700 mb-2">Lý do trả hàng</label>
+      <label
+        htmlFor="orders-return-reason"
+        className="block text-sm font-semibold text-gray-700 mb-2"
+      >
+        Lý do trả hàng
+      </label>
       <textarea
+        id="orders-return-reason"
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         rows={4}

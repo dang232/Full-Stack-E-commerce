@@ -635,10 +635,14 @@ export function CheckoutPage() {
                   ))}
                 </div>
                 <div className="mt-5">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label
+                    htmlFor="checkout-note"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
                     Ghi chú cho người bán (tùy chọn)
                   </label>
                   <textarea
+                    id="checkout-note"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     rows={3}
@@ -819,7 +823,12 @@ export function CheckoutPage() {
             </div>
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-gray-600">Mã giảm giá</label>
+                <label
+                  htmlFor="checkout-coupon-input"
+                  className="block text-xs font-semibold text-gray-600"
+                >
+                  Mã giảm giá
+                </label>
                 {!appliedCoupon ? (
                   <button
                     onClick={() => setShowCouponPicker((v) => !v)}
@@ -923,6 +932,7 @@ export function CheckoutPage() {
                     className="flex gap-2"
                   >
                     <input
+                      id="checkout-coupon-input"
                       type="text"
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
