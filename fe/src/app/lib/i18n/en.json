@@ -390,6 +390,88 @@
       "orders30dTitle": "Orders (30 days)",
       "orders30dLoading": "Loading...",
       "orders30dEmpty": "No orders in the last 30 days yet."
+    },
+    "products": {
+      "title": "Product management",
+      "addNew": "Add product",
+      "fallbackBanner": "Showing the full catalogue. A seller-only API (`/sellers/me/products`) will replace this when ready.",
+      "searchPlaceholder": "Search products...",
+      "filter": "Filter",
+      "loading": "Loading products...",
+      "th": {
+        "product": "Product",
+        "price": "Price",
+        "stock": "Stock",
+        "sold": "Sold"
+      },
+      "editTooltip": "Edit product"
+    },
+    "orders": {
+      "title": "Order management",
+      "loading": "Loading orders...",
+      "loadError": "Couldn't load orders: {{message}}",
+      "empty": "No orders to handle",
+      "parentOrder": "Parent order: {{id}}",
+      "accept": "Accept",
+      "reject": "Reject",
+      "ship": "Ship",
+      "acceptOk": "Order accepted",
+      "acceptErr": "Couldn't accept order",
+      "rejectOk": "Order rejected",
+      "rejectErr": "Couldn't reject order",
+      "shipOk": "Marked as shipping",
+      "shipErr": "Couldn't ship order"
+    },
+    "shipDialog": {
+      "title": "Hand off to carrier",
+      "subOrderLabel": "Sub-order: {{id}}",
+      "cancel": "Cancel",
+      "submit": "Hand off",
+      "submitting": "Submitting...",
+      "carrierLabel": "Carrier",
+      "carrierOther": "Other",
+      "carrierOtherPlaceholder": "Carrier name",
+      "trackingNumberLabel": "Tracking number",
+      "trackingNumberPlaceholder": "e.g. GHN1234567890",
+      "missingCarrier": "Please enter a carrier name",
+      "missingTracking": "Please enter a tracking number"
+    },
+    "rejectDialog": {
+      "title": "Reject order",
+      "submitLabel": "Reject order",
+      "subtitle": "Order: {{id}}",
+      "reasonLabel": "Rejection reason",
+      "reasonPlaceholder": "Out of stock, can't deliver to that address..."
+    },
+    "wallet": {
+      "title": "Wallet & Payouts",
+      "balanceLabel": "Available balance",
+      "loading": "Loading...",
+      "withdraw": "Withdraw",
+      "withdrawing": "Submitting...",
+      "loadError": "Couldn't load wallet: {{message}}",
+      "historyTitle": "Withdrawal history",
+      "historyEmpty": "No withdrawal requests yet",
+      "payoutDialog": {
+        "title": "Withdrawal request",
+        "balanceHint": "Available balance: {{balance}}",
+        "submit": "Submit request",
+        "amountLabel": "Amount (VND)",
+        "amountPlaceholder": "1000000",
+        "bankLabel": "Bank account number",
+        "bankPlaceholder": "e.g. VCB - 0123456789",
+        "invalidAmount": "Invalid amount",
+        "exceedsBalance": "Amount exceeds your available balance"
+      },
+      "payoutOk": "Withdrawal request submitted",
+      "payoutErr": "Couldn't submit request"
+    },
+    "reviewsTab": {
+      "comingSoon": "Reviews inbox will land once the backend ships its own endpoint."
+    },
+    "settings": {
+      "title": "Shop settings",
+      "comingSoon": "Shop profile updates will land once the backend ships a seller-profile endpoint."
     }
   },
   "profile": {

@@ -261,28 +261,26 @@ function ProductsManagement() {
   const [editing, setEditing] = useState<Product | null>(null);
   const { data: catalog = [], isLoading } = useProducts();
   const filtered = catalog.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-5">
       <SellerProductModal open={showCreate} onClose={() => setShowCreate(false)} />
       <SellerProductModal open={!!editing} product={editing} onClose={() => setEditing(null)} />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Quản lý sản phẩm</h2>
+        <h2 className="text-xl font-bold text-gray-800">{t("seller.products.title")}</h2>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-semibold text-sm"
           style={{ background: "#FF6200" }}
         >
-          <Plus size={16} /> Thêm sản phẩm
+          <Plus size={16} /> {t("seller.products.addNew")}
         </button>
       </div>
 
       <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
         <AlertCircle size={14} className="shrink-0 mt-0.5" />
-        <p>
-          Đang hiển thị toàn bộ catalog. API riêng cho seller (`/sellers/me/products`) sẽ thay thế
-          khi sẵn sàng.
-        </p>
+        <p>{t("seller.products.fallbackBanner")}</p>
       </div>
 
       <div className="flex gap-3">
@@ -291,23 +289,33 @@ function ProductsManagement() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder={t("seller.products.searchPlaceholder")}
             className="flex-1 text-sm outline-none"
           />
         </div>
         <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm text-gray-600">
-          <Filter size={15} /> Lọc
+          <Filter size={15} /> {t("seller.products.filter")}
         </button>
       </div>
 
-      {isLoading ? <p className="text-sm text-gray-400">Đang tải sản phẩm...</p> : null}
+      {isLoading ? <p className="text-sm text-gray-400">{t("seller.products.loading")}</p> : null}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full">
           <thead style={{ background: "#f9fafb" }}>
             <tr>
-              {["Sản phẩm", "Giá", "Kho", "Đã bán", ""].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-semibold text-gray-500 text-left">
+              {[
+                t("seller.products.th.product"),
+                t("seller.products.th.price"),
+                t("seller.products.th.stock"),
+                t("seller.products.th.sold"),
+                "",
+              ].map((h, i) => (
+                <th
+                  // eslint-disable-next-line react/no-array-index-key -- table headers are positional, no stable id
+                  key={i}
+                  className="px-4 py-3 text-xs font-semibold text-gray-500 text-left"
+                >
                   {h}
                 </th>
               ))}
@@ -340,7 +348,7 @@ function ProductsManagement() {
                   <button
                     onClick={() => setEditing(p)}
                     className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors"
-                    title="Sửa sản phẩm"
+                    title={t("seller.products.editTooltip")}
                   >
                     <Edit size={14} />
                   </button>
@@ -387,18 +395,20 @@ function ShipDialogBody({
   onSubmit: (input: { carrier: string; trackingNumber: string }) => void;
   isSubmitting: boolean;
 }) {
+  const { t } = useTranslation();
   const [carrier, setCarrier] = useState("GHN");
   const [trackingNumber, setTrackingNumber] = useState("");
 
-  const carriers = ["GHN", "GHTK", "VNPost", "J&T", "Khác"];
+  const otherLabel = t("seller.shipDialog.carrierOther");
+  const carriers = ["GHN", "GHTK", "VNPost", "J&T", otherLabel];
 
   const handleSubmit = () => {
-    if (!carrier.trim() || carrier === "Khác") {
-      toast.error("Vui lòng nhập tên đơn vị vận chuyển");
+    if (!carrier.trim() || carrier === otherLabel) {
+      toast.error(t("seller.shipDialog.missingCarrier"));
       return;
     }
     if (!trackingNumber.trim()) {
-      toast.error("Vui lòng nhập mã vận đơn");
+      toast.error(t("seller.shipDialog.missingTracking"));
       return;
     }
     onSubmit({ carrier: carrier.trim(), trackingNumber: trackingNumber.trim() });
@@ -409,8 +419,8 @@ function ShipDialogBody({
       open
       onClose={onClose}
       dismissDisabled={isSubmitting}
-      title="Bàn giao đơn cho vận chuyển"
-      subtitle={<span className="font-mono">Sub-order: {subOrderId}</span>}
+      title={t("seller.shipDialog.title")}
+      subtitle={<span className="font-mono">{t("seller.shipDialog.subOrderLabel", { id: subOrderId })}</span>}
       footer={
         <>
           <button
@@ -418,7 +428,7 @@ function ShipDialogBody({
             disabled={isSubmitting}
             className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 disabled:opacity-50"
           >
-            Huỷ
+            {t("seller.shipDialog.cancel")}
           </button>
           <button
             onClick={handleSubmit}
@@ -426,14 +436,16 @@ function ShipDialogBody({
             className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
             style={{ background: "#FF6200" }}
           >
-            {isSubmitting ? "Đang gửi..." : "Bàn giao"}
+            {isSubmitting ? t("seller.shipDialog.submitting") : t("seller.shipDialog.submit")}
           </button>
         </>
       }
     >
       <div className="space-y-4">
         <div>
-          <span className="block text-sm font-semibold text-gray-700 mb-2">Đơn vị vận chuyển</span>
+          <span className="block text-sm font-semibold text-gray-700 mb-2">
+            {t("seller.shipDialog.carrierLabel")}
+          </span>
           <div className="flex flex-wrap gap-2">
             {carriers.map((c) => (
               <button
@@ -451,11 +463,11 @@ function ShipDialogBody({
               </button>
             ))}
           </div>
-          {carrier === "Khác" ? (
+          {carrier === otherLabel ? (
             <input
-              value={carrier === "Khác" ? "" : carrier}
+              value={carrier === otherLabel ? "" : carrier}
               onChange={(e) => setCarrier(e.target.value)}
-              placeholder="Tên đơn vị vận chuyển"
+              placeholder={t("seller.shipDialog.carrierOtherPlaceholder")}
               className="mt-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#00BFB3]"
             />
           ) : null}
@@ -466,13 +478,13 @@ function ShipDialogBody({
             htmlFor="seller-tracking-number"
             className="block text-sm font-semibold text-gray-700 mb-1.5"
           >
-            Mã vận đơn
+            {t("seller.shipDialog.trackingNumberLabel")}
           </label>
           <input
             id="seller-tracking-number"
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="VD: GHN1234567890"
+            placeholder={t("seller.shipDialog.trackingNumberPlaceholder")}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
             // eslint-disable-next-line jsx-a11y/no-autofocus -- inside a modal opened by explicit user click; focusing the first input is expected UX
             autoFocus
@@ -493,6 +505,7 @@ function OrdersManagement({
   error: unknown;
 }) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [shipFor, setShipFor] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<string | null>(null);
 
@@ -500,9 +513,10 @@ function OrdersManagement({
     mutationFn: (subOrderId: string) => sellerAcceptOrder(subOrderId),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["seller", "pending-orders"] });
-      toast.success("Đã xác nhận đơn");
+      toast.success(t("seller.orders.acceptOk"));
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể xác nhận đơn"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("seller.orders.acceptErr")),
   });
 
   const reject = useMutation({
@@ -510,10 +524,11 @@ function OrdersManagement({
       sellerRejectOrder(id, { reason }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["seller", "pending-orders"] });
-      toast.success("Đã từ chối đơn");
+      toast.success(t("seller.orders.rejectOk"));
       setRejectFor(null);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể từ chối đơn"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("seller.orders.rejectErr")),
   });
 
   const ship = useMutation({
@@ -521,10 +536,10 @@ function OrdersManagement({
       sellerShipOrder(id, body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["seller", "pending-orders"] });
-      toast.success("Đã chuyển sang trạng thái Giao hàng");
+      toast.success(t("seller.orders.shipOk"));
       setShipFor(null);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể giao hàng"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("seller.orders.shipErr")),
   });
 
   return (
@@ -539,15 +554,15 @@ function OrdersManagement({
       />
       <FormDialog
         open={!!rejectFor}
-        title="Từ chối đơn"
-        description={rejectFor ? `Đơn: ${rejectFor}` : undefined}
-        submitLabel="Từ chối đơn"
+        title={t("seller.rejectDialog.title")}
+        description={rejectFor ? t("seller.rejectDialog.subtitle", { id: rejectFor }) : undefined}
+        submitLabel={t("seller.rejectDialog.submitLabel")}
         submitColor="#EF4444"
         fields={[
           {
             key: "reason",
-            label: "Lý do từ chối",
-            placeholder: "Hết hàng, không thể giao đến địa chỉ...",
+            label: t("seller.rejectDialog.reasonLabel"),
+            placeholder: t("seller.rejectDialog.reasonPlaceholder"),
             type: "textarea",
             required: true,
           },
@@ -558,16 +573,18 @@ function OrdersManagement({
         }}
         isSubmitting={reject.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">Quản lý đơn hàng</h2>
+      <h2 className="text-xl font-bold text-gray-800">{t("seller.orders.title")}</h2>
 
-      {isLoading ? <p className="text-sm text-gray-400">Đang tải đơn hàng...</p> : null}
+      {isLoading ? <p className="text-sm text-gray-400">{t("seller.orders.loading")}</p> : null}
       {error instanceof ApiError ? (
-        <p className="text-sm text-red-500">Không tải được đơn hàng: {error.message}</p>
+        <p className="text-sm text-red-500">
+          {t("seller.orders.loadError", { message: error.message })}
+        </p>
       ) : null}
       {!isLoading && orders.length === 0 && !error ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
           <Package size={40} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-sm text-gray-500">Không có đơn hàng nào cần xử lý</p>
+          <p className="text-sm text-gray-500">{t("seller.orders.empty")}</p>
         </div>
       ) : null}
 
@@ -586,7 +603,9 @@ function OrdersManagement({
                       {order.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">Mã đơn cha: {order.orderId}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    {t("seller.orders.parentOrder", { id: order.orderId })}
+                  </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {isPending ? (
@@ -597,14 +616,14 @@ function OrdersManagement({
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                         style={{ background: "#00BFB3" }}
                       >
-                        <CheckCircle size={13} /> Xác nhận
+                        <CheckCircle size={13} /> {t("seller.orders.accept")}
                       </button>
                       <button
                         onClick={() => setRejectFor(order.id)}
                         disabled={reject.isPending}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 disabled:opacity-50"
                       >
-                        Từ chối
+                        {t("seller.orders.reject")}
                       </button>
                     </>
                   ) : null}
@@ -615,7 +634,7 @@ function OrdersManagement({
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                       style={{ background: "#FF6200" }}
                     >
-                      <Truck size={13} /> Giao hàng
+                      <Truck size={13} /> {t("seller.orders.ship")}
                     </button>
                   ) : null}
                 </div>
@@ -640,38 +659,43 @@ function WalletTab({
   error: unknown;
 }) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);
   const requestPayoutMutation = useMutation({
     mutationFn: (body: { amount: number; bankAccount: string }) => requestPayout(body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["seller", "wallet"] });
       void qc.invalidateQueries({ queryKey: ["seller", "payouts"] });
-      toast.success("Đã gửi yêu cầu rút tiền");
+      toast.success(t("seller.wallet.payoutOk"));
       setShowPayoutDialog(false);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể gửi yêu cầu"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("seller.wallet.payoutErr")),
   });
 
   return (
     <div className="space-y-5">
       <FormDialog
         open={showPayoutDialog}
-        title="Yêu cầu rút tiền"
-        description={balance !== null ? `Số dư hiện có: ${formatPrice(balance)}` : undefined}
-        submitLabel="Gửi yêu cầu"
+        title={t("seller.wallet.payoutDialog.title")}
+        description={
+          balance !== null
+            ? t("seller.wallet.payoutDialog.balanceHint", { balance: formatPrice(balance) })
+            : undefined
+        }
+        submitLabel={t("seller.wallet.payoutDialog.submit")}
         submitColor="#00BFB3"
         fields={[
           {
             key: "amount",
-            label: "Số tiền (VND)",
-            placeholder: "1000000",
+            label: t("seller.wallet.payoutDialog.amountLabel"),
+            placeholder: t("seller.wallet.payoutDialog.amountPlaceholder"),
             type: "number",
             required: true,
           },
           {
             key: "bankAccount",
-            label: "Số tài khoản ngân hàng",
-            placeholder: "VD: VCB - 0123456789",
+            label: t("seller.wallet.payoutDialog.bankLabel"),
+            placeholder: t("seller.wallet.payoutDialog.bankPlaceholder"),
             required: true,
           },
         ]}
@@ -679,26 +703,30 @@ function WalletTab({
         onSubmit={({ amount, bankAccount }) => {
           const parsed = Number(amount.replace(/\D/g, ""));
           if (!parsed || parsed <= 0) {
-            toast.error("Số tiền không hợp lệ");
+            toast.error(t("seller.wallet.payoutDialog.invalidAmount"));
             return;
           }
           if (balance !== null && parsed > balance) {
-            toast.error("Số tiền vượt quá số dư khả dụng");
+            toast.error(t("seller.wallet.payoutDialog.exceedsBalance"));
             return;
           }
           requestPayoutMutation.mutate({ amount: parsed, bankAccount });
         }}
         isSubmitting={requestPayoutMutation.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">Ví & Thanh toán</h2>
+      <h2 className="text-xl font-bold text-gray-800">{t("seller.wallet.title")}</h2>
 
       <div
         className="rounded-2xl p-6 text-white"
         style={{ background: "linear-gradient(135deg, #00BFB3, #006b65)" }}
       >
-        <p className="text-white/70 text-sm mb-2">Số dư khả dụng</p>
+        <p className="text-white/70 text-sm mb-2">{t("seller.wallet.balanceLabel")}</p>
         <p className="text-4xl font-black mb-4">
-          {balance !== null ? formatPrice(balance) : isLoading ? "Đang tải..." : "—"}
+          {balance !== null
+            ? formatPrice(balance)
+            : isLoading
+              ? t("seller.wallet.loading")
+              : "—"}
         </p>
         <div className="flex gap-3">
           <button
@@ -706,22 +734,26 @@ function WalletTab({
             disabled={requestPayoutMutation.isPending || balance === null || balance <= 0}
             className="px-5 py-2.5 rounded-xl bg-white/20 font-semibold text-sm hover:bg-white/30 transition-colors disabled:opacity-50"
           >
-            {requestPayoutMutation.isPending ? "Đang gửi..." : "Rút tiền"}
+            {requestPayoutMutation.isPending
+              ? t("seller.wallet.withdrawing")
+              : t("seller.wallet.withdraw")}
           </button>
         </div>
       </div>
 
       {error instanceof ApiError ? (
-        <p className="text-sm text-red-500">Không tải được ví: {error.message}</p>
+        <p className="text-sm text-red-500">
+          {t("seller.wallet.loadError", { message: error.message })}
+        </p>
       ) : null}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <h3 className="px-5 py-4 font-bold text-gray-800 border-b border-gray-100">
-          Lịch sử rút tiền
+          {t("seller.wallet.historyTitle")}
         </h3>
         {payouts.length === 0 ? (
           <p className="px-5 py-8 text-sm text-gray-400 text-center">
-            Chưa có yêu cầu rút tiền nào
+            {t("seller.wallet.historyEmpty")}
           </p>
         ) : null}
         <div className="divide-y divide-gray-50">
@@ -885,9 +917,7 @@ export function SellerPage() {
               {activeTab === "reviews" ? (
                 <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
                   <MessageSquare size={48} className="mx-auto mb-4 text-gray-200" />
-                  <p className="text-sm text-gray-500">
-                    Inbox đánh giá sẽ được hỗ trợ khi backend cung cấp endpoint riêng.
-                  </p>
+                  <p className="text-sm text-gray-500">{t("seller.reviewsTab.comingSoon")}</p>
                 </div>
               ) : null}
               {activeTab === "wallet" ? (
@@ -900,11 +930,10 @@ export function SellerPage() {
               ) : null}
               {activeTab === "settings" ? (
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  <h2 className="text-xl font-bold text-gray-800 mb-3">Cài đặt Shop</h2>
-                  <p className="text-sm text-gray-500 mb-4">
-                    Cập nhật thông tin shop sẽ khả dụng khi backend mở endpoint riêng cho seller
-                    profile.
-                  </p>
+                  <h2 className="text-xl font-bold text-gray-800 mb-3">
+                    {t("seller.settings.title")}
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-4">{t("seller.settings.comingSoon")}</p>
                   <div className="space-y-4 text-sm">
                     {profileQuery.data ? (
                       <pre className="bg-gray-50 rounded-xl p-3 text-[11px] overflow-auto">

@@ -390,6 +390,88 @@
       "orders30dTitle": "Số đơn 30 ngày",
       "orders30dLoading": "Đang tải...",
       "orders30dEmpty": "Chưa có đơn nào trong 30 ngày qua."
+    },
+    "products": {
+      "title": "Quản lý sản phẩm",
+      "addNew": "Thêm sản phẩm",
+      "fallbackBanner": "Đang hiển thị toàn bộ catalog. API riêng cho seller (`/sellers/me/products`) sẽ thay thế khi sẵn sàng.",
+      "searchPlaceholder": "Tìm kiếm sản phẩm...",
+      "filter": "Lọc",
+      "loading": "Đang tải sản phẩm...",
+      "th": {
+        "product": "Sản phẩm",
+        "price": "Giá",
+        "stock": "Kho",
+        "sold": "Đã bán"
+      },
+      "editTooltip": "Sửa sản phẩm"
+    },
+    "orders": {
+      "title": "Quản lý đơn hàng",
+      "loading": "Đang tải đơn hàng...",
+      "loadError": "Không tải được đơn hàng: {{message}}",
+      "empty": "Không có đơn hàng nào cần xử lý",
+      "parentOrder": "Mã đơn cha: {{id}}",
+      "accept": "Xác nhận",
+      "reject": "Từ chối",
+      "ship": "Giao hàng",
+      "acceptOk": "Đã xác nhận đơn",
+      "acceptErr": "Không thể xác nhận đơn",
+      "rejectOk": "Đã từ chối đơn",
+      "rejectErr": "Không thể từ chối đơn",
+      "shipOk": "Đã chuyển sang trạng thái Giao hàng",
+      "shipErr": "Không thể giao hàng"
+    },
+    "shipDialog": {
+      "title": "Bàn giao đơn cho vận chuyển",
+      "subOrderLabel": "Sub-order: {{id}}",
+      "cancel": "Huỷ",
+      "submit": "Bàn giao",
+      "submitting": "Đang gửi...",
+      "carrierLabel": "Đơn vị vận chuyển",
+      "carrierOther": "Khác",
+      "carrierOtherPlaceholder": "Tên đơn vị vận chuyển",
+      "trackingNumberLabel": "Mã vận đơn",
+      "trackingNumberPlaceholder": "VD: GHN1234567890",
+      "missingCarrier": "Vui lòng nhập tên đơn vị vận chuyển",
+      "missingTracking": "Vui lòng nhập mã vận đơn"
+    },
+    "rejectDialog": {
+      "title": "Từ chối đơn",
+      "submitLabel": "Từ chối đơn",
+      "subtitle": "Đơn: {{id}}",
+      "reasonLabel": "Lý do từ chối",
+      "reasonPlaceholder": "Hết hàng, không thể giao đến địa chỉ..."
+    },
+    "wallet": {
+      "title": "Ví & Thanh toán",
+      "balanceLabel": "Số dư khả dụng",
+      "loading": "Đang tải...",
+      "withdraw": "Rút tiền",
+      "withdrawing": "Đang gửi...",
+      "loadError": "Không tải được ví: {{message}}",
+      "historyTitle": "Lịch sử rút tiền",
+      "historyEmpty": "Chưa có yêu cầu rút tiền nào",
+      "payoutDialog": {
+        "title": "Yêu cầu rút tiền",
+        "balanceHint": "Số dư hiện có: {{balance}}",
+        "submit": "Gửi yêu cầu",
+        "amountLabel": "Số tiền (VND)",
+        "amountPlaceholder": "1000000",
+        "bankLabel": "Số tài khoản ngân hàng",
+        "bankPlaceholder": "VD: VCB - 0123456789",
+        "invalidAmount": "Số tiền không hợp lệ",
+        "exceedsBalance": "Số tiền vượt quá số dư khả dụng"
+      },
+      "payoutOk": "Đã gửi yêu cầu rút tiền",
+      "payoutErr": "Không thể gửi yêu cầu"
+    },
+    "reviewsTab": {
+      "comingSoon": "Inbox đánh giá sẽ được hỗ trợ khi backend cung cấp endpoint riêng."
+    },
+    "settings": {
+      "title": "Cài đặt Shop",
+      "comingSoon": "Cập nhật thông tin shop sẽ khả dụng khi backend mở endpoint riêng cho seller profile."
     }
   },
   "profile": {
