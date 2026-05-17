@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -33,6 +34,7 @@ export function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
+  const { t } = useTranslation();
 
   // The real discount lands at checkout (/checkout/calculate is server-authoritative).
   // For the cart preview we hit /coupons/validate so the buyer sees the same code/discount
@@ -48,14 +50,12 @@ export function CartPage() {
       }
       setAppliedCoupon(null);
       setCouponDiscount(0);
-      setCouponError(result.message || "Mã giảm giá không hợp lệ hoặc đã hết hạn");
+      setCouponError(result.message || t("cart.couponInvalid"));
     },
     onError: (err) => {
       setAppliedCoupon(null);
       setCouponDiscount(0);
-      setCouponError(
-        err instanceof ApiError ? err.message : "Mã giảm giá không hợp lệ hoặc đã hết hạn",
-      );
+      setCouponError(err instanceof ApiError ? err.message : t("cart.couponInvalid"));
     },
   });
 
@@ -80,14 +80,15 @@ export function CartPage() {
     if (quantity <= 0) {
       removeItem(productId, {
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Không thể xoá sản phẩm"),
+          toast.error(err instanceof ApiError ? err.message : t("cart.errors.cantRemove")),
       });
       return;
     }
     updateItem(
       { productId, quantity },
       {
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật"),
+        onError: (err) =>
+          toast.error(err instanceof ApiError ? err.message : t("cart.errors.cantUpdate")),
       },
     );
   };
@@ -95,13 +96,13 @@ export function CartPage() {
   const onRemove = (productId: string) =>
     removeItem(productId, {
       onError: (err) =>
-        toast.error(err instanceof ApiError ? err.message : "Không thể xoá sản phẩm"),
+        toast.error(err instanceof ApiError ? err.message : t("cart.errors.cantRemove")),
     });
 
   if (!ready) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
-        Đang khởi tạo phiên đăng nhập...
+        {t("cart.initSession")}
       </div>
     );
   }
@@ -111,16 +112,14 @@ export function CartPage() {
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <ShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
-          <h2 className="text-2xl font-bold text-gray-600 mb-3">Đăng nhập để xem giỏ hàng</h2>
-          <p className="text-gray-400 mb-8">
-            Giỏ hàng của bạn được lưu trữ an toàn trên VNShop sau khi bạn đăng nhập.
-          </p>
+          <h2 className="text-2xl font-bold text-gray-600 mb-3">{t("cart.loginPromptTitle")}</h2>
+          <p className="text-gray-400 mb-8">{t("cart.loginPromptSub")}</p>
           <button
             onClick={() => login("/cart")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2"
             style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
           >
-            <LogIn size={16} /> Đăng nhập
+            <LogIn size={16} /> {t("auth.login")}
           </button>
         </motion.div>
       </div>
@@ -130,13 +129,13 @@ export function CartPage() {
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
-        Đang tải giỏ hàng...
+        {t("cart.loading")}
       </div>
     );
   }
 
   if (error) {
-    const message = error instanceof ApiError ? error.message : "Không thể tải giỏ hàng";
+    const message = error instanceof ApiError ? error.message : t("cart.loadError");
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <h2 className="text-xl font-semibold text-gray-700 mb-3">{message}</h2>
@@ -145,7 +144,7 @@ export function CartPage() {
           className="px-6 py-2.5 rounded-xl text-white font-medium"
           style={{ background: "#00BFB3" }}
         >
-          Về trang chủ
+          {t("cart.backToHome")}
         </button>
       </div>
     );
@@ -156,14 +155,14 @@ export function CartPage() {
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <ShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
-          <h2 className="text-2xl font-bold text-gray-600 mb-3">Giỏ hàng trống</h2>
-          <p className="text-gray-400 mb-8">Hãy thêm sản phẩm vào giỏ hàng và quay lại nhé!</p>
+          <h2 className="text-2xl font-bold text-gray-600 mb-3">{t("cart.emptyTitle")}</h2>
+          <p className="text-gray-400 mb-8">{t("cart.emptySub")}</p>
           <button
             onClick={() => navigate("/")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
             style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
           >
-            Tiếp tục mua sắm
+            {t("cart.continueShopping")}
           </button>
         </motion.div>
       </div>
@@ -175,7 +174,7 @@ export function CartPage() {
     (acc, item) => {
       const sid = item.sellerId ?? "_";
       if (!acc[sid]) {
-        acc[sid] = { sellerName: item.sellerId ?? "Người bán", items: [] };
+        acc[sid] = { sellerName: item.sellerId ?? t("cart.sellerFallback"), items: [] };
       }
       acc[sid].items.push(item);
       return acc;
@@ -196,7 +195,7 @@ export function CartPage() {
           className="text-2xl font-bold text-gray-800"
           style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
         >
-          Giỏ hàng ({itemCount} sản phẩm)
+          {t("cart.titleWithCount", { count: itemCount })}
         </h1>
       </div>
 
@@ -219,8 +218,8 @@ export function CartPage() {
                   <span className="ml-auto text-xs text-gray-400 flex items-center gap-1">
                     <Truck size={12} />
                     {totalAmount >= FREE_SHIPPING_THRESHOLD
-                      ? "Miễn phí vận chuyển"
-                      : `Ship ${formatPrice(FLAT_SHIPPING_FEE)}`}
+                      ? t("cart.freeShippingTag")
+                      : t("cart.shipFee", { fee: formatPrice(FLAT_SHIPPING_FEE) })}
                   </span>
                 </div>
 
@@ -298,7 +297,7 @@ export function CartPage() {
             className="flex items-center gap-2 text-sm font-medium"
             style={{ color: "#00BFB3" }}
           >
-            <ArrowLeft size={16} /> Tiếp tục mua sắm
+            <ArrowLeft size={16} /> {t("cart.continueShopping")}
           </button>
         </div>
 
@@ -306,14 +305,14 @@ export function CartPage() {
           <div className="bg-white rounded-2xl shadow-sm p-5">
             <div className="flex items-center gap-2 mb-3">
               <Tag size={18} style={{ color: "#FF6200" }} />
-              <h3 className="font-semibold text-gray-800">Mã giảm giá</h3>
+              <h3 className="font-semibold text-gray-800">{t("cart.couponHeader")}</h3>
             </div>
             <div className="flex gap-2">
               <input
                 value={coupon}
                 onChange={(e) => setCoupon(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
-                placeholder="Nhập mã voucher..."
+                placeholder={t("cart.couponPlaceholder")}
                 className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] uppercase tracking-wider"
               />
               <button
@@ -322,7 +321,7 @@ export function CartPage() {
                 className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: "#FF6200" }}
               >
-                {couponMutation.isPending ? "Đang kiểm tra..." : "Áp dụng"}
+                {couponMutation.isPending ? t("cart.couponApplying") : t("cart.couponApply")}
               </button>
             </div>
             {couponError ? <p className="text-xs text-red-500 mt-1.5">{couponError}</p> : null}
@@ -332,52 +331,50 @@ export function CartPage() {
                 style={{ background: "rgba(0,191,179,0.08)" }}
               >
                 <span style={{ color: "#00BFB3" }}>
-                  🎉 Đã áp dụng: {appliedCoupon}
+                  {t("cart.couponApplied", { code: appliedCoupon })}
                   {couponDiscount > 0 ? ` · -${formatPrice(couponDiscount)}` : ""}
                 </span>
                 <button
                   onClick={handleRemoveCoupon}
                   className="text-gray-400 hover:text-red-400 text-xs"
                 >
-                  Xóa
+                  {t("cart.couponRemove")}
                 </button>
               </div>
             ) : null}
-            <p className="text-[11px] text-gray-400 mt-3">
-              Giá trị thực sẽ được kiểm tra lại tại trang thanh toán.
-            </p>
+            <p className="text-[11px] text-gray-400 mt-3">{t("cart.couponHint")}</p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm p-5">
-            <h3 className="font-bold text-gray-800 mb-4">Tóm tắt đơn hàng</h3>
+            <h3 className="font-bold text-gray-800 mb-4">{t("cart.summaryTitle")}</h3>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Tạm tính ({itemCount} sản phẩm)</span>
+                <span className="text-gray-600">{t("cart.subtotal", { count: itemCount })}</span>
                 <span className="font-medium">{formatPrice(totalAmount)}</span>
               </div>
               {couponDiscount > 0 ? (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Giảm giá voucher</span>
+                  <span className="text-gray-600">{t("cart.voucherDiscount")}</span>
                   <span className="font-medium" style={{ color: "#00BFB3" }}>
                     -{formatPrice(couponDiscount)}
                   </span>
                 </div>
               ) : null}
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Phí vận chuyển</span>
+                <span className="text-gray-600">{t("cart.shippingFee")}</span>
                 <span className={shippingFee === 0 ? "font-medium text-green-500" : "font-medium"}>
-                  {shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}
+                  {shippingFee === 0 ? t("cart.free") : formatPrice(shippingFee)}
                 </span>
               </div>
               <div className="border-t border-gray-100 pt-3 flex justify-between">
-                <span className="font-bold text-gray-800">Tổng cộng</span>
+                <span className="font-bold text-gray-800">{t("cart.totalLabel")}</span>
                 <div className="text-right">
                   <span className="font-black text-xl" style={{ color: "#FF6200" }}>
                     {formatPrice(finalTotal)}
                   </span>
                   {couponDiscount > 0 ? (
                     <p className="text-xs" style={{ color: "#00BFB3" }}>
-                      Tiết kiệm {formatPrice(couponDiscount)}
+                      {t("cart.savings", { amount: formatPrice(couponDiscount) })}
                     </p>
                   ) : null}
                 </div>
@@ -389,7 +386,7 @@ export function CartPage() {
               className="w-full mt-5 py-4 rounded-xl text-white font-bold text-base shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
             >
-              Tiến hành thanh toán <ChevronRight size={18} />
+              {t("cart.proceedCheckout")} <ChevronRight size={18} />
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-2">
@@ -406,7 +403,7 @@ export function CartPage() {
 
           <div className="flex items-center gap-2 text-xs text-gray-500 justify-center">
             <Shield size={14} style={{ color: "#00BFB3" }} />
-            <span>Thông tin thanh toán được mã hóa SSL 256-bit</span>
+            <span>{t("cart.sslNotice")}</span>
           </div>
         </div>
       </div>
