@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AreaChart,
   Area,
@@ -95,6 +96,7 @@ function AdminKPICard({
 }
 
 function AdminDashboard() {
+  const { t } = useTranslation();
   const summaryQuery = useQuery({
     queryKey: ["admin", "dashboard", "summary"],
     queryFn: dashboardSummary,
@@ -125,51 +127,53 @@ function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Admin Dashboard</h2>
-          <p className="text-sm text-gray-500">Dữ liệu thời gian thực từ máy chủ</p>
+          <h2 className="text-xl font-bold text-gray-800">{t("admin.dashboard.title")}</h2>
+          <p className="text-sm text-gray-500">{t("admin.dashboard.subtitle")}</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-600">
-          <BarChart3 size={15} /> Xuất báo cáo
+          <BarChart3 size={15} /> {t("admin.dashboard.exportReport")}
         </button>
       </div>
 
       {summaryQuery.error instanceof ApiError ? (
         <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
           <AlertCircle size={14} className="shrink-0 mt-0.5" />
-          <p>Không tải được KPI: {summaryQuery.error.message}</p>
+          <p>{t("admin.dashboard.kpiLoadFail", { message: summaryQuery.error.message })}</p>
         </div>
       ) : null}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <AdminKPICard
           icon={TrendingUp}
-          label="Tổng doanh thu"
+          label={t("admin.dashboard.kpi.totalRevenue")}
           value={totalRevenue !== null ? formatPrice(totalRevenue) : "—"}
           color="#00BFB3"
         />
         <AdminKPICard
           icon={Users}
-          label="Người dùng"
+          label={t("admin.dashboard.kpi.totalUsers")}
           value={totalUsers !== null ? totalUsers.toLocaleString() : "—"}
           color="#3B82F6"
         />
         <AdminKPICard
           icon={Package}
-          label="Đơn hàng"
+          label={t("admin.dashboard.kpi.totalOrders")}
           value={totalOrders !== null ? totalOrders.toLocaleString() : "—"}
           color="#FF6200"
         />
         <AdminKPICard
           icon={Wallet}
-          label="Người bán"
+          label={t("admin.dashboard.kpi.totalSellers")}
           value={totalSellers !== null ? totalSellers.toLocaleString() : "—"}
           color="#F59E0B"
         />
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm">
-        <h3 className="font-bold text-gray-800 mb-4">Doanh thu theo thời gian</h3>
-        {revenueQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+        <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.revenueTitle")}</h3>
+        {revenueQuery.isLoading ? (
+          <p className="text-sm text-gray-400">{t("admin.dashboard.loading")}</p>
+        ) : null}
         {revenueQuery.data && revenueQuery.data.length > 0 ? (
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart data={revenueQuery.data}>
@@ -211,14 +215,16 @@ function AdminDashboard() {
           </ResponsiveContainer>
         ) : (
           !revenueQuery.isLoading && (
-            <p className="text-sm text-gray-400 text-center py-12">Chưa có dữ liệu doanh thu</p>
+            <p className="text-sm text-gray-400 text-center py-12">
+              {t("admin.dashboard.revenueEmpty")}
+            </p>
           )
         )}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h3 className="font-bold text-gray-800 mb-4">Sản phẩm bán chạy</h3>
+          <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.topProducts")}</h3>
           {topProductsQuery.data && topProductsQuery.data.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={topProductsQuery.data} layout="vertical">
@@ -243,12 +249,12 @@ function AdminDashboard() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-gray-400 text-center py-8">Chưa có dữ liệu</p>
+            <p className="text-sm text-gray-400 text-center py-8">{t("admin.dashboard.noData")}</p>
           )}
         </div>
 
         <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h3 className="font-bold text-gray-800 mb-4">Người bán dẫn đầu</h3>
+          <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.topSellers")}</h3>
           {topSellersQuery.data && topSellersQuery.data.length > 0 ? (
             <div className="space-y-3">
               {topSellersQuery.data.map((s, i) => (
@@ -271,7 +277,7 @@ function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 text-center py-8">Chưa có dữ liệu</p>
+            <p className="text-sm text-gray-400 text-center py-8">{t("admin.dashboard.noData")}</p>
           )}
         </div>
       </div>
@@ -281,6 +287,7 @@ function AdminDashboard() {
 
 function SellersApproval() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const sellersQuery = useQuery({
     queryKey: ["admin", "sellers"],
@@ -292,9 +299,10 @@ function SellersApproval() {
     mutationFn: (id: string) => adminApproveSeller(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "sellers"] });
-      toast.success("Đã duyệt seller");
+      toast.success(t("admin.sellers.approveOk"));
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể duyệt seller"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.sellers.approveErr")),
   });
 
   const filtered = (sellersQuery.data ?? []).filter((s) =>
@@ -304,25 +312,27 @@ function SellersApproval() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Duyệt Seller</h2>
+        <h2 className="text-xl font-bold text-gray-800">{t("admin.sellers.title")}</h2>
       </div>
       <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
         <Search size={16} className="text-gray-400" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Tìm shop..."
+          placeholder={t("admin.sellers.searchPlaceholder")}
           className="flex-1 text-sm outline-none"
         />
       </div>
 
-      {sellersQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {sellersQuery.isLoading ? (
+        <p className="text-sm text-gray-400">{t("admin.sellers.loading")}</p>
+      ) : null}
       {sellersQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{sellersQuery.error.message}</p>
       ) : null}
       {!sellersQuery.isLoading && filtered.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500">Không có seller nào chờ duyệt</p>
+          <p className="text-sm text-gray-500">{t("admin.sellers.empty")}</p>
         </div>
       ) : null}
 
@@ -342,7 +352,7 @@ function SellersApproval() {
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                 style={{ background: "#00BFB3" }}
               >
-                <CheckCircle size={13} /> Duyệt
+                <CheckCircle size={13} /> {t("admin.sellers.approve")}
               </button>
             </div>
           ))}
@@ -354,6 +364,7 @@ function SellersApproval() {
 
 function ReviewsModeration() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [rejectFor, setRejectFor] = useState<string | null>(null);
   const reviewsQuery = useQuery({
     queryKey: ["admin", "reviews", "pending"],
@@ -365,9 +376,10 @@ function ReviewsModeration() {
     mutationFn: (id: string) => adminApproveReview(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "reviews"] });
-      toast.success("Đã duyệt đánh giá");
+      toast.success(t("admin.reviewsModeration.approveOk"));
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể duyệt"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.reviewsModeration.approveErr")),
   });
 
   const reject = useMutation({
@@ -375,10 +387,11 @@ function ReviewsModeration() {
       adminRejectReview(id, { reason }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "reviews"] });
-      toast.success("Đã từ chối đánh giá");
+      toast.success(t("admin.reviewsModeration.rejectOk"));
       setRejectFor(null);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể từ chối"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.reviewsModeration.rejectErr")),
   });
 
   const reviews = reviewsQuery.data ?? [];
@@ -387,14 +400,14 @@ function ReviewsModeration() {
     <div className="space-y-5">
       <FormDialog
         open={!!rejectFor}
-        title="Từ chối đánh giá"
-        submitLabel="Từ chối"
+        title={t("admin.reviewsModeration.rejectDialog.title")}
+        submitLabel={t("admin.reviewsModeration.rejectDialog.submit")}
         submitColor="#EF4444"
         fields={[
           {
             key: "reason",
-            label: "Lý do từ chối",
-            placeholder: "Nội dung không phù hợp, spam, ...",
+            label: t("admin.reviewsModeration.rejectDialog.reasonLabel"),
+            placeholder: t("admin.reviewsModeration.rejectDialog.reasonPlaceholder"),
             type: "textarea",
             required: true,
           },
@@ -405,15 +418,17 @@ function ReviewsModeration() {
         }}
         isSubmitting={reject.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">Kiểm duyệt đánh giá</h2>
+      <h2 className="text-xl font-bold text-gray-800">{t("admin.reviewsModeration.title")}</h2>
 
-      {reviewsQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {reviewsQuery.isLoading ? (
+        <p className="text-sm text-gray-400">{t("admin.reviewsModeration.loading")}</p>
+      ) : null}
       {reviewsQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{reviewsQuery.error.message}</p>
       ) : null}
       {!reviewsQuery.isLoading && reviews.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500">Không có đánh giá nào cần duyệt</p>
+          <p className="text-sm text-gray-500">{t("admin.reviewsModeration.empty")}</p>
         </div>
       ) : null}
 
@@ -422,9 +437,11 @@ function ReviewsModeration() {
           <div key={r.id} className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <p className="text-xs font-mono text-gray-400">SP: {r.productId}</p>
+                <p className="text-xs font-mono text-gray-400">
+                  {t("admin.reviewsModeration.productPrefix", { id: r.productId })}
+                </p>
                 <p className="text-sm font-semibold text-gray-800">
-                  {r.userName ?? r.userId ?? "Người dùng"}
+                  {r.userName ?? r.userId ?? t("admin.reviewsModeration.anonGuest")}
                 </p>
               </div>
               <div className="flex items-center gap-0.5">
@@ -448,14 +465,14 @@ function ReviewsModeration() {
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                 style={{ background: "#10B981" }}
               >
-                <CheckCircle size={13} /> Duyệt
+                <CheckCircle size={13} /> {t("admin.reviewsModeration.approve")}
               </button>
               <button
                 onClick={() => setRejectFor(r.id)}
                 disabled={reject.isPending}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 disabled:opacity-50"
               >
-                <XCircle size={13} /> Từ chối
+                <XCircle size={13} /> {t("admin.reviewsModeration.reject")}
               </button>
             </div>
           </div>
@@ -503,6 +520,7 @@ function CouponDialogBody({
   }) => void;
   isSubmitting: boolean;
 }) {
+  const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [type, setType] = useState<"PERCENT" | "FIXED">("PERCENT");
   const [value, setValue] = useState("");
@@ -512,16 +530,16 @@ function CouponDialogBody({
   const handleSubmit = () => {
     const trimmedCode = code.trim().toUpperCase();
     if (!trimmedCode) {
-      toast.error("Vui lòng nhập mã coupon");
+      toast.error(t("admin.coupons.dialog.missingCode"));
       return;
     }
     const v = Number(value.replace(/\D/g, ""));
     if (!v || v <= 0) {
-      toast.error("Giá trị không hợp lệ");
+      toast.error(t("admin.coupons.dialog.invalidValue"));
       return;
     }
     if (type === "PERCENT" && v > 100) {
-      toast.error("Giảm phần trăm tối đa 100");
+      toast.error(t("admin.coupons.dialog.percentTooLarge"));
       return;
     }
     onSubmit({
@@ -541,7 +559,7 @@ function CouponDialogBody({
       open
       onClose={onClose}
       dismissDisabled={isSubmitting}
-      title="Tạo coupon mới"
+      title={t("admin.coupons.dialog.title")}
       footer={
         <>
           <button
@@ -549,7 +567,7 @@ function CouponDialogBody({
             disabled={isSubmitting}
             className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 disabled:opacity-50"
           >
-            Huỷ
+            {t("admin.coupons.dialog.cancel")}
           </button>
           <button
             onClick={handleSubmit}
@@ -557,7 +575,9 @@ function CouponDialogBody({
             className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
             style={{ background: "#6366F1" }}
           >
-            {isSubmitting ? "Đang tạo..." : "Tạo coupon"}
+            {isSubmitting
+              ? t("admin.coupons.dialog.submitting")
+              : t("admin.coupons.dialog.submit")}
           </button>
         </>
       }
@@ -568,13 +588,13 @@ function CouponDialogBody({
             htmlFor="admin-coupon-code"
             className="block text-sm font-semibold text-gray-700 mb-1.5"
           >
-            Mã coupon
+            {t("admin.coupons.dialog.codeLabel")}
           </label>
           <input
             id="admin-coupon-code"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="VD: SALE50"
+            placeholder={t("admin.coupons.dialog.codePlaceholder")}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono uppercase tracking-wider outline-none focus:border-[#6366F1]"
             // eslint-disable-next-line jsx-a11y/no-autofocus -- inside a modal opened by explicit user click; focusing the first input is expected UX
             autoFocus
@@ -582,21 +602,25 @@ function CouponDialogBody({
         </div>
 
         <div>
-          <span className="block text-sm font-semibold text-gray-700 mb-2">Loại giảm giá</span>
+          <span className="block text-sm font-semibold text-gray-700 mb-2">
+            {t("admin.coupons.dialog.typeLabel")}
+          </span>
           <div className="grid grid-cols-2 gap-2">
-            {(["PERCENT", "FIXED"] as const).map((t) => (
+            {(["PERCENT", "FIXED"] as const).map((opt) => (
               <button
-                key={t}
+                key={opt}
                 type="button"
-                onClick={() => setType(t)}
+                onClick={() => setType(opt)}
                 className="py-2 rounded-xl text-sm font-medium border transition-colors"
                 style={
-                  type === t
+                  type === opt
                     ? { background: "#6366F1", color: "white", borderColor: "#6366F1" }
                     : { background: "white", color: "#6b7280", borderColor: "#e5e7eb" }
                 }
               >
-                {t === "PERCENT" ? "Phần trăm (%)" : "Số tiền cố định (đ)"}
+                {opt === "PERCENT"
+                  ? t("admin.coupons.dialog.typePercent")
+                  : t("admin.coupons.dialog.typeFixed")}
               </button>
             ))}
           </div>
@@ -607,13 +631,19 @@ function CouponDialogBody({
             htmlFor="admin-coupon-value"
             className="block text-sm font-semibold text-gray-700 mb-1.5"
           >
-            Giá trị {type === "PERCENT" ? "(%)" : "(VND)"}
+            {type === "PERCENT"
+              ? t("admin.coupons.dialog.valueLabelPercent")
+              : t("admin.coupons.dialog.valueLabelFixed")}
           </label>
           <input
             id="admin-coupon-value"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder={type === "PERCENT" ? "10" : "50000"}
+            placeholder={
+              type === "PERCENT"
+                ? t("admin.coupons.dialog.valuePlaceholderPercent")
+                : t("admin.coupons.dialog.valuePlaceholderFixed")
+            }
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
           />
         </div>
@@ -624,13 +654,13 @@ function CouponDialogBody({
               htmlFor="admin-coupon-min-order"
               className="block text-sm font-semibold text-gray-700 mb-1.5"
             >
-              Đơn tối thiểu (VND)
+              {t("admin.coupons.dialog.minOrderLabel")}
             </label>
             <input
               id="admin-coupon-min-order"
               value={minOrderValue}
               onChange={(e) => setMinOrderValue(e.target.value)}
-              placeholder="200000"
+              placeholder={t("admin.coupons.dialog.minOrderPlaceholder")}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
             />
           </div>
@@ -640,13 +670,13 @@ function CouponDialogBody({
                 htmlFor="admin-coupon-max-discount"
                 className="block text-sm font-semibold text-gray-700 mb-1.5"
               >
-                Giảm tối đa (VND)
+                {t("admin.coupons.dialog.maxDiscountLabel")}
               </label>
               <input
                 id="admin-coupon-max-discount"
                 value={maxDiscount}
                 onChange={(e) => setMaxDiscount(e.target.value)}
-                placeholder="100000"
+                placeholder={t("admin.coupons.dialog.maxDiscountPlaceholder")}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
               />
             </div>
@@ -659,6 +689,7 @@ function CouponDialogBody({
 
 function CouponsManagement() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [showCreate, setShowCreate] = useState(false);
   const couponsQuery = useQuery({
     queryKey: ["admin", "coupons"],
@@ -670,19 +701,21 @@ function CouponsManagement() {
     mutationFn: (body: CouponWriteBody) => adminCreateCoupon(body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "coupons"] });
-      toast.success("Đã tạo coupon");
+      toast.success(t("admin.coupons.createOk"));
       setShowCreate(false);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể tạo coupon"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.coupons.createErr")),
   });
 
   const deactivate = useMutation({
     mutationFn: (id: string) => adminDeactivateCoupon(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "coupons"] });
-      toast.success("Đã vô hiệu hoá coupon");
+      toast.success(t("admin.coupons.deactivateOk"));
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể vô hiệu hoá"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.coupons.deactivateErr")),
   });
 
   const coupons = couponsQuery.data ?? [];
@@ -696,18 +729,20 @@ function CouponsManagement() {
         isSubmitting={createCoupon.isPending}
       />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">Quản lý coupon</h2>
+        <h2 className="text-xl font-bold text-gray-800">{t("admin.coupons.title")}</h2>
         <button
           onClick={() => setShowCreate(true)}
           disabled={createCoupon.isPending}
           className="px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
           style={{ background: "#FF6200" }}
         >
-          + Tạo coupon
+          {t("admin.coupons.create")}
         </button>
       </div>
 
-      {couponsQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {couponsQuery.isLoading ? (
+        <p className="text-sm text-gray-400">{t("admin.coupons.loading")}</p>
+      ) : null}
       {couponsQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{couponsQuery.error.message}</p>
       ) : null}
@@ -716,8 +751,18 @@ function CouponsManagement() {
         <table className="w-full">
           <thead style={{ background: "#f9fafb" }}>
             <tr>
-              {["Mã", "Loại", "Giá trị", "Trạng thái", ""].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-semibold text-gray-500 text-left">
+              {[
+                t("admin.coupons.th.code"),
+                t("admin.coupons.th.type"),
+                t("admin.coupons.th.value"),
+                t("admin.coupons.th.status"),
+                "",
+              ].map((h, i) => (
+                <th
+                  // eslint-disable-next-line react/no-array-index-key -- table headers are positional, no stable id
+                  key={i}
+                  className="px-4 py-3 text-xs font-semibold text-gray-500 text-left"
+                >
                   {h}
                 </th>
               ))}
@@ -739,7 +784,7 @@ function CouponsManagement() {
                       color: c.active ? "#10B981" : "#EF4444",
                     }}
                   >
-                    {c.active ? "Đang bật" : "Tạm dừng"}
+                    {c.active ? t("admin.coupons.active") : t("admin.coupons.inactive")}
                   </span>
                 </td>
                 <td className="px-4 py-3">
@@ -749,7 +794,7 @@ function CouponsManagement() {
                       disabled={deactivate.isPending}
                       className="text-xs font-semibold text-red-500 disabled:opacity-50"
                     >
-                      Vô hiệu hoá
+                      {t("admin.coupons.deactivate")}
                     </button>
                   ) : null}
                 </td>
@@ -758,7 +803,7 @@ function CouponsManagement() {
           </tbody>
         </table>
         {!couponsQuery.isLoading && coupons.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-gray-400 text-center">Chưa có coupon nào</p>
+          <p className="px-5 py-8 text-sm text-gray-400 text-center">{t("admin.coupons.empty")}</p>
         ) : null}
       </div>
     </div>
@@ -767,6 +812,7 @@ function CouponsManagement() {
 
 function DisputesQueue() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [resolveFor, setResolveFor] = useState<string | null>(null);
   const disputesQuery = useQuery({
     queryKey: ["admin", "disputes"],
@@ -784,10 +830,11 @@ function DisputesQueue() {
     }) => adminResolveDispute(id, body),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "disputes"] });
-      toast.success("Đã giải quyết khiếu nại");
+      toast.success(t("admin.disputes.resolveOk"));
       setResolveFor(null);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể giải quyết"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.disputes.resolveErr")),
   });
 
   const disputes = disputesQuery.data ?? [];
@@ -796,25 +843,27 @@ function DisputesQueue() {
     <div className="space-y-5">
       <FormDialog
         open={!!resolveFor}
-        title="Giải quyết khiếu nại"
-        description={resolveFor ? `ID: ${resolveFor}` : undefined}
-        submitLabel="Gửi quyết định"
+        title={t("admin.disputes.resolveDialog.title")}
+        description={
+          resolveFor ? t("admin.disputes.resolveDialog.subtitle", { id: resolveFor }) : undefined
+        }
+        submitLabel={t("admin.disputes.resolveDialog.submit")}
         submitColor="#00BFB3"
         fields={[
           {
             key: "resolution",
-            label: "Hướng giải quyết",
-            placeholder: "VD: Hoàn tiền 50% và xin lỗi khách...",
+            label: t("admin.disputes.resolveDialog.resolutionLabel"),
+            placeholder: t("admin.disputes.resolveDialog.resolutionPlaceholder"),
             type: "textarea",
             required: true,
           },
           {
             key: "refundAmount",
-            label: "Số tiền hoàn (VND)",
-            placeholder: "100000",
+            label: t("admin.disputes.resolveDialog.refundLabel"),
+            placeholder: t("admin.disputes.resolveDialog.refundPlaceholder"),
             type: "number",
             required: false,
-            helper: "Để trống nếu không hoàn tiền.",
+            helper: t("admin.disputes.resolveDialog.refundHelper"),
           },
         ]}
         onClose={() => setResolveFor(null)}
@@ -829,12 +878,14 @@ function DisputesQueue() {
         }}
         isSubmitting={resolve.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">Khiếu nại</h2>
+      <h2 className="text-xl font-bold text-gray-800">{t("admin.disputes.title")}</h2>
 
-      {disputesQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {disputesQuery.isLoading ? (
+        <p className="text-sm text-gray-400">{t("admin.disputes.loading")}</p>
+      ) : null}
       {!disputesQuery.isLoading && disputes.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500">Không có khiếu nại nào đang mở</p>
+          <p className="text-sm text-gray-500">{t("admin.disputes.empty")}</p>
         </div>
       ) : null}
 
@@ -844,7 +895,9 @@ function DisputesQueue() {
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <p className="text-xs font-mono text-gray-400">{d.id}</p>
-                <p className="text-sm font-semibold text-gray-800">Đơn hàng: {d.returnId}</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  {t("admin.disputes.orderLabel", { id: d.returnId })}
+                </p>
                 <p className="text-xs text-gray-500">{d.createdAt ?? ""}</p>
               </div>
               <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
@@ -862,7 +915,7 @@ function DisputesQueue() {
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
               style={{ background: "#00BFB3" }}
             >
-              Giải quyết
+              {t("admin.disputes.resolve")}
             </button>
           </div>
         ))}
@@ -873,6 +926,7 @@ function DisputesQueue() {
 
 function PayoutsQueue() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [failFor, setFailFor] = useState<string | null>(null);
   const payoutsQuery = useQuery({
     queryKey: ["admin", "payouts", "pending"],
@@ -884,19 +938,21 @@ function PayoutsQueue() {
     mutationFn: (id: string) => adminCompletePayout(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
-      toast.success("Đã đánh dấu hoàn thành");
+      toast.success(t("admin.payouts.completeOk"));
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.payouts.updateErr")),
   });
 
   const fail = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) => adminFailPayout(id, { reason }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
-      toast.success("Đã đánh dấu thất bại");
+      toast.success(t("admin.payouts.failOk"));
       setFailFor(null);
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Không thể cập nhật"),
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.payouts.updateErr")),
   });
 
   const payouts = payoutsQuery.data ?? [];
@@ -905,15 +961,15 @@ function PayoutsQueue() {
     <div className="space-y-5">
       <FormDialog
         open={!!failFor}
-        title="Đánh dấu yêu cầu rút tiền thất bại"
-        description={failFor ? `Yêu cầu: ${failFor}` : undefined}
-        submitLabel="Xác nhận"
+        title={t("admin.payouts.failDialog.title")}
+        description={failFor ? t("admin.payouts.failDialog.subtitle", { id: failFor }) : undefined}
+        submitLabel={t("admin.payouts.failDialog.submit")}
         submitColor="#EF4444"
         fields={[
           {
             key: "reason",
-            label: "Lý do",
-            placeholder: "Sai số tài khoản, ngân hàng từ chối...",
+            label: t("admin.payouts.failDialog.reasonLabel"),
+            placeholder: t("admin.payouts.failDialog.reasonPlaceholder"),
             type: "textarea",
             required: true,
           },
@@ -924,12 +980,14 @@ function PayoutsQueue() {
         }}
         isSubmitting={fail.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">Yêu cầu rút tiền</h2>
+      <h2 className="text-xl font-bold text-gray-800">{t("admin.payouts.title")}</h2>
 
-      {payoutsQuery.isLoading ? <p className="text-sm text-gray-400">Đang tải...</p> : null}
+      {payoutsQuery.isLoading ? (
+        <p className="text-sm text-gray-400">{t("admin.payouts.loading")}</p>
+      ) : null}
       {!payoutsQuery.isLoading && payouts.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500">Không có yêu cầu rút tiền nào</p>
+          <p className="text-sm text-gray-500">{t("admin.payouts.empty")}</p>
         </div>
       ) : null}
 
@@ -939,7 +997,9 @@ function PayoutsQueue() {
             <div key={p.id} className="px-5 py-4 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-mono text-gray-400">{p.id}</p>
-                <p className="text-sm font-semibold text-gray-800">Seller: {p.sellerId}</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  {t("admin.payouts.sellerLabel", { id: p.sellerId })}
+                </p>
                 <p className="text-xs text-gray-500">{p.requestedAt ?? ""}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
@@ -952,14 +1012,14 @@ function PayoutsQueue() {
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                   style={{ background: "#10B981" }}
                 >
-                  Hoàn thành
+                  {t("admin.payouts.complete")}
                 </button>
                 <button
                   onClick={() => setFailFor(p.id)}
                   disabled={fail.isPending}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 disabled:opacity-50"
                 >
-                  Thất bại
+                  {t("admin.payouts.fail")}
                 </button>
               </div>
             </div>
@@ -970,17 +1030,18 @@ function PayoutsQueue() {
   );
 }
 
-const NAV_ITEMS: { id: AdminTab; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: "dashboard", label: "Tổng quan", icon: LayoutDashboard },
-  { id: "sellers", label: "Duyệt Seller", icon: Users },
-  { id: "reviews", label: "Kiểm duyệt", icon: Star },
-  { id: "coupons", label: "Coupon", icon: Tag },
-  { id: "disputes", label: "Khiếu nại", icon: AlertCircle },
-  { id: "payouts", label: "Rút tiền", icon: Wallet },
+const NAV_ITEMS: { id: AdminTab; labelKey: string; icon: typeof LayoutDashboard }[] = [
+  { id: "dashboard", labelKey: "admin.nav.dashboard", icon: LayoutDashboard },
+  { id: "sellers", labelKey: "admin.nav.sellers", icon: Users },
+  { id: "reviews", labelKey: "admin.nav.reviews", icon: Star },
+  { id: "coupons", labelKey: "admin.nav.coupons", icon: Tag },
+  { id: "disputes", labelKey: "admin.nav.disputes", icon: AlertCircle },
+  { id: "payouts", labelKey: "admin.nav.payouts", icon: Wallet },
 ];
 
 export function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
+  const { t } = useTranslation();
 
   // Pull pending counts for sidebar badges (best effort).
   const sellersQuery = useQuery({
@@ -1026,8 +1087,8 @@ export function AdminPage() {
               <LayoutDashboard size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-800">Admin Console</h1>
-              <p className="text-sm text-gray-500">VNShop Marketplace</p>
+              <h1 className="text-lg font-bold text-gray-800">{t("admin.console")}</h1>
+              <p className="text-sm text-gray-500">{t("admin.consoleSub")}</p>
             </div>
           </div>
         </div>
@@ -1059,7 +1120,7 @@ export function AdminPage() {
                     }}
                   >
                     <item.icon size={18} />
-                    <span className="flex-1">{item.label}</span>
+                    <span className="flex-1">{t(item.labelKey)}</span>
                     {badge > 0 ? (
                       <span
                         className="px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white"
@@ -1086,7 +1147,7 @@ export function AdminPage() {
                     : { background: "white", color: "#6b7280", border: "1px solid #e5e7eb" }
                 }
               >
-                <item.icon size={14} /> {item.label}
+                <item.icon size={14} /> {t(item.labelKey)}
               </button>
             ))}
           </div>

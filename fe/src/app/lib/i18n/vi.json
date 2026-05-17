@@ -361,6 +361,142 @@
       "continueShopping": "Tiếp tục mua sắm"
     }
   },
+  "admin": {
+    "console": "Admin Console",
+    "consoleSub": "VNShop Marketplace",
+    "nav": {
+      "dashboard": "Tổng quan",
+      "sellers": "Duyệt Seller",
+      "reviews": "Kiểm duyệt",
+      "coupons": "Coupon",
+      "disputes": "Khiếu nại",
+      "payouts": "Rút tiền"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "Dữ liệu thời gian thực từ máy chủ",
+      "exportReport": "Xuất báo cáo",
+      "kpiLoadFail": "Không tải được KPI: {{message}}",
+      "kpi": {
+        "totalRevenue": "Tổng doanh thu",
+        "totalUsers": "Người dùng",
+        "totalOrders": "Đơn hàng",
+        "totalSellers": "Người bán"
+      },
+      "revenueTitle": "Doanh thu theo thời gian",
+      "loading": "Đang tải...",
+      "revenueEmpty": "Chưa có dữ liệu doanh thu",
+      "topProducts": "Sản phẩm bán chạy",
+      "topSellers": "Người bán dẫn đầu",
+      "noData": "Chưa có dữ liệu"
+    },
+    "sellers": {
+      "title": "Duyệt Seller",
+      "searchPlaceholder": "Tìm shop...",
+      "loading": "Đang tải...",
+      "empty": "Không có seller nào chờ duyệt",
+      "approve": "Duyệt",
+      "approveOk": "Đã duyệt seller",
+      "approveErr": "Không thể duyệt seller"
+    },
+    "reviewsModeration": {
+      "title": "Kiểm duyệt đánh giá",
+      "loading": "Đang tải...",
+      "empty": "Không có đánh giá nào cần duyệt",
+      "anonGuest": "Người dùng",
+      "productPrefix": "SP: {{id}}",
+      "approve": "Duyệt",
+      "reject": "Từ chối",
+      "approveOk": "Đã duyệt đánh giá",
+      "approveErr": "Không thể duyệt",
+      "rejectOk": "Đã từ chối đánh giá",
+      "rejectErr": "Không thể từ chối",
+      "rejectDialog": {
+        "title": "Từ chối đánh giá",
+        "submit": "Từ chối",
+        "reasonLabel": "Lý do từ chối",
+        "reasonPlaceholder": "Nội dung không phù hợp, spam, ..."
+      }
+    },
+    "coupons": {
+      "title": "Quản lý coupon",
+      "create": "+ Tạo coupon",
+      "loading": "Đang tải...",
+      "empty": "Chưa có coupon nào",
+      "th": {
+        "code": "Mã",
+        "type": "Loại",
+        "value": "Giá trị",
+        "status": "Trạng thái"
+      },
+      "active": "Đang bật",
+      "inactive": "Tạm dừng",
+      "deactivate": "Vô hiệu hoá",
+      "createOk": "Đã tạo coupon",
+      "createErr": "Không thể tạo coupon",
+      "deactivateOk": "Đã vô hiệu hoá coupon",
+      "deactivateErr": "Không thể vô hiệu hoá",
+      "dialog": {
+        "title": "Tạo coupon mới",
+        "cancel": "Huỷ",
+        "submit": "Tạo coupon",
+        "submitting": "Đang tạo...",
+        "codeLabel": "Mã coupon",
+        "codePlaceholder": "VD: SALE50",
+        "typeLabel": "Loại giảm giá",
+        "typePercent": "Phần trăm (%)",
+        "typeFixed": "Số tiền cố định (đ)",
+        "valueLabelPercent": "Giá trị (%)",
+        "valueLabelFixed": "Giá trị (VND)",
+        "valuePlaceholderPercent": "10",
+        "valuePlaceholderFixed": "50000",
+        "minOrderLabel": "Đơn tối thiểu (VND)",
+        "minOrderPlaceholder": "200000",
+        "maxDiscountLabel": "Giảm tối đa (VND)",
+        "maxDiscountPlaceholder": "100000",
+        "missingCode": "Vui lòng nhập mã coupon",
+        "invalidValue": "Giá trị không hợp lệ",
+        "percentTooLarge": "Giảm phần trăm tối đa 100"
+      }
+    },
+    "disputes": {
+      "title": "Khiếu nại",
+      "loading": "Đang tải...",
+      "empty": "Không có khiếu nại nào đang mở",
+      "orderLabel": "Đơn hàng: {{id}}",
+      "resolve": "Giải quyết",
+      "resolveOk": "Đã giải quyết khiếu nại",
+      "resolveErr": "Không thể giải quyết",
+      "resolveDialog": {
+        "title": "Giải quyết khiếu nại",
+        "subtitle": "ID: {{id}}",
+        "submit": "Gửi quyết định",
+        "resolutionLabel": "Hướng giải quyết",
+        "resolutionPlaceholder": "VD: Hoàn tiền 50% và xin lỗi khách...",
+        "refundLabel": "Số tiền hoàn (VND)",
+        "refundPlaceholder": "100000",
+        "refundHelper": "Để trống nếu không hoàn tiền."
+      }
+    },
+    "payouts": {
+      "title": "Yêu cầu rút tiền",
+      "loading": "Đang tải...",
+      "empty": "Không có yêu cầu rút tiền nào",
+      "sellerLabel": "Seller: {{id}}",
+      "complete": "Hoàn thành",
+      "fail": "Thất bại",
+      "completeOk": "Đã đánh dấu hoàn thành",
+      "failOk": "Đã đánh dấu thất bại",
+      "updateErr": "Không thể cập nhật",
+      "failDialog": {
+        "title": "Đánh dấu yêu cầu rút tiền thất bại",
+        "subtitle": "Yêu cầu: {{id}}",
+        "submit": "Xác nhận",
+        "reasonLabel": "Lý do",
+        "reasonPlaceholder": "Sai số tài khoản, ngân hàng từ chối..."
+      }
+    }
+  },
   "seller": {
     "loggedIn": "Đã đăng nhập",
     "ordersToHandle": "{{count}} đơn cần xử lý",

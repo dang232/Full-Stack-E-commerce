@@ -361,6 +361,142 @@
       "continueShopping": "Continue shopping"
     }
   },
+  "admin": {
+    "console": "Admin Console",
+    "consoleSub": "VNShop Marketplace",
+    "nav": {
+      "dashboard": "Dashboard",
+      "sellers": "Approve Sellers",
+      "reviews": "Moderation",
+      "coupons": "Coupons",
+      "disputes": "Disputes",
+      "payouts": "Payouts"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "Real-time data from the server",
+      "exportReport": "Export report",
+      "kpiLoadFail": "Couldn't load KPIs: {{message}}",
+      "kpi": {
+        "totalRevenue": "Total revenue",
+        "totalUsers": "Users",
+        "totalOrders": "Orders",
+        "totalSellers": "Sellers"
+      },
+      "revenueTitle": "Revenue over time",
+      "loading": "Loading...",
+      "revenueEmpty": "No revenue data yet",
+      "topProducts": "Top products",
+      "topSellers": "Top sellers",
+      "noData": "No data yet"
+    },
+    "sellers": {
+      "title": "Approve Sellers",
+      "searchPlaceholder": "Search shops...",
+      "loading": "Loading...",
+      "empty": "No sellers awaiting approval",
+      "approve": "Approve",
+      "approveOk": "Seller approved",
+      "approveErr": "Couldn't approve seller"
+    },
+    "reviewsModeration": {
+      "title": "Review moderation",
+      "loading": "Loading...",
+      "empty": "No reviews to moderate",
+      "anonGuest": "User",
+      "productPrefix": "Product: {{id}}",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveOk": "Review approved",
+      "approveErr": "Couldn't approve",
+      "rejectOk": "Review rejected",
+      "rejectErr": "Couldn't reject",
+      "rejectDialog": {
+        "title": "Reject review",
+        "submit": "Reject",
+        "reasonLabel": "Rejection reason",
+        "reasonPlaceholder": "Inappropriate content, spam, ..."
+      }
+    },
+    "coupons": {
+      "title": "Coupon management",
+      "create": "+ Create coupon",
+      "loading": "Loading...",
+      "empty": "No coupons yet",
+      "th": {
+        "code": "Code",
+        "type": "Type",
+        "value": "Value",
+        "status": "Status"
+      },
+      "active": "Active",
+      "inactive": "Paused",
+      "deactivate": "Deactivate",
+      "createOk": "Coupon created",
+      "createErr": "Couldn't create coupon",
+      "deactivateOk": "Coupon deactivated",
+      "deactivateErr": "Couldn't deactivate",
+      "dialog": {
+        "title": "Create new coupon",
+        "cancel": "Cancel",
+        "submit": "Create coupon",
+        "submitting": "Creating...",
+        "codeLabel": "Coupon code",
+        "codePlaceholder": "e.g. SALE50",
+        "typeLabel": "Discount type",
+        "typePercent": "Percent (%)",
+        "typeFixed": "Fixed amount (₫)",
+        "valueLabelPercent": "Value (%)",
+        "valueLabelFixed": "Value (VND)",
+        "valuePlaceholderPercent": "10",
+        "valuePlaceholderFixed": "50000",
+        "minOrderLabel": "Min. order (VND)",
+        "minOrderPlaceholder": "200000",
+        "maxDiscountLabel": "Max. discount (VND)",
+        "maxDiscountPlaceholder": "100000",
+        "missingCode": "Please enter a coupon code",
+        "invalidValue": "Invalid value",
+        "percentTooLarge": "Percent discount can't exceed 100"
+      }
+    },
+    "disputes": {
+      "title": "Disputes",
+      "loading": "Loading...",
+      "empty": "No open disputes",
+      "orderLabel": "Order: {{id}}",
+      "resolve": "Resolve",
+      "resolveOk": "Dispute resolved",
+      "resolveErr": "Couldn't resolve",
+      "resolveDialog": {
+        "title": "Resolve dispute",
+        "subtitle": "ID: {{id}}",
+        "submit": "Submit decision",
+        "resolutionLabel": "Resolution",
+        "resolutionPlaceholder": "e.g. 50% refund and apology to the customer...",
+        "refundLabel": "Refund amount (VND)",
+        "refundPlaceholder": "100000",
+        "refundHelper": "Leave blank for no refund."
+      }
+    },
+    "payouts": {
+      "title": "Payout requests",
+      "loading": "Loading...",
+      "empty": "No payout requests",
+      "sellerLabel": "Seller: {{id}}",
+      "complete": "Complete",
+      "fail": "Fail",
+      "completeOk": "Marked as completed",
+      "failOk": "Marked as failed",
+      "updateErr": "Couldn't update",
+      "failDialog": {
+        "title": "Mark payout request as failed",
+        "subtitle": "Request: {{id}}",
+        "submit": "Confirm",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Wrong account number, bank rejected..."
+      }
+    }
+  },
   "seller": {
     "loggedIn": "Signed in",
     "ordersToHandle": "{{count}} orders to handle",
