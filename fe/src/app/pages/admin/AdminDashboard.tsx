@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { KPICard } from "../../components/kpi-card";
 import {
   dashboardRevenue,
   dashboardSummary,
@@ -22,7 +23,6 @@ import {
 import { ApiError } from "../../lib/api/envelope";
 import { formatPrice } from "../../lib/format";
 
-import { AdminKPICard } from "./AdminKPICard";
 
 export function AdminDashboard() {
   const { t } = useTranslation();
@@ -72,25 +72,25 @@ export function AdminDashboard() {
       ) : null}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <AdminKPICard
+        <KPICard
           icon={TrendingUp}
           label={t("admin.dashboard.kpi.totalRevenue")}
           value={totalRevenue !== null ? formatPrice(totalRevenue) : "—"}
           color="#00BFB3"
         />
-        <AdminKPICard
+        <KPICard
           icon={Users}
           label={t("admin.dashboard.kpi.totalUsers")}
           value={totalUsers !== null ? totalUsers.toLocaleString() : "—"}
           color="#3B82F6"
         />
-        <AdminKPICard
+        <KPICard
           icon={Package}
           label={t("admin.dashboard.kpi.totalOrders")}
           value={totalOrders !== null ? totalOrders.toLocaleString() : "—"}
           color="#FF6200"
         />
-        <AdminKPICard
+        <KPICard
           icon={Wallet}
           label={t("admin.dashboard.kpi.totalSellers")}
           value={totalSellers !== null ? totalSellers.toLocaleString() : "—"}

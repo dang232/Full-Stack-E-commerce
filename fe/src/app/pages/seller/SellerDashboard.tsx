@@ -13,13 +13,13 @@ import {
   YAxis,
 } from "recharts";
 
+import { KPICard } from "../../components/kpi-card";
 import { useSellerRevenue } from "../../hooks/use-seller-revenue";
 import type { PendingSubOrder } from "../../lib/api/endpoints/orders";
 import type { SellerRevenuePoint } from "../../lib/api/endpoints/seller-analytics";
 import { ApiError } from "../../lib/api/envelope";
 import { formatPrice } from "../../lib/format";
 
-import { SellerKPICard } from "./SellerKPICard";
 
 interface RevenueChartPoint {
   day: string;
@@ -64,20 +64,20 @@ export function SellerDashboard({
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SellerKPICard
+        <KPICard
           icon={Wallet}
           label={t("seller.dashboard.kpi.balance")}
           value={walletBalance !== null ? formatPrice(walletBalance) : "—"}
           color="#00BFB3"
         />
-        <SellerKPICard
+        <KPICard
           icon={ShoppingBag}
           label={t("seller.dashboard.kpi.pending")}
           value={String(pendingOrders.length)}
           color="#FF6200"
         />
-        <SellerKPICard icon={Eye} label={t("seller.dashboard.kpi.views")} value="—" color="#3B82F6" />
-        <SellerKPICard icon={Star} label={t("seller.dashboard.kpi.rating")} value="—" color="#F59E0B" />
+        <KPICard icon={Eye} label={t("seller.dashboard.kpi.views")} value="—" color="#3B82F6" />
+        <KPICard icon={Star} label={t("seller.dashboard.kpi.rating")} value="—" color="#F59E0B" />
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm">

@@ -1,19 +1,16 @@
 import { ArrowUpRight } from "lucide-react";
 import type { LayoutDashboard } from "lucide-react";
 
-export function SellerKPICard({
-  icon: Icon,
-  label,
-  value,
-  change,
-  color,
-}: {
+export interface KPICardProps {
   icon: typeof LayoutDashboard;
   label: string;
   value: string;
   change?: string;
   color: string;
-}) {
+  sub?: string;
+}
+
+export function KPICard({ icon: Icon, label, value, change, color, sub }: KPICardProps) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
@@ -32,6 +29,7 @@ export function SellerKPICard({
       </div>
       <p className="text-2xl font-black text-gray-800">{value}</p>
       <p className="text-sm text-gray-500 mt-0.5">{label}</p>
+      {sub ? <p className="text-xs text-gray-400 mt-0.5">{sub}</p> : null}
     </div>
   );
 }
