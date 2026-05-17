@@ -1,5 +1,5 @@
 import { CheckCircle, AlertCircle, Clock } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 
 import { paymentStatus } from "../lib/api/endpoints/payment";
@@ -39,7 +39,12 @@ export function PaymentReturnPage() {
   const [phase, setPhase] = useState<Phase>("pending");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [amount, setAmount] = useState<number | null>(null);
-  const [attempts, setAttempts] = useState(0);
+  const [, setAttempts] = useState(0);
+  // Mirror of `attempts` for use inside the polling closure. We keep both:
+  // state drives a re-render if anything ever needs to read the count, and the
+  // ref gives the poll callback a stable, up-to-date read without re-running
+  // the effect on every increment.
+  const attemptsRef = useRef(0);
 
   useEffect(() => {
     if (!orderId) {
@@ -50,6 +55,16 @@ export function PaymentReturnPage() {
 
     let cancelled = false;
     let timeout: ReturnType<typeof setTimeout> | undefined;
+    attemptsRef.current = 0;
+    setAttempts(0);
+
+    const bumpAttempts = () => {
+      setAttempts((n) => {
+        const next = n + 1;
+        attemptsRef.current = next;
+        return next;
+      });
+    };
 
     const poll = async () => {
       try {
@@ -61,13 +76,13 @@ export function PaymentReturnPage() {
           return;
         }
         // Not terminal yet: backoff and retry up to ~30 attempts (~60s).
-        setAttempts((n) => n + 1);
-        timeout = setTimeout(poll, attempts < 5 ? 1000 : 2000);
+        bumpAttempts();
+        timeout = setTimeout(poll, attemptsRef.current < 5 ? 1000 : 2000);
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError) {
-          if (err.status >= 500 && attempts < 10) {
-            setAttempts((n) => n + 1);
+          if (err.status >= 500 && attemptsRef.current < 10) {
+            bumpAttempts();
             timeout = setTimeout(poll, 2000);
             return;
           }
@@ -85,8 +100,6 @@ export function PaymentReturnPage() {
       cancelled = true;
       if (timeout) clearTimeout(timeout);
     };
-    // attempts is intentionally not in deps — we use it inside poll for the schedule.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   // Best-effort amount surface: gateways sometimes pass it back in URL.
