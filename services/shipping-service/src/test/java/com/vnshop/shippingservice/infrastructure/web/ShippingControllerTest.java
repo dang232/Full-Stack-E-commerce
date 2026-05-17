@@ -7,6 +7,7 @@ import com.vnshop.shippingservice.domain.model.LabelRequest;
 import com.vnshop.shippingservice.domain.model.RateQuote;
 import com.vnshop.shippingservice.domain.model.RateQuoteRequest;
 import com.vnshop.shippingservice.domain.model.ShippingLabel;
+import com.vnshop.shippingservice.domain.model.TrackingEvent;
 import com.vnshop.shippingservice.domain.model.TrackingInfo;
 import com.vnshop.shippingservice.domain.model.TrackingRequest;
 import com.vnshop.shippingservice.domain.port.out.CarrierGatewayPort;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,7 +38,16 @@ class ShippingControllerTest {
 
     @Test
     void returns200WithBodyShapeWhenTrackingFound() throws Exception {
-        gateway.response = new TrackingInfo(CarrierCode.GHN, "GHN-1", "delivering", "On the way", "2026-05-10T10:00:00Z");
+        gateway.response = new TrackingInfo(
+                CarrierCode.GHN,
+                "GHN-1",
+                "delivering",
+                "On the way",
+                "2026-05-10T10:00:00Z",
+                List.of(
+                        new TrackingEvent("2026-05-09T08:00:00Z", "PICKED_UP", "HCM Warehouse", "Đã nhận hàng"),
+                        new TrackingEvent("2026-05-10T10:00:00Z", "IN_TRANSIT", "Đà Nẵng Hub", "Đang vận chuyển")
+                ));
 
         mockMvc.perform(get("/shipping/tracking/GHN-1").param("carrier", "GHN"))
                 .andExpect(status().isOk())
@@ -44,7 +56,12 @@ class ShippingControllerTest {
                 .andExpect(jsonPath("$.data.carrier").value("GHN"))
                 .andExpect(jsonPath("$.data.status").value("delivering"))
                 .andExpect(jsonPath("$.data.estimatedDelivery").value("2026-05-10T10:00:00Z"))
-                .andExpect(jsonPath("$.data.events").isArray());
+                .andExpect(jsonPath("$.data.events").isArray())
+                .andExpect(jsonPath("$.data.events.length()").value(2))
+                .andExpect(jsonPath("$.data.events[0].status").value("PICKED_UP"))
+                .andExpect(jsonPath("$.data.events[0].location").value("HCM Warehouse"))
+                .andExpect(jsonPath("$.data.events[0].note").value("Đã nhận hàng"))
+                .andExpect(jsonPath("$.data.events[1].status").value("IN_TRANSIT"));
     }
 
     @Test

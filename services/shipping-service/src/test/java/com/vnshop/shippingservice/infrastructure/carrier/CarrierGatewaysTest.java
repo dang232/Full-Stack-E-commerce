@@ -1,5 +1,6 @@
 package com.vnshop.shippingservice.infrastructure.carrier;
 
+import com.vnshop.shippingservice.domain.exception.CarrierTrackingNotFoundException;
 import com.vnshop.shippingservice.domain.model.CarrierCode;
 import com.vnshop.shippingservice.domain.model.LabelRequest;
 import com.vnshop.shippingservice.domain.model.Parcel;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CarrierGatewaysTest {
     private final ShippingAddress origin = new ShippingAddress("Seller", "0900000000", "1 Origin", "101", "1442", "HCM");
@@ -70,6 +72,31 @@ class CarrierGatewaysTest {
 
         assertThat(tracking.status()).isEqualTo("delivered");
         assertThat(client.lastUrl).isEqualTo("https://ghtk.test/services/shipment/v2/GHTK123");
+    }
+
+    @Test
+    void stubGatewayReturnsSyntheticEventsForKnownTrackingCodes() {
+        StubCarrierGateway gateway = new StubCarrierGateway();
+
+        TrackingInfo tracking = gateway.track(new TrackingRequest(CarrierCode.GHN, "GHN-OK-1"));
+
+        assertThat(tracking.events())
+                .as("stub must surface a synthetic timeline so the FE TrackingModal has data")
+                .isNotEmpty();
+        assertThat(tracking.events()).allSatisfy(event -> {
+            assertThat(event.at()).isNotBlank();
+            assertThat(event.status()).isNotBlank();
+        });
+        assertThat(tracking.status()).isNotBlank();
+        assertThat(tracking.updatedAt()).isNotBlank();
+    }
+
+    @Test
+    void stubGatewayThrowsNotFoundForMissingPrefix() {
+        StubCarrierGateway gateway = new StubCarrierGateway();
+
+        assertThatThrownBy(() -> gateway.track(new TrackingRequest(CarrierCode.GHN, "MISSING-XYZ")))
+                .isInstanceOf(CarrierTrackingNotFoundException.class);
     }
 
     private static class FakeCarrierHttpClient implements CarrierHttpClient {

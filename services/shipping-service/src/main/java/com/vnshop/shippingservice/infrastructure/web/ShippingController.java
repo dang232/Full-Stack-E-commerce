@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/shipping")
@@ -38,11 +39,16 @@ public class ShippingController {
     }
 
     private static TrackingResponse toResponse(TrackingInfo info) {
+        List<TrackingResponse.TrackingEvent> events = info.events() == null
+                ? List.of()
+                : info.events().stream()
+                        .map(e -> new TrackingResponse.TrackingEvent(e.at(), e.status(), e.location(), e.note()))
+                        .collect(Collectors.toUnmodifiableList());
         return new TrackingResponse(
                 info.trackingCode(),
                 info.carrier() == null ? null : info.carrier().name(),
                 info.status(),
                 info.updatedAt(),
-                List.of());
+                events);
     }
 }

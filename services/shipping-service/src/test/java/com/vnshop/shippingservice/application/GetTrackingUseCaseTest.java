@@ -2,11 +2,13 @@ package com.vnshop.shippingservice.application;
 
 import com.vnshop.shippingservice.domain.exception.CarrierTrackingNotFoundException;
 import com.vnshop.shippingservice.domain.model.CarrierCode;
+import com.vnshop.shippingservice.domain.model.TrackingEvent;
 import com.vnshop.shippingservice.domain.model.TrackingInfo;
 import com.vnshop.shippingservice.domain.model.TrackingRequest;
 import com.vnshop.shippingservice.domain.port.out.CarrierGatewayPort;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,7 +18,13 @@ class GetTrackingUseCaseTest {
 
     @Test
     void returnsTrackingWhenCarrierResolvesIt() {
-        TrackingInfo info = new TrackingInfo(CarrierCode.GHN, "GHN-001", "delivering", "On the way", "2026-05-10T10:00:00Z");
+        TrackingInfo info = new TrackingInfo(
+                CarrierCode.GHN,
+                "GHN-001",
+                "delivering",
+                "On the way",
+                "2026-05-10T10:00:00Z",
+                List.of(new TrackingEvent("2026-05-10T10:00:00Z", "IN_TRANSIT", "Hub", "Đang vận chuyển")));
         StubGateway gateway = new StubGateway();
         gateway.response = info;
         GetTrackingUseCase useCase = new GetTrackingUseCase(gateway);
@@ -24,6 +32,7 @@ class GetTrackingUseCaseTest {
         Optional<TrackingInfo> result = useCase.get(CarrierCode.GHN, "GHN-001");
 
         assertThat(result).isPresent().get().isSameAs(info);
+        assertThat(result.get().events()).hasSize(1);
         assertThat(gateway.lastRequest.carrier()).isEqualTo(CarrierCode.GHN);
         assertThat(gateway.lastRequest.trackingCode()).isEqualTo("GHN-001");
     }
