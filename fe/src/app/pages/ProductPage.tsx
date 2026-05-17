@@ -310,7 +310,7 @@ export function ProductPage() {
             </div>
             {savings > 0 ? (
               <p className="text-sm font-medium" style={{ color: "#00BFB3" }}>
-                🎉 Bạn tiết kiệm được {formatPrice(savings)}
+                {t("product.savings", { amount: formatPrice(savings) })}
               </p>
             ) : null}
           </div>
@@ -319,7 +319,7 @@ export function ProductPage() {
           {product.colors && product.colors.length > 0 ? (
             <div>
               <p className="text-sm font-semibold text-gray-700 mb-2.5">
-                Màu sắc: <span className="font-normal text-gray-500">{selectedColor}</span>
+                {t("product.colorsLabel")}: <span className="font-normal text-gray-500">{selectedColor}</span>
               </p>
               <div className="flex flex-wrap gap-2">
                 {product.colors.map((color) => (
@@ -345,10 +345,10 @@ export function ProductPage() {
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <p className="text-sm font-semibold text-gray-700">
-                  Kích cỡ: <span className="font-normal text-gray-500">{selectedSize}</span>
+                  {t("product.sizesLabel")}: <span className="font-normal text-gray-500">{selectedSize}</span>
                 </p>
                 <button className="text-xs font-medium underline" style={{ color: "#00BFB3" }}>
-                  Hướng dẫn chọn size
+                  {t("product.sizeGuide")}
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">

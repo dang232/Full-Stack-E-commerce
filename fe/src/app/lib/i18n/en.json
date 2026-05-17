@@ -67,6 +67,7 @@
     "mobilePlaceholder": "Search...",
     "barPlaceholder": "Search products...",
     "submit": "Search",
+    "viewDetailsAria": "View details for {{name}}",
     "allCategories": "All",
     "filtersTitle": "Filters",
     "clearAll": "Clear all",
@@ -119,7 +120,8 @@
     "loadingWait": "Please wait a moment",
     "expired": "Flash sale ended — Check back soon for new deals",
     "soldPct": "{{pct}}% sold",
-    "stockLeft": "{{n}} slots left"
+    "stockLeft": "{{n}} slots left",
+    "loadError": "error"
   },
   "product": {
     "sold": "Sold",
@@ -143,6 +145,10 @@
     "totalLabel": "Total:",
     "addToCart": "🛒 Add to cart",
     "buyNow": "⚡ Buy now",
+    "savings": "🎉 You save {{amount}}",
+    "colorsLabel": "Color",
+    "sizesLabel": "Size",
+    "sizeGuide": "Size guide",
     "trust": {
       "freeShipping": "Free shipping",
       "shipFee": "Ship {{fee}}",
@@ -226,6 +232,8 @@
     "response": "Response",
     "salesCount": "Sold",
     "viewMore": "View more products",
+    "soldShort": "Sold {{count}}",
+    "addToCart": "Add to cart",
     "signIn": "Sign in",
     "signUp": "Sign up",
     "tabs": {

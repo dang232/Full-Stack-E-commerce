@@ -72,6 +72,7 @@ function SectionHeader({
 // ─── Product Card ──────────────────────────────────────────────────────────────
 function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { addToCart, toggleWishlist, isWishlisted } = useVNShop();
   const loved = isWishlisted(product.id);
 
@@ -112,7 +113,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
               className="px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight"
               style={{ background: "#10B981" }}
             >
-              Mới
+              {t("product.new")}
             </span>
           ) : null}
         </div>
@@ -153,7 +154,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
             addToCart(product);
           }}
         >
-          + Thêm vào giỏ hàng
+          + {t("home.addToCart")}
         </button>
       </div>
       <div className="p-4">
@@ -184,7 +185,9 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
             )
           </span>
           <span className="text-xs text-gray-400 ml-auto">
-            Đã bán {product.sold >= 1000 ? `${(product.sold / 1000).toFixed(0)}k` : product.sold}
+            {t("home.soldShort", {
+              count: product.sold >= 1000 ? `${(product.sold / 1000).toFixed(0)}k` : product.sold,
+            })}
           </span>
         </div>
       </div>
@@ -436,7 +439,7 @@ function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
               title={productName ?? c.productId}
             >
               {productName ??
-                (isError ? `#${c.productId.slice(0, 8)} (lỗi)` : `#${c.productId.slice(0, 8)}`)}
+                (isError ? `#${c.productId.slice(0, 8)} (${t("flashSale.loadError")})` : `#${c.productId.slice(0, 8)}`)}
             </p>
             <p className="text-yellow-300 font-bold text-sm">{formatPrice(c.salePrice)}</p>
             {c.originalPrice > c.salePrice ? (
@@ -736,7 +739,9 @@ function Bestsellers() {
               <p className="text-xs font-medium text-gray-800 line-clamp-2 leading-tight group-hover:text-[#00BFB3] transition-colors">
                 {p.name}
               </p>
-              <p className="text-xs text-gray-400 mt-0.5">{p.sold.toLocaleString()} đã bán</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {t("home.soldShort", { count: p.sold.toLocaleString() })}
+              </p>
             </div>
             <div className="shrink-0 text-right">
               <p className="text-xs font-bold" style={{ color: "#FF6200" }}>

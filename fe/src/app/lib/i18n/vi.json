@@ -67,6 +67,7 @@
     "mobilePlaceholder": "Tìm kiếm...",
     "barPlaceholder": "Tìm kiếm sản phẩm...",
     "submit": "Tìm kiếm",
+    "viewDetailsAria": "Xem chi tiết {{name}}",
     "allCategories": "Tất cả",
     "filtersTitle": "Bộ lọc",
     "clearAll": "Xóa tất cả",
@@ -119,7 +120,8 @@
     "loadingWait": "Vui lòng chờ trong giây lát",
     "expired": "Hết flash sale — Quay lại sớm để săn deal mới",
     "soldPct": "Đã bán {{pct}}%",
-    "stockLeft": "Còn {{n}} suất"
+    "stockLeft": "Còn {{n}} suất",
+    "loadError": "lỗi"
   },
   "product": {
     "sold": "Đã bán",
@@ -143,6 +145,10 @@
     "totalLabel": "Tổng:",
     "addToCart": "🛒 Thêm vào giỏ",
     "buyNow": "⚡ Mua ngay",
+    "savings": "🎉 Bạn tiết kiệm được {{amount}}",
+    "colorsLabel": "Màu sắc",
+    "sizesLabel": "Kích cỡ",
+    "sizeGuide": "Hướng dẫn chọn size",
     "trust": {
       "freeShipping": "Miễn phí vận chuyển",
       "shipFee": "Ship {{fee}}",
@@ -226,6 +232,8 @@
     "response": "Phản hồi",
     "salesCount": "Đã bán",
     "viewMore": "Xem thêm sản phẩm",
+    "soldShort": "Đã bán {{count}}",
+    "addToCart": "Thêm vào giỏ hàng",
     "signIn": "Đăng nhập",
     "signUp": "Đăng ký",
     "tabs": {

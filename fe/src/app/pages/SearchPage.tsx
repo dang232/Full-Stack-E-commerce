@@ -24,7 +24,7 @@ function ProductListItem({ product }: { product: Product }) {
     <div
       role="button"
       tabIndex={0}
-      aria-label={`Xem chi tiết ${product.name}`}
+      aria-label={t("search.viewDetailsAria", { name: product.name })}
       className="flex gap-4 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
       onClick={() => navigate(`/product/${product.id}`)}
       onKeyDown={(e) => {
@@ -69,7 +69,7 @@ function ProductListItem({ product }: { product: Product }) {
             ))}
           </div>
           <span className="text-xs text-gray-500">({product.reviewCount.toLocaleString()})</span>
-          <span className="text-xs text-gray-400">• {product.sold.toLocaleString()} đã bán</span>
+          <span className="text-xs text-gray-400">• {t("home.soldShort", { count: product.sold.toLocaleString() })}</span>
         </div>
         <p className="text-xs text-gray-500 line-clamp-2 mb-3">
           {product.description.slice(0, 100)}...
