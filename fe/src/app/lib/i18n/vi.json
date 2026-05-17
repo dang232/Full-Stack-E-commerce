@@ -271,6 +271,96 @@
     "ssoNotice": "Tài khoản, mật khẩu và xác thực 2 lớp do Keycloak quản lý. Việc tạo tài khoản mới và đặt lại mật khẩu được thực hiện trực tiếp trên trang đăng nhập.",
     "termsNotice": "Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của VNShop."
   },
+  "checkout": {
+    "initSession": "Đang khởi tạo phiên đăng nhập...",
+    "loginPromptTitle": "Đăng nhập để thanh toán",
+    "loadingCart": "Đang tải giỏ hàng...",
+    "emptyCartTitle": "Giỏ hàng trống",
+    "continueShopping": "Tiếp tục mua sắm",
+    "buyerFallback": "Khách hàng",
+    "title": "Thanh toán",
+    "steps": {
+      "address": "Địa chỉ",
+      "shipping": "Vận chuyển",
+      "payment": "Thanh toán",
+      "review": "Xác nhận"
+    },
+    "address": {
+      "header": "Chọn địa chỉ giao hàng",
+      "loading": "Đang tải địa chỉ...",
+      "noAddressesTitle": "Bạn chưa có địa chỉ nào",
+      "noAddressesSub": "Hãy thêm địa chỉ giao hàng trong Hồ sơ trước khi thanh toán.",
+      "goToProfile": "Đến trang Hồ sơ →",
+      "isDefaultBadge": "Mặc định",
+      "addNew": "Thêm địa chỉ mới",
+      "missingValidation": "Vui lòng thêm ít nhất một địa chỉ trong trang Hồ sơ trước khi thanh toán."
+    },
+    "shipping": {
+      "header": "Chọn phương thức vận chuyển",
+      "etaPrefix": "Dự kiến: {{eta}}",
+      "free": "Miễn phí",
+      "noteLabel": "Ghi chú cho người bán (tùy chọn)",
+      "notePlaceholder": "VD: Giao giờ hành chính, gọi trước khi giao...",
+      "missingValidation": "Vui lòng chọn phương thức vận chuyển",
+      "fallbackName": "Phương thức {{n}}",
+      "etaDays": "{{n}} ngày",
+      "etaStandard": "Tiêu chuẩn",
+      "deliverInDays": "Giao trong {{n}} ngày"
+    },
+    "payment": {
+      "header": "Phương thức thanh toán",
+      "sslNotice": "Tất cả giao dịch được mã hóa SSL 256-bit và bảo mật tuyệt đối",
+      "initFailedPrefix": "Không khởi tạo được thanh toán: {{message}}",
+      "initFailedShort": "Không khởi tạo được thanh toán",
+      "placeOrderFailed": "Không thể đặt hàng. Vui lòng thử lại.",
+      "supportCode": "Mã hỗ trợ: {{id}}"
+    },
+    "review": {
+      "header": "Xác nhận đơn hàng",
+      "shippingAddress": "Địa chỉ giao hàng",
+      "change": "Thay đổi",
+      "noAddress": "Chưa có địa chỉ giao hàng",
+      "shippingMethod": "Vận chuyển",
+      "paymentMethod": "Thanh toán",
+      "productsCount": "Sản phẩm ({{count}})"
+    },
+    "summary": {
+      "title": "Đơn hàng của bạn",
+      "moreItems": "+{{count}} sản phẩm khác",
+      "couponLabel": "Mã giảm giá",
+      "togglePicker": "Xem mã khả dụng",
+      "togglePickerHide": "Ẩn danh sách",
+      "couponLoading": "Đang tải mã...",
+      "couponLoadFail": "Không tải được mã: {{message}}",
+      "couponEmpty": "Hiện chưa có mã khả dụng",
+      "couponDiscountPct": "Giảm {{value}}%",
+      "couponDiscountAmount": "Giảm {{value}}",
+      "couponDiscountFallback": "Mã giảm giá",
+      "couponMinOrder": "Đơn tối thiểu {{value}}",
+      "couponApply": "Áp dụng",
+      "couponInsufficient": "Chưa đủ",
+      "couponPlaceholder": "Nhập mã giảm giá",
+      "couponInvalid": "Mã giảm giá không hợp lệ",
+      "couponApplied": "Đã áp dụng: {{code}}",
+      "couponRemove": "Bỏ",
+      "subtotal": "Tạm tính",
+      "shippingFee": "Phí vận chuyển",
+      "free": "Miễn phí",
+      "discount": "Giảm giá",
+      "total": "Tổng cộng",
+      "processing": "Đang xử lý...",
+      "placeOrder": "Đặt hàng ngay",
+      "next": "Tiếp tục",
+      "termsNotice": "Bằng cách đặt hàng, bạn đồng ý với chính sách của VNShop."
+    },
+    "success": {
+      "title": "Đặt hàng thành công! 🎉",
+      "orderIdLabel": "Mã đơn hàng của bạn:",
+      "codNotice": "Bạn sẽ thanh toán <1>{{amount}}</1> khi nhận hàng.",
+      "viewOrders": "Xem đơn hàng",
+      "continueShopping": "Tiếp tục mua sắm"
+    }
+  },
   "seller": {
     "loggedIn": "Đã đăng nhập",
     "ordersToHandle": "{{count}} đơn cần xử lý",

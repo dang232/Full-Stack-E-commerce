@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useMemo, useRef, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -37,11 +38,11 @@ import type { Address } from "../types/api";
 
 type Step = "address" | "shipping" | "payment" | "review" | "success";
 
-const STEPS: { id: Step; label: string; icon: typeof MapPin }[] = [
-  { id: "address", label: "Địa chỉ", icon: MapPin },
-  { id: "shipping", label: "Vận chuyển", icon: Truck },
-  { id: "payment", label: "Thanh toán", icon: CreditCard },
-  { id: "review", label: "Xác nhận", icon: CheckCircle },
+const STEPS: { id: Step; labelKey: string; icon: typeof MapPin }[] = [
+  { id: "address", labelKey: "checkout.steps.address", icon: MapPin },
+  { id: "shipping", labelKey: "checkout.steps.shipping", icon: Truck },
+  { id: "payment", labelKey: "checkout.steps.payment", icon: CreditCard },
+  { id: "review", labelKey: "checkout.steps.review", icon: CheckCircle },
 ];
 
 interface ShippingOption {
@@ -91,6 +92,7 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const { ready, authenticated, login, profile } = useAuth();
   const { items: cartItems, totalAmount, isLoading: cartLoading, refetch: refetchCart } = useCart();
+  const { t } = useTranslation();
 
   // Profile + addresses (best-effort — backend may not return addresses yet).
   const profileQuery = useQuery({
@@ -122,13 +124,18 @@ export function CheckoutPage() {
     if (!data || data.length === 0) return FALLBACK_SHIPPING;
     return data.map((s, i) => ({
       id: s.code ?? `option-${i}`,
-      name: s.name ?? `Phương thức ${i + 1}`,
+      name: s.name ?? t("checkout.shipping.fallbackName", { n: i + 1 }),
       desc:
-        typeof s.estimatedDays === "number" ? `Giao trong ${s.estimatedDays} ngày` : "Tiêu chuẩn",
+        typeof s.estimatedDays === "number"
+          ? t("checkout.shipping.deliverInDays", { n: s.estimatedDays })
+          : t("checkout.shipping.etaStandard"),
       fee: s.fee ?? 0,
-      eta: typeof s.estimatedDays === "number" ? `${s.estimatedDays} ngày` : "Tiêu chuẩn",
+      eta:
+        typeof s.estimatedDays === "number"
+          ? t("checkout.shipping.etaDays", { n: s.estimatedDays })
+          : t("checkout.shipping.etaStandard"),
     }));
-  }, [shippingQuery.data]);
+  }, [shippingQuery.data, t]);
 
   const paymentOptions: PaymentOption[] = useMemo(() => {
     const data = paymentQuery.data;
@@ -218,7 +225,7 @@ export function CheckoutPage() {
     [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") ||
     profile?.username ||
     profile?.email ||
-    "Khách hàng";
+    t("checkout.buyerFallback");
 
   const couponMutation = useMutation({
     mutationFn: validateCouponCode,
@@ -228,10 +235,10 @@ export function CheckoutPage() {
         setCouponInput("");
         return;
       }
-      toast.error(result.message || "Mã giảm giá không hợp lệ");
+      toast.error(result.message || t("checkout.summary.couponInvalid"));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Mã giảm giá không hợp lệ");
+      toast.error(err instanceof ApiError ? err.message : t("checkout.summary.couponInvalid"));
     },
   });
 
@@ -258,7 +265,7 @@ export function CheckoutPage() {
   if (!ready) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
-        Đang khởi tạo phiên đăng nhập...
+        {t("checkout.initSession")}
       </div>
     );
   }
@@ -266,13 +273,13 @@ export function CheckoutPage() {
   if (!authenticated) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <h2 className="text-xl font-bold text-gray-600 mb-3">Đăng nhập để thanh toán</h2>
+        <h2 className="text-xl font-bold text-gray-600 mb-3">{t("checkout.loginPromptTitle")}</h2>
         <button
           onClick={() => login("/checkout")}
           className="px-8 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
           style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
         >
-          <LogIn size={16} /> Đăng nhập
+          <LogIn size={16} /> {t("auth.login")}
         </button>
       </div>
     );
@@ -281,7 +288,7 @@ export function CheckoutPage() {
   if (cartLoading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
-        Đang tải giỏ hàng...
+        {t("checkout.loadingCart")}
       </div>
     );
   }
@@ -290,13 +297,13 @@ export function CheckoutPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
         <Package size={56} className="mx-auto mb-4 text-gray-200" />
-        <h2 className="text-xl font-bold text-gray-600 mb-3">Giỏ hàng trống</h2>
+        <h2 className="text-xl font-bold text-gray-600 mb-3">{t("checkout.emptyCartTitle")}</h2>
         <button
           onClick={() => navigate("/")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
           style={{ background: "#00BFB3" }}
         >
-          Tiếp tục mua sắm
+          {t("checkout.continueShopping")}
         </button>
       </div>
     );
@@ -344,8 +351,8 @@ export function CheckoutPage() {
         } catch (err) {
           toast.error(
             err instanceof ApiError
-              ? `Không khởi tạo được thanh toán: ${err.message}`
-              : "Không khởi tạo được thanh toán",
+              ? t("checkout.payment.initFailedPrefix", { message: err.message })
+              : t("checkout.payment.initFailedShort"),
           );
           // Fall through to success screen — order exists; buyer can pay later.
         }
@@ -359,12 +366,11 @@ export function CheckoutPage() {
 
       setStep("success");
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : "Không thể đặt hàng. Vui lòng thử lại.";
+      const message = err instanceof ApiError ? err.message : t("checkout.payment.placeOrderFailed");
       toast.error(message, {
         description:
           err instanceof ApiError && err.correlationId
-            ? `Mã hỗ trợ: ${err.correlationId}`
+            ? t("checkout.payment.supportCode", { id: err.correlationId })
             : undefined,
       });
     } finally {
@@ -375,7 +381,7 @@ export function CheckoutPage() {
   const handleNext = () => {
     if (step === "address") {
       if (addresses.length === 0) {
-        toast.error("Vui lòng thêm ít nhất một địa chỉ trong trang Hồ sơ trước khi thanh toán.");
+        toast.error(t("checkout.address.missingValidation"));
         void navigate("/profile");
         return;
       }
@@ -384,7 +390,7 @@ export function CheckoutPage() {
     }
     if (step === "shipping") {
       if (!selectedShippingId) {
-        toast.error("Vui lòng chọn phương thức vận chuyển");
+        toast.error(t("checkout.shipping.missingValidation"));
         return;
       }
       setStep("payment");
@@ -417,11 +423,11 @@ export function CheckoutPage() {
             className="text-3xl font-black text-gray-800 mb-3"
             style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
           >
-            Đặt hàng thành công! 🎉
+            {t("checkout.success.title")}
           </h1>
           {placedOrderId ? (
             <>
-              <p className="text-gray-500 mb-2">Mã đơn hàng của bạn:</p>
+              <p className="text-gray-500 mb-2">{t("checkout.success.orderIdLabel")}</p>
               <div
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl mb-6 font-mono font-bold text-lg"
                 style={{ background: "rgba(0,191,179,0.08)", color: "#00BFB3" }}
@@ -432,7 +438,11 @@ export function CheckoutPage() {
           ) : null}
           {selectedPaymentId === "COD" ? (
             <p className="text-sm text-gray-500 mb-2">
-              Bạn sẽ thanh toán <strong>{formatPrice(finalTotal)}</strong> khi nhận hàng.
+              <Trans
+                i18nKey="checkout.success.codNotice"
+                values={{ amount: formatPrice(finalTotal) }}
+                components={{ 1: <strong /> }}
+              />
             </p>
           ) : null}
           <div className="flex gap-3">
@@ -441,14 +451,14 @@ export function CheckoutPage() {
               className="flex-1 py-3 rounded-xl border-2 font-semibold text-sm transition-colors"
               style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
             >
-              Xem đơn hàng
+              {t("checkout.success.viewOrders")}
             </button>
             <button
               onClick={() => navigate("/")}
               className="flex-1 py-3 rounded-xl text-white font-semibold text-sm"
               style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
             >
-              Tiếp tục mua sắm
+              {t("checkout.success.continueShopping")}
             </button>
           </div>
         </motion.div>
@@ -465,7 +475,7 @@ export function CheckoutPage() {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-gray-800">Thanh toán</h1>
+        <h1 className="text-xl font-bold text-gray-800">{t("checkout.title")}</h1>
       </div>
 
       <div className="flex items-center justify-center mb-10">
@@ -489,7 +499,7 @@ export function CheckoutPage() {
                     isActive ? "text-gray-800" : isDone ? "text-[#00BFB3]" : "text-gray-400"
                   }`}
                 >
-                  {s.label}
+                  {t(s.labelKey)}
                 </span>
               </div>
               {i < STEPS.length - 1 ? (
@@ -514,24 +524,26 @@ export function CheckoutPage() {
           >
             {step === "address" ? (
               <div className="space-y-4">
-                <h2 className="font-bold text-gray-800 text-lg mb-4">Chọn địa chỉ giao hàng</h2>
+                <h2 className="font-bold text-gray-800 text-lg mb-4">
+                  {t("checkout.address.header")}
+                </h2>
                 {profileQuery.isLoading ? (
-                  <p className="text-sm text-gray-400">Đang tải địa chỉ...</p>
+                  <p className="text-sm text-gray-400">{t("checkout.address.loading")}</p>
                 ) : null}
                 {!profileQuery.isLoading && addresses.length === 0 ? (
                   <div className="bg-white rounded-2xl p-5 text-sm text-gray-500 flex items-start gap-3">
                     <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-gray-700">Bạn chưa có địa chỉ nào</p>
-                      <p className="mt-1">
-                        Hãy thêm địa chỉ giao hàng trong Hồ sơ trước khi thanh toán.
+                      <p className="font-semibold text-gray-700">
+                        {t("checkout.address.noAddressesTitle")}
                       </p>
+                      <p className="mt-1">{t("checkout.address.noAddressesSub")}</p>
                       <button
                         onClick={() => navigate("/profile")}
                         className="mt-3 text-sm font-semibold"
                         style={{ color: "#00BFB3" }}
                       >
-                        Đến trang Hồ sơ →
+                        {t("checkout.address.goToProfile")}
                       </button>
                     </div>
                   </div>
@@ -562,7 +574,7 @@ export function CheckoutPage() {
                               className="px-1.5 py-0.5 rounded text-xs font-medium border"
                               style={{ borderColor: "#FF6200", color: "#FF6200" }}
                             >
-                              Mặc định
+                              {t("checkout.address.isDefaultBadge")}
                             </span>
                           ) : null}
                         </div>
@@ -586,7 +598,7 @@ export function CheckoutPage() {
                   onClick={() => navigate("/profile")}
                   className="w-full py-3 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 text-sm font-medium text-gray-500 hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors bg-white"
                 >
-                  <Plus size={16} /> Thêm địa chỉ mới
+                  <Plus size={16} /> {t("checkout.address.addNew")}
                 </button>
               </div>
             ) : null}
@@ -594,7 +606,7 @@ export function CheckoutPage() {
             {step === "shipping" ? (
               <div>
                 <h2 className="font-bold text-gray-800 text-lg mb-4">
-                  Chọn phương thức vận chuyển
+                  {t("checkout.shipping.header")}
                 </h2>
                 <div className="space-y-3">
                   {shippingOptions.map((method) => (
@@ -619,7 +631,7 @@ export function CheckoutPage() {
                           <div>
                             <p className="font-semibold text-sm text-gray-800">{method.name}</p>
                             <p className="text-xs text-gray-500">
-                              {method.desc} · Dự kiến: {method.eta}
+                              {method.desc} · {t("checkout.shipping.etaPrefix", { eta: method.eta })}
                             </p>
                           </div>
                         </div>
@@ -628,7 +640,7 @@ export function CheckoutPage() {
                             className="font-bold text-sm"
                             style={{ color: method.fee === 0 ? "#00BFB3" : "#374151" }}
                           >
-                            {method.fee === 0 ? "Miễn phí" : formatPrice(method.fee)}
+                            {method.fee === 0 ? t("checkout.shipping.free") : formatPrice(method.fee)}
                           </p>
                         </div>
                       </div>
@@ -640,14 +652,14 @@ export function CheckoutPage() {
                     htmlFor="checkout-note"
                     className="block text-sm font-semibold text-gray-700 mb-2"
                   >
-                    Ghi chú cho người bán (tùy chọn)
+                    {t("checkout.shipping.noteLabel")}
                   </label>
                   <textarea
                     id="checkout-note"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     rows={3}
-                    placeholder="VD: Giao giờ hành chính, gọi trước khi giao..."
+                    placeholder={t("checkout.shipping.notePlaceholder")}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-white"
                   />
                 </div>
@@ -656,7 +668,9 @@ export function CheckoutPage() {
 
             {step === "payment" ? (
               <div>
-                <h2 className="font-bold text-gray-800 text-lg mb-4">Phương thức thanh toán</h2>
+                <h2 className="font-bold text-gray-800 text-lg mb-4">
+                  {t("checkout.payment.header")}
+                </h2>
                 <div className="space-y-3">
                   {paymentOptions.map((method) => (
                     <button
@@ -694,26 +708,29 @@ export function CheckoutPage() {
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 px-1">
                   <Shield size={14} style={{ color: "#00BFB3" }} />
-                  <span>Tất cả giao dịch được mã hóa SSL 256-bit và bảo mật tuyệt đối</span>
+                  <span>{t("checkout.payment.sslNotice")}</span>
                 </div>
               </div>
             ) : null}
 
             {step === "review" ? (
               <div className="space-y-4">
-                <h2 className="font-bold text-gray-800 text-lg mb-4">Xác nhận đơn hàng</h2>
+                <h2 className="font-bold text-gray-800 text-lg mb-4">
+                  {t("checkout.review.header")}
+                </h2>
 
                 <div className="bg-white rounded-2xl p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-                      <MapPin size={15} style={{ color: "#00BFB3" }} /> Địa chỉ giao hàng
+                      <MapPin size={15} style={{ color: "#00BFB3" }} />{" "}
+                      {t("checkout.review.shippingAddress")}
                     </h3>
                     <button
                       onClick={() => setStep("address")}
                       className="text-xs"
                       style={{ color: "#00BFB3" }}
                     >
-                      Thay đổi
+                      {t("checkout.review.change")}
                     </button>
                   </div>
                   {addresses[selectedAddressIndex] ? (
@@ -729,38 +746,42 @@ export function CheckoutPage() {
                       </p>
                     </div>
                   ) : (
-                    <p className="text-sm text-red-500">Chưa có địa chỉ giao hàng</p>
+                    <p className="text-sm text-red-500">{t("checkout.review.noAddress")}</p>
                   )}
                 </div>
 
                 <div className="bg-white rounded-2xl p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-                      <Truck size={15} style={{ color: "#00BFB3" }} /> Vận chuyển
+                      <Truck size={15} style={{ color: "#00BFB3" }} />{" "}
+                      {t("checkout.review.shippingMethod")}
                     </h3>
                     <button
                       onClick={() => setStep("shipping")}
                       className="text-xs"
                       style={{ color: "#00BFB3" }}
                     >
-                      Thay đổi
+                      {t("checkout.review.change")}
                     </button>
                   </div>
                   <p className="text-sm font-medium text-gray-700">{shipping?.name}</p>
-                  <p className="text-xs text-gray-500">Dự kiến: {shipping?.eta}</p>
+                  <p className="text-xs text-gray-500">
+                    {t("checkout.shipping.etaPrefix", { eta: shipping?.eta ?? "" })}
+                  </p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-                      <CreditCard size={15} style={{ color: "#00BFB3" }} /> Thanh toán
+                      <CreditCard size={15} style={{ color: "#00BFB3" }} />{" "}
+                      {t("checkout.review.paymentMethod")}
                     </h3>
                     <button
                       onClick={() => setStep("payment")}
                       className="text-xs"
                       style={{ color: "#00BFB3" }}
                     >
-                      Thay đổi
+                      {t("checkout.review.change")}
                     </button>
                   </div>
                   <p className="text-sm font-medium text-gray-700">
@@ -770,7 +791,8 @@ export function CheckoutPage() {
 
                 <div className="bg-white rounded-2xl p-4 shadow-sm">
                   <h3 className="font-semibold text-gray-700 flex items-center gap-2 mb-3">
-                    <Package size={15} style={{ color: "#00BFB3" }} /> Sản phẩm ({cartItems.length})
+                    <Package size={15} style={{ color: "#00BFB3" }} />{" "}
+                    {t("checkout.review.productsCount", { count: cartItems.length })}
                   </h3>
                   <div className="space-y-3">
                     {cartItems.map((item) => (
@@ -805,7 +827,7 @@ export function CheckoutPage() {
 
         <div className="lg:sticky lg:top-6 h-fit space-y-4">
           <div className="bg-white rounded-2xl shadow-sm p-5">
-            <h3 className="font-bold text-gray-800 mb-4">Đơn hàng của bạn</h3>
+            <h3 className="font-bold text-gray-800 mb-4">{t("checkout.summary.title")}</h3>
             <div className="space-y-2 text-sm mb-4">
               {cartItems.slice(0, 3).map((item) => (
                 <div key={item.productId} className="flex justify-between gap-2">
@@ -819,7 +841,9 @@ export function CheckoutPage() {
                 </div>
               ))}
               {cartItems.length > 3 ? (
-                <p className="text-xs text-gray-400">+{cartItems.length - 3} sản phẩm khác</p>
+                <p className="text-xs text-gray-400">
+                  {t("checkout.summary.moreItems", { count: cartItems.length - 3 })}
+                </p>
               ) : null}
             </div>
             <div className="mb-4">
@@ -828,7 +852,7 @@ export function CheckoutPage() {
                   htmlFor="checkout-coupon-input"
                   className="block text-xs font-semibold text-gray-600"
                 >
-                  Mã giảm giá
+                  {t("checkout.summary.couponLabel")}
                 </label>
                 {!appliedCoupon ? (
                   <button
@@ -838,7 +862,9 @@ export function CheckoutPage() {
                     type="button"
                   >
                     <Tag size={12} />
-                    {showCouponPicker ? "Ẩn danh sách" : "Xem mã khả dụng"}
+                    {showCouponPicker
+                      ? t("checkout.summary.togglePickerHide")
+                      : t("checkout.summary.togglePicker")}
                   </button>
                 ) : null}
               </div>
@@ -854,16 +880,20 @@ export function CheckoutPage() {
                   >
                     <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-2 max-h-48 overflow-y-auto">
                       {couponsQuery.isLoading ? (
-                        <p className="text-xs text-gray-500 px-2 py-1">Đang tải mã...</p>
+                        <p className="text-xs text-gray-500 px-2 py-1">
+                          {t("checkout.summary.couponLoading")}
+                        </p>
                       ) : null}
                       {couponsQuery.error instanceof ApiError ? (
                         <p className="text-xs text-red-500 px-2 py-1">
-                          Không tải được mã: {couponsQuery.error.message}
+                          {t("checkout.summary.couponLoadFail", {
+                            message: couponsQuery.error.message,
+                          })}
                         </p>
                       ) : null}
                       {couponsQuery.data?.length === 0 ? (
                         <p className="text-xs text-gray-500 px-2 py-2 text-center">
-                          Hiện chưa có mã khả dụng
+                          {t("checkout.summary.couponEmpty")}
                         </p>
                       ) : null}
                       {couponsQuery.data && couponsQuery.data.length > 0 ? (
@@ -877,12 +907,16 @@ export function CheckoutPage() {
                             ).toUpperCase();
                             const label =
                               type === "PERCENT" && value !== undefined
-                                ? `Giảm ${value}%`
+                                ? t("checkout.summary.couponDiscountPct", { value })
                                 : value !== undefined
-                                  ? `Giảm ${formatPrice(value)}`
-                                  : "Mã giảm giá";
+                                  ? t("checkout.summary.couponDiscountAmount", {
+                                      value: formatPrice(value),
+                                    })
+                                  : t("checkout.summary.couponDiscountFallback");
                             const minLabel = coupon.minOrderValue
-                              ? `Đơn tối thiểu ${formatPrice(coupon.minOrderValue)}`
+                              ? t("checkout.summary.couponMinOrder", {
+                                  value: formatPrice(coupon.minOrderValue),
+                                })
                               : null;
                             const eligible =
                               !coupon.minOrderValue || subtotal >= coupon.minOrderValue;
@@ -910,7 +944,9 @@ export function CheckoutPage() {
                                     className="text-xs font-semibold shrink-0"
                                     style={{ color: eligible ? "#FF6200" : "#9ca3af" }}
                                   >
-                                    {eligible ? "Áp dụng" : "Chưa đủ"}
+                                    {eligible
+                                      ? t("checkout.summary.couponApply")
+                                      : t("checkout.summary.couponInsufficient")}
                                   </span>
                                 </button>
                               </li>
@@ -938,7 +974,7 @@ export function CheckoutPage() {
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
-                      placeholder="Nhập mã giảm giá"
+                      placeholder={t("checkout.summary.couponPlaceholder")}
                       className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#00BFB3] bg-white transition-colors"
                     />
                     <button
@@ -947,7 +983,7 @@ export function CheckoutPage() {
                       className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
                       style={{ background: "#00BFB3" }}
                     >
-                      Áp dụng
+                      {t("checkout.summary.couponApply")}
                     </button>
                   </motion.div>
                 ) : (
@@ -964,14 +1000,14 @@ export function CheckoutPage() {
                       style={{ background: "rgba(0,191,179,0.08)", color: "#00BFB3" }}
                     >
                       <Check size={14} />
-                      <span>Đã áp dụng: {appliedCoupon}</span>
+                      <span>{t("checkout.summary.couponApplied", { code: appliedCoupon })}</span>
                       {discount > 0 ? <span className="ml-1">-{formatPrice(discount)}</span> : null}
                     </div>
                     <button
                       onClick={handleRemoveCoupon}
                       className="px-3 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
                     >
-                      Bỏ
+                      {t("checkout.summary.couponRemove")}
                     </button>
                   </motion.div>
                 )}
@@ -980,23 +1016,23 @@ export function CheckoutPage() {
 
             <div className="border-t border-gray-100 pt-3 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tạm tính</span>
+                <span className="text-gray-500">{t("checkout.summary.subtotal")}</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Phí vận chuyển</span>
+                <span className="text-gray-500">{t("checkout.summary.shippingFee")}</span>
                 <span style={{ color: shippingFee === 0 ? "#00BFB3" : "#374151" }}>
-                  {shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}
+                  {shippingFee === 0 ? t("checkout.summary.free") : formatPrice(shippingFee)}
                 </span>
               </div>
               {discount > 0 ? (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Giảm giá</span>
+                  <span className="text-gray-500">{t("checkout.summary.discount")}</span>
                   <span style={{ color: "#FF6200" }}>-{formatPrice(discount)}</span>
                 </div>
               ) : null}
               <div className="flex justify-between font-black text-base pt-2 border-t border-gray-100">
-                <span>Tổng cộng</span>
+                <span>{t("checkout.summary.total")}</span>
                 <span style={{ color: "#FF6200" }}>{formatPrice(finalTotal)}</span>
               </div>
             </div>
@@ -1010,22 +1046,22 @@ export function CheckoutPage() {
               {isProcessing ? (
                 <span className="flex items-center gap-2">
                   <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                  Đang xử lý...
+                  {t("checkout.summary.processing")}
                 </span>
               ) : step === "review" ? (
                 <>
-                  <CheckCircle size={16} /> Đặt hàng ngay
+                  <CheckCircle size={16} /> {t("checkout.summary.placeOrder")}
                 </>
               ) : (
                 <>
-                  Tiếp tục <ChevronRight size={16} />
+                  {t("checkout.summary.next")} <ChevronRight size={16} />
                 </>
               )}
             </button>
 
             {step === "review" ? (
               <p className="text-[11px] text-gray-400 mt-3 text-center">
-                Bằng cách đặt hàng, bạn đồng ý với chính sách của VNShop.
+                {t("checkout.summary.termsNotice")}
               </p>
             ) : null}
           </div>

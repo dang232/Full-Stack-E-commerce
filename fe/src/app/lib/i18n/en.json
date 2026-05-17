@@ -271,6 +271,96 @@
     "ssoNotice": "Accounts, passwords and 2FA are managed by Keycloak. Sign-up and password reset happen directly on the Keycloak login page.",
     "termsNotice": "By signing in you agree to VNShop's Terms of Service and Privacy Policy."
   },
+  "checkout": {
+    "initSession": "Initialising your session...",
+    "loginPromptTitle": "Log in to check out",
+    "loadingCart": "Loading your cart...",
+    "emptyCartTitle": "Your cart is empty",
+    "continueShopping": "Continue shopping",
+    "buyerFallback": "Customer",
+    "title": "Checkout",
+    "steps": {
+      "address": "Address",
+      "shipping": "Shipping",
+      "payment": "Payment",
+      "review": "Review"
+    },
+    "address": {
+      "header": "Choose a delivery address",
+      "loading": "Loading addresses...",
+      "noAddressesTitle": "You don't have any addresses yet",
+      "noAddressesSub": "Please add a delivery address in your profile before checking out.",
+      "goToProfile": "Go to profile →",
+      "isDefaultBadge": "Default",
+      "addNew": "Add a new address",
+      "missingValidation": "Please add at least one address in Profile before checking out."
+    },
+    "shipping": {
+      "header": "Choose a shipping method",
+      "etaPrefix": "ETA: {{eta}}",
+      "free": "Free",
+      "noteLabel": "Note for seller (optional)",
+      "notePlaceholder": "e.g. Deliver during office hours, call before arriving...",
+      "missingValidation": "Please choose a shipping method",
+      "fallbackName": "Method {{n}}",
+      "etaDays": "{{n}} days",
+      "etaStandard": "Standard",
+      "deliverInDays": "Delivers in {{n}} days"
+    },
+    "payment": {
+      "header": "Payment method",
+      "sslNotice": "All transactions are SSL-256-bit encrypted and fully secured",
+      "initFailedPrefix": "Couldn't initiate payment: {{message}}",
+      "initFailedShort": "Couldn't initiate payment",
+      "placeOrderFailed": "Couldn't place the order. Please try again.",
+      "supportCode": "Support code: {{id}}"
+    },
+    "review": {
+      "header": "Review your order",
+      "shippingAddress": "Shipping address",
+      "change": "Change",
+      "noAddress": "No shipping address",
+      "shippingMethod": "Shipping",
+      "paymentMethod": "Payment",
+      "productsCount": "Items ({{count}})"
+    },
+    "summary": {
+      "title": "Your order",
+      "moreItems": "+{{count}} more items",
+      "couponLabel": "Coupon code",
+      "togglePicker": "Browse available codes",
+      "togglePickerHide": "Hide list",
+      "couponLoading": "Loading codes...",
+      "couponLoadFail": "Couldn't load codes: {{message}}",
+      "couponEmpty": "No coupons available right now",
+      "couponDiscountPct": "{{value}}% off",
+      "couponDiscountAmount": "{{value}} off",
+      "couponDiscountFallback": "Coupon code",
+      "couponMinOrder": "Min. order {{value}}",
+      "couponApply": "Apply",
+      "couponInsufficient": "Not eligible",
+      "couponPlaceholder": "Enter coupon code",
+      "couponInvalid": "Coupon is invalid",
+      "couponApplied": "Applied: {{code}}",
+      "couponRemove": "Remove",
+      "subtotal": "Subtotal",
+      "shippingFee": "Shipping fee",
+      "free": "Free",
+      "discount": "Discount",
+      "total": "Total",
+      "processing": "Processing...",
+      "placeOrder": "Place order",
+      "next": "Continue",
+      "termsNotice": "By placing this order you agree to VNShop's terms."
+    },
+    "success": {
+      "title": "Order placed! 🎉",
+      "orderIdLabel": "Your order ID:",
+      "codNotice": "You'll pay <1>{{amount}}</1> on delivery.",
+      "viewOrders": "View orders",
+      "continueShopping": "Continue shopping"
+    }
+  },
   "seller": {
     "loggedIn": "Signed in",
     "ordersToHandle": "{{count}} orders to handle",
