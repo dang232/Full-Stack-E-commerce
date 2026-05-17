@@ -271,6 +271,37 @@
     "ssoNotice": "Accounts, passwords and 2FA are managed by Keycloak. Sign-up and password reset happen directly on the Keycloak login page.",
     "termsNotice": "By signing in you agree to VNShop's Terms of Service and Privacy Policy."
   },
+  "seller": {
+    "loggedIn": "Signed in",
+    "ordersToHandle": "{{count}} orders to handle",
+    "shopFallback": "My Shop",
+    "nav": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "orders": "Orders",
+      "reviews": "Reviews",
+      "wallet": "Wallet",
+      "settings": "Settings"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Real-time data",
+      "kpi": {
+        "balance": "Wallet balance",
+        "pending": "Pending orders",
+        "views": "Shop views",
+        "rating": "Average rating"
+      },
+      "revenue30dTitle": "Revenue (30 days)",
+      "revenue30dHint": "Live from your order data",
+      "revenue30dError": "Couldn't load revenue: {{message}}",
+      "revenue30dLoading": "Loading revenue...",
+      "revenue30dEmpty": "No revenue in the last 30 days yet.",
+      "orders30dTitle": "Orders (30 days)",
+      "orders30dLoading": "Loading...",
+      "orders30dEmpty": "No orders in the last 30 days yet."
+    }
+  },
   "profile": {
     "displayNameFallback": "User",
     "loggedInVia": "Signed in via Keycloak",

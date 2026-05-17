@@ -271,6 +271,37 @@
     "ssoNotice": "Tài khoản, mật khẩu và xác thực 2 lớp do Keycloak quản lý. Việc tạo tài khoản mới và đặt lại mật khẩu được thực hiện trực tiếp trên trang đăng nhập.",
     "termsNotice": "Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của VNShop."
   },
+  "seller": {
+    "loggedIn": "Đã đăng nhập",
+    "ordersToHandle": "{{count}} đơn cần xử lý",
+    "shopFallback": "Shop của tôi",
+    "nav": {
+      "dashboard": "Tổng quan",
+      "products": "Sản phẩm",
+      "orders": "Đơn hàng",
+      "reviews": "Đánh giá",
+      "wallet": "Ví tiền",
+      "settings": "Cài đặt"
+    },
+    "dashboard": {
+      "title": "Tổng quan",
+      "subtitle": "Dữ liệu thời gian thực",
+      "kpi": {
+        "balance": "Số dư ví",
+        "pending": "Đơn cần xử lý",
+        "views": "Lượt xem shop",
+        "rating": "Điểm đánh giá"
+      },
+      "revenue30dTitle": "Doanh thu 30 ngày",
+      "revenue30dHint": "Cập nhật theo dữ liệu đơn của bạn",
+      "revenue30dError": "Không tải được doanh thu: {{message}}",
+      "revenue30dLoading": "Đang tải doanh thu...",
+      "revenue30dEmpty": "Chưa có dữ liệu doanh thu trong 30 ngày qua.",
+      "orders30dTitle": "Số đơn 30 ngày",
+      "orders30dLoading": "Đang tải...",
+      "orders30dEmpty": "Chưa có đơn nào trong 30 ngày qua."
+    }
+  },
   "profile": {
     "displayNameFallback": "Người dùng",
     "loggedInVia": "Đã đăng nhập qua Keycloak",

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AreaChart,
   Area,
@@ -129,47 +130,48 @@ function Dashboard({
   const { points, isLoading: revenueLoading, error: revenueError } = useSellerRevenue({ days: 30 });
   const chartData = useMemo(() => toChartData(points), [points]);
   const hasRevenue = chartData.length > 0;
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Tổng quan</h2>
-          <p className="text-sm text-gray-500">Dữ liệu thời gian thực</p>
+          <h2 className="text-xl font-bold text-gray-800">{t("seller.dashboard.title")}</h2>
+          <p className="text-sm text-gray-500">{t("seller.dashboard.subtitle")}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           icon={Wallet}
-          label="Số dư ví"
+          label={t("seller.dashboard.kpi.balance")}
           value={walletBalance !== null ? formatPrice(walletBalance) : "—"}
           color="#00BFB3"
         />
         <KPICard
           icon={ShoppingBag}
-          label="Đơn cần xử lý"
+          label={t("seller.dashboard.kpi.pending")}
           value={String(pendingOrders.length)}
           color="#FF6200"
         />
-        <KPICard icon={Eye} label="Lượt xem shop" value="—" color="#3B82F6" />
-        <KPICard icon={Star} label="Điểm đánh giá" value="—" color="#F59E0B" />
+        <KPICard icon={Eye} label={t("seller.dashboard.kpi.views")} value="—" color="#3B82F6" />
+        <KPICard icon={Star} label={t("seller.dashboard.kpi.rating")} value="—" color="#F59E0B" />
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-bold text-gray-800">Doanh thu 30 ngày</h3>
-          <span className="text-[11px] text-gray-400">
-            Cập nhật theo dữ liệu đơn của bạn
-          </span>
+          <h3 className="font-bold text-gray-800">{t("seller.dashboard.revenue30dTitle")}</h3>
+          <span className="text-[11px] text-gray-400">{t("seller.dashboard.revenue30dHint")}</span>
         </div>
         {revenueError instanceof ApiError ? (
           <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 mb-3">
-            Không tải được doanh thu: {revenueError.message}
+            {t("seller.dashboard.revenue30dError", { message: revenueError.message })}
           </div>
         ) : null}
         {revenueLoading ? (
-          <p className="text-sm text-gray-400 py-12 text-center">Đang tải doanh thu...</p>
+          <p className="text-sm text-gray-400 py-12 text-center">
+            {t("seller.dashboard.revenue30dLoading")}
+          </p>
         ) : hasRevenue ? (
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={chartData}>
@@ -211,15 +213,17 @@ function Dashboard({
           </ResponsiveContainer>
         ) : (
           <p className="text-sm text-gray-400 py-12 text-center">
-            Chưa có dữ liệu doanh thu trong 30 ngày qua.
+            {t("seller.dashboard.revenue30dEmpty")}
           </p>
         )}
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm">
-        <h3 className="font-bold text-gray-800 mb-4">Số đơn 30 ngày</h3>
+        <h3 className="font-bold text-gray-800 mb-4">{t("seller.dashboard.orders30dTitle")}</h3>
         {revenueLoading ? (
-          <p className="text-sm text-gray-400 py-10 text-center">Đang tải...</p>
+          <p className="text-sm text-gray-400 py-10 text-center">
+            {t("seller.dashboard.orders30dLoading")}
+          </p>
         ) : hasRevenue ? (
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData}>
@@ -242,7 +246,9 @@ function Dashboard({
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-sm text-gray-400 py-10 text-center">Chưa có đơn nào trong 30 ngày qua.</p>
+          <p className="text-sm text-gray-400 py-10 text-center">
+            {t("seller.dashboard.orders30dEmpty")}
+          </p>
         )}
       </div>
     </div>
@@ -742,17 +748,18 @@ function WalletTab({
   );
 }
 
-const NAV_ITEMS: { id: SellerTab; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: "dashboard", label: "Tổng quan", icon: LayoutDashboard },
-  { id: "products", label: "Sản phẩm", icon: Package },
-  { id: "orders", label: "Đơn hàng", icon: ShoppingBag },
-  { id: "reviews", label: "Đánh giá", icon: Star },
-  { id: "wallet", label: "Ví tiền", icon: Wallet },
-  { id: "settings", label: "Cài đặt", icon: Settings },
+const NAV_ITEMS: { id: SellerTab; labelKey: string; icon: typeof LayoutDashboard }[] = [
+  { id: "dashboard", labelKey: "seller.nav.dashboard", icon: LayoutDashboard },
+  { id: "products", labelKey: "seller.nav.products", icon: Package },
+  { id: "orders", labelKey: "seller.nav.orders", icon: ShoppingBag },
+  { id: "reviews", labelKey: "seller.nav.reviews", icon: Star },
+  { id: "wallet", labelKey: "seller.nav.wallet", icon: Wallet },
+  { id: "settings", labelKey: "seller.nav.settings", icon: Settings },
 ];
 
 export function SellerPage() {
   const [activeTab, setActiveTab] = useState<SellerTab>("dashboard");
+  const { t } = useTranslation();
 
   const profileQuery = useQuery({
     queryKey: ["seller", "profile"],
@@ -781,7 +788,7 @@ export function SellerPage() {
 
   const pendingOrders = useMemo(() => pendingQuery.data ?? [], [pendingQuery.data]);
   const balance = walletQuery.data?.balance ?? null;
-  const sellerName = profileQuery.data?.name ?? "Shop của tôi";
+  const sellerName = profileQuery.data?.name ?? t("seller.shopFallback");
 
   return (
     <div className="min-h-screen" style={{ background: "#f4f6f9" }}>
@@ -798,12 +805,14 @@ export function SellerPage() {
               <h1 className="text-lg font-bold text-gray-800">{sellerName}</h1>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span className="flex items-center gap-1 text-green-500 font-medium">
-                  <CheckCircle size={13} /> Đã đăng nhập
+                  <CheckCircle size={13} /> {t("seller.loggedIn")}
                 </span>
                 {pendingOrders.length > 0 ? (
                   <>
                     <span>·</span>
-                    <span style={{ color: "#FF6200" }}>{pendingOrders.length} đơn cần xử lý</span>
+                    <span style={{ color: "#FF6200" }}>
+                      {t("seller.ordersToHandle", { count: pendingOrders.length })}
+                    </span>
                   </>
                 ) : null}
               </div>
@@ -832,7 +841,7 @@ export function SellerPage() {
                   }}
                 >
                   <item.icon size={18} />
-                  {item.label}
+                  {t(item.labelKey)}
                 </button>
               ))}
             </div>
@@ -850,7 +859,7 @@ export function SellerPage() {
                     : { background: "white", color: "#6b7280", border: "1px solid #e5e7eb" }
                 }
               >
-                <item.icon size={14} /> {item.label}
+                <item.icon size={14} /> {t(item.labelKey)}
               </button>
             ))}
           </div>
