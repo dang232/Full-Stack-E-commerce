@@ -2,6 +2,7 @@ import { useQueries } from "@tanstack/react-query";
 import { Heart, ShoppingCart, Star, Trash2, Share2, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -18,6 +19,7 @@ export function WishlistPage() {
   const { ready, authenticated } = useAuth();
   const wishlist = useWishlist();
   const { addItem } = useCart();
+  const { t } = useTranslation();
 
   // useWishlist() hydrates from localStorage internally, no effect needed here.
 
@@ -40,26 +42,26 @@ export function WishlistPage() {
 
   const handleAddToCart = (productId: string) => {
     if (!authenticated) {
-      toast.info("Hãy đăng nhập để thêm vào giỏ hàng");
+      toast.info(t("wishlist.loginToAdd"));
       return;
     }
     addItem(
       { productId, quantity: 1 },
       {
-        onSuccess: () => toast.success("Đã thêm vào giỏ"),
+        onSuccess: () => toast.success(t("wishlist.addedOne")),
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Không thể thêm vào giỏ"),
+          toast.error(err instanceof ApiError ? err.message : t("wishlist.addError")),
       },
     );
   };
 
   const handleAddAll = () => {
     if (!authenticated) {
-      toast.info("Hãy đăng nhập để thêm vào giỏ hàng");
+      toast.info(t("wishlist.loginToAdd"));
       return;
     }
     products.forEach((p) => addItem({ productId: p.id, quantity: 1 }));
-    toast.success(`Đã thêm ${products.length} sản phẩm vào giỏ`);
+    toast.success(t("wishlist.addedMany", { count: products.length }));
   };
 
   if (!ready) return null;
@@ -72,9 +74,11 @@ export function WishlistPage() {
             className="text-2xl font-bold text-gray-800"
             style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
           >
-            Yêu thích của tôi
+            {t("wishlist.pageTitle")}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">{wishlist.count} sản phẩm</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {t("wishlist.countLabel", { count: wishlist.count })}
+          </p>
         </div>
         <div className="flex gap-2">
           <button className="p-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
@@ -93,16 +97,14 @@ export function WishlistPage() {
           className="py-24 text-center bg-white rounded-2xl"
         >
           <Heart size={64} className="mx-auto mb-5 text-gray-200" />
-          <h2 className="text-xl font-bold text-gray-500 mb-3">Chưa có sản phẩm yêu thích</h2>
-          <p className="text-sm text-gray-400 mb-8 max-w-xs mx-auto">
-            Nhấn vào ❤️ trên sản phẩm để lưu vào danh sách yêu thích của bạn
-          </p>
+          <h2 className="text-xl font-bold text-gray-500 mb-3">{t("wishlist.emptyTitle")}</h2>
+          <p className="text-sm text-gray-400 mb-8 max-w-xs mx-auto">{t("wishlist.emptySub")}</p>
           <button
             onClick={() => navigate("/")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
             style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
           >
-            Khám phá ngay
+            {t("wishlist.discover")}
           </button>
         </motion.div>
       ) : (
@@ -114,16 +116,16 @@ export function WishlistPage() {
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm shadow disabled:opacity-50"
               style={{ background: "#FF6200" }}
             >
-              <ShoppingCart size={16} /> Thêm tất cả vào giỏ
+              <ShoppingCart size={16} /> {t("wishlist.addAll")}
             </button>
             <button
               onClick={() => {
                 wishlist.clear();
-                toast.info("Đã xoá toàn bộ danh sách yêu thích");
+                toast.info(t("wishlist.cleared"));
               }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm border border-gray-200 bg-white text-gray-600 hover:border-red-300 hover:text-red-500 transition-colors"
             >
-              <Trash2 size={16} /> Xóa tất cả
+              <Trash2 size={16} /> {t("wishlist.clearAll")}
             </button>
           </div>
 
@@ -148,7 +150,7 @@ export function WishlistPage() {
                     <div
                       role="button"
                       tabIndex={0}
-                      aria-label={`Xem ${p.name}`}
+                      aria-label={t("wishlist.viewAria", { name: p.name })}
                       className="relative overflow-hidden cursor-pointer bg-gray-100"
                       style={{ aspectRatio: "1" }}
                       onClick={() => navigate(`/product/${id}`)}
@@ -176,7 +178,7 @@ export function WishlistPage() {
                         onClick={(e) => {
                           e.stopPropagation();
                           wishlist.toggle(id);
-                          toast.info("Đã xoá khỏi yêu thích");
+                          toast.info(t("wishlist.removed"));
                         }}
                         className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-white"
                       >
@@ -214,7 +216,7 @@ export function WishlistPage() {
                         className="w-full py-2 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
                         style={{ background: "#00BFB3" }}
                       >
-                        <ShoppingCart size={13} /> Thêm vào giỏ
+                        <ShoppingCart size={13} /> {t("wishlist.addToCart")}
                       </button>
                     </div>
                   </motion.div>
@@ -224,12 +226,10 @@ export function WishlistPage() {
           </AnimatePresence>
 
           {queries.some((q) => q.isLoading) ? (
-            <p className="text-xs text-gray-400 text-center mt-6">Đang tải sản phẩm...</p>
+            <p className="text-xs text-gray-400 text-center mt-6">{t("wishlist.loadingItems")}</p>
           ) : null}
           {queries.some((q) => q.error instanceof ApiError && q.error.status === 404) ? (
-            <p className="text-xs text-amber-600 text-center mt-6">
-              Một số sản phẩm yêu thích không còn tồn tại — bạn có thể xoá chúng khỏi danh sách.
-            </p>
+            <p className="text-xs text-amber-600 text-center mt-6">{t("wishlist.stalePrompt")}</p>
           ) : null}
         </>
       )}

@@ -143,6 +143,25 @@
     "vi": "VI",
     "en": "EN"
   },
+  "wishlist": {
+    "pageTitle": "Yêu thích của tôi",
+    "countLabel": "{{count}} sản phẩm",
+    "emptyTitle": "Chưa có sản phẩm yêu thích",
+    "emptySub": "Nhấn vào ❤️ trên sản phẩm để lưu vào danh sách yêu thích của bạn",
+    "discover": "Khám phá ngay",
+    "addAll": "Thêm tất cả vào giỏ",
+    "clearAll": "Xóa tất cả",
+    "addToCart": "Thêm vào giỏ",
+    "removed": "Đã xoá khỏi yêu thích",
+    "cleared": "Đã xoá toàn bộ danh sách yêu thích",
+    "loadingItems": "Đang tải sản phẩm...",
+    "stalePrompt": "Một số sản phẩm yêu thích không còn tồn tại — bạn có thể xoá chúng khỏi danh sách.",
+    "loginToAdd": "Hãy đăng nhập để thêm vào giỏ hàng",
+    "addedOne": "Đã thêm vào giỏ",
+    "addedMany": "Đã thêm {{count}} sản phẩm vào giỏ",
+    "addError": "Không thể thêm vào giỏ",
+    "viewAria": "Xem {{name}}"
+  },
   "orders": {
     "pageTitle": "Đơn mua của tôi",
     "loginPromptTitle": "Đăng nhập để xem đơn hàng",

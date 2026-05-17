@@ -143,6 +143,25 @@
     "vi": "VI",
     "en": "EN"
   },
+  "wishlist": {
+    "pageTitle": "My Wishlist",
+    "countLabel": "{{count}} items",
+    "emptyTitle": "No favourites yet",
+    "emptySub": "Tap ❤️ on any product to save it to your wishlist",
+    "discover": "Start exploring",
+    "addAll": "Add all to cart",
+    "clearAll": "Clear all",
+    "addToCart": "Add to cart",
+    "removed": "Removed from wishlist",
+    "cleared": "Cleared your entire wishlist",
+    "loadingItems": "Loading products...",
+    "stalePrompt": "Some wishlist items no longer exist — you can remove them from the list.",
+    "loginToAdd": "Log in to add items to your cart",
+    "addedOne": "Added to cart",
+    "addedMany": "Added {{count}} items to your cart",
+    "addError": "Couldn't add to cart",
+    "viewAria": "View {{name}}"
+  },
   "orders": {
     "pageTitle": "My Orders",
     "loginPromptTitle": "Log in to view your orders",
