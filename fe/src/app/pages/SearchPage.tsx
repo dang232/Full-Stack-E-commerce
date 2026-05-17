@@ -7,12 +7,13 @@ import { useNavigate, useSearchParams } from "react-router";
 import { FacetList } from "../components/facet-list";
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
-import { products, categories, type Product } from "../components/vnshop-data";
+import { categoryDisplayLabel, useCategories } from "../hooks/use-categories";
 import { useProducts } from "../hooks/use-products";
 import { useResettableState } from "../hooks/use-resettable-state";
 import { useSearch } from "../hooks/use-search";
 import { useSearchFacets } from "../hooks/use-search-facets";
 import { formatPrice } from "../lib/format";
+import type { Product } from "../types/ui";
 
 function ProductListItem({ product }: { product: Product }) {
   const navigate = useNavigate();
@@ -291,7 +292,8 @@ export function SearchPage() {
     enabled: searchEnabled,
   });
 
-  const { data: localCatalog = products } = useProducts();
+  const { data: localCatalog = [] } = useProducts();
+  const { data: categories = [] } = useCategories();
   // With keepPreviousData on the search hook, isLoading is only true on the
   // very first fetch (before any successful data) — so we can safely treat
   // a non-error successful query as "use backend" without flicker on refetch.
@@ -425,14 +427,14 @@ export function SearchPage() {
           <button
             key={cat.id}
             onClick={() => setCategory(selectedCat === cat.id ? "" : cat.id)}
-            className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all"
+            className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
             style={
               selectedCat === cat.id
                 ? { background: "#00BFB3", color: "#fff" }
                 : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
             }
           >
-            <span>{cat.emoji}</span> {cat.label}
+            {categoryDisplayLabel(cat)}
           </button>
         ))}
       </div>
@@ -589,7 +591,10 @@ export function SearchPage() {
               entries={facets.categories}
               selected={selectedCat}
               onToggle={(key) => setCategory(selectedCat === key ? "" : key)}
-              formatLabel={(key) => categories.find((c) => c.id === key)?.label ?? key}
+              formatLabel={(key) => {
+                const cat = categories.find((c) => c.id === key);
+                return cat ? categoryDisplayLabel(cat) : key;
+              }}
             />
           </div>
         </aside>
@@ -665,7 +670,10 @@ export function SearchPage() {
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
                   style={{ background: "#00BFB3" }}
                 >
-                  {categories.find((c) => c.id === selectedCat)?.label}
+                  {(() => {
+                    const cat = categories.find((c) => c.id === selectedCat);
+                    return cat ? categoryDisplayLabel(cat) : selectedCat;
+                  })()}
                   <button onClick={() => setCategory("")}>
                     <X size={12} />
                   </button>
