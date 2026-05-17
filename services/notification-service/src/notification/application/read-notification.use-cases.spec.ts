@@ -6,7 +6,6 @@ import { NotificationStatus } from '../domain/notification-status.enum';
 import { NotificationType } from '../domain/notification-type.enum';
 import {
   NotificationRepository,
-  PageQuery,
   PageResult,
 } from '../domain/notification.repository';
 
@@ -24,7 +23,9 @@ const notification = new Notification({
   createdAt: new Date('2026-05-12T00:00:00.000Z'),
 });
 
-function buildRepository(overrides: Partial<NotificationRepository> = {}): NotificationRepository {
+function buildRepository(
+  overrides: Partial<NotificationRepository> = {},
+): NotificationRepository {
   const emptyPage: PageResult<Notification> = {
     content: [],
     totalElements: 0,
@@ -37,7 +38,7 @@ function buildRepository(overrides: Partial<NotificationRepository> = {}): Notif
   return {
     save: (n) => Promise.resolve(n),
     findByUserId: () => Promise.resolve([]),
-    findByUserIdPaged: (_userId: string, _page: PageQuery) => Promise.resolve(emptyPage),
+    findByUserIdPaged: () => Promise.resolve(emptyPage),
     findById: () => Promise.resolve(null),
     markSent: () => Promise.resolve(),
     markRead: () => Promise.resolve(null),

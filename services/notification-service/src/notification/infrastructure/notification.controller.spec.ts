@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { CountUnreadNotificationsUseCase } from '../application/count-unread-notifications.use-case';
 import { FindNotificationByIdUseCase } from '../application/find-notification-by-id.use-case';
 import { FindUserNotificationsUseCase } from '../application/find-user-notifications.use-case';
@@ -9,6 +9,7 @@ import { Notification } from '../domain/notification';
 import { NotificationStatus } from '../domain/notification-status.enum';
 import { NotificationType } from '../domain/notification-type.enum';
 import { PageResult } from '../domain/notification.repository';
+import type { AuthenticatedRequest } from './auth/authenticated-request';
 import { NotificationController } from './notification.controller';
 
 interface SuccessResponse<T> {
@@ -47,12 +48,16 @@ const buildPage = (items: Notification[]): PageResult<Notification> => ({
   last: true,
 });
 
+const requestFor = (sub: string): AuthenticatedRequest =>
+  ({ user: { sub } }) as AuthenticatedRequest;
+
 describe('NotificationController', () => {
   let controller: NotificationController;
   let executePagedMock: jest.Mock;
   let markReadMock: jest.Mock;
   let markAllReadMock: jest.Mock;
   let countUnreadMock: jest.Mock;
+  let sendMock: jest.Mock;
 
   beforeEach(() => {
     executePagedMock = jest.fn(
@@ -73,6 +78,9 @@ describe('NotificationController', () => {
       (userId: string): Promise<number> =>
         Promise.resolve(userId === 'user-1' ? 2 : 0),
     );
+    sendMock = jest.fn(
+      (): Promise<Notification> => Promise.resolve(notification),
+    );
 
     const findUserNotificationsUseCase: Pick<
       FindUserNotificationsUseCase,
@@ -92,7 +100,7 @@ describe('NotificationController', () => {
     };
 
     const sendNotificationUseCase: Pick<SendNotificationUseCase, 'send'> = {
-      send: () => Promise.resolve(notification),
+      send: sendMock,
     };
 
     const markNotificationReadUseCase: Pick<
@@ -126,11 +134,10 @@ describe('NotificationController', () => {
     );
   });
 
-  it('returns paged user notifications when userId provided via header', async () => {
+  it('returns paged notifications for the JWT subject', async () => {
     const result: SuccessResponse<PageResult<Notification>> =
       await controller.findUserNotifications(
-        'user-1',
-        undefined,
+        requestFor('user-1'),
         undefined,
         undefined,
       );
@@ -144,25 +151,23 @@ describe('NotificationController', () => {
     expectTimestamp(result.timestamp);
   });
 
-  it('returns paged user notifications when userId provided via query', async () => {
+  it('parses page and size query params', async () => {
     const result: SuccessResponse<PageResult<Notification>> =
-      await controller.findUserNotifications(undefined, 'user-1', '2', '50');
+      await controller.findUserNotifications(requestFor('user-1'), '2', '50');
 
     expect(result.success).toBe(true);
     expect(result.data.content).toEqual([notification]);
     expect(executePagedMock).toHaveBeenCalledWith('user-1', 2, 50);
-    expectTimestamp(result.timestamp);
   });
 
-  it('throws BadRequestException when userId missing on list', async () => {
-    await expect(
-      controller.findUserNotifications(
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      ),
-    ).rejects.toThrow(BadRequestException);
+  it('falls back to defaults for non-numeric page and size', async () => {
+    await controller.findUserNotifications(
+      requestFor('user-1'),
+      'abc',
+      undefined,
+    );
+
+    expect(executePagedMock).toHaveBeenCalledWith('user-1', 0, 30);
   });
 
   it('returns notification by id', async () => {
@@ -181,34 +186,21 @@ describe('NotificationController', () => {
     );
   });
 
-  it('creates test notification for userId via header', async () => {
+  it('creates test notification scoped to the JWT subject', async () => {
     const result: SuccessResponse<Notification> =
-      await controller.createTestNotification('user-1', undefined);
+      await controller.createTestNotification(requestFor('user-1'));
 
     expect(result.success).toBe(true);
     expect(result.data).toBe(notification);
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'user-1' }),
+    );
     expectTimestamp(result.timestamp);
-  });
-
-  it('creates test notification for userId via query', async () => {
-    const result: SuccessResponse<Notification> =
-      await controller.createTestNotification(undefined, 'user-1');
-
-    expect(result.success).toBe(true);
-    expect(result.data).toBe(notification);
-    expectTimestamp(result.timestamp);
-  });
-
-  it('throws BadRequestException for test notification when userId missing', async () => {
-    await expect(
-      controller.createTestNotification(undefined, undefined),
-    ).rejects.toThrow(BadRequestException);
   });
 
   it('marks a notification as read when caller owns it', async () => {
     const result: SuccessResponse<Notification> = await controller.markRead(
-      'user-1',
-      undefined,
+      requestFor('user-1'),
       'notification-1',
     );
 
@@ -219,19 +211,13 @@ describe('NotificationController', () => {
 
   it('throws NotFoundException when marking a notification the caller does not own', async () => {
     await expect(
-      controller.markRead('other-user', undefined, 'notification-1'),
+      controller.markRead(requestFor('other-user'), 'notification-1'),
     ).rejects.toThrow(NotFoundException);
-  });
-
-  it('throws BadRequestException when marking read with no userId', async () => {
-    await expect(
-      controller.markRead(undefined, undefined, 'notification-1'),
-    ).rejects.toThrow(BadRequestException);
   });
 
   it('marks all notifications read for the caller', async () => {
     const result: SuccessResponse<{ updated: number }> =
-      await controller.markAllRead('user-1', undefined);
+      await controller.markAllRead(requestFor('user-1'));
 
     expect(result.success).toBe(true);
     expect(result.data.updated).toBe(3);
@@ -240,16 +226,10 @@ describe('NotificationController', () => {
 
   it('returns the unread count for the caller', async () => {
     const result: SuccessResponse<{ count: number }> =
-      await controller.unreadCount('user-1', undefined);
+      await controller.unreadCount(requestFor('user-1'));
 
     expect(result.success).toBe(true);
     expect(result.data.count).toBe(2);
     expect(countUnreadMock).toHaveBeenCalledWith('user-1');
-  });
-
-  it('throws BadRequestException when unread-count called with no userId', async () => {
-    await expect(controller.unreadCount(undefined, undefined)).rejects.toThrow(
-      BadRequestException,
-    );
   });
 });

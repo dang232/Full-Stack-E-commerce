@@ -1,5 +1,6 @@
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
 import { CountUnreadNotificationsUseCase } from './application/count-unread-notifications.use-case';
 import { FindNotificationByIdUseCase } from './application/find-notification-by-id.use-case';
 import { FindUserNotificationsUseCase } from './application/find-user-notifications.use-case';
@@ -14,6 +15,7 @@ import {
   NOTIFICATION_REPOSITORY,
   NotificationRepository,
 } from './domain/notification.repository';
+import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
 import { ConsoleChannelAdapter } from './infrastructure/channel/console-channel.adapter';
 import { EmailChannelAdapter } from './infrastructure/channel/email-channel.adapter';
 import { NotificationController } from './infrastructure/notification.controller';
@@ -23,9 +25,13 @@ import { NotificationMikroOrmRepository } from './infrastructure/notification.mi
 export const NOTIFICATION_CHANNELS = Symbol('NOTIFICATION_CHANNELS');
 
 @Module({
-  imports: [MikroOrmModule.forFeature([NotificationMikroOrmEntity])],
+  imports: [
+    MikroOrmModule.forFeature([NotificationMikroOrmEntity]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+  ],
   controllers: [NotificationController, KafkaNotificationConsumer],
   providers: [
+    JwtStrategy,
     ConsoleChannelAdapter,
     EmailChannelAdapter,
     {

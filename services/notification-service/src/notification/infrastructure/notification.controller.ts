@@ -1,12 +1,12 @@
 import {
-  BadRequestException,
   Controller,
   Get,
-  Headers,
   NotFoundException,
   Param,
   Post,
   Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { CountUnreadNotificationsUseCase } from '../application/count-unread-notifications.use-case';
 import { FindNotificationByIdUseCase } from '../application/find-notification-by-id.use-case';
@@ -18,10 +18,19 @@ import {
   TEST_NOTIFICATION_TYPE,
 } from '../application/send-notification.use-case';
 import { ApiResponse } from './api-response';
+import type { AuthenticatedRequest } from './auth/authenticated-request';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 const DEFAULT_PAGE_SIZE = 30;
 
+/**
+ * Every endpoint resolves the caller's identity from the validated JWT
+ * (`req.user.sub`) — never from a client-supplied `x-user-id` header or
+ * `?userId=` query parameter, which were trusted previously and made the
+ * service vulnerable to IDOR via direct (non-gateway) access.
+ */
 @Controller('notifications')
+@UseGuards(JwtAuthGuard)
 export class NotificationController {
   constructor(
     private readonly findUserNotificationsUseCase: FindUserNotificationsUseCase,
@@ -34,12 +43,11 @@ export class NotificationController {
 
   @Get()
   async findUserNotifications(
-    @Headers('x-user-id') userIdHeader: string | undefined,
-    @Query('userId') userIdQuery: string | undefined,
+    @Req() req: AuthenticatedRequest,
     @Query('page') pageRaw: string | undefined,
     @Query('size') sizeRaw: string | undefined,
   ) {
-    const userId = this.requireUserId(userIdHeader, userIdQuery);
+    const userId = req.user.sub;
     const page = this.parseInt(pageRaw, 0);
     const size = this.parseInt(sizeRaw, DEFAULT_PAGE_SIZE);
     return ApiResponse.ok(
@@ -48,34 +56,24 @@ export class NotificationController {
   }
 
   @Get('unread-count')
-  async unreadCount(
-    @Headers('x-user-id') userIdHeader: string | undefined,
-    @Query('userId') userIdQuery: string | undefined,
-  ) {
-    const userId = this.requireUserId(userIdHeader, userIdQuery);
+  async unreadCount(@Req() req: AuthenticatedRequest) {
+    const userId = req.user.sub;
     return ApiResponse.ok({
       count: await this.countUnreadNotificationsUseCase.execute(userId),
     });
   }
 
   @Post('mark-all-read')
-  async markAllRead(
-    @Headers('x-user-id') userIdHeader: string | undefined,
-    @Query('userId') userIdQuery: string | undefined,
-  ) {
-    const userId = this.requireUserId(userIdHeader, userIdQuery);
+  async markAllRead(@Req() req: AuthenticatedRequest) {
+    const userId = req.user.sub;
     return ApiResponse.ok({
       updated: await this.markAllNotificationsReadUseCase.execute(userId),
     });
   }
 
   @Post(':id/read')
-  async markRead(
-    @Headers('x-user-id') userIdHeader: string | undefined,
-    @Query('userId') userIdQuery: string | undefined,
-    @Param('id') id: string,
-  ) {
-    const userId = this.requireUserId(userIdHeader, userIdQuery);
+  async markRead(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    const userId = req.user.sub;
     const notification = await this.markNotificationReadUseCase.execute(
       id,
       userId,
@@ -98,11 +96,8 @@ export class NotificationController {
   }
 
   @Post('test')
-  async createTestNotification(
-    @Headers('x-user-id') userIdHeader: string | undefined,
-    @Query('userId') userIdQuery: string | undefined,
-  ) {
-    const userId = this.requireUserId(userIdHeader, userIdQuery);
+  async createTestNotification(@Req() req: AuthenticatedRequest) {
+    const userId = req.user.sub;
     return ApiResponse.ok(
       await this.sendNotificationUseCase.send({
         type: TEST_NOTIFICATION_TYPE,
@@ -112,19 +107,6 @@ export class NotificationController {
         data: { source: 'manual-test' },
       }),
     );
-  }
-
-  private requireUserId(
-    header: string | undefined,
-    query: string | undefined,
-  ): string {
-    const userId = header ?? query;
-    if (!userId) {
-      throw new BadRequestException(
-        'userId query param or x-user-id header is required',
-      );
-    }
-    return userId;
   }
 
   private parseInt(value: string | undefined, fallback: number): number {
