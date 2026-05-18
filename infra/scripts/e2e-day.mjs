@@ -153,6 +153,42 @@ async function main() {
     ctx.adminToken = await passwordToken("admin1", "test");
   });
 
+  // 1b. Native password reset. The user-service /auth/password-reset-request
+  // endpoint asks Keycloak to send an UPDATE_PASSWORD action-token email.
+  // Anti-enumeration: always returns 202 regardless of whether the email
+  // exists, so the suite asserts the contract by exercising both branches.
+  await record("auth", "POST /auth/password-reset-request (existing email)", async () => {
+    const res = await http("POST", "/auth/password-reset-request", {
+      body: { email: "buyer1@vnshop.local" },
+      expect: [200, 202],
+    });
+    const data = unwrap(res.body);
+    if (data?.accepted !== true) {
+      throw new Error(`expected accepted=true, got ${truncate(res.raw, 200)}`);
+    }
+  });
+
+  await record("auth", "POST /auth/password-reset-request (unknown email)", async () => {
+    // Same shape as the existing-email path — proves anti-enumeration.
+    const res = await http("POST", "/auth/password-reset-request", {
+      body: { email: `nonexistent_${Date.now()}@vnshop.local` },
+      expect: [200, 202],
+    });
+    const data = unwrap(res.body);
+    if (data?.accepted !== true) {
+      throw new Error(`expected accepted=true on unknown email, got ${truncate(res.raw, 200)}`);
+    }
+  });
+
+  await record("auth", "POST /auth/password-reset-request (malformed email)", async () => {
+    // 400 here proves the @Email validator runs — we don't want garbage
+    // hitting Keycloak's user lookup.
+    await http("POST", "/auth/password-reset-request", {
+      body: { email: "not-an-email" },
+      expect: 400,
+    });
+  });
+
   // 2. Catalog: public reads (no auth required).
   await record("catalog", "GET /products?size=5", async () => {
     const res = await http("GET", "/products?size=5");
