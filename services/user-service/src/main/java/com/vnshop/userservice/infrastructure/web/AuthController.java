@@ -5,6 +5,10 @@ import com.vnshop.userservice.application.RegisterBuyerUseCase;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminClient;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final KeycloakAdminClient keycloakAdmin;
     private final RegisterBuyerUseCase registerBuyerUseCase;
 
@@ -67,4 +73,35 @@ public class AuthController {
         }
         return ApiResponse.ok(new RegisterResponse(userId, request.email()));
     }
+
+    /**
+     * Trigger a Keycloak-mediated password reset email. Always returns 204
+     * regardless of whether the email exists — surfacing 404 here would
+     * let attackers enumerate registered emails.
+     *
+     * <p>The actual email is sent by Keycloak's realm SMTP. The buyer
+     * follows the link to a Keycloak-hosted page that prompts for the new
+     * password. A future iteration could host the prompt natively too,
+     * but the SMTP-driven flow is closing the seam where Keycloak chrome
+     * leaks through (no more "click the link to Keycloak's account
+     * console" path).
+     */
+    @PostMapping("/password-reset-request")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ApiResponse<PasswordResetResponse> requestPasswordReset(
+            @Valid @RequestBody PasswordResetRequest request) {
+        try {
+            keycloakAdmin.sendPasswordResetEmail(request.email());
+        } catch (KeycloakAdminException e) {
+            // Realm SMTP misconfigured or KC unreachable — log and continue
+            // returning the generic success response so the FE never
+            // reveals whether the email exists.
+            log.warn("password reset request failed for email={}: {}",
+                    request.email(), e.getMessage());
+        }
+        return ApiResponse.ok(new PasswordResetResponse(true));
+    }
+
+    public record PasswordResetRequest(@NotBlank @Email String email) {}
+    public record PasswordResetResponse(boolean accepted) {}
 }

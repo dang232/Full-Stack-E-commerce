@@ -128,6 +128,65 @@ public class KeycloakAdminClient {
         }
     }
 
+    /**
+     * Trigger Keycloak's standard password-reset email. Resolves the user
+     * by email first (Keycloak's execute-actions-email is keyed by user id,
+     * not email) and asks Keycloak to email an UPDATE_PASSWORD action token.
+     *
+     * <p>Anti-enumeration: returns silently when no user matches the email.
+     * Callers MUST always emit a generic "if an account exists, you'll get
+     * an email" response regardless of this method's outcome — letting a
+     * 404 leak through would let attackers enumerate registered emails.
+     *
+     * <p>Keycloak's existing realm SMTP config handles delivery; we don't
+     * need our own SMTP plumbing.
+     */
+    public void sendPasswordResetEmail(String email) {
+        String token = adminToken();
+        String userId = lookupUserIdByEmail(email, token);
+        if (userId == null) return;
+        try {
+            http.put()
+                    .uri(baseUrl + "/admin/realms/" + realm + "/users/" + userId + "/execute-actions-email")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(List.of("UPDATE_PASSWORD"))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpStatusCodeException e) {
+            // 400 typically means the realm SMTP isn't configured. Don't
+            // leak that to the caller — log and return silently. The user
+            // still gets the generic success response.
+            throw new KeycloakAdminException(
+                    e.getStatusCode().value(),
+                    "password_reset_failed",
+                    parseError(e.getResponseBodyAsString(), "Couldn't trigger password reset"));
+        }
+    }
+
+    /**
+     * Resolve the Keycloak user id (sub) for a given email. Returns null
+     * when no user matches — callers must NOT surface this null directly
+     * to a public response. See {@link #sendPasswordResetEmail} for the
+     * anti-enumeration pattern.
+     */
+    private String lookupUserIdByEmail(String email, String token) {
+        try {
+            String body = http.get()
+                    .uri(baseUrl + "/admin/realms/" + realm + "/users?email=" + java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) + "&exact=true")
+                    .header("Authorization", "Bearer " + token)
+                    .retrieve()
+                    .body(String.class);
+            if (body == null) return null;
+            JsonNode arr = MAPPER.readTree(body);
+            if (!arr.isArray() || arr.isEmpty()) return null;
+            String id = arr.get(0).path("id").asText(null);
+            return (id == null || id.isBlank()) ? null : id;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     private synchronized String adminToken() {
         if (cachedToken != null && Instant.now().isBefore(cachedTokenExpiresAt)) {
             return cachedToken;
