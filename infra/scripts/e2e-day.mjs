@@ -326,6 +326,88 @@ async function main() {
     });
   });
 
+  // 6b. Coupon: admin creates a test coupon, buyer validates + applies it.
+  // Endpoints live on coupon-service (gateway forwards /coupons/** and the
+  // /checkout/{validate,apply}-coupon aliases). The coupon code is
+  // timestamp-stamped so reruns don't collide on the unique-code constraint.
+  await record("coupon", "POST /admin/coupons (admin creates a test coupon)", async () => {
+    const stamp = Date.now();
+    ctx.couponCode = `E2E${stamp}`;
+    const validUntil = new Date(stamp + 24 * 60 * 60 * 1000).toISOString();
+    const res = await http("POST", "/admin/coupons", {
+      token: ctx.adminToken,
+      body: {
+        code: ctx.couponCode,
+        type: "PERCENTAGE",
+        value: 10,
+        minOrderValue: 0,
+        maxDiscount: 50000,
+        maxUses: 100,
+        validUntil,
+      },
+      expect: [200, 201],
+    });
+    const coupon = unwrap(res.body);
+    ctx.couponId = coupon?.id;
+    if (!ctx.couponId) throw new Error(`no coupon id in response: ${truncate(res.raw, 200)}`);
+  });
+
+  await record("coupon", "POST /coupons/validate (buyer validates code)", async () => {
+    if (!ctx.couponCode) throw new Error("missing coupon code from create step");
+    const res = await http("POST", "/coupons/validate", {
+      token: ctx.buyerToken,
+      body: { code: ctx.couponCode, orderAmount: 200000 },
+    });
+    const data = unwrap(res.body);
+    if (data?.valid !== true) {
+      throw new Error(`expected valid=true, got ${truncate(res.raw, 200)}`);
+    }
+    // 10% of 200000 = 20000, well under the 50000 max
+    if (typeof data?.discount !== "number" || data.discount <= 0) {
+      throw new Error(`expected positive discount, got ${truncate(res.raw, 200)}`);
+    }
+  });
+
+  await record("coupon", "POST /coupons/validate rejects unknown code", async () => {
+    const res = await http("POST", "/coupons/validate", {
+      token: ctx.buyerToken,
+      body: { code: "DOES_NOT_EXIST_42", orderAmount: 200000 },
+    });
+    const data = unwrap(res.body);
+    if (data?.valid !== false) {
+      throw new Error(`expected valid=false for unknown code, got ${truncate(res.raw, 200)}`);
+    }
+  });
+
+  await record("coupon", "POST /checkout/apply-coupon (buyer consumes coupon)", async () => {
+    if (!ctx.couponCode) throw new Error("missing coupon code");
+    const res = await http("POST", "/checkout/apply-coupon", {
+      token: ctx.buyerToken,
+      body: { code: ctx.couponCode, orderAmount: 200000 },
+    });
+    const data = unwrap(res.body);
+    if (data?.code !== ctx.couponCode) {
+      throw new Error(`expected coupon echoed back, got ${truncate(res.raw, 200)}`);
+    }
+    if (typeof data?.discount !== "number" || typeof data?.finalTotal !== "number") {
+      throw new Error(`expected numeric discount + finalTotal, got ${truncate(res.raw, 200)}`);
+    }
+    if (data.finalTotal !== 200000 - data.discount) {
+      throw new Error(`finalTotal=${data.finalTotal} should equal 200000 - discount=${data.discount}`);
+    }
+  });
+
+  await record("coupon", "POST /admin/coupons/{id}/deactivate (cleanup)", async () => {
+    if (!ctx.couponId) throw new Error("missing coupon id");
+    const res = await http("POST", `/admin/coupons/${ctx.couponId}/deactivate`, {
+      token: ctx.adminToken,
+    });
+    const data = unwrap(res.body);
+    if (data?.active !== false) {
+      throw new Error(`expected active=false after deactivate, got ${truncate(res.raw, 200)}`);
+    }
+  });
+
   // 7. Order: place via POST /orders (the cart-driven path).
   await record("order", "POST /orders (place order)", async () => {
     if (!ctx.sellerProduct) throw new Error("missing seller product details");
