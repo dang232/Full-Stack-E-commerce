@@ -317,13 +317,30 @@ async function main() {
   });
 
   await record("checkout", "POST /checkout/shipping-options", async () => {
-    await http("POST", "/checkout/shipping-options", {
+    const res = await http("POST", "/checkout/shipping-options", {
       token: ctx.buyerToken,
       body: {
         address: { street: "1 Test Way", district: "Q1", city: "HCMC" },
       },
       expect: [200, 201],
     });
+    // Live rate-quotes from shipping-service should return at least one
+    // option per carrier (STANDARD via GHN, EXPRESS via GHTK with the
+    // stub adapter). The graceful-degradation path returns just STANDARD,
+    // so accept that shape too — both are valid runtime states.
+    const data = unwrap(res.body);
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error(`expected non-empty shipping options list, got ${truncate(res.raw, 200)}`);
+    }
+    const methods = data.map((o) => o.method);
+    if (!methods.includes("STANDARD") && !methods.includes("EXPRESS")) {
+      throw new Error(`expected STANDARD or EXPRESS option, got methods=${methods.join(",")}`);
+    }
+    for (const o of data) {
+      if (typeof o.cost !== "number" && typeof o.cost !== "string") {
+        throw new Error(`expected numeric cost on option ${o.method}, got ${truncate(JSON.stringify(o), 200)}`);
+      }
+    }
   });
 
   // 6b. Coupon: admin creates a test coupon, buyer validates + applies it.
