@@ -40,6 +40,7 @@ beforeEach(() => {
   updateCartItemMock.mockReset();
   removeCartItemMock.mockReset();
   clearCartMock.mockReset();
+  localStorage.clear();
 });
 
 afterEach(() => {
@@ -186,5 +187,120 @@ describe("useCart", () => {
 
     await waitFor(() => expect(result.current.items).toEqual([]));
     expect(clearCartMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("useCart (guest mode)", () => {
+  beforeEach(() => {
+    useAuthMock.mockReturnValue({ ready: true, authenticated: false });
+  });
+
+  it("addItem persists to localStorage and surfaces immediately", () => {
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useCart(), { wrapper: Wrapper });
+
+    expect(result.current.isGuest).toBe(true);
+    act(() => {
+      result.current.addItem({ productId: "p1", quantity: 2 });
+    });
+
+    expect(result.current.itemCount).toBe(2);
+    expect(addCartItemMock).not.toHaveBeenCalled();
+    const stored = JSON.parse(localStorage.getItem("vnshop:guest-cart") ?? "[]") as {
+      productId: string;
+      quantity: number;
+    }[];
+    expect(stored).toEqual([{ productId: "p1", quantity: 2 }]);
+  });
+
+  it("addItem on existing product accumulates quantity", () => {
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useCart(), { wrapper: Wrapper });
+
+    act(() => {
+      result.current.addItem({ productId: "p1", quantity: 1 });
+    });
+    act(() => {
+      result.current.addItem({ productId: "p1", quantity: 3 });
+    });
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.itemCount).toBe(4);
+  });
+
+  it("updateItem with quantity<=0 removes the item", () => {
+    localStorage.setItem(
+      "vnshop:guest-cart",
+      JSON.stringify([{ productId: "p1", quantity: 5 }]),
+    );
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useCart(), { wrapper: Wrapper });
+
+    expect(result.current.itemCount).toBe(5);
+    act(() => {
+      result.current.updateItem({ productId: "p1", quantity: 0 });
+    });
+
+    expect(result.current.items).toEqual([]);
+    expect(localStorage.getItem("vnshop:guest-cart")).toBeNull();
+  });
+
+  it("removeItem and clear update localStorage", () => {
+    localStorage.setItem(
+      "vnshop:guest-cart",
+      JSON.stringify([
+        { productId: "p1", quantity: 1 },
+        { productId: "p2", quantity: 2 },
+      ]),
+    );
+    const { Wrapper } = makeWrapper();
+    const { result } = renderHook(() => useCart(), { wrapper: Wrapper });
+
+    act(() => {
+      result.current.removeItem("p1");
+    });
+    expect(result.current.items.map((i) => i.productId)).toEqual(["p2"]);
+
+    act(() => {
+      result.current.clear();
+    });
+    expect(result.current.items).toEqual([]);
+    expect(localStorage.getItem("vnshop:guest-cart")).toBeNull();
+  });
+});
+
+describe("useCart guest -> server merge", () => {
+  it("replays the localStorage cart to the server on first authenticated load", async () => {
+    localStorage.setItem(
+      "vnshop:guest-cart",
+      JSON.stringify([
+        { productId: "p1", quantity: 2 },
+        { productId: "p2", quantity: 1 },
+      ]),
+    );
+    useAuthMock.mockReturnValue({ ready: true, authenticated: true });
+    getCartMock.mockResolvedValue({ items: [], totalAmount: 0, itemCount: 0 });
+    addCartItemMock.mockResolvedValue({
+      items: [{ productId: "p1", price: 100, quantity: 2 }],
+      itemCount: 2,
+      totalAmount: 200,
+    });
+    const { Wrapper } = makeWrapper();
+    renderHook(() => useCart(), { wrapper: Wrapper });
+
+    await waitFor(() => expect(addCartItemMock).toHaveBeenCalledTimes(2));
+    expect(addCartItemMock).toHaveBeenCalledWith({ productId: "p1", quantity: 2 });
+    expect(addCartItemMock).toHaveBeenCalledWith({ productId: "p2", quantity: 1 });
+    await waitFor(() => expect(localStorage.getItem("vnshop:guest-cart")).toBeNull());
+  });
+
+  it("does not run the merge when no localStorage cart exists", async () => {
+    useAuthMock.mockReturnValue({ ready: true, authenticated: true });
+    getCartMock.mockResolvedValue({ items: [], totalAmount: 0, itemCount: 0 });
+    const { Wrapper } = makeWrapper();
+    renderHook(() => useCart(), { wrapper: Wrapper });
+
+    await waitFor(() => expect(getCartMock).toHaveBeenCalled());
+    expect(addCartItemMock).not.toHaveBeenCalled();
   });
 });
