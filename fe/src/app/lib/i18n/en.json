@@ -865,5 +865,27 @@
     "cancelErr": "Couldn't cancel order",
     "noReviewableProduct": "No reviewable product found",
     "noSellerForChat": "This order has no specific seller."
+  },
+  "common": {
+    "loading": "Loading..."
+  },
+  "home": {
+    "sellersSection": {
+      "title": "Featured Shops",
+      "subtitle": "Verified sellers on VNShop",
+      "viewAll": "View all",
+      "empty": "No shops to display yet."
+    }
+  },
+  "sellerDetail": {
+    "notFound": "Shop not found",
+    "products": "Products",
+    "noProducts": "This shop has no products yet.",
+    "joined": "Joined {{date}}",
+    "tier": "Tier",
+    "ratingsLabel": "{{count}} ratings",
+    "productCount": "{{count}} products",
+    "error": "Couldn't load shop details.",
+    "visitShop": "Visit shop"
   }
 }

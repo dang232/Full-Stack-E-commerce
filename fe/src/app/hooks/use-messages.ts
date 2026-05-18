@@ -16,8 +16,8 @@ export const messagesKey = (threadId: string | undefined) =>
 
 /**
  * First-page fetch for a thread's messages. Cursor-paginated on the BE; this
- * hook only loads the most recent page — the FE composer is fine without
- * "load older messages" for the MVP. New messages from the WebSocket are
+ * hook only loads the most recent page — older messages are loaded on demand
+ * by a future infinite-scroll pass. New messages from the WebSocket are
  * spliced into the cache by `useMessagingSocket`, no refetch needed.
  */
 export function useMessages(threadId: string | undefined, limit = 50) {

@@ -865,5 +865,27 @@
     "cancelErr": "Không thể huỷ đơn hàng",
     "noReviewableProduct": "Không tìm thấy sản phẩm để đánh giá",
     "noSellerForChat": "Đơn hàng này không gắn với người bán cụ thể."
+  },
+  "common": {
+    "loading": "Đang tải..."
+  },
+  "home": {
+    "sellersSection": {
+      "title": "Shop Nổi Bật",
+      "subtitle": "Người bán được xác minh trên VNShop",
+      "viewAll": "Xem tất cả",
+      "empty": "Chưa có shop nào để hiển thị."
+    }
+  },
+  "sellerDetail": {
+    "notFound": "Không tìm thấy shop",
+    "products": "Sản phẩm",
+    "noProducts": "Shop này chưa có sản phẩm nào.",
+    "joined": "Tham gia {{date}}",
+    "tier": "Hạng",
+    "ratingsLabel": "{{count}} đánh giá",
+    "productCount": "{{count}} sản phẩm",
+    "error": "Không thể tải thông tin shop.",
+    "visitShop": "Ghé thăm shop"
   }
 }

@@ -16,7 +16,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import { toast } from "sonner";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
@@ -29,6 +29,7 @@ import { ApiError } from "../lib/api";
 import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions";
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
+import { getSeller } from "../lib/api/endpoints/sellers";
 import { formatPrice } from "../lib/format";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {
@@ -53,6 +54,85 @@ function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number
           </svg>
         );
       })}
+    </div>
+  );
+}
+
+function SellerCard({ sellerId }: { sellerId?: string }) {
+  const { t } = useTranslation();
+
+  const sellerQuery = useQuery({
+    queryKey: ["sellers", "detail", sellerId],
+    queryFn: () => getSeller(sellerId!),
+    enabled: !!sellerId,
+    retry: false,
+  });
+
+  if (!sellerId) return null;
+
+  if (sellerQuery.isLoading) {
+    return (
+      <div className="mt-8 bg-white rounded-2xl p-5 shadow-sm animate-pulse">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gray-200" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-32" />
+            <div className="h-3 bg-gray-100 rounded w-24" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (sellerQuery.isError || !sellerQuery.data) {
+    return (
+      <div className="mt-8 bg-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 text-sm text-gray-500">
+          <Store size={18} className="text-gray-300" />
+          <span>{t("product.seller.comingSoon")}</span>
+        </div>
+      </div>
+    );
+  }
+
+  const seller = sellerQuery.data;
+  const initial = seller.shopName.charAt(0).toUpperCase();
+
+  return (
+    <div className="mt-8 bg-white rounded-2xl p-5 shadow-sm">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+          {seller.logoUrl ? (
+            <img src={seller.logoUrl} alt={seller.shopName} className="w-full h-full object-cover" />
+          ) : (
+            <span
+              className="text-lg font-black text-white w-full h-full flex items-center justify-center"
+              style={{ background: "#00BFB3" }}
+            >
+              {initial}
+            </span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-gray-900 truncate">{seller.shopName}</p>
+          <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500 flex-wrap">
+            {seller.ratingAvg !== null && seller.ratingAvg !== undefined ? (
+              <span className="flex items-center gap-1">
+                <Star size={11} fill="#FF6200" stroke="#FF6200" />
+                <span className="font-semibold text-gray-700">{seller.ratingAvg.toFixed(1)}</span>
+              </span>
+            ) : null}
+            <span>{t("product.seller.products", { count: seller.totalProducts })}</span>
+          </div>
+        </div>
+        <Link
+          to={`/sellers/${seller.id}`}
+          className="shrink-0 px-4 py-2 rounded-xl text-sm font-semibold border transition-all hover:bg-gray-50"
+          style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
+        >
+          {t("sellerDetail.visitShop")}
+        </Link>
+      </div>
     </div>
   );
 }
@@ -456,13 +536,8 @@ export function ProductPage() {
         </div>
       </div>
 
-      {/* Seller Info — empty state until a public sellers endpoint exists. */}
-      <div className="mt-8 bg-white rounded-2xl p-5 shadow-sm">
-        <div className="flex items-center gap-3 text-sm text-gray-500">
-          <Store size={18} className="text-gray-300" />
-          <span>{t("product.seller.comingSoon")}</span>
-        </div>
-      </div>
+      {/* Seller Info */}
+      <SellerCard sellerId={product.sellerId} />
 
       {/* Tabs */}
       <div className="mt-8 bg-white rounded-2xl shadow-sm overflow-hidden">

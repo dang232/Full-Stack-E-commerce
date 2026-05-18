@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   ChevronRight,
   Star,
@@ -11,6 +12,7 @@ import {
   Sparkles,
   Gift,
   BadgeCheck,
+  Package,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useMemo, type ReactNode } from "react";
@@ -23,7 +25,9 @@ import { categoryDisplayLabel, useCategories } from "../hooks/use-categories";
 import { useCountdown } from "../hooks/use-countdown";
 import { useFlashSaleWithProducts, type FlashSaleItem } from "../hooks/use-flash-sale";
 import { useProducts } from "../hooks/use-products";
+import { listSellers } from "../lib/api/endpoints/sellers";
 import { formatPrice } from "../lib/format";
+import type { PublicSeller } from "../types/api";
 import type { Product } from "../types/ui";
 
 // ─── Section Header ────────────────────────────────────────────────────────────
@@ -589,14 +593,107 @@ function PromoBanners() {
 }
 
 // ─── Seller Showcase ──────────────────────────────────────────────────────────
+function SellerCard({ seller }: { seller: PublicSeller }) {
+  const navigate = useNavigate();
+  const initial = seller.shopName.charAt(0).toUpperCase();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4 }}
+      className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-white border border-gray-100 hover:border-transparent hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.18)] transition-all cursor-pointer shrink-0 w-40"
+      role="button"
+      tabIndex={0}
+      onClick={() => void navigate(`/sellers/${seller.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          void navigate(`/sellers/${seller.id}`);
+        }
+      }}
+    >
+      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+        {seller.logoUrl ? (
+          <img src={seller.logoUrl} alt={seller.shopName} className="w-full h-full object-cover" />
+        ) : (
+          <span
+            className="text-2xl font-black text-white w-full h-full flex items-center justify-center"
+            style={{ background: "#00BFB3" }}
+          >
+            {initial}
+          </span>
+        )}
+      </div>
+      <div className="text-center min-w-0 w-full">
+        <p className="text-sm font-semibold text-gray-900 truncate">{seller.shopName}</p>
+        {seller.ratingAvg !== null && seller.ratingAvg !== undefined ? (
+          <div className="flex items-center justify-center gap-1 mt-1">
+            <Star size={11} fill="#FF6200" stroke="#FF6200" />
+            <span className="text-xs font-semibold text-gray-700">
+              {seller.ratingAvg.toFixed(1)}
+            </span>
+          </div>
+        ) : null}
+        <p className="text-xs text-gray-400 mt-0.5">
+          {seller.totalProducts} <Package size={10} className="inline" />
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
 function SellerShowcase() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["sellers", "showcase"],
+    queryFn: () => listSellers({ size: 8 }),
+    retry: false,
+  });
+
+  const sellers = data?.content ?? [];
+
+  if (isError || (!isLoading && sellers.length === 0)) {
+    return (
+      <ComingSoonCard
+        icon={<Award size={20} />}
+        title={t("home.sellersSection.title")}
+        description={t("home.sellersSection.empty")}
+      />
+    );
+  }
+
   return (
-    <ComingSoonCard
-      icon={<Award size={20} />}
-      title={t("home.trustedSellers")}
-      description={t("home.comingSoon.sellers")}
-    />
+    <section>
+      <SectionHeader
+        title={t("home.sellersSection.title")}
+        subtitle={t("home.sellersSection.subtitle")}
+        ctaLabel={t("home.sellersSection.viewAll")}
+        ctaPath="/sellers"
+      />
+      {isLoading ? (
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          {Array.from({ length: 4 }).map((_, i) => (
+            // eslint-disable-next-line react/no-array-index-key -- skeleton placeholder
+            <div key={i} className="w-40 h-44 rounded-2xl bg-gray-100 animate-pulse shrink-0" />
+          ))}
+        </div>
+      ) : (
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          {sellers.map((seller) => (
+            <SellerCard key={seller.id} seller={seller} />
+          ))}
+          <button
+            onClick={() => void navigate("/sellers")}
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-dashed border-gray-200 hover:border-gray-300 transition-colors cursor-pointer shrink-0 w-40 text-gray-400 hover:text-gray-600"
+          >
+            <ChevronRight size={24} />
+            <span className="text-xs font-medium">{t("home.sellersSection.viewAll")}</span>
+          </button>
+        </div>
+      )}
+    </section>
   );
 }
 

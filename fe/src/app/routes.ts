@@ -39,6 +39,9 @@ const PaymentReturnPage = lazy(() =>
 const MessagesPage = lazy(() =>
   import("./pages/MessagesPage").then((m) => ({ default: m.MessagesPage })),
 );
+const SellerDetailPage = lazy(() =>
+  import("./pages/SellerDetailPage").then((m) => ({ default: m.SellerDetailPage })),
+);
 
 const Fallback = () =>
   createElement(
@@ -77,6 +80,7 @@ export const router = createBrowserRouter([
       { path: "design-system", element: lazyRoute(createElement(DesignSystemPage)) },
       { path: "payment/return/:provider", element: lazyRoute(createElement(PaymentReturnPage)) },
       { path: "messages", element: guarded(createElement(MessagesPage)) },
+      { path: "sellers/:id", element: lazyRoute(createElement(SellerDetailPage)) },
     ],
   },
 ]);

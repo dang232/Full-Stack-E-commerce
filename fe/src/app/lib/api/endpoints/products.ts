@@ -13,6 +13,7 @@ export interface ProductListParams {
   categoryId?: string;
   q?: string;
   sort?: string;
+  sellerId?: string;
 }
 
 export const productList = (params: ProductListParams = {}) =>
