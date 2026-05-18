@@ -324,11 +324,22 @@ async function main() {
   });
 
   await record("order", "GET /orders lists my order", async () => {
-    const res = await http("GET", "/orders", { token: ctx.buyerToken });
-    const data = unwrap(res.body);
-    const list = data?.content ?? data;
-    if (!Array.isArray(list) || !list.find((o) => o.id === ctx.orderId)) {
-      throw new Error(`my orders list missing the new order: ${truncate(res.raw, 200)}`);
+    // The buyer-facing list is served from the order_summary projection,
+    // which the order-service populates asynchronously by consuming its own
+    // outbox via Kafka. There's a CQRS read-side window of a few hundred
+    // milliseconds between POST /orders returning 201 and the projection
+    // catching up. Retry briefly so the test reflects "was the order made"
+    // rather than the projection latency.
+    const deadline = Date.now() + 5_000;
+    while (true) {
+      const res = await http("GET", "/orders", { token: ctx.buyerToken });
+      const data = unwrap(res.body);
+      const list = data?.content ?? data;
+      if (Array.isArray(list) && list.find((o) => (o.orderId ?? o.id) === ctx.orderId)) return;
+      if (Date.now() >= deadline) {
+        throw new Error(`my orders list missing the new order after 5s of polling: ${truncate(res.raw, 200)}`);
+      }
+      await new Promise((r) => setTimeout(r, 250));
     }
   });
 
