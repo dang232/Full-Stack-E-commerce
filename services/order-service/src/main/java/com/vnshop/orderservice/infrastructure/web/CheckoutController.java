@@ -1,6 +1,9 @@
 package com.vnshop.orderservice.infrastructure.web;
 
 import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
+import com.vnshop.orderservice.application.shipping.ShippingOption;
+import com.vnshop.orderservice.application.shipping.ShippingQuotePort;
+import com.vnshop.orderservice.application.shipping.ShippingQuoteRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,9 +39,13 @@ public class CheckoutController {
                     true));
 
     private final CalculateCheckoutUseCase calculateCheckoutUseCase;
+    private final ShippingQuotePort shippingQuotePort;
 
-    public CheckoutController(CalculateCheckoutUseCase calculateCheckoutUseCase) {
+    public CheckoutController(
+            CalculateCheckoutUseCase calculateCheckoutUseCase,
+            ShippingQuotePort shippingQuotePort) {
         this.calculateCheckoutUseCase = calculateCheckoutUseCase;
+        this.shippingQuotePort = shippingQuotePort;
     }
 
     @PostMapping("/calculate")
@@ -55,7 +62,26 @@ public class CheckoutController {
 
     @PostMapping("/shipping-options")
     public ApiResponse<List<ShippingOptionResponse>> shippingOptions(@Valid @RequestBody ShippingOptionsRequest request) {
-        return ApiResponse.ok(List.of(new ShippingOptionResponse("STANDARD", calculateCheckoutUseCase.standardShippingCost(), "3-5 days")));
+        // Live carrier rates from shipping-service. The adapter degrades to
+        // an empty list on transport failure; we surface the legacy static
+        // option in that case so the buyer can still check out — losing the
+        // EXPRESS choice is the only visible cost.
+        List<ShippingOption> live = shippingQuotePort.quote(toQuoteRequest(request));
+        if (live.isEmpty()) {
+            return ApiResponse.ok(List.of(new ShippingOptionResponse(
+                    "STANDARD",
+                    calculateCheckoutUseCase.standardShippingCost(),
+                    "3-5 days")));
+        }
+        List<ShippingOptionResponse> options = live.stream()
+                .map(o -> new ShippingOptionResponse(o.method(), o.cost(), o.estimate()))
+                .toList();
+        return ApiResponse.ok(options);
+    }
+
+    private static ShippingQuoteRequest toQuoteRequest(ShippingOptionsRequest request) {
+        AddressRequest addr = request.address();
+        return new ShippingQuoteRequest(addr.street(), addr.ward(), addr.district(), addr.city());
     }
 }
 

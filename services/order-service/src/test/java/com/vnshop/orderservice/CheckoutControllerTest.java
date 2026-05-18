@@ -1,6 +1,7 @@
 package com.vnshop.orderservice;
 
 import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
+import com.vnshop.orderservice.application.shipping.ShippingQuotePort;
 import com.vnshop.orderservice.infrastructure.web.ApiExceptionHandler;
 import com.vnshop.orderservice.infrastructure.web.CheckoutController;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,9 @@ class CheckoutControllerTest {
         // The FE paymentMethodSchema (fe/src/app/lib/api/endpoints/checkout.ts)
         // expects { code, name, description?, enabled } records, not bare strings.
         MockMvc mvc = MockMvcBuilders
-                .standaloneSetup(new CheckoutController(mock(CalculateCheckoutUseCase.class)))
+                .standaloneSetup(new CheckoutController(
+                        mock(CalculateCheckoutUseCase.class),
+                        mock(ShippingQuotePort.class)))
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
 
