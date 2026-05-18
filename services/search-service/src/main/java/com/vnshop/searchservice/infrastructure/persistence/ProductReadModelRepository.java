@@ -15,9 +15,9 @@ import java.util.List;
 public interface ProductReadModelRepository extends JpaRepository<ProductReadModelJpaEntity, String> {
     @Query("""
             select product from ProductReadModelJpaEntity product
-            where (:query is null or lower(product.name) like lower(concat('%', :query, '%')) or lower(product.description) like lower(concat('%', :query, '%')))
-              and (:categoryId is null or product.categoryId = :categoryId)
-              and (:brand is null or product.brand = :brand)
+            where (:query is null or lower(product.name) like lower(concat('%', cast(:query as string), '%')) or lower(product.description) like lower(concat('%', cast(:query as string), '%')))
+              and (:categoryId is null or product.categoryId = cast(:categoryId as string))
+              and (:brand is null or product.brand = cast(:brand as string))
               and (:minPrice is null or product.maxPrice >= :minPrice)
               and (:maxPrice is null or product.minPrice <= :maxPrice)
             """)
@@ -36,7 +36,7 @@ public interface ProductReadModelRepository extends JpaRepository<ProductReadMod
     /** Prefix-match on name for header autocomplete. Uses idx_product_read_models_name_lower. */
     @Query("""
             select product.name from ProductReadModelJpaEntity product
-            where lower(product.name) like lower(concat(:prefix, '%'))
+            where lower(product.name) like lower(concat(cast(:prefix as string), '%'))
             order by product.name asc
             """)
     List<String> findSuggestions(@Param("prefix") String prefix, Pageable pageable);
@@ -45,11 +45,16 @@ public interface ProductReadModelRepository extends JpaRepository<ProductReadMod
      * Facet aggregation queries scoped by the same WHERE clause as the main
      * search. Returns Object[] of (key, count) so the use case can build the
      * response shape without exposing JPA internals.
+     *
+     * <p>Note: the {@code cast(:param as string)} pattern is required because
+     * Hibernate binds null nullable-string parameters as {@code bytea} on
+     * PostgreSQL, and {@code lower(bytea)} doesn't exist. Same root cause as
+     * the V10 fix on product-service findCatalog.
      */
     @Query("""
             select product.categoryId, count(product) from ProductReadModelJpaEntity product
-            where (:query is null or lower(product.name) like lower(concat('%', :query, '%')) or lower(product.description) like lower(concat('%', :query, '%')))
-              and (:brand is null or product.brand = :brand)
+            where (:query is null or lower(product.name) like lower(concat('%', cast(:query as string), '%')) or lower(product.description) like lower(concat('%', cast(:query as string), '%')))
+              and (:brand is null or product.brand = cast(:brand as string))
               and (:minPrice is null or product.maxPrice >= :minPrice)
               and (:maxPrice is null or product.minPrice <= :maxPrice)
               and product.categoryId is not null
@@ -65,8 +70,8 @@ public interface ProductReadModelRepository extends JpaRepository<ProductReadMod
 
     @Query("""
             select product.brand, count(product) from ProductReadModelJpaEntity product
-            where (:query is null or lower(product.name) like lower(concat('%', :query, '%')) or lower(product.description) like lower(concat('%', :query, '%')))
-              and (:categoryId is null or product.categoryId = :categoryId)
+            where (:query is null or lower(product.name) like lower(concat('%', cast(:query as string), '%')) or lower(product.description) like lower(concat('%', cast(:query as string), '%')))
+              and (:categoryId is null or product.categoryId = cast(:categoryId as string))
               and (:minPrice is null or product.maxPrice >= :minPrice)
               and (:maxPrice is null or product.minPrice <= :maxPrice)
               and product.brand is not null
