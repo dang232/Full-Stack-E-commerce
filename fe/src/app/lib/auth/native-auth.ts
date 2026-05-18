@@ -1,33 +1,31 @@
 /**
- * Native ROPC auth client. The FE owns the login form; this module talks
- * directly to Keycloak's token endpoint via the `vnshop-api` public client
- * (directAccessGrants enabled). Tokens are persisted in localStorage so a
- * page refresh keeps the session.
+ * Native auth client backed by the user-service /auth proxy.
  *
- * Trade-offs called out in the plan:
- * - ROPC is OAuth-deprecated for third-party apps but acceptable for a
- *   first-party storefront UI where the password never leaves our origin.
- * - localStorage tokens are XSS-vulnerable. A future iteration should move
- *   refresh tokens to httpOnly cookies behind a BE proxy.
+ * <p>Refresh token lives in an httpOnly cookie ({@code vnshop_rt},
+ * {@code Path=/auth}, {@code SameSite=Lax}) issued by user-service on login.
+ * The access token never touches localStorage — it sits in module memory
+ * only ({@link liveTokenSet}). On page reload, the FE calls
+ * {@link refreshTokens} which sends the cookie and gets a fresh access
+ * token; if no cookie exists or it's expired, the user is unauthenticated
+ * and bounces to /login.
+ *
+ * <p>This trades the "tokens survive a hard refresh in JS-readable storage"
+ * shape for "refresh-token theft via XSS is impossible." Access-token theft
+ * via XSS still works in principle, but the window is short (15min) and
+ * the access token alone can't bootstrap a new session.
  */
 
 const env = import.meta.env as Record<string, string | undefined>;
-const KEYCLOAK_URL = env.VITE_KEYCLOAK_URL ?? "http://localhost:8085";
-const REALM = env.VITE_KEYCLOAK_REALM ?? "vnshop";
-const CLIENT_ID = env.VITE_KEYCLOAK_CLIENT_ID ?? "vnshop-api";
+const API_URL = env.VITE_API_URL ?? "http://localhost:8080";
 
-const TOKEN_ENDPOINT = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`;
-const LOGOUT_ENDPOINT = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/logout`;
-
-const STORAGE_KEY = "vnshop.auth.tokens";
+const LOGIN_ENDPOINT = `${API_URL}/auth/login`;
+const REFRESH_ENDPOINT = `${API_URL}/auth/refresh`;
+const LOGOUT_ENDPOINT = `${API_URL}/auth/logout`;
 
 export interface TokenSet {
   accessToken: string;
-  refreshToken: string;
   /** Epoch milliseconds. */
   accessExpiresAt: number;
-  /** Epoch milliseconds. */
-  refreshExpiresAt: number;
 }
 
 export interface JwtClaims {
@@ -63,120 +61,76 @@ export function setLiveTokenSet(next: TokenSet | null): void {
   liveTokenSet = next;
 }
 
-export function loadStoredTokenSet(): TokenSet | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as TokenSet;
-    if (
-      typeof parsed?.accessToken !== "string" ||
-      typeof parsed?.refreshToken !== "string" ||
-      typeof parsed?.accessExpiresAt !== "number" ||
-      typeof parsed?.refreshExpiresAt !== "number"
-    ) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
+interface AuthSessionResponse {
+  accessToken: string;
+  accessExpiresIn: number;
 }
 
-export function saveTokenSet(tokens: TokenSet | null): void {
-  if (tokens) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tokens));
-  } else {
-    localStorage.removeItem(STORAGE_KEY);
-  }
+interface ApiEnvelope<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  errorCode?: string;
 }
 
-interface KeycloakTokenResponse {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  refresh_expires_in: number;
-}
-
-function tokenSetFrom(response: KeycloakTokenResponse): TokenSet {
-  const now = Date.now();
+function tokenSetFrom(payload: AuthSessionResponse): TokenSet {
   return {
-    accessToken: response.access_token,
-    refreshToken: response.refresh_token,
-    accessExpiresAt: now + response.expires_in * 1000,
-    refreshExpiresAt: now + response.refresh_expires_in * 1000,
+    accessToken: payload.accessToken,
+    accessExpiresAt: Date.now() + payload.accessExpiresIn * 1000,
   };
 }
 
-async function postForm(body: URLSearchParams): Promise<Response> {
-  return fetch(TOKEN_ENDPOINT, {
+async function postAuth(url: string, body?: unknown): Promise<Response> {
+  return fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
+    headers: body != null ? { "Content-Type": "application/json" } : {},
+    // CRITICAL: send + receive the vnshop_rt cookie. Without this, the
+    // browser strips the cookie on cross-origin requests and refresh
+    // returns 401 forever.
+    credentials: "include",
+    body: body != null ? JSON.stringify(body) : undefined,
   });
+}
+
+async function readEnvelope(res: Response, fallbackErrorCode: string): Promise<TokenSet> {
+  const text = await res.text().catch(() => "");
+  let envelope: ApiEnvelope<AuthSessionResponse> | null = null;
+  try {
+    envelope = text ? (JSON.parse(text) as ApiEnvelope<AuthSessionResponse>) : null;
+  } catch {
+    /* keep envelope null and fall through */
+  }
+  if (!res.ok || !envelope?.data) {
+    const code = envelope?.errorCode ?? fallbackErrorCode;
+    const message = envelope?.message ?? `Auth failed (HTTP ${res.status})`;
+    // Treat invalid-credentials and missing-cookie as 401 to the caller
+    // regardless of the underlying transport status, so call sites have a
+    // single check to make.
+    const status = code === "invalid_credentials" || code === "no_session" ? 401 : res.status;
+    throw new AuthError(status, code, message);
+  }
+  return tokenSetFrom(envelope.data);
 }
 
 export async function passwordLogin(username: string, password: string): Promise<TokenSet> {
-  const body = new URLSearchParams({
-    grant_type: "password",
-    client_id: CLIENT_ID,
-    username,
-    password,
-    // Skip the explicit `scope` param — vnshop-api's default scopes (`roles`)
-    // include everything we need (sub, realm_access). Asking for
-    // "openid profile email" gets rejected with `invalid_scope` because they
-    // aren't on the client's optional-scopes list.
-  });
-  const res = await postForm(body);
-  if (!res.ok) {
-    // Keycloak returns 400 with `error: invalid_grant` for wrong credentials
-    // (not 401). 401 is reserved for missing/invalid auth on protected
-    // endpoints. Read the body and key off the OAuth error code.
-    const text = await res.text().catch(() => "");
-    const oauthError = (() => {
-      try {
-        const parsed = JSON.parse(text) as { error?: unknown };
-        return typeof parsed?.error === "string" ? parsed.error : null;
-      } catch {
-        return null;
-      }
-    })();
-    if (oauthError === "invalid_grant" || res.status === 401) {
-      throw new AuthError(res.status, "invalid_credentials", "Invalid email/username or password");
-    }
-    throw new AuthError(res.status, "auth_failed", text || `Login failed (HTTP ${res.status})`);
-  }
-  return tokenSetFrom((await res.json()) as KeycloakTokenResponse);
+  const res = await postAuth(LOGIN_ENDPOINT, { username, password });
+  return readEnvelope(res, "auth_failed");
 }
 
-export async function refreshTokens(refreshToken: string): Promise<TokenSet> {
+export async function refreshTokens(): Promise<TokenSet> {
   if (inFlightRefresh) return inFlightRefresh;
   inFlightRefresh = (async () => {
-    const body = new URLSearchParams({
-      grant_type: "refresh_token",
-      client_id: CLIENT_ID,
-      refresh_token: refreshToken,
-    });
-    const res = await postForm(body);
-    if (!res.ok) {
-      throw new AuthError(res.status, "refresh_failed", `Refresh failed (HTTP ${res.status})`);
-    }
-    return tokenSetFrom((await res.json()) as KeycloakTokenResponse);
+    const res = await postAuth(REFRESH_ENDPOINT);
+    return readEnvelope(res, "refresh_failed");
   })().finally(() => {
     inFlightRefresh = null;
   });
   return inFlightRefresh;
 }
 
-export async function revokeTokens(refreshToken: string): Promise<void> {
+export async function revokeTokens(): Promise<void> {
   try {
-    await fetch(LOGOUT_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: CLIENT_ID,
-        refresh_token: refreshToken,
-      }),
-    });
+    await postAuth(LOGOUT_ENDPOINT);
   } catch {
     // Best-effort. Local state is cleared regardless.
   }

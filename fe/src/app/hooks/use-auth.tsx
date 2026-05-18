@@ -16,11 +16,9 @@ import {
 import {
   AuthError,
   decodeJwt,
-  loadStoredTokenSet,
   passwordLogin,
   refreshTokens,
   revokeTokens,
-  saveTokenSet,
   setLiveTokenSet,
   type JwtClaims,
   type TokenSet,
@@ -90,7 +88,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const applyTokenSet = useCallback((next: TokenSet | null) => {
     setTokenSet(next);
     setLiveTokenSet(next);
-    saveTokenSet(next);
+    // No localStorage write — refresh-token cookie is the persistence
+    // boundary now. The access token deliberately does not survive a
+    // hard reload; the rehydrate effect calls /auth/refresh to recover
+    // the session via the httpOnly cookie.
   }, []);
 
   const clearRefreshTimer = useCallback(() => {
@@ -108,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshTimeoutRef.current = window.setTimeout(() => {
         void (async () => {
           try {
-            const next = await refreshTokens(current.refreshToken);
+            const next = await refreshTokens();
             applyTokenSet(next);
           } catch {
             applyTokenSet(null);
@@ -119,30 +120,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applyTokenSet, clearRefreshTimer],
   );
 
-  // Rehydrate on mount.
+  // Rehydrate on mount. With the cookie-based flow we always ask
+  // /auth/refresh: if a valid vnshop_rt cookie exists, Keycloak rotates
+  // it and returns a fresh access token; otherwise we get 401 and stay
+  // unauthenticated. There is no localStorage to read anymore.
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const stored = loadStoredTokenSet();
-      if (!stored) {
-        setReady(true);
-        return;
-      }
-      const now = Date.now();
-      if (stored.refreshExpiresAt <= now) {
-        applyTokenSet(null);
-        setReady(true);
-        return;
-      }
-      if (stored.accessExpiresAt <= now) {
-        try {
-          const refreshed = await refreshTokens(stored.refreshToken);
-          if (!cancelled) applyTokenSet(refreshed);
-        } catch {
-          if (!cancelled) applyTokenSet(null);
-        }
-      } else {
-        if (!cancelled) applyTokenSet(stored);
+      try {
+        const refreshed = await refreshTokens();
+        if (!cancelled) applyTokenSet(refreshed);
+      } catch {
+        if (!cancelled) applyTokenSet(null);
       }
       if (!cancelled) setReady(true);
     })();
@@ -180,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await fetch(REGISTER_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(input),
       });
       if (!res.ok) {
@@ -201,11 +191,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    if (tokenSet?.refreshToken) {
-      void revokeTokens(tokenSet.refreshToken);
-    }
+    // Fire revoke before clearing local state so the cookie is still
+    // attached to the request. revokeTokens swallows transport errors.
+    void revokeTokens();
     applyTokenSet(null);
-  }, [tokenSet, applyTokenSet]);
+  }, [applyTokenSet]);
 
   const login = useCallback((redirectTo?: string) => {
     const next = redirectTo ?? window.location.pathname + window.location.search;

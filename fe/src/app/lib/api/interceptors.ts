@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { getAccessToken, loadStoredTokenSet, refreshTokens, saveTokenSet, setLiveTokenSet } from "../auth/native-auth";
+import { getAccessToken, refreshTokens, setLiveTokenSet } from "../auth/native-auth";
 
 import { apiResponseSchema, ApiError } from "./envelope";
 
@@ -178,30 +178,24 @@ export class UnauthorizedError extends Error {
 
 /**
  * On a 401 for an authenticated request, try once to refresh tokens via the
- * stored refresh token. On success, replay the request. On failure (or no
- * refresh token at all) clear local auth state and dispatch
- * `auth:unauthorized` so AuthProvider boots us back to /login.
+ * httpOnly refresh-token cookie. On success, replay the request. On failure
+ * (no cookie, expired cookie, revoked token) clear local auth state and
+ * dispatch `auth:unauthorized` so AuthProvider boots us back to /login.
+ *
+ * The refresh token never enters JS — it's sent automatically by the browser
+ * because the auth client uses {@code credentials: "include"}.
  */
 export const unauthorizedInterceptor: ErrorInterceptor = async (err, ctx) => {
   if (!(err instanceof UnauthorizedError)) return undefined;
   if (!ctx.meta.auth) return undefined;
-  const stored = loadStoredTokenSet();
-  if (!stored?.refreshToken) {
-    setLiveTokenSet(null);
-    saveTokenSet(null);
-    window.dispatchEvent(new Event("auth:unauthorized"));
-    return undefined;
-  }
   try {
-    const next = await refreshTokens(stored.refreshToken);
+    const next = await refreshTokens();
     setLiveTokenSet(next);
-    saveTokenSet(next);
     const headers = ensureHeaders(ctx.init);
     headers.Authorization = `Bearer ${next.accessToken}`;
     return fetch(ctx.url, ctx.init);
   } catch {
     setLiveTokenSet(null);
-    saveTokenSet(null);
     window.dispatchEvent(new Event("auth:unauthorized"));
     return undefined;
   }

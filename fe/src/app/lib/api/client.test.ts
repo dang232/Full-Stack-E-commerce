@@ -9,8 +9,6 @@ vi.mock("../auth/native-auth", () => ({
   setLiveTokenSet: vi.fn((next: { accessToken: string } | null) => {
     liveToken = next?.accessToken ?? null;
   }),
-  loadStoredTokenSet: vi.fn(() => null),
-  saveTokenSet: vi.fn(),
   refreshTokens: (...args: unknown[]) => refreshTokensMock(...args),
 }));
 

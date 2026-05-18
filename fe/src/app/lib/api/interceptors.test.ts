@@ -3,16 +3,11 @@ import { z } from "zod";
 
 // Mock native-auth BEFORE importing anything that pulls it in.
 let liveToken: string | null = null;
-let storedTokenSet: { accessToken: string; refreshToken: string; accessExpiresAt: number; refreshExpiresAt: number } | null = null;
 const refreshTokensMock = vi.fn();
 vi.mock("../auth/native-auth", () => ({
   getAccessToken: () => liveToken,
   setLiveTokenSet: vi.fn((next: { accessToken: string } | null) => {
     liveToken = next?.accessToken ?? null;
-  }),
-  loadStoredTokenSet: () => storedTokenSet,
-  saveTokenSet: vi.fn((next: typeof storedTokenSet) => {
-    storedTokenSet = next;
   }),
   refreshTokens: (...args: unknown[]) => refreshTokensMock(...args),
 }));
@@ -55,7 +50,6 @@ beforeEach(() => {
   fetchSpy.mockReset();
   refreshTokensMock.mockReset();
   liveToken = null;
-  storedTokenSet = null;
 });
 
 afterEach(() => {
@@ -230,17 +224,9 @@ describe("interceptor chain ordering (via request())", () => {
 describe("401 retry path", () => {
   it("on 401: refreshes token then retries the same URL with the new bearer", async () => {
     liveToken = "old-jwt";
-    storedTokenSet = {
-      accessToken: "old-jwt",
-      refreshToken: "rt",
-      accessExpiresAt: Date.now() - 1,
-      refreshExpiresAt: Date.now() + 60_000,
-    };
     refreshTokensMock.mockImplementation(async () => ({
       accessToken: "new-jwt",
-      refreshToken: "rt",
       accessExpiresAt: Date.now() + 60_000,
-      refreshExpiresAt: Date.now() + 600_000,
     }));
 
     fetchSpy.mockResolvedValueOnce(new Response("unauthorized", { status: 401 }));
@@ -269,12 +255,6 @@ describe("401 retry path", () => {
 
   it("on 401 then refresh fails: throws ApiError UNAUTHORIZED and dispatches auth:unauthorized", async () => {
     liveToken = "old-jwt";
-    storedTokenSet = {
-      accessToken: "old-jwt",
-      refreshToken: "rt",
-      accessExpiresAt: Date.now() - 1,
-      refreshExpiresAt: Date.now() + 60_000,
-    };
     refreshTokensMock.mockRejectedValue(new Error("refresh denied"));
 
     fetchSpy.mockResolvedValueOnce(new Response("unauthorized", { status: 401 }));
@@ -295,17 +275,9 @@ describe("401 retry path", () => {
 
   it("on 401 retry that returns 401 again: throws UNAUTHORIZED", async () => {
     liveToken = "old-jwt";
-    storedTokenSet = {
-      accessToken: "old-jwt",
-      refreshToken: "rt",
-      accessExpiresAt: Date.now() - 1,
-      refreshExpiresAt: Date.now() + 60_000,
-    };
     refreshTokensMock.mockResolvedValue({
       accessToken: "new-jwt",
-      refreshToken: "rt",
       accessExpiresAt: Date.now() + 60_000,
-      refreshExpiresAt: Date.now() + 600_000,
     });
 
     fetchSpy.mockResolvedValueOnce(new Response("unauthorized", { status: 401 }));

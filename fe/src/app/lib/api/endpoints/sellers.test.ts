@@ -4,8 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../../auth/native-auth", () => ({
   getAccessToken: () => null,
   setLiveTokenSet: vi.fn(),
-  loadStoredTokenSet: vi.fn(() => null),
-  saveTokenSet: vi.fn(),
   refreshTokens: vi.fn(),
 }));
 
