@@ -368,7 +368,11 @@ services:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
         VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL:-http://localhost:8085}
         VITE_KEYCLOAK_REALM: ${VITE_KEYCLOAK_REALM:-vnshop}
-        VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-vnshop-web}
+        # vnshop-api is the public client with directAccessGrantsEnabled=true.
+        # The FE uses ROPC (native form -> Keycloak token endpoint) instead of
+        # the PKCE redirect flow, so vnshop-web (PKCE-only) won't work for
+        # passwordLogin / refreshTokens.
+        VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-vnshop-api}
     container_name: vnshop-frontend
     ports:
       - "3000:80"
