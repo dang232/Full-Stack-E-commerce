@@ -81,7 +81,7 @@ public class SecurityConfig {
                 .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .pathMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/search/**",
                         "/reviews/**", "/questions/**", "/recommendations/**", "/health",
-                        "/sellers", "/sellers/*").permitAll()
+                        "/sellers", "/sellers/*", "/flash-sale/active").permitAll()
                 .pathMatchers(HttpMethod.POST, "/reviews/seller-summaries", "/products/counts").permitAll()
                 .pathMatchers("/auth/**", "/payment/*/callback", "/payment/*/ipn").permitAll()
                 // The WebSocket handshake on /ws/messaging carries the JWT via the
