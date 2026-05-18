@@ -64,6 +64,16 @@ kcadm add-roles -r "${KC_REALM}" \
   --cclientid realm-management \
   --rolename manage-users --rolename view-users --rolename query-users 2>/dev/null || true
 
+echo "==> ensuring vnshop-api client has webOrigins for the SPA + dev server"
+# Without webOrigins set, Keycloak rejects CORS on /token from the FE origin
+# (manifests as `net::ERR_FAILED` on the FE auto-login after register).
+VNSHOP_API_UUID=$(kcadm get clients -r "${KC_REALM}" --query "clientId=vnshop-api" --fields id 2>/dev/null \
+  | grep -oE '"id" : "[^"]+"' | head -1 | sed 's/"id" : "//;s/"//')
+if [ -n "${VNSHOP_API_UUID}" ]; then
+  kcadm update "clients/${VNSHOP_API_UUID}" -r "${KC_REALM}" \
+    -s 'webOrigins=["+","http://localhost:3000","http://localhost:5173"]' >/dev/null 2>&1 || true
+fi
+
 echo "==> ensuring 'client roles' mapper exists on the 'roles' client scope"
 SCOPE_ID=$(kcadm get client-scopes -r "${KC_REALM}" --fields id,name 2>/dev/null \
   | grep -B1 '"name" : "roles"' | grep -oE '"id" : "[^"]+"' | head -1 | sed 's/"id" : "//;s/"//')
