@@ -68,7 +68,7 @@ test.describe("public sellers", () => {
       // Shop name is the most reliable signal that the header rendered.
       await expect(page.getByText(first.shopName, { exact: false }).first()).toBeVisible({ timeout: 20_000 });
       // Ensure the visit-shop CTA / banner area landed (page didn't crash).
-      await expect(page.locator("main, [role='main'], body")).toBeVisible();
+      await expect(page.locator("main, [role='main'], body").first()).toBeVisible();
     } else {
       // No approved sellers in the seed — visit a known-bad id and verify
       // the not-found path renders instead of crashing the SPA. The app
