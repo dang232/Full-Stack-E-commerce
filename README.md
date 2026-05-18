@@ -2,7 +2,7 @@
 
 A polyglot microservices e-commerce platform demonstrating DDD, CQRS, hexagonal architecture, and event-driven sagas, with a React storefront on top.
 
-VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketplace inspired by Shopee, Lazada, and Tiki. It ships with: 16 services (Spring Boot + NestJS), per-service Postgres, Kafka + saga + outbox, Keycloak-backed httpOnly-cookie auth, and a React + Vite SPA. Two end-to-end test suites gate every change — `e2e-day.mjs` (52/52 API endpoints) and Playwright (19/19 browser scenarios).
+VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketplace inspired by Shopee, Lazada, and Tiki. It ships with: 16 services (Spring Boot + NestJS), per-service Postgres, Kafka + saga + outbox, Keycloak-backed httpOnly-cookie auth, and a React + Vite SPA. Two end-to-end test suites gate every change — `e2e-day.mjs` (55/55 API endpoints) and Playwright (19/19 browser scenarios).
 
 ## Quick Links
 
@@ -12,11 +12,11 @@ VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketpla
 | [Status doc](.sisyphus/STATUS.md) | Per-service health, feature coverage, NFR audit, roadmap |
 | [Status reality 2026-05-14](docs/STATUS-REALITY-2026-05-14.md) | Reconciliation of older gap-analysis docs against the current tree |
 | [E2E audit 2026-05-18](docs/E2E-AUDIT-2026-05-18.md) | What `e2e-day.mjs` and Playwright cover, plus the bugs fixed during the buildout |
-| [Latest session handover](docs/SESSION-HANDOVER-2026-05-19-pt4.md) | Most recent change set (deferred-list burndown + httpOnly cookie auth) |
+| [Latest session handover](docs/SESSION-HANDOVER-2026-05-19-pt5.md) | Most recent change set (B9 live shipping rate quote + B11 messaging WebSocket E2E) |
 | [Frontend README](fe/README.md) | React + Vite SPA setup, scripts, layout |
 | [Docker Compose](docker-compose.yml) | Local infrastructure and service definitions |
 
-For a chronological view of what shipped, walk the handover series in order: `docs/SESSION-HANDOVER-2026-05-17.md` → `pt2` → `pt3` → `2026-05-18.md` → `pt2` → `pt3` → `2026-05-19-pt4.md`.
+For a chronological view of what shipped, walk the handover series in order: `docs/SESSION-HANDOVER-2026-05-17.md` → `pt2` → `pt3` → `2026-05-18.md` → `pt2` → `pt3` → `2026-05-19-pt4.md` → `pt5`.
 
 ## Architecture Overview
 
@@ -81,30 +81,30 @@ Two end-to-end gates run green at the current HEAD:
 
 | Suite | Result | Coverage |
 | --- | --- | --- |
-| `node infra/scripts/e2e-day.mjs` | **52/52 PASS** | Single-day flow: register → login (buyer/seller/admin) → catalog → public sellers → seller fulfilment → cart → wishlist → checkout → order → coupon validate + apply → admin seller approval → saga compensation (cancel + return + refund) → reviews + Q&A → recommendations → admin dashboards → user profile |
+| `node infra/scripts/e2e-day.mjs` | **55/55 PASS** | Single-day flow: register → login (buyer/seller/admin) → catalog → public sellers → seller fulfilment → cart → wishlist → checkout (live shipping rate quote) → order → coupon validate + apply → admin seller approval → saga compensation (cancel + return + refund) → messaging WebSocket handshake → reviews + Q&A → recommendations → admin dashboards → user profile |
 | `cd fe && npx playwright test` | **19/19 PASS** | Real browser against dockerised FE: smoke, buyer happy path, authenticated routes, role guards, search, public sellers, guest cart |
 
 Plus per-service unit tests: user-service 107/107, product-service 25/25, FE vitest 143/143.
 
 ### Recent shipped (2026-05-18 → 2026-05-19)
 
+- **Messaging WebSocket E2E coverage** (B11). Three handshake scenarios on `/ws/messaging` (valid token → hello frame, missing token → close, garbage token → close). Surfaced + fixed a missing-Kafka-topic crash that had silently kept messaging-service down.
+- **Live shipping rate quote** (B9). New `POST /shipping/rate-quotes` on shipping-service returns multi-carrier options (GHN STANDARD + GHTK EXPRESS via the stub). order-service `/checkout/shipping-options` now pulls live rates with graceful degradation to the legacy STANDARD-only fallback.
 - **httpOnly cookie auth.** Refresh token left localStorage; lives in the `vnshop_rt` cookie issued by user-service `/auth/login` (httpOnly, SameSite=Lax, Path=/auth, configurable Secure). Access token is JS-memory-only. user-service hosts a thin /auth proxy with login/refresh/logout; KC realm config unchanged.
 - **Saga compensation E2E** drives cancel-before-fulfilment + return + refund through the saga + outbox + projection cycle. Surfaced + fixed a long-dormant V18 audit-columns bug on the returns table.
 - **Cart guest mode + merge-on-login.** Anonymous users get a localStorage cart at `vnshop:guest-cart`; one-shot replay on first authenticated render mirrors the wishlist pattern.
-- **Coupon validate + apply E2E** (B3) and **admin seller approval E2E** (S2) both closed deferred items from the prior handover.
-- **Public sellers** (`GET /sellers` paged + `GET /sellers/{id}`) wired end-to-end with batched stats endpoints + Caffeine caching + Resilience4j circuit breaker + retry on user-service.
+- **Coupon validate + apply E2E** (B3) and **admin seller approval E2E** (S2) both closed deferred items.
+- **Public sellers** wired end-to-end with batched stats endpoints + Caffeine caching + Resilience4j circuit breaker + retry on user-service.
 - **Pagination headers**: `GET /sellers` emits `X-Total-Count` + RFC 5988 `Link` (rel=prev/next).
 - **Bean validation** on `RegisterSellerRequest` (`@NotBlank`, `@Size`, `@Pattern` on bankAccount).
-- **Native auth migration** earlier in the same series replaced the Keycloak-hosted login redirect with native `/login` + `/register` pages.
 
 ### Deferred / not yet wired (next-leverage)
 
-From `docs/SESSION-HANDOVER-2026-05-19-pt4.md`:
+From `docs/SESSION-HANDOVER-2026-05-19-pt5.md`:
 
-- Live shipping rate quote integration with a real carrier (GHN/GHTK) — flagged as highest-leverage BE work three handovers ago.
-- Messaging WebSocket auth via `?token=` end-to-end coverage — pt2 flagged as highest-risk untested path.
-- VNPAY / MOMO IPN end-to-end (needs a mock provider service to drive without a real PSP).
+- VNPAY / MOMO IPN end-to-end (needs a mock provider service to drive without a real PSP) — largest deferred BE flow.
 - Notifications inbox (no inbox endpoint or FE bell yet; Kafka consumer exists).
+- Real GHN/GHTK adapter for shipping rate quote (B9 shipped the stub + pluggable port; live adapter needs API key wiring).
 - Native password reset / 2FA (currently bounce out to Keycloak's account console).
 - Email verification flow (currently `emailVerified: true` set on register).
 - Hero/promo/trending CMS for HomePage (stubs in place via `<ComingSoonCard>`).
@@ -180,6 +180,12 @@ One-time post-import setup for Keycloak admin client (idempotent):
 
 ```bash
 bash infra/scripts/setup-keycloak-admin-client.sh
+```
+
+Pre-create Kafka consumer-side topics so messaging-service doesn't crash on startup (idempotent; runs `kafka-topics --create --if-not-exists`):
+
+```bash
+bash infra/scripts/init-kafka-topics.sh
 ```
 
 Seed the demo catalog so the storefront has products to render (skips when catalog is non-empty; `FORCE=1` to overwrite):
