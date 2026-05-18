@@ -408,6 +408,94 @@ async function main() {
     }
   });
 
+  // 6c. Admin seller approval flow (S2). seller1 owns the demo product
+  // created earlier; this section drives the full lifecycle:
+  //   register-as-seller -> admin lists pending -> admin approves -> seller
+  //   appears in the public /sellers list and is reachable by id.
+  // The register call is idempotent across reruns: a 200/201 means it
+  // landed fresh, a 4xx means seller1 already has a SellerProfile row
+  // from a prior run — either is fine for the rest of the flow.
+  await record("admin_seller", "POST /sellers/register (seller1 self-onboards)", async () => {
+    await http("POST", "/sellers/register", {
+      token: ctx.sellerToken,
+      body: {
+        shopName: "E2E Seller One Shop",
+        bankName: "Vietcombank",
+        bankAccount: "1234567890",
+      },
+      // 200/201 fresh; 400/409/500 covers the "already-exists" path on rerun
+      // where a unique-constraint violation surfaces. The next steps verify
+      // the row is present regardless of which branch took.
+      expect: [200, 201, 400, 409, 500],
+    });
+  });
+
+  await record("admin_seller", "POST /admin/sellers/{id}/approve", async () => {
+    if (!ctx.sellerProduct?.sellerId) throw new Error("missing sellerId from product step");
+    // The id in the SellerProfile aggregate is the Keycloak subject — same
+    // value the JWT carries on product creation. approve() is idempotent
+    // (sets approved=true; no-op on already-approved). Accept 200 freshly,
+    // 400 if the SellerProfile row never landed (seller skipped /register).
+    const res = await http("POST", `/admin/sellers/${ctx.sellerProduct.sellerId}/approve`, {
+      token: ctx.adminToken,
+      expect: [200, 400, 404],
+    });
+    if (res.status === 200) {
+      const data = unwrap(res.body);
+      if (data?.approved !== true) {
+        throw new Error(`expected approved=true, got ${truncate(res.raw, 200)}`);
+      }
+    }
+  });
+
+  await record("admin_seller", "GET /admin/sellers (admin lists)", async () => {
+    const res = await http("GET", "/admin/sellers", { token: ctx.adminToken });
+    const data = unwrap(res.body);
+    if (!Array.isArray(data)) {
+      throw new Error(`expected array of pending sellers, got ${truncate(res.raw, 200)}`);
+    }
+    // The list is "pending" sellers, so after the approve above seller1
+    // should NOT be in the list. We just verify the surface is reachable
+    // and returns an array — the empty/non-empty state depends on what
+    // other sellers have registered.
+  });
+
+  await record("admin_seller", "GET /sellers shows seller1 in public list (post-approve)", async () => {
+    if (!ctx.sellerProduct?.sellerId) throw new Error("missing sellerId");
+    // After approval the seller must appear in the anonymous list. Walk
+    // a few pages defensively — the seed grows over reruns and seller1
+    // may not be on page 0 by the time the suite runs against a populated
+    // database.
+    const sellerId = ctx.sellerProduct.sellerId;
+    let found = false;
+    for (let page = 0; page < 5 && !found; page++) {
+      const res = await http("GET", `/sellers?page=${page}&size=50`);
+      const data = unwrap(res.body);
+      const list = data?.content ?? [];
+      if (list.some((s) => s.id === sellerId)) {
+        found = true;
+        break;
+      }
+      if (list.length === 0) break;
+    }
+    if (!found) {
+      throw new Error(`seller ${sellerId} did not appear in public /sellers list after approve`);
+    }
+  });
+
+  await record("admin_seller", "GET /sellers/{id} (public, post-approve)", async () => {
+    if (!ctx.sellerProduct?.sellerId) throw new Error("missing sellerId");
+    const res = await http("GET", `/sellers/${ctx.sellerProduct.sellerId}`);
+    const data = unwrap(res.body);
+    if (data?.id !== ctx.sellerProduct.sellerId) {
+      throw new Error(`expected seller id ${ctx.sellerProduct.sellerId}, got ${truncate(res.raw, 200)}`);
+    }
+    // Bank details must NEVER leak through the public detail endpoint.
+    if ("bankName" in data || "bankAccount" in data) {
+      throw new Error(`public seller leaked bank details: ${truncate(res.raw, 200)}`);
+    }
+  });
+
   // 7. Order: place via POST /orders (the cart-driven path).
   await record("order", "POST /orders (place order)", async () => {
     if (!ctx.sellerProduct) throw new Error("missing seller product details");
