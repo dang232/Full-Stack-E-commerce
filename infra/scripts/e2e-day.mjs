@@ -226,6 +226,47 @@ async function main() {
     await http("GET", "/sellers/me", { token: ctx.sellerToken, expect: [200, 400, 404] });
   });
 
+  // 3b. Public sellers (anonymous). Storefront SellerShowcase + SellerDetailPage
+  // back onto these endpoints. The product created above gives us a sellerId
+  // we can fetch and round-trip ratingCount / totalProducts on.
+  await record("sellers", "GET /sellers (anonymous, paged)", async () => {
+    const res = await http("GET", "/sellers?page=0&size=20");
+    const data = unwrap(res.body);
+    const list = data?.content;
+    if (!Array.isArray(list)) {
+      throw new Error(`expected paged content array, got ${truncate(res.raw, 200)}`);
+    }
+    if (typeof data?.page !== "number" || typeof data?.size !== "number" || typeof data?.totalElements !== "number") {
+      throw new Error(`expected page/size/totalElements numbers, got ${truncate(res.raw, 200)}`);
+    }
+    // Bank details must NEVER leak through public endpoints.
+    for (const s of list) {
+      if ("bankName" in s || "bankAccount" in s) {
+        throw new Error(`public seller leaked bank details: ${truncate(JSON.stringify(s), 200)}`);
+      }
+    }
+  });
+
+  await record("sellers", "GET /sellers/{id} (anonymous, includes stats)", async () => {
+    if (!ctx.sellerProduct?.sellerId) throw new Error("missing sellerId from earlier seller-product step");
+    const res = await http("GET", `/sellers/${ctx.sellerProduct.sellerId}`, { expect: [200, 404] });
+    if (res.status === 404) {
+      // seller1 hasn't run /sellers/register, so the user-service has no
+      // SellerProfile row even though they own products. Documented pre-condition.
+      return;
+    }
+    const data = unwrap(res.body);
+    if (!data?.id || !data?.shopName) {
+      throw new Error(`expected id+shopName, got ${truncate(res.raw, 200)}`);
+    }
+    if ("bankName" in data || "bankAccount" in data) {
+      throw new Error(`public seller leaked bank details: ${truncate(res.raw, 200)}`);
+    }
+    if (typeof data.ratingCount !== "number" || typeof data.totalProducts !== "number") {
+      throw new Error(`expected numeric ratingCount + totalProducts, got ${truncate(res.raw, 200)}`);
+    }
+  });
+
   // 4. Cart: buyer adds the seller's product, then a seeded one.
   await record("cart", "POST /cart/items (seller's new product)", async () => {
     if (!ctx.sellerProductId) throw new Error("missing seller product id");
