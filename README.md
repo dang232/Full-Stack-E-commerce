@@ -2,7 +2,7 @@
 
 A polyglot microservices e-commerce platform demonstrating DDD, CQRS, hexagonal architecture, and event-driven sagas, with a React storefront on top.
 
-VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketplace inspired by Shopee, Lazada, and Tiki. It now ships with: 16 services (Spring Boot + NestJS), per-service Postgres, Kafka + saga + outbox, Keycloak-based native auth, and a React + Vite SPA. Two end-to-end test suites gate every change — `e2e-day.mjs` (35/35 API endpoints) and Playwright (17/17 browser scenarios).
+VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketplace inspired by Shopee, Lazada, and Tiki. It ships with: 16 services (Spring Boot + NestJS), per-service Postgres, Kafka + saga + outbox, Keycloak-backed httpOnly-cookie auth, and a React + Vite SPA. Two end-to-end test suites gate every change — `e2e-day.mjs` (52/52 API endpoints) and Playwright (19/19 browser scenarios).
 
 ## Quick Links
 
@@ -11,12 +11,12 @@ VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketpla
 | [Architecture doc](.sisyphus/ARCHITECTURE.md) | Full system design, bounded contexts, API conventions |
 | [Status doc](.sisyphus/STATUS.md) | Per-service health, feature coverage, NFR audit, roadmap |
 | [Status reality 2026-05-14](docs/STATUS-REALITY-2026-05-14.md) | Reconciliation of older gap-analysis docs against the current tree |
-| [E2E audit 2026-05-18](docs/E2E-AUDIT-2026-05-18.md) | What `e2e-day.mjs` and Playwright cover, plus all 17 bugs fixed during the buildout |
-| [Latest session handover](docs/SESSION-HANDOVER-2026-05-18-pt3.md) | Most recent change set (public sellers + production hardening) |
+| [E2E audit 2026-05-18](docs/E2E-AUDIT-2026-05-18.md) | What `e2e-day.mjs` and Playwright cover, plus the bugs fixed during the buildout |
+| [Latest session handover](docs/SESSION-HANDOVER-2026-05-19-pt4.md) | Most recent change set (deferred-list burndown + httpOnly cookie auth) |
 | [Frontend README](fe/README.md) | React + Vite SPA setup, scripts, layout |
 | [Docker Compose](docker-compose.yml) | Local infrastructure and service definitions |
 
-For a chronological view of what shipped, walk the handover series in order: `docs/SESSION-HANDOVER-2026-05-17.md` → `pt2` → `pt3` → `2026-05-18.md` → `pt2` → `pt3`.
+For a chronological view of what shipped, walk the handover series in order: `docs/SESSION-HANDOVER-2026-05-17.md` → `pt2` → `pt3` → `2026-05-18.md` → `pt2` → `pt3` → `2026-05-19-pt4.md`.
 
 ## Architecture Overview
 
@@ -81,32 +81,33 @@ Two end-to-end gates run green at the current HEAD:
 
 | Suite | Result | Coverage |
 | --- | --- | --- |
-| `node infra/scripts/e2e-day.mjs` | **35/35 PASS** | Single-day flow: register → login (buyer/seller/admin) → catalog → public sellers → cart → wishlist → checkout → order → fulfilment → shipping tracking → reviews + Q&A → recommendations → admin dashboards → user profile |
-| `cd fe && npx playwright test` | **17/17 PASS** | Real browser against dockerised FE: smoke, buyer happy path, authenticated routes, role guards, search, public sellers (HomePage + detail page), 404 handling |
+| `node infra/scripts/e2e-day.mjs` | **52/52 PASS** | Single-day flow: register → login (buyer/seller/admin) → catalog → public sellers → seller fulfilment → cart → wishlist → checkout → order → coupon validate + apply → admin seller approval → saga compensation (cancel + return + refund) → reviews + Q&A → recommendations → admin dashboards → user profile |
+| `cd fe && npx playwright test` | **19/19 PASS** | Real browser against dockerised FE: smoke, buyer happy path, authenticated routes, role guards, search, public sellers, guest cart |
 
-Plus per-service unit tests: user-service 107/107, product-service 25/25, FE vitest 137/137.
+Plus per-service unit tests: user-service 107/107, product-service 25/25, FE vitest 143/143.
 
-### Recent shipped (2026-05-18)
+### Recent shipped (2026-05-18 → 2026-05-19)
 
-- **Native auth migration** (no more Keycloak-hosted login redirect): `/auth/register` proxies to Keycloak Admin API, FE has native `/login` + `/register` against Keycloak ROPC, tokens persisted in `localStorage` (httpOnly cookie migration is a known security debt).
-- **Day-in-the-life E2E suite + Playwright FE-to-BE coverage** with 12+ BE/FE bugs fixed along the way (Kafka serializer, JSONB binding, audit columns, JPA orphan removal, CORS preflight, Vite chunk-split `instanceof`, product schema rigidity).
-- **Public sellers** (`GET /sellers` paged + `GET /sellers/{id}`) wired end-to-end: HomePage SellerShowcase, new `/sellers/:id` detail page, ProductPage seller card. Aggregated stats (rating, product count) batched from product-service to kill N+1, with Caffeine caching + Resilience4j circuit breaker + retry on user-service.
-- **Pagination headers**: `GET /sellers` emits `X-Total-Count` + RFC 5988 `Link` (rel=prev/next) alongside the JSON envelope.
+- **httpOnly cookie auth.** Refresh token left localStorage; lives in the `vnshop_rt` cookie issued by user-service `/auth/login` (httpOnly, SameSite=Lax, Path=/auth, configurable Secure). Access token is JS-memory-only. user-service hosts a thin /auth proxy with login/refresh/logout; KC realm config unchanged.
+- **Saga compensation E2E** drives cancel-before-fulfilment + return + refund through the saga + outbox + projection cycle. Surfaced + fixed a long-dormant V18 audit-columns bug on the returns table.
+- **Cart guest mode + merge-on-login.** Anonymous users get a localStorage cart at `vnshop:guest-cart`; one-shot replay on first authenticated render mirrors the wishlist pattern.
+- **Coupon validate + apply E2E** (B3) and **admin seller approval E2E** (S2) both closed deferred items from the prior handover.
+- **Public sellers** (`GET /sellers` paged + `GET /sellers/{id}`) wired end-to-end with batched stats endpoints + Caffeine caching + Resilience4j circuit breaker + retry on user-service.
+- **Pagination headers**: `GET /sellers` emits `X-Total-Count` + RFC 5988 `Link` (rel=prev/next).
 - **Bean validation** on `RegisterSellerRequest` (`@NotBlank`, `@Size`, `@Pattern` on bankAccount).
+- **Native auth migration** earlier in the same series replaced the Keycloak-hosted login redirect with native `/login` + `/register` pages.
 
 ### Deferred / not yet wired (next-leverage)
 
-From `docs/SESSION-HANDOVER-2026-05-18-pt3.md`:
+From `docs/SESSION-HANDOVER-2026-05-19-pt4.md`:
 
-- httpOnly-cookie session proxy (auth tokens are still in `localStorage`).
-- Coupon validate + apply scenario (endpoints exist, no E2E coverage yet).
-- Admin seller approval scenario (endpoint exists, never exercised).
-- Live shipping rate quote integration with a real carrier (GHN/GHTK).
-- VNPAY / MOMO IPN end-to-end (mock provider needed).
-- Saga compensation paths (cancel-after-partial, return + refund).
-- Cart guest-mode + merge-after-login.
-- Notifications inbox.
-- Messaging WebSocket auth via `?token=` (handover flagged as highest-risk untested path).
+- Live shipping rate quote integration with a real carrier (GHN/GHTK) — flagged as highest-leverage BE work three handovers ago.
+- Messaging WebSocket auth via `?token=` end-to-end coverage — pt2 flagged as highest-risk untested path.
+- VNPAY / MOMO IPN end-to-end (needs a mock provider service to drive without a real PSP).
+- Notifications inbox (no inbox endpoint or FE bell yet; Kafka consumer exists).
+- Native password reset / 2FA (currently bounce out to Keycloak's account console).
+- Email verification flow (currently `emailVerified: true` set on register).
+- Hero/promo/trending CMS for HomePage (stubs in place via `<ComingSoonCard>`).
 
 ### Service ownership at HEAD
 
@@ -190,8 +191,8 @@ node infra/scripts/seed-demo.mjs
 Verify the stack is healthy with both gates:
 
 ```bash
-node infra/scripts/e2e-day.mjs       # 35/35 — day-in-the-life API smoke
-cd fe && npx playwright test         # 17/17 — real browser FE-to-BE
+node infra/scripts/e2e-day.mjs       # 52/52 — day-in-the-life API smoke
+cd fe && npx playwright test         # 19/19 — real browser FE-to-BE
 ```
 
 If you see 503s on either suite, Spring Cloud Gateway's Resilience4j breaker has latched. Reset with `docker compose restart api-gateway`.
@@ -330,17 +331,20 @@ When adding behavior, start in the domain model, expose it through an applicatio
 
 ## Production characteristics now in place
 
+- **httpOnly cookie auth.** Refresh tokens live in the `vnshop_rt` cookie (HttpOnly, SameSite=Lax, Path=/auth, configurable Secure) issued by user-service. Access tokens are JS-memory-only. XSS can't bootstrap a new session.
 - **Resilience4j** circuit breaker + retry on the user-service → product-service stats adapter (sliding window 10, failure rate 50%, 10s open, 3 half-open trial, 3-attempt retry with 200ms exponential backoff).
 - **Caffeine** in-memory cache on the same adapter (5-minute TTL, 10k entries, `recordStats()` enabled).
 - **Pinned timeouts** on outbound HTTP — 1s connect / 2.5s read via shared `JdkClientHttpRequestFactory`.
 - **Batch endpoints** kill N+1 on the SellerShowcase: `POST /reviews/seller-summaries` and `POST /products/counts` (≤100 ids each).
+- **Cart guest mode** — anonymous users get a localStorage cart at `vnshop:guest-cart`; one-shot replay on first authenticated render preserves items across login.
+- **Saga compensation E2E coverage** — cancel-before-fulfilment + return + refund driven through the saga + outbox + projection cycle.
 - **Kafka producers** declare explicit `JsonSerializer` for record payloads (default `StringSerializer` would silently drop them).
 - **JSONB** columns use `@JdbcTypeCode(SqlTypes.JSON)` (the `columnDefinition = "jsonb"` only affects schema generation).
-- **Audit columns** (`created_at`, `updated_at`) on all core tables; saga and outbox have stable order numbers across restarts (millisecond-of-day prefix).
-- **CORS** explicit on the gateway (`CorsConfigurationSource` bean + `permitAll` on OPTIONS for `/**`).
+- **Audit columns** (`created_at`, `updated_at`) on all core tables (V17 + V18); saga and outbox have stable order numbers across restarts (millisecond-of-day prefix).
+- **CORS** explicit on the gateway (`CorsConfigurationSource` bean + `setAllowCredentials(true)` for the cookie flow + `permitAll` on OPTIONS for `/**`).
 - **Health probes** exposed via `/actuator/health` with `circuitbreakers` contributor enabled; Prometheus endpoint available.
 
-See [`docs/SESSION-HANDOVER-2026-05-18-pt3.md`](docs/SESSION-HANDOVER-2026-05-18-pt3.md#operational-gotchas--durable-rules--keep-in-mental-model) for the durable rules learned along the way (Hibernate 7 single-row aggregate wrapping, Spring 4 PathPattern regex limits, AOP-only `@CircuitBreaker`, etc.).
+See [`docs/SESSION-HANDOVER-2026-05-19-pt4.md`](docs/SESSION-HANDOVER-2026-05-19-pt4.md#operational-gotchas--durable-rules--additions-to-the-pt3-list) for the durable rules learned along the way (Hibernate 7 single-row aggregate wrapping, Spring 4 PathPattern regex limits, AOP-only `@CircuitBreaker`, `@MappedSuperclass` retroactivity, cookie-based auth needing `credentials: "include"` on every call, etc.).
 
 ## Coding Convention
 
