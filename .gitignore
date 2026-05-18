@@ -12,6 +12,8 @@
 /fe/.env
 /fe/.env.local
 /fe/coverage
+/fe/test-results
+/fe/playwright-report
 /fe/*.tsbuildinfo
 /fe/**/*.tsbuildinfo
 .claude/settings.local.json
