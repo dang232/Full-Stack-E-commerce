@@ -51,7 +51,12 @@ public class SecurityConfig {
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
         cfg.setExposedHeaders(List.of("X-Correlation-Id"));
-        cfg.setAllowCredentials(false);
+        // Cookie-based auth (vnshop_rt refresh-token cookie issued by
+        // user-service /auth/login) requires the browser to include
+        // credentials on cross-origin requests. Concrete allowed-origins
+        // list above keeps this safe — wildcards + credentials would be
+        // rejected by the browser.
+        cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
