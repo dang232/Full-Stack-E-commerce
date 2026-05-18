@@ -19,7 +19,29 @@ import java.util.List;
 public class StubCarrierGateway implements CarrierGatewayPort {
     @Override
     public RateQuote quote(RateQuoteRequest request) {
-        return new RateQuote(request.carrier(), 30_000L, "STUB_STANDARD", "2-4 days");
+        // Deterministic per-carrier pricing so the buyer sees a real choice
+        // at checkout. Real GHN/GHTK adapters live behind the same port and
+        // return their own fees; this stub mirrors the buyer-facing shape.
+        // Weight surcharge: flat 5k VND per extra kg above 1kg — enough to
+        // make heavy carts visibly more expensive than light ones in tests.
+        long baseFee = switch (request.carrier()) {
+            case GHN -> 30_000L;     // Standard tier — cheaper, slower
+            case GHTK -> 45_000L;    // Express tier — pricier, faster
+        };
+        long weightSurcharge = 0L;
+        if (request.parcel() != null && request.parcel().weightGrams() > 1000) {
+            int extraKg = (request.parcel().weightGrams() - 1000 + 999) / 1000;
+            weightSurcharge = 5_000L * extraKg;
+        }
+        String etaLabel = switch (request.carrier()) {
+            case GHN -> "3-5 days";
+            case GHTK -> "1-2 days";
+        };
+        String serviceCode = switch (request.carrier()) {
+            case GHN -> "STANDARD";
+            case GHTK -> "EXPRESS";
+        };
+        return new RateQuote(request.carrier(), baseFee + weightSurcharge, serviceCode, etaLabel);
     }
 
     @Override

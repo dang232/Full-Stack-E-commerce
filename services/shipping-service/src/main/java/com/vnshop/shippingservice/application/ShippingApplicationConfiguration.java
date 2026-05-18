@@ -15,4 +15,9 @@ public class ShippingApplicationConfiguration {
     GetTrackingUseCase getTrackingUseCase(CarrierGatewayPort carrierGateway) {
         return new GetTrackingUseCase(carrierGateway);
     }
+
+    @Bean
+    QuoteShippingOptionsUseCase quoteShippingOptionsUseCase(CarrierGatewayPort carrierGateway) {
+        return new QuoteShippingOptionsUseCase(carrierGateway);
+    }
 }
