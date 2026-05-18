@@ -70,6 +70,12 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
 
     static SubOrderJpaEntity fromDomain(SubOrder subOrder, OrderJpaEntity order) {
         SubOrderJpaEntity entity = new SubOrderJpaEntity();
+        // Preserve the existing id on update. Without this every save(order) on
+        // the parent runs the @OneToMany orphanRemoval path: the old child rows
+        // are deleted and re-inserted with new BIGSERIAL ids. That breaks any
+        // follow-up call (e.g. /seller/orders/{subOrderId}/ship) that quoted
+        // the original id from the accept response.
+        entity.id = subOrder.id();
         entity.order = order;
         entity.sellerId = subOrder.sellerId();
         entity.fulfillmentStatus = subOrder.fulfillmentStatus();
