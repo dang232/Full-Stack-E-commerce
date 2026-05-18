@@ -1,38 +1,74 @@
 import { test, expect } from "@playwright/test";
 
+const apiURL = process.env.VITE_E2E_API_URL ?? "http://localhost:8080";
+
 /**
- * Buyer happy-path E2E (browse → cart → checkout → place order).
+ * Buyer happy-path against the real BE: register fresh → log in → browse
+ * the catalog → open a product → add to cart → see it in the cart page.
  *
- * Requires (TODO.md "Auth-flow blocked"):
- *  - Keycloak realm `vnshop` with `vnshop-web` public client seeded (BE-6 — done).
- *  - A test buyer account; supply via E2E_USER_EMAIL + E2E_USER_PASSWORD env vars.
- *
- * The whole describe block skips when those creds aren't present so CI doesn't
- * fail in environments where the realm hasn't been seeded yet.
+ * Each run creates a brand-new buyer (timestamped email) so the test is
+ * deterministic regardless of prior runs and doesn't depend on a seeded
+ * E2E_USER. Tokens are persisted in localStorage by the native auth
+ * provider, so there's no Keycloak redirect.
  */
-const email = process.env.E2E_USER_EMAIL;
-const password = process.env.E2E_USER_PASSWORD;
+
+const PASSWORD = "Test1234!";
 
 test.describe("buyer happy path", () => {
-  test.skip(!email || !password, "E2E_USER_EMAIL / E2E_USER_PASSWORD not set");
+  test("register → product detail → add to cart → /cart shows item", async ({ page, request }) => {
+    const stamp = Date.now();
+    const email = `e2e_buyer_${stamp}@vnshop.local`;
 
-  test("browse → product detail → add to cart", async ({ page }) => {
-    await page.goto("/");
-    // Click any product card link; the home page renders summaries via useProducts.
-    const firstProductLink = page.locator('a[href^="/product/"]').first();
-    await expect(firstProductLink).toBeVisible({ timeout: 15_000 });
-    await firstProductLink.click();
-    await expect(page).toHaveURL(/\/product\//);
-    // Add-to-cart button is the primary CTA; the SPA shows a Vietnamese
-    // label so we match by role + accessible name pattern instead of exact text.
-    const addBtn = page.getByRole("button", { name: /giỏ hàng|thêm vào giỏ/i }).first();
-    await expect(addBtn).toBeVisible();
+    await page.goto("/register");
+    await page.locator("#firstName").fill("E2E");
+    await page.locator("#lastName").fill("Buyer");
+    await page.locator("#email").fill(email);
+    await page.locator("#password").fill(PASSWORD);
+    await page.locator("#confirm").fill(PASSWORD);
+    await page.getByRole("button", { name: /create account|tạo tài khoản/i }).click();
+
+    // After register the provider auto-logs in and the SPA navigates to /.
+    // The route change doesn't fire a load event, so poll the URL.
+    await expect.poll(() => new URL(page.url()).pathname, { timeout: 30_000 }).toBe("/");
+
+    // Pull a product id from the API rather than clicking through home.
+    // Home renders product cards far below the fold inside motion.div with
+    // delayed reveal animations; the cart roundtrip is what we're testing.
+    const apiRes = await request.get(`${apiURL}/products?size=1`);
+    expect(apiRes.ok()).toBeTruthy();
+    const apiBody = await apiRes.json();
+    const productId = apiBody?.data?.content?.[0]?.id;
+    expect(productId, "expected at least one product seeded").toBeTruthy();
+
+    await page.goto(`/product/${productId}`);
+    await expect.poll(() => page.url(), { timeout: 15_000 }).toMatch(/\/product\//);
+
+    const addBtn = page.getByRole("button", { name: /add to cart|thêm vào giỏ/i }).first();
+    await expect(addBtn).toBeVisible({ timeout: 15_000 });
+    await addBtn.click();
+
+    // /cart should show at least one item (no "empty cart" copy).
+    await page.goto("/cart");
+    await expect(page.getByText(/your cart is empty|giỏ hàng trống/i)).toHaveCount(0, {
+      timeout: 15_000,
+    });
   });
 
-  // The full place-order flow is gated on a seeded buyer + Keycloak. When
-  // that's wired up, expand this with: login via Keycloak → /cart → /checkout
-  // → place order with Idempotency-Key → assert /orders shows the new order.
-  test.fixme("login → checkout → place order", async () => {
-    // Intentionally skipped until BE side has a deterministic seed user.
+  test("login form rejects invalid credentials with an inline error", async ({ page }) => {
+    await page.goto("/login");
+    await page.locator("#identifier").fill("does-not-exist@vnshop.local");
+    await page.locator("#password").fill("definitely-not-the-password");
+    await page.getByRole("button", { name: /sign in|đăng nhập/i }).click();
+
+    // Either the specific invalid-credentials copy or the generic fallback
+    // is acceptable — both are user-visible inline failures and prove the
+    // form did not silently navigate. We assert the URL stays on /login,
+    // which is the real contract.
+    await expect(
+      page.getByText(
+        /wrong email|sai email|invalid credentials|couldn't sign in|không thể đăng nhập/i,
+      ),
+    ).toBeVisible({ timeout: 10_000 });
+    await expect(page).toHaveURL(/\/login/);
   });
 });

@@ -3,16 +3,21 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * Playwright config for VNShop frontend smoke + buyer happy-path E2E.
  *
- * Prereqs (see TODO.md "Auth-flow blocked" section):
- *  - Backend stack up (`docker-compose up`) with Keycloak realm `vnshop` seeded
- *    and the `vnshop-web` public client present (BE-6 — done).
- *  - Vite dev server reachable at VITE_E2E_BASE_URL (default http://localhost:5173).
- *  - Test user credentials supplied via env vars (E2E_USER_EMAIL / E2E_USER_PASSWORD).
- *    Skip-marked tests fall through gracefully when these aren't set so CI doesn't
- *    fail when the realm hasn't been seeded.
+ * Prereqs:
+ *  - Backend stack up (`docker compose --profile apps up -d`) with Keycloak
+ *    realm `vnshop` seeded and the `vnshop-admin-api` client configured
+ *    (`bash infra/scripts/setup-keycloak-admin-client.sh`).
+ *  - Frontend reachable at VITE_E2E_BASE_URL — defaults to the dockerised FE
+ *    at http://localhost:3000 so the suite exercises the production bundle.
+ *    Set VITE_E2E_BASE_URL=http://localhost:5173 to run against `npm run dev`
+ *    (and also unset E2E_SKIP_WEBSERVER so Playwright boots vite for you).
  */
 
-const baseURL = process.env.VITE_E2E_BASE_URL ?? "http://localhost:5173";
+const baseURL = process.env.VITE_E2E_BASE_URL ?? "http://localhost:3000";
+// The dockerised FE is already up; only auto-start a webServer when explicitly
+// pointed at the dev port. Default behaviour: assume the stack is running.
+const skipWebServer =
+  process.env.E2E_SKIP_WEBSERVER !== undefined || baseURL.includes(":3000");
 
 export default defineConfig({
   testDir: "./e2e",
@@ -33,7 +38,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: process.env.E2E_SKIP_WEBSERVER
+  webServer: skipWebServer
     ? undefined
     : {
         command: "npm run dev",
