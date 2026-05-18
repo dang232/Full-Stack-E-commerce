@@ -24,6 +24,11 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
+  // Run sequentially. The dockerised gateway has resilience4j circuit
+  // breakers + Redis rate limiters that trip under simultaneous register/
+  // login bursts from multiple workers, surfacing as 405/503 noise that
+  // looks like real bugs. One worker keeps the suite deterministic.
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
