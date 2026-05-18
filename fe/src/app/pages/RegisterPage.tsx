@@ -4,7 +4,6 @@ import { Trans, useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useSearchParams } from "react-router";
 
 import { useAuth } from "../hooks/use-auth";
-import { AuthError } from "../lib/auth/native-auth";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -67,14 +66,21 @@ export function RegisterPage() {
         });
         void navigate(next, { replace: true });
       } catch (err) {
-        if (err instanceof AuthError) {
-          if (err.errorCode === "email_taken") {
-            setError(t("register.form.errorEmailTaken"));
-          } else if (err.errorCode === "weak_password") {
-            setError(t("register.form.errorWeakPassword"));
-          } else {
-            setError(err.message || t("register.form.errorGeneric"));
-          }
+        // See LoginPage for why we duck-type instead of using `instanceof`.
+        const errorCode =
+          err && typeof err === "object" && "errorCode" in err
+            ? (err as { errorCode?: unknown }).errorCode
+            : undefined;
+        const message =
+          err && typeof err === "object" && "message" in err
+            ? (err as { message?: unknown }).message
+            : undefined;
+        if (errorCode === "email_taken") {
+          setError(t("register.form.errorEmailTaken"));
+        } else if (errorCode === "weak_password") {
+          setError(t("register.form.errorWeakPassword"));
+        } else if (typeof message === "string" && message) {
+          setError(message);
         } else {
           setError(t("register.form.errorGeneric"));
         }

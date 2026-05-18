@@ -4,7 +4,6 @@ import { Trans, useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useSearchParams } from "react-router";
 
 import { useAuth } from "../hooks/use-auth";
-import { AuthError } from "../lib/auth/native-auth";
 
 export function LoginPage() {
   const [params] = useSearchParams();
@@ -40,7 +39,17 @@ export function LoginPage() {
         await loginWithCredentials(identifier.trim(), password);
         void navigate(next, { replace: true });
       } catch (err) {
-        if (err instanceof AuthError && err.errorCode === "invalid_credentials") {
+        // Use duck-typing on errorCode rather than `instanceof AuthError`.
+        // Vite's manualChunks can split native-auth into a different chunk
+        // than LoginPage, so the imported `AuthError` constructor and the
+        // one thrown by passwordLogin become two distinct identities and
+        // `instanceof` fails even though the shape is identical. Match the
+        // structural contract instead.
+        const errorCode =
+          err && typeof err === "object" && "errorCode" in err
+            ? (err as { errorCode?: unknown }).errorCode
+            : undefined;
+        if (errorCode === "invalid_credentials") {
           setError(t("login.form.errorInvalidCredentials"));
         } else {
           setError(t("login.form.errorGeneric"));

@@ -121,14 +121,28 @@ export async function passwordLogin(username: string, password: string): Promise
     client_id: CLIENT_ID,
     username,
     password,
-    scope: "openid profile email",
+    // Skip the explicit `scope` param — vnshop-api's default scopes (`roles`)
+    // include everything we need (sub, realm_access). Asking for
+    // "openid profile email" gets rejected with `invalid_scope` because they
+    // aren't on the client's optional-scopes list.
   });
   const res = await postForm(body);
   if (!res.ok) {
-    if (res.status === 401) {
-      throw new AuthError(401, "invalid_credentials", "Invalid email/username or password");
-    }
+    // Keycloak returns 400 with `error: invalid_grant` for wrong credentials
+    // (not 401). 401 is reserved for missing/invalid auth on protected
+    // endpoints. Read the body and key off the OAuth error code.
     const text = await res.text().catch(() => "");
+    const oauthError = (() => {
+      try {
+        const parsed = JSON.parse(text) as { error?: unknown };
+        return typeof parsed?.error === "string" ? parsed.error : null;
+      } catch {
+        return null;
+      }
+    })();
+    if (oauthError === "invalid_grant" || res.status === 401) {
+      throw new AuthError(res.status, "invalid_credentials", "Invalid email/username or password");
+    }
     throw new AuthError(res.status, "auth_failed", text || `Login failed (HTTP ${res.status})`);
   }
   return tokenSetFrom((await res.json()) as KeycloakTokenResponse);
