@@ -29,7 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>Note: Hibernate's saveAndFlush is sufficient here because each order
  * is processed in a single transaction. Concurrent processing of different
  * orders that touch the same (A,B) pair will serialize on the row lock for
- * that pair — that's fine and correct, and the volume is low for an MVP.
+ * that pair — that's fine and correct at current write volumes; revisit
+ * when contention shows up in metrics.
  */
 @Service
 public class CoPurchaseAggregator {

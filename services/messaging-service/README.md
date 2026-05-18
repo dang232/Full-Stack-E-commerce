@@ -1,6 +1,6 @@
 # messaging-service
 
-Buyer-seller direct messaging MVP. Mirrors notification-service shape (NestJS +
+Buyer-seller direct messaging. Mirrors notification-service shape (NestJS +
 MikroORM + Kafka + JWT-validated REST) and adds a WebSocket gateway for real-time
 delivery.
 

@@ -20,8 +20,8 @@ import { WsJwtVerifier } from "./auth/ws-jwt.verifier";
  * Why a custom gateway instead of `@SubscribeMessage` handlers? The handshake
  * happens during HTTP upgrade, before passport-jwt can decorate the request,
  * so we have to verify the token ourselves. Once verified we don't need any
- * client-to-server message routing for the MVP — clients are subscribers,
- * sending happens over REST.
+ * client-to-server message routing — clients are subscribers, sending happens
+ * over REST.
  */
 @WebSocketGateway({ path: "/ws/messaging" })
 @Injectable()
