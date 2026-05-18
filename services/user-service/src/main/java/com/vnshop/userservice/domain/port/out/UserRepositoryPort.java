@@ -18,4 +18,8 @@ public interface UserRepositoryPort {
     List<SellerProfile> findPendingSellers();
 
     SellerProfile updateSeller(SellerProfile sellerProfile);
+
+    List<SellerProfile> findApprovedSellers(int page, int size);
+
+    long countApprovedSellers();
 }

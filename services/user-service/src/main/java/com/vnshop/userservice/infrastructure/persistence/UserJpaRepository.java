@@ -68,6 +68,29 @@ public class UserJpaRepository implements UserRepositoryPort {
         return saveSeller(sellerProfile);
     }
 
+    @Override
+    public List<SellerProfile> findApprovedSellers(int page, int size) {
+        return entityManager.createQuery(
+                        "select seller from SellerProfileJpaEntity seller where seller.approved = true order by seller.createdAt desc",
+                        SellerProfileJpaEntity.class
+                )
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList()
+                .stream()
+                .map(SellerProfileJpaEntity::toDomain)
+                .toList();
+    }
+
+    @Override
+    public long countApprovedSellers() {
+        return entityManager.createQuery(
+                        "select count(seller) from SellerProfileJpaEntity seller where seller.approved = true",
+                        Long.class
+                )
+                .getSingleResult();
+    }
+
     private Optional<BuyerProfileJpaEntity> findBuyerEntityByKeycloakId(String keycloakId) {
         return entityManager.createQuery(
                         "select buyer from BuyerProfileJpaEntity buyer left join fetch buyer.addresses where buyer.keycloakId = :keycloakId",

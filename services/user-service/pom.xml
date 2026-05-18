@@ -58,6 +58,20 @@
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-micrometer</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
@@ -174,6 +188,18 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
+							<!-- Infrastructure adapters (persistence, web, keycloak, config)
+							     require Spring context / DB / Keycloak and are covered by
+							     integration tests, not unit tests. Exclude them from the
+							     unit-test coverage gate. -->
+							<excludes>
+								<exclude>**/*Application.class</exclude>
+								<exclude>com/vnshop/userservice/infrastructure/persistence/**</exclude>
+								<exclude>com/vnshop/userservice/infrastructure/keycloak/**</exclude>
+								<exclude>com/vnshop/userservice/infrastructure/web/**</exclude>
+								<exclude>com/vnshop/userservice/infrastructure/config/**</exclude>
+								<exclude>com/vnshop/userservice/infrastructure/integration/**</exclude>
+							</excludes>
 							<rules>
 								<rule>
 									<element>PACKAGE</element>

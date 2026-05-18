@@ -1,5 +1,6 @@
 package com.vnshop.userservice;
 
+import com.vnshop.userservice.domain.port.out.SellerStatsPort;
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
 import com.vnshop.userservice.domain.port.out.WishlistRepositoryPort;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,9 @@ class UserServiceApplicationTests {
 
 	@MockitoBean
 	private WishlistRepositoryPort wishlistRepositoryPort;
+
+	@MockitoBean
+	private SellerStatsPort sellerStatsPort;
 
 	@Test
 	void contextLoads() {

@@ -1,7 +1,9 @@
 package com.vnshop.userservice.infrastructure.config;
 
 import com.vnshop.userservice.application.ApproveSellerUseCase;
+import com.vnshop.userservice.application.GetPublicSellerUseCase;
 import com.vnshop.userservice.application.ListPendingSellersUseCase;
+import com.vnshop.userservice.application.ListPublicSellersUseCase;
 import com.vnshop.userservice.application.ManageAddressUseCase;
 import com.vnshop.userservice.application.RegisterBuyerUseCase;
 import com.vnshop.userservice.application.RegisterSellerUseCase;
@@ -9,6 +11,7 @@ import com.vnshop.userservice.application.UpsertBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewSellerProfileUseCase;
 import com.vnshop.userservice.application.WishlistUseCase;
+import com.vnshop.userservice.domain.port.out.SellerStatsPort;
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
 import com.vnshop.userservice.domain.port.out.WishlistRepositoryPort;
 import org.springframework.context.annotation.Bean;
@@ -59,5 +62,15 @@ public class UseCaseConfig {
     @Bean
     WishlistUseCase wishlistUseCase(WishlistRepositoryPort wishlistRepositoryPort) {
         return new WishlistUseCase(wishlistRepositoryPort);
+    }
+
+    @Bean
+    GetPublicSellerUseCase getPublicSellerUseCase(UserRepositoryPort userRepositoryPort, SellerStatsPort sellerStatsPort) {
+        return new GetPublicSellerUseCase(userRepositoryPort, sellerStatsPort);
+    }
+
+    @Bean
+    ListPublicSellersUseCase listPublicSellersUseCase(UserRepositoryPort userRepositoryPort, SellerStatsPort sellerStatsPort) {
+        return new ListPublicSellersUseCase(userRepositoryPort, sellerStatsPort);
     }
 }

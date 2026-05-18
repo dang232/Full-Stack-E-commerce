@@ -1,5 +1,6 @@
 package com.vnshop.userservice.infrastructure.web;
 
+import com.vnshop.userservice.domain.SellerNotFoundException;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @ExceptionHandler(SellerNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> sellerNotFound(SellerNotFoundException exception) {
+        return ApiResponse.error(exception.getMessage(), "not_found");
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> badRequest(IllegalArgumentException exception) {
