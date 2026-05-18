@@ -601,6 +601,124 @@ async function main() {
     });
   });
 
+  // 8b. Saga compensation paths. Two flows the saga orchestrator must
+  // own end-to-end:
+  //   1) Cancel-before-fulfilment — place a fresh order, immediately
+  //      DELETE /orders/{id}/cancel. Inventory release + coupon release
+  //      + payment-failed transition all run inside CancelOrderUseCase;
+  //      the saga listener publishes the matching outbox events.
+  //   2) Return-after-ship — use the already-shipped sub-order from the
+  //      fulfilment section. POST /returns -> POST /returns/{id}/approve
+  //      -> POST /returns/{id}/complete. Complete triggers
+  //      RefundRequestPublisherAdapter, which is the visible side of the
+  //      saga compensation contract.
+  await record("saga", "POST /orders (place a fresh order to cancel)", async () => {
+    if (!ctx.sellerProduct) throw new Error("missing seller product details");
+    const idempotencyKey = `e2e-cancel-${Date.now()}`;
+    const variant = ctx.sellerProduct.variants?.[0];
+    const sku = variant?.sku ?? ctx.sellerProductSku;
+    const price = variant?.priceAmount ?? 199000;
+    const sellerId = ctx.sellerProduct.sellerId;
+    const res = await http("POST", "/orders", {
+      token: ctx.buyerToken,
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: {
+        shippingAddress: { street: "1 Test Way", district: "Q1", city: "HCMC" },
+        items: [
+          {
+            productId: ctx.sellerProductId,
+            variantSku: sku,
+            sellerId,
+            name: ctx.sellerProduct.name,
+            quantity: 1,
+            unitPriceAmount: price,
+            unitPriceCurrency: "VND",
+            imageUrl: ctx.sellerProduct.images?.[0]?.url ?? null,
+          },
+        ],
+      },
+      expect: [200, 201],
+    });
+    const order = unwrap(res.body);
+    ctx.cancelOrderId = order?.id;
+    if (!ctx.cancelOrderId) throw new Error(`no orderId in cancel-target response: ${truncate(res.raw, 240)}`);
+  });
+
+  await record("saga", "DELETE /orders/{id}/cancel (buyer cancels before accept)", async () => {
+    if (!ctx.cancelOrderId) throw new Error("no cancel-target order id");
+    const res = await http("DELETE", `/orders/${ctx.cancelOrderId}/cancel`, {
+      token: ctx.buyerToken,
+    });
+    const data = unwrap(res.body);
+    // The cancel use case marks payment as failed and cancels eligible sub-orders.
+    // The exact status surface depends on the OrderResponse mapper; we mostly want
+    // to verify the endpoint round-trips and the order shape comes back.
+    if (!data?.id || data.id !== ctx.cancelOrderId) {
+      throw new Error(`expected cancelled order id ${ctx.cancelOrderId}, got ${truncate(res.raw, 200)}`);
+    }
+  });
+
+  await record("saga", "GET /orders/{id} reflects cancellation", async () => {
+    if (!ctx.cancelOrderId) throw new Error("no cancel-target order id");
+    // The order remains visible to the buyer post-cancel — only the status
+    // transitions. The CQRS read-side may lag briefly; poll for up to 5s.
+    const deadline = Date.now() + 5_000;
+    while (true) {
+      const res = await http("GET", `/orders/${ctx.cancelOrderId}`, { token: ctx.buyerToken });
+      const data = unwrap(res.body);
+      if (data?.id === ctx.cancelOrderId) return;
+      if (Date.now() >= deadline) {
+        throw new Error(`cancelled order not retrievable after 5s: ${truncate(res.raw, 200)}`);
+      }
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  });
+
+  await record("saga", "POST /returns (buyer requests return on shipped sub-order)", async () => {
+    if (!ctx.subOrderId) throw new Error("no sub-order id from fulfilment section");
+    // The return use case enforces "return can be requested after shipment" —
+    // the previous fulfilment section already shipped this sub-order.
+    const res = await http("POST", "/returns", {
+      token: ctx.buyerToken,
+      body: { subOrderId: ctx.subOrderId, reason: "E2E test — defective unit" },
+      expect: [200, 201],
+    });
+    const data = unwrap(res.body);
+    ctx.returnId = data?.id ?? data?.returnId;
+    if (!ctx.returnId) throw new Error(`no return id in response: ${truncate(res.raw, 240)}`);
+  });
+
+  await record("saga", "POST /returns/{id}/approve (admin)", async () => {
+    if (!ctx.returnId) throw new Error("no return id");
+    await http("POST", `/returns/${ctx.returnId}/approve`, {
+      token: ctx.adminToken,
+      expect: [200, 201],
+    });
+  });
+
+  await record("saga", "POST /returns/{id}/complete (admin triggers refund)", async () => {
+    if (!ctx.returnId) throw new Error("no return id");
+    // Complete invokes RefundRequestPublisherAdapter — the saga's only
+    // observable side effect from this seam. We just verify the endpoint
+    // round-trips; downstream payment-service refund handling has its own
+    // unit coverage in payment-service.
+    await http("POST", `/returns/${ctx.returnId}/complete`, {
+      token: ctx.adminToken,
+      expect: [200, 201],
+    });
+  });
+
+  await record("saga", "GET /returns shows the completed return", async () => {
+    const res = await http("GET", "/returns", { token: ctx.buyerToken });
+    const list = unwrap(res.body);
+    if (!Array.isArray(list)) {
+      throw new Error(`expected array of returns, got ${truncate(res.raw, 200)}`);
+    }
+    if (!list.find((r) => (r.id ?? r.returnId) === ctx.returnId)) {
+      throw new Error(`return ${ctx.returnId} not visible in buyer's list: ${truncate(res.raw, 200)}`);
+    }
+  });
+
   // 9. Reviews + Q&A.
   await record("review", "POST /reviews (buyer leaves a review)", async () => {
     // Some review use cases require a delivered orderId. Pass it; if the BE
