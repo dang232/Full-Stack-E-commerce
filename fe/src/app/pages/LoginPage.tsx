@@ -145,14 +145,13 @@ export function LoginPage() {
                 <input type="checkbox" className="rounded border-gray-300 text-[#00BFB3] focus:ring-[#00BFB3]" />
                 {t("login.form.remember")}
               </label>
-              <a
-                href={`${(import.meta.env as Record<string, string | undefined>).VITE_KEYCLOAK_URL ?? "http://localhost:8085"}/realms/vnshop/account/`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => void navigate("/password-reset")}
                 className="font-medium text-[#00BFB3] hover:underline"
               >
                 {t("login.form.forgot")}
-              </a>
+              </button>
             </div>
 
             <button

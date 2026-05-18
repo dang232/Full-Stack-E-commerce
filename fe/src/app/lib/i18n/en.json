@@ -321,6 +321,18 @@
       "forgot": "Forgot password?"
     }
   },
+  "passwordReset": {
+    "title": "Reset your password",
+    "subtitle": "Enter your email and we'll send you a reset link.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "submit": "Send reset link",
+    "submitting": "Sending...",
+    "successTitle": "Check your inbox",
+    "successBody": "If an account exists for that email, a reset link is on its way. The link expires in a few minutes.",
+    "backToLogin": "Back to sign in",
+    "errorGeneric": "Couldn't send the reset email. Try again in a moment."
+  },
   "register": {
     "title": "Create your VNShop account",
     "subtitle": "Free forever. No credit card needed.",

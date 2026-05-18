@@ -42,6 +42,9 @@ const MessagesPage = lazy(() =>
 const SellerDetailPage = lazy(() =>
   import("./pages/SellerDetailPage").then((m) => ({ default: m.SellerDetailPage })),
 );
+const PasswordResetPage = lazy(() =>
+  import("./pages/PasswordResetPage").then((m) => ({ default: m.PasswordResetPage })),
+);
 
 const Fallback = () =>
   createElement(
@@ -75,6 +78,7 @@ export const router = createBrowserRouter([
       { path: "wishlist", element: guarded(createElement(WishlistPage)) },
       { path: "login", Component: LoginPage },
       { path: "register", Component: RegisterPage },
+      { path: "password-reset", element: lazyRoute(createElement(PasswordResetPage)) },
       { path: "seller/*", element: sellerOnly(createElement(SellerPage)) },
       { path: "admin/*", element: adminOnly(createElement(AdminPage)) },
       { path: "design-system", element: lazyRoute(createElement(DesignSystemPage)) },

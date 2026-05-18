@@ -321,6 +321,18 @@
       "forgot": "Quên mật khẩu?"
     }
   },
+  "passwordReset": {
+    "title": "Đặt lại mật khẩu",
+    "subtitle": "Nhập email và chúng tôi sẽ gửi liên kết đặt lại.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "ban@example.com",
+    "submit": "Gửi liên kết đặt lại",
+    "submitting": "Đang gửi...",
+    "successTitle": "Kiểm tra hộp thư của bạn",
+    "successBody": "Nếu email này đã đăng ký, liên kết đặt lại đã được gửi. Liên kết sẽ hết hạn sau vài phút.",
+    "backToLogin": "Quay lại đăng nhập",
+    "errorGeneric": "Không thể gửi email đặt lại. Vui lòng thử lại sau."
+  },
   "register": {
     "title": "Tạo tài khoản VNShop",
     "subtitle": "Miễn phí, không cần thẻ thanh toán.",
