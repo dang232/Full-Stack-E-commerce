@@ -82,7 +82,17 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.05, 0.4), duration: 0.3 }}
       className="group rounded-2xl overflow-hidden cursor-pointer bg-white border border-gray-100 hover:border-transparent hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300"
-      onClick={() => navigate(`/product/${product.id}`)}
+      role="link"
+      tabIndex={0}
+      aria-label={product.name}
+      data-testid="product-card"
+      onClick={() => void navigate(`/product/${product.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          void navigate(`/product/${product.id}`);
+        }
+      }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
         <ImageWithFallback
@@ -395,7 +405,9 @@ function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
                 Math.max(0, Math.round(((c.stockTotal - remaining) / c.stockTotal) * 100)),
               )
             : null;
-        const imageSrc = product?.image ?? product?.images?.[0] ?? "";
+        const firstImage = product?.images?.[0];
+        const firstImageUrl = typeof firstImage === "string" ? firstImage : firstImage?.url;
+        const imageSrc = product?.image ?? firstImageUrl ?? "";
         const showProductImage = !!product && !productLoading && !isError && !!imageSrc;
         const productName = product?.name;
         return (

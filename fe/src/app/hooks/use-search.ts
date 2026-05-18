@@ -10,23 +10,32 @@ function pct(originalPrice: number | undefined, price: number | undefined): numb
 }
 
 function fromServer(p: ProductSummary): Product {
+  // ProductSummary.images can be string[] (legacy/search shape) or
+  // {url, alt, sortOrder}[] (product-service shape). Normalise to string[]
+  // so the UI Product type stays a thin string-array on `images`.
+  const images: string[] = (p.images ?? [])
+    .map((entry) => (typeof entry === "string" ? entry : entry?.url ?? ""))
+    .filter((url): url is string => !!url);
+  const firstVariant = p.variants?.[0];
+  const primaryImage = p.image ?? images[0] ?? firstVariant?.imageUrl ?? "";
+  const price = p.price ?? firstVariant?.priceAmount ?? 0;
   return {
     id: p.id,
     name: p.name,
     nameEn: p.name,
-    price: p.price ?? 0,
+    price,
     originalPrice: p.originalPrice,
-    discount: pct(p.originalPrice, p.price),
-    image: p.image ?? p.images?.[0] ?? "",
-    images: p.images ?? (p.image ? [p.image] : []),
-    category: p.category ?? "",
-    categoryLabel: p.category ?? "",
+    discount: pct(p.originalPrice, price),
+    image: primaryImage,
+    images: images.length > 0 ? images : primaryImage ? [primaryImage] : [],
+    category: p.category ?? p.categoryId ?? "",
+    categoryLabel: p.category ?? p.categoryId ?? "",
     sellerId: p.sellerId ?? "",
     sellerName: p.sellerName ?? "",
     rating: p.rating ?? 0,
     reviewCount: p.reviewCount ?? 0,
     sold: p.sold ?? 0,
-    stock: p.stock ?? 0,
+    stock: p.stock ?? firstVariant?.stockQuantity ?? 0,
     description: "",
     shipping: "Tiêu chuẩn",
     shippingFee: 0,

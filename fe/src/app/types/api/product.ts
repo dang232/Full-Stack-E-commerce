@@ -1,5 +1,31 @@
 import { z } from "zod";
 
+// BE returns image objects ({url, alt, sortOrder}); some other endpoints (e.g.
+// search) emit a flat string array; legacy demo data sometimes ships single
+// `image`. Accept all three shapes and let `fromServer` flatten.
+const imageEntrySchema = z.union([
+  z.string(),
+  z
+    .object({
+      url: z.string(),
+      alt: z.string().optional(),
+      sortOrder: z.number().optional(),
+    })
+    .passthrough(),
+]);
+
+// Variants from product-service: priceAmount/priceCurrency/sku/imageUrl/...
+const productVariantSchema = z
+  .object({
+    sku: z.string().optional(),
+    name: z.string().optional(),
+    priceAmount: z.number().optional(),
+    priceCurrency: z.string().optional(),
+    imageUrl: z.string().optional(),
+    stockQuantity: z.number().optional(),
+  })
+  .passthrough();
+
 export const productSummarySchema = z
   .object({
     id: z.string(),
@@ -7,8 +33,11 @@ export const productSummarySchema = z
     price: z.number().optional(),
     originalPrice: z.number().optional(),
     image: z.string().optional(),
-    images: z.array(z.string()).optional(),
+    images: z.array(imageEntrySchema).optional(),
+    variants: z.array(productVariantSchema).optional(),
     category: z.string().optional(),
+    categoryId: z.string().optional(),
+    brand: z.string().optional(),
     sellerId: z.string().optional(),
     sellerName: z.string().optional(),
     rating: z.number().optional(),
