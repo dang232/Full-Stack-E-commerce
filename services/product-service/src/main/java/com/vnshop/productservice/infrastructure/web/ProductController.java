@@ -1,11 +1,13 @@
 package com.vnshop.productservice.infrastructure.web;
 
+import com.vnshop.productservice.application.CountSellerProductsUseCase;
 import com.vnshop.productservice.application.CreateProductCommand;
 import com.vnshop.productservice.application.CreateProductUseCase;
 import com.vnshop.productservice.application.GetProductUseCase;
 import com.vnshop.productservice.application.UpdateProductUseCase;
 import com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil;
 import com.vnshop.productservice.application.ProductResponse;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -28,11 +30,14 @@ public class ProductController {
     private final CreateProductUseCase createProductUseCase;
     private final UpdateProductUseCase updateProductUseCase;
     private final GetProductUseCase getProductUseCase;
+    private final CountSellerProductsUseCase countSellerProductsUseCase;
 
-    public ProductController(CreateProductUseCase createProductUseCase, UpdateProductUseCase updateProductUseCase, GetProductUseCase getProductUseCase) {
+    public ProductController(CreateProductUseCase createProductUseCase, UpdateProductUseCase updateProductUseCase,
+            GetProductUseCase getProductUseCase, CountSellerProductsUseCase countSellerProductsUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.updateProductUseCase = updateProductUseCase;
         this.getProductUseCase = getProductUseCase;
+        this.countSellerProductsUseCase = countSellerProductsUseCase;
     }
 
     @PostMapping("/sellers/me/products")
@@ -68,9 +73,23 @@ public class ProductController {
     public ApiResponse<Page<ProductResponse>> findProducts(
             @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String sellerId,
             Pageable pageable
     ) {
-        return ApiResponse.ok(getProductUseCase.findCatalog(categoryId, q, pageable));
+        return ApiResponse.ok(getProductUseCase.findCatalog(categoryId, q, sellerId, pageable));
+    }
+
+    // NOTE: /products/count is a literal segment and must be declared before /products/{id}
+    // so Spring resolves it first. Spring MVC already prefers literal over path-variable
+    // segments, but explicit ordering here makes the intent clear.
+    @GetMapping("/products/count")
+    public ApiResponse<SellerProductCountResponse> countBySeller(@RequestParam String sellerId) {
+        return ApiResponse.ok(new SellerProductCountResponse(countSellerProductsUseCase.count(sellerId)));
+    }
+
+    @PostMapping("/products/counts")
+    public ApiResponse<ProductCountsResponse> countBySellerIds(@Valid @RequestBody ProductCountsRequest request) {
+        return ApiResponse.ok(new ProductCountsResponse(countSellerProductsUseCase.countAll(request.sellerIds())));
     }
 
     @GetMapping("/products/{id}")

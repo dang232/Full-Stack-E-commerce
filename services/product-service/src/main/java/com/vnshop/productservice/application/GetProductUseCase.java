@@ -37,7 +37,7 @@ public class GetProductUseCase {
         return productRepositoryPort.findDistinctCategories();
     }
 
-    public Page<ProductResponse> findCatalog(String categoryId, String q, Pageable pageable) {
-        return productRepositoryPort.findCatalog(categoryId, q, pageable).map(ProductResponse::fromDomain);
+    public Page<ProductResponse> findCatalog(String categoryId, String q, String sellerId, Pageable pageable) {
+        return productRepositoryPort.findCatalog(categoryId, q, sellerId, pageable).map(ProductResponse::fromDomain);
     }
 }

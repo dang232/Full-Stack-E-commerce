@@ -3,9 +3,12 @@ package com.vnshop.productservice.domain.review.port.out;
 import com.vnshop.productservice.domain.review.ProductQuestion;
 import com.vnshop.productservice.domain.review.Review;
 import com.vnshop.productservice.domain.review.ReviewStatus;
+import com.vnshop.productservice.domain.review.SellerReviewSummary;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface ReviewRepositoryPort {
@@ -26,4 +29,8 @@ public interface ReviewRepositoryPort {
     List<ProductQuestion> findQuestionsByProductId(String productId);
 
     Optional<ProductQuestion> findQuestionById(UUID questionId);
+
+    SellerReviewSummary getSellerReviewSummary(String sellerId);
+
+    Map<String, SellerReviewSummary> getSellerReviewSummaries(Set<String> sellerIds);
 }

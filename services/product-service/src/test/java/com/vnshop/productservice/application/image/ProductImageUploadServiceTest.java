@@ -127,8 +127,22 @@ class ProductImageUploadServiceTest {
 
         @Override
         public org.springframework.data.domain.Page<Product> findCatalog(
-                String categoryId, String q, org.springframework.data.domain.Pageable pageable) {
+                String categoryId, String q, String sellerId, org.springframework.data.domain.Pageable pageable) {
             return org.springframework.data.domain.Page.empty(pageable);
+        }
+
+        @Override
+        public long countBySellerId(String sellerId) {
+            return products.values().stream().filter(p -> sellerId.equals(p.sellerId())).count();
+        }
+
+        @Override
+        public java.util.Map<String, Long> countBySellerIds(java.util.Set<String> sellerIds) {
+            java.util.Map<String, Long> result = new java.util.HashMap<>();
+            for (String id : sellerIds) {
+                result.put(id, products.values().stream().filter(p -> id.equals(p.sellerId())).count());
+            }
+            return result;
         }
     }
 

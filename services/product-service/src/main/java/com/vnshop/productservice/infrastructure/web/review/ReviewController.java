@@ -4,7 +4,9 @@ import com.vnshop.productservice.infrastructure.web.ApiResponse;
 import com.vnshop.productservice.application.review.CreateReviewCommand;
 import com.vnshop.productservice.application.review.CreateReviewUseCase;
 import com.vnshop.productservice.application.review.GetProductReviewsUseCase;
+import com.vnshop.productservice.application.review.SellerReviewSummaryUseCase;
 import com.vnshop.productservice.application.review.VoteHelpfulUseCase;
+import com.vnshop.productservice.domain.review.SellerReviewSummary;
 import com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -26,17 +28,29 @@ public class ReviewController {
     private final CreateReviewUseCase createReviewUseCase;
     private final GetProductReviewsUseCase getProductReviewsUseCase;
     private final VoteHelpfulUseCase voteHelpfulUseCase;
+    private final SellerReviewSummaryUseCase sellerReviewSummaryUseCase;
 
     public ReviewController(CreateReviewUseCase createReviewUseCase, GetProductReviewsUseCase getProductReviewsUseCase,
-            VoteHelpfulUseCase voteHelpfulUseCase) {
+            VoteHelpfulUseCase voteHelpfulUseCase, SellerReviewSummaryUseCase sellerReviewSummaryUseCase) {
         this.createReviewUseCase = createReviewUseCase;
         this.getProductReviewsUseCase = getProductReviewsUseCase;
         this.voteHelpfulUseCase = voteHelpfulUseCase;
+        this.sellerReviewSummaryUseCase = sellerReviewSummaryUseCase;
     }
 
     @GetMapping("/product/{productId}")
     public ApiResponse<List<ReviewResponse>> byProduct(@PathVariable String productId) {
         return ApiResponse.ok(getProductReviewsUseCase.get(productId).stream().map(ReviewResponse::fromDomain).toList());
+    }
+
+    @GetMapping("/seller/{sellerId}/summary")
+    public ApiResponse<SellerReviewSummary> sellerSummary(@PathVariable String sellerId) {
+        return ApiResponse.ok(sellerReviewSummaryUseCase.getSummary(sellerId));
+    }
+
+    @PostMapping("/seller-summaries")
+    public ApiResponse<SellerSummariesResponse> sellerSummaries(@Valid @RequestBody SellerSummariesRequest request) {
+        return ApiResponse.ok(new SellerSummariesResponse(sellerReviewSummaryUseCase.getSummaries(request.sellerIds())));
     }
 
     @PostMapping

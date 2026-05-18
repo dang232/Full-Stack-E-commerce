@@ -28,10 +28,17 @@ interface ProductJpaSpringDataRepository extends JpaRepository<ProductJpaEntity,
             select product from ProductJpaEntity product
             where (:categoryId is null or product.categoryId = cast(:categoryId as string))
               and (:q is null or lower(product.name) like lower(concat('%', cast(:q as string), '%')))
+              and (:sellerId is null or product.sellerId = cast(:sellerId as string))
             """)
     Page<ProductJpaEntity> findCatalog(
             @Param("categoryId") String categoryId,
             @Param("q") String q,
+            @Param("sellerId") String sellerId,
             Pageable pageable
     );
+
+    long countBySellerId(String sellerId);
+
+    @Query("SELECT p.sellerId, COUNT(p) FROM ProductJpaEntity p WHERE p.sellerId IN :ids GROUP BY p.sellerId")
+    List<Object[]> countBySellerIds(@Param("ids") java.util.Collection<String> ids);
 }
