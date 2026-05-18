@@ -779,6 +779,83 @@ async function main() {
     });
   });
 
+  // 10c. Notifications inbox. notification-service consumes Kafka and exposes
+  // the buyer-facing inbox. The earlier POST /orders should have produced a
+  // notification, but Kafka delivery is async — instead we drive the
+  // deterministic POST /notifications/test path which the BE exposes for
+  // exactly this scenario.
+  await record("notifications", "GET /notifications/unread-count (initial)", async () => {
+    const res = await http("GET", "/notifications/unread-count", { token: ctx.buyerToken });
+    const data = unwrap(res.body);
+    if (typeof data?.count !== "number") {
+      throw new Error(`expected numeric count, got ${truncate(res.raw, 200)}`);
+    }
+    ctx.notificationsBaselineUnread = data.count;
+  });
+
+  await record("notifications", "POST /notifications/test (create test notification)", async () => {
+    const res = await http("POST", "/notifications/test", {
+      token: ctx.buyerToken,
+      expect: [200, 201],
+    });
+    const data = unwrap(res.body);
+    if (!data?.id) {
+      throw new Error(`expected id on created notification, got ${truncate(res.raw, 200)}`);
+    }
+    ctx.notificationId = data.id;
+  });
+
+  await record("notifications", "GET /notifications shows the new notification", async () => {
+    // Persistence write is sync, so no projection lag here. List in
+    // descending createdAt order; the new notification should be on page 0.
+    const res = await http("GET", "/notifications?size=10", { token: ctx.buyerToken });
+    const data = unwrap(res.body);
+    const items = data?.content ?? [];
+    if (!Array.isArray(items)) {
+      throw new Error(`expected paged content, got ${truncate(res.raw, 200)}`);
+    }
+    if (!items.some((n) => n.id === ctx.notificationId)) {
+      throw new Error(`new notification ${ctx.notificationId} missing from list: ${truncate(res.raw, 200)}`);
+    }
+  });
+
+  await record("notifications", "GET /notifications/unread-count reflects the new one", async () => {
+    const res = await http("GET", "/notifications/unread-count", { token: ctx.buyerToken });
+    const data = unwrap(res.body);
+    if (data?.count <= ctx.notificationsBaselineUnread) {
+      throw new Error(`expected unread count > baseline (${ctx.notificationsBaselineUnread}), got ${data?.count}`);
+    }
+  });
+
+  await record("notifications", "POST /notifications/{id}/read marks single as read", async () => {
+    if (!ctx.notificationId) throw new Error("missing notification id");
+    const res = await http("POST", `/notifications/${ctx.notificationId}/read`, {
+      token: ctx.buyerToken,
+      expect: [200, 201],
+    });
+    const data = unwrap(res.body);
+    if (data?.read !== true) {
+      throw new Error(`expected read=true after mark-read, got ${truncate(res.raw, 200)}`);
+    }
+  });
+
+  await record("notifications", "POST /notifications/mark-all-read drains unread", async () => {
+    const res = await http("POST", "/notifications/mark-all-read", {
+      token: ctx.buyerToken,
+      expect: [200, 201],
+    });
+    const data = unwrap(res.body);
+    if (typeof data?.updated !== "number") {
+      throw new Error(`expected numeric updated count, got ${truncate(res.raw, 200)}`);
+    }
+    // Verify the count actually went to zero.
+    const after = await http("GET", "/notifications/unread-count", { token: ctx.buyerToken });
+    const afterData = unwrap(after.body);
+    if (afterData?.count !== 0) {
+      throw new Error(`expected unread count=0 after mark-all-read, got ${afterData?.count}`);
+    }
+  });
+
   // 10b. Messaging WebSocket. The /ws/messaging handshake takes the JWT via
   // the `?token=` query parameter (browsers can't set Authorization headers
   // on `new WebSocket(...)`). pt2 flagged this as the highest-risk untested
