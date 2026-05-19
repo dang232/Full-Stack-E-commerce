@@ -1023,6 +1023,83 @@ async function main() {
     });
   });
 
+  // 13. Multi-payment shape checks. Each method is gated on its env flag —
+  // unconditionally exercising them would force every dev to wire sandbox
+  // creds. Skip cleanly when off so the suite stays green by default.
+  //
+  // Stripe: webhook completion is *not* exercised here — that path requires
+  // the Stripe CLI listening on the local webhook URL, which CI doesn't have.
+  // To smoke the webhook locally:
+  //   stripe trigger payment_intent.succeeded \
+  //     --override payment_intent:metadata.paymentId={id}
+  if (process.env.STRIPE_ENABLED === "true") {
+    await record("payment_stripe", "POST /payment/stripe/create returns clientSecret", async () => {
+      const res = await http("POST", "/payment/stripe/create", {
+        token: ctx.buyerToken,
+        body: {
+          orderId: `E2E-STRIPE-${Date.now()}`,
+          buyerId: "BUYER-1",
+          amount: 100000,
+        },
+      });
+      const data = unwrap(res.body);
+      if (!data?.clientSecret || typeof data.clientSecret !== "string") {
+        throw new Error(`expected clientSecret string, got ${truncate(res.raw, 200)}`);
+      }
+      if (!data?.intentId?.startsWith("pi_")) {
+        throw new Error(`expected intentId starting with pi_, got ${data?.intentId}`);
+      }
+      if (!data?.payment?.paymentId) {
+        throw new Error(`expected payment.paymentId, got ${truncate(res.raw, 200)}`);
+      }
+    });
+  }
+
+  if (process.env.PAYPAL_ENABLED === "true") {
+    await record("payment_paypal", "POST /payment/paypal/create returns paypalOrderId", async () => {
+      const res = await http("POST", "/payment/paypal/create", {
+        token: ctx.buyerToken,
+        body: {
+          orderId: `E2E-PAYPAL-${Date.now()}`,
+          buyerId: "BUYER-1",
+          amount: 100000,
+        },
+      });
+      const data = unwrap(res.body);
+      if (!data?.paypalOrderId) {
+        throw new Error(`expected paypalOrderId, got ${truncate(res.raw, 200)}`);
+      }
+      if (!data?.clientId) {
+        throw new Error(`expected clientId, got ${truncate(res.raw, 200)}`);
+      }
+      if (!data?.payment?.paymentId) {
+        throw new Error(`expected payment.paymentId, got ${truncate(res.raw, 200)}`);
+      }
+    });
+  }
+
+  if (process.env.VIETQR_ENABLED !== "false") {
+    await record("payment_vietqr", "POST /payment/vietqr/create returns qrImageUrl", async () => {
+      const res = await http("POST", "/payment/vietqr/create", {
+        token: ctx.buyerToken,
+        body: {
+          orderId: `E2E-VIETQR-${Date.now()}`,
+          buyerId: "BUYER-1",
+          amount: 100000,
+        },
+        expect: [200, 503],
+      });
+      if (res.status === 503) return; // VietQR account not configured — skip.
+      const data = unwrap(res.body);
+      if (!data?.qrImageUrl) {
+        throw new Error(`expected qrImageUrl, got ${truncate(res.raw, 200)}`);
+      }
+      if (!data?.payment?.paymentId) {
+        throw new Error(`expected payment.paymentId, got ${truncate(res.raw, 200)}`);
+      }
+    });
+  }
+
   // Summary.
   console.log(`\n=== summary ===`);
   const pass = results.filter((r) => r.status === "PASS").length;
