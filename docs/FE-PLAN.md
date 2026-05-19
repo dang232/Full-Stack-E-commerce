@@ -191,15 +191,19 @@ Requires `x-user-id` header (set by gateway from JWT).
 
 ### 💳 payment-service (8092)
 
-| Method | Path | Purpose |
-|---|---|---|
-| POST | `/payment/cod/confirm` | Mark COD paid |
-| POST | `/payment/vnpay/create` | Init VNPay |
-| GET | `/payment/vnpay/return` | Browser return |
-| GET | `/payment/vnpay/ipn` | Server webhook |
-| POST | `/payment/momo/create` | Init MoMo |
-| POST | `/payment/momo/ipn` | Server webhook |
-| GET | `/payment/status/{orderId}` | Poll payment status |
+See [PAYMENT-ROADMAP.md](./PAYMENT-ROADMAP.md) for the phased plan (VietQR now, MoMo next, VNPay deferred until business registration).
+
+| Method | Path | Purpose | Status |
+|---|---|---|---|
+| POST | `/payment/cod/confirm` | Mark COD paid | ✅ live |
+| POST | `/payment/vietqr/create` | Render QR for bank-app transfer | ✅ live (Phase 1) |
+| POST | `/admin/vietqr/confirm/{paymentId}` | Admin manual confirm after seeing transfer | ✅ live (Phase 1) |
+| POST | `/payment/momo/create` | Init MoMo | 🟡 Phase 2 (needs creds) |
+| POST | `/payment/momo/ipn` | Server webhook (replaced by polling, no domain needed) | 🟡 Phase 2 |
+| POST | `/payment/vnpay/create` | Init VNPay | ⛔ deferred — needs registered VN business |
+| GET | `/payment/vnpay/return` | Browser return | ⛔ deferred |
+| GET | `/payment/vnpay/ipn` | Server webhook | ⛔ deferred |
+| GET | `/payment/status/{orderId}` | Poll payment status | ✅ live |
 
 ### 🚚 shipping-service (8093)
 No HTTP controller. Kafka-only. Tracking visible via `GET /orders/{id}` → `subOrders[*].trackingCode`.
@@ -237,7 +241,7 @@ Gap: no `GET /shipping/track/{code}` endpoint exposed yet.
 5. **View cart** → `GET /cart`
 6. **Checkout preview** → `POST /checkout/calculate` + `POST /checkout/shipping-options` + `POST /checkout/validate-coupon`
 7. **Place order** → `POST /orders` with `Idempotency-Key`
-8. **Pay** → `POST /payment/vnpay/create` → redirect → `/payment/vnpay/return`
+8. **Pay** → COD confirms instantly, or `POST /payment/vietqr/create` → buyer scans QR in their banking app → admin confirms via `POST /admin/vietqr/confirm/{paymentId}`. (MoMo Phase 2; VNPay deferred — see [PAYMENT-ROADMAP.md](./PAYMENT-ROADMAP.md).)
 9. **Track** → `GET /orders/{id}` (poll status)
 10. **Post-delivery** → `POST /reviews`, optionally `POST /returns`
 11. **Inbox** → `GET /notifications`
@@ -270,7 +274,9 @@ Gap: no `GET /shipping/track/{code}` endpoint exposed yet.
 - [ ] Product detail (gallery, variants, reviews, Q&A, add-to-cart)
 - [ ] Cart drawer + cart page
 - [ ] Checkout flow (address → shipping → payment → review) with `Idempotency-Key`
-- [ ] Payment redirect handlers (VNPay return, MoMo return)
+- [ ] VietQR checkout step (render QR, copy account number, "I've transferred" hint) — Phase 1
+- [ ] MoMo redirect + status polling (no IPN — see PAYMENT-ROADMAP.md) — Phase 2
+- [ ] ~~VNPay return handler~~ — deferred until business registration (Phase 3)
 - [ ] Order history + order detail + tracking
 - [ ] Profile + address book
 - [ ] Notification bell + inbox

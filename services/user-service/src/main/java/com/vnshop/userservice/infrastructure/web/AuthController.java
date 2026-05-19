@@ -5,8 +5,6 @@ import com.vnshop.userservice.application.RegisterBuyerUseCase;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminClient;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminException;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -101,7 +99,4 @@ public class AuthController {
         }
         return ApiResponse.ok(new PasswordResetResponse(true));
     }
-
-    public record PasswordResetRequest(@NotBlank @Email String email) {}
-    public record PasswordResetResponse(boolean accepted) {}
 }

@@ -102,7 +102,7 @@ Plus per-service unit tests: user-service 107/107, product-service 25/25, FE vit
 
 From `docs/SESSION-HANDOVER-2026-05-19-pt5.md`:
 
-- VNPAY / MOMO IPN end-to-end (needs a mock provider service to drive without a real PSP) — largest deferred BE flow.
+- ~~VNPAY / MOMO IPN end-to-end~~ — re-scoped. VNPay deferred until business registration (sandbox locked behind merchant onboarding); MoMo moved to Phase 2 with status-polling instead of IPN. VietQR + COD ship as Phase 1. See [docs/PAYMENT-ROADMAP.md](docs/PAYMENT-ROADMAP.md).
 - Notifications inbox (no inbox endpoint or FE bell yet; Kafka consumer exists).
 - Real GHN/GHTK adapter for shipping rate quote (B9 shipped the stub + pluggable port; live adapter needs API key wiring).
 - Native password reset / 2FA (currently bounce out to Keycloak's account console).
@@ -288,7 +288,7 @@ docker compose --profile apps down
 | coupon-service | 8088 | Spring Boot | legacy | Coupon validate/apply (superseded by order-service in app profile) |
 | seller-finance-service | 8090 | Spring Boot | apps | Seller wallet, payouts, transactions |
 | order-service | 8091 | Spring Boot | apps | Orders, sub-orders, checkout, coupons (in-process), saga orchestration, outbox, finance projections |
-| payment-service | 8092 | Spring Boot | apps | Payment intents, VNPAY/MoMo surface, reconciliation |
+| payment-service | 8092 | Spring Boot | apps | Payment intents, COD + VietQR live, MoMo Phase 2, VNPay deferred (see [PAYMENT-ROADMAP.md](docs/PAYMENT-ROADMAP.md)) |
 | shipping-service | 8093 | Spring Boot | apps | Shipment creation, carrier integration, tracking |
 | recommendations-service | 8094 | Spring Boot | apps | Frequently-bought-together via co-purchase aggregator |
 | messaging-service | 8095 | NestJS | apps | Buyer-seller direct messaging (REST + WebSocket fan-out) |
@@ -382,7 +382,7 @@ services/
   coupon-service/          # Legacy profile (8088)
   seller-finance-service/  # Wallet + payouts (8090)
   order-service/           # Orders, checkout, saga, finance (8091)
-  payment-service/         # VNPAY/MoMo surface (8092)
+  payment-service/         # COD + VietQR live; MoMo Phase 2; VNPay deferred (8092)
   shipping-service/        # Carrier integration (8093)
   recommendations-service/ # Co-purchase recs (8094)
   messaging-service/       # NestJS chat REST + WS (8095)

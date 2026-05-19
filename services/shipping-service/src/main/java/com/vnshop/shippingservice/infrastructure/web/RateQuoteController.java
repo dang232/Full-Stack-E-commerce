@@ -5,8 +5,6 @@ import com.vnshop.shippingservice.domain.model.Parcel;
 import com.vnshop.shippingservice.domain.model.RateQuote;
 import com.vnshop.shippingservice.domain.model.ShippingAddress;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,27 +56,4 @@ public class RateQuoteController {
                 .toList();
         return ApiResponse.ok(new RateQuotesResponse(options));
     }
-
-    public record RateQuoteHttpRequest(
-            @NotBlank String street,
-            String ward,
-            @NotBlank String district,
-            @NotBlank String province,
-            String recipientName,
-            String recipientPhone,
-            @Valid ParcelDto parcel) {}
-
-    public record ParcelDto(
-            @NotNull Integer weightGrams,
-            @NotNull Integer lengthCm,
-            @NotNull Integer widthCm,
-            @NotNull Integer heightCm) {}
-
-    public record RateQuoteResponse(
-            String carrier,
-            String serviceCode,
-            long feeVnd,
-            String estimatedDeliveryTime) {}
-
-    public record RateQuotesResponse(List<RateQuoteResponse> options) {}
 }

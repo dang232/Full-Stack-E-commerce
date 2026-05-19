@@ -13,9 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.constraints.NotBlank;
-
-import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -60,27 +57,4 @@ public class WishlistController {
         int removed = wishlistUseCase.clear(JwtPrincipalUtil.currentUserId());
         return ApiResponse.ok(new WishlistClearResponse(removed));
     }
-
-    public record WishlistAddRequest(@NotBlank String productId) {}
-
-    public record WishlistResponse(List<String> productIds, List<WishlistEntry> items) {
-        static WishlistResponse fromDomain(List<WishlistItem> items) {
-            return new WishlistResponse(
-                    items.stream().map(WishlistItem::productId).toList(),
-                    items.stream()
-                            .map(item -> new WishlistEntry(item.productId(), item.createdAt()))
-                            .toList());
-        }
-    }
-
-    public record WishlistEntry(String productId, Instant createdAt) {}
-
-    /**
-     * @param productId    the affected product
-     * @param changed      true when the call mutated state (added or removed)
-     * @param inWishlist   the resulting "is on the wishlist" state for this product
-     */
-    public record WishlistToggleResponse(String productId, boolean changed, boolean inWishlist) {}
-
-    public record WishlistClearResponse(int removed) {}
 }

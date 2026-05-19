@@ -5,8 +5,6 @@ import com.vnshop.orderservice.domain.SellerRevenuePoint;
 import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,11 +40,5 @@ public class SellerAnalyticsController {
         return ApiResponse.ok(points.stream()
                 .map(SellerRevenuePointResponse::fromDomain)
                 .toList());
-    }
-
-    public record SellerRevenuePointResponse(LocalDate date, BigDecimal revenue, long orderCount) {
-        static SellerRevenuePointResponse fromDomain(SellerRevenuePoint point) {
-            return new SellerRevenuePointResponse(point.date(), point.revenue(), point.orderCount());
-        }
     }
 }
