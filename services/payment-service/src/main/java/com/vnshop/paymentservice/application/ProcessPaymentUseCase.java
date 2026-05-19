@@ -174,6 +174,9 @@ public class ProcessPaymentUseCase {
             case COD -> PaymentMethod.COD;
             case VNPAY -> PaymentMethod.VNPAY;
             case MOMO -> PaymentMethod.MOMO;
+            case VIETQR -> PaymentMethod.VIETQR;
+            case STRIPE -> PaymentMethod.STRIPE;
+            case PAYPAL -> PaymentMethod.PAYPAL;
         };
     }
 }

@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
-@ConditionalOnProperty(name = "payment.mode", havingValue = "live")
+@ConditionalOnProperty(name = "payment.momo.enabled", havingValue = "true")
 public class MomoCallbackService {
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final LedgerService ledgerService;

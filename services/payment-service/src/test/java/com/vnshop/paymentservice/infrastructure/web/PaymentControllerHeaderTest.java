@@ -45,7 +45,12 @@ class PaymentControllerHeaderTest {
                 processPaymentUseCase,
                 mock(GetPaymentStatusUseCase.class),
                 Optional.empty(),
-                Optional.empty()
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                mock(com.vnshop.paymentservice.application.PaymentPromotionService.class),
+                mock(com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort.class)
         );
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }

@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
-@ConditionalOnProperty(name = "payment.mode", havingValue = "live")
+@ConditionalOnProperty(name = "payment.vnpay.enabled", havingValue = "true")
 public class VnpayGateway {
     private static final DateTimeFormatter VNPAY_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 

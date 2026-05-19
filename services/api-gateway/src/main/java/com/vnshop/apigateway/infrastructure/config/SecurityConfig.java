@@ -83,7 +83,7 @@ public class SecurityConfig {
                         "/reviews/**", "/questions/**", "/recommendations/**", "/health",
                         "/sellers", "/sellers/*", "/flash-sale/active").permitAll()
                 .pathMatchers(HttpMethod.POST, "/reviews/seller-summaries", "/products/counts").permitAll()
-                .pathMatchers("/auth/**", "/payment/*/callback", "/payment/*/ipn").permitAll()
+                .pathMatchers("/auth/**", "/payment/*/callback", "/payment/*/ipn", "/payment/stripe/webhook").permitAll()
                 // The WebSocket handshake on /ws/messaging carries the JWT via the
                 // `?token=` query parameter (browsers can't set Authorization headers
                 // on `new WebSocket(...)`), so it cannot pass the gateway's resource

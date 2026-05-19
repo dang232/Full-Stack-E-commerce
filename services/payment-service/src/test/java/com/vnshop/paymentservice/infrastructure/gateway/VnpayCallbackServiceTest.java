@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
+import com.vnshop.paymentservice.application.PaymentPromotionService;
 import com.vnshop.paymentservice.application.ledger.LedgerService;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
@@ -99,7 +100,9 @@ class VnpayCallbackServiceTest {
     }
 
     private static VnpayCallbackService service(CapturingPaymentRepository repository, CapturingLedgerRepository ledgerRepository, CapturingCallbackLogStore callbackLogStore, CapturingPaymentCallbackOutbox outbox) {
-        return new VnpayCallbackService(repository, new LedgerService(ledgerRepository), gateway(), callbackLogStore, outbox);
+        PaymentPromotionService promotionService = new PaymentPromotionService(
+                repository, new LedgerService(ledgerRepository), outbox);
+        return new VnpayCallbackService(repository, gateway(), callbackLogStore, promotionService);
     }
 
     private static VnpayGateway gateway() {

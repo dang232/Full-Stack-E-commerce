@@ -1,10 +1,9 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
+import com.vnshop.paymentservice.application.PaymentPromotionService;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
-import com.vnshop.paymentservice.application.LedgerPaymentCommand;
-import com.vnshop.paymentservice.application.ledger.LedgerService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,20 +14,19 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
-@ConditionalOnProperty(name = "payment.mode", havingValue = "live")
+@ConditionalOnProperty(name = "payment.vnpay.enabled", havingValue = "true")
 public class VnpayCallbackService {
     private final PaymentRepositoryPort paymentRepositoryPort;
-    private final LedgerService ledgerService;
     private final VnpayGateway vnpayGateway;
     private final PaymentCallbackLogStore callbackLogStore;
-    private final PaymentCallbackOutbox outbox;
+    private final PaymentPromotionService promotionService;
 
-    public VnpayCallbackService(PaymentRepositoryPort paymentRepositoryPort, LedgerService ledgerService, VnpayGateway vnpayGateway, PaymentCallbackLogStore callbackLogStore, PaymentCallbackOutbox outbox) {
+    public VnpayCallbackService(PaymentRepositoryPort paymentRepositoryPort, VnpayGateway vnpayGateway,
+                                PaymentCallbackLogStore callbackLogStore, PaymentPromotionService promotionService) {
         this.paymentRepositoryPort = Objects.requireNonNull(paymentRepositoryPort, "paymentRepositoryPort is required");
-        this.ledgerService = Objects.requireNonNull(ledgerService, "ledgerService is required");
         this.vnpayGateway = Objects.requireNonNull(vnpayGateway, "vnpayGateway is required");
         this.callbackLogStore = Objects.requireNonNull(callbackLogStore, "callbackLogStore is required");
-        this.outbox = Objects.requireNonNull(outbox, "outbox is required");
+        this.promotionService = Objects.requireNonNull(promotionService, "promotionService is required");
     }
 
     @Transactional
@@ -58,22 +56,26 @@ public class VnpayCallbackService {
             callbackLogStore.save(attempt(parameters, headers, payloadHash, signatureHash, "PAYMENT_NOT_FOUND", false));
             return VnpayIpnResult.paymentNotFound();
         }
-        if (payment.status() == PaymentStatus.COMPLETED) {
-            callbackLogStore.save(attempt(parameters, headers, payloadHash, signatureHash, "PROCESSED", false));
-            return VnpayIpnResult.success();
-        }
 
         PaymentStatus status = verification.status();
         String transactionRef = verification.transactionNo() == null || verification.transactionNo().isBlank()
                 ? verification.paymentId()
                 : verification.transactionNo();
-        Payment updatedPayment = payment.withResult(status, transactionRef);
-        paymentRepositoryPort.save(updatedPayment);
-        if (status == PaymentStatus.COMPLETED) {
-            ledgerService.recordPayment(new LedgerPaymentCommand(transactionRef, payment.orderId(), payment.amount()));
+
+        if (status != PaymentStatus.COMPLETED) {
+            // Failed verification (response/transaction code non-zero). Persist the
+            // FAILED transition without going through the promotion path — the
+            // ledger should not be credited.
+            paymentRepositoryPort.save(payment.withResult(PaymentStatus.FAILED, transactionRef));
+            callbackLogStore.save(attempt(parameters, headers, payloadHash, signatureHash, "FAILED", false));
+            return VnpayIpnResult.success();
         }
-        PaymentCallbackAttempt savedAttempt = callbackLogStore.save(attempt(parameters, headers, payloadHash, signatureHash, status == PaymentStatus.COMPLETED ? "PROCESSED" : "FAILED", false));
-        outbox.save(PaymentCallbackOutboxRecord.pending("VNPAY", payment.paymentId(), payment.orderId(), transactionRef, status.name(), payment.amount(), savedAttempt.callbackId(), savedAttempt.eventId(), savedAttempt.payloadHash()));
+
+        PaymentCallbackAttempt savedAttempt = callbackLogStore.save(
+                attempt(parameters, headers, payloadHash, signatureHash, "PROCESSED", false));
+        promotionService.promote(PaymentPromotionService.PromotionCommand.fromCallback(
+                payment.paymentId(), "VNPAY", transactionRef,
+                savedAttempt.callbackId(), savedAttempt.eventId(), savedAttempt.payloadHash()));
         return VnpayIpnResult.success();
     }
 
@@ -110,3 +112,4 @@ public class VnpayCallbackService {
         }
     }
 }
+

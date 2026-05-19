@@ -194,6 +194,11 @@ public class RouteConfig {
             .route("admin-reviews", route -> route.path("/admin/reviews/**")
                 .filters(filters -> resilient(filters, "product-service"))
                 .uri(productServiceUri))
+            // Admin manual VietQR confirmation lives on payment-service. Must
+            // precede the catch-all /admin/** below.
+            .route("admin-vietqr", route -> route.path("/admin/vietqr/**")
+                .filters(filters -> resilient(filters, "payment-service"))
+                .uri(paymentServiceUri))
             .route("admin", route -> route.path("/admin/**")
                 .filters(filters -> resilient(filters, "user-service"))
                 .uri(userServiceUri))

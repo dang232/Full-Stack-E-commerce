@@ -8,8 +8,12 @@ import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentIdempotencyKeyRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
+import com.vnshop.paymentservice.infrastructure.fx.FxProperties;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoProperties;
 import com.vnshop.paymentservice.infrastructure.gateway.VnpayProperties;
+import com.vnshop.paymentservice.infrastructure.paypal.PayPalProperties;
+import com.vnshop.paymentservice.infrastructure.sepay.SepayProperties;
+import com.vnshop.paymentservice.infrastructure.stripe.StripeProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +21,16 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Configuration
-@EnableConfigurationProperties({VnpayProperties.class, MomoProperties.class})
+@EnableConfigurationProperties({
+        VnpayProperties.class,
+        MomoProperties.class,
+        FxProperties.class,
+        StripeProperties.class,
+        PayPalProperties.class,
+        SepayProperties.class
+})
 public class UseCaseConfig {
+
     @Bean
     LedgerService ledgerService(LedgerRepositoryPort ledgerRepositoryPort) {
         return new LedgerService(ledgerRepositoryPort);

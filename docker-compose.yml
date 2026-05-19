@@ -700,6 +700,20 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      # Per-method enable flags. Defaults: COD + VietQR on; VNPay/MoMo/Stripe/PayPal off.
+      # Flip the matching env var to "true" once the provider's creds land in .env.
+      COD_ENABLED: ${COD_ENABLED:-true}
+      VIETQR_ENABLED: ${VIETQR_ENABLED:-true}
+      VNPAY_ENABLED: ${VNPAY_ENABLED:-false}
+      MOMO_ENABLED: ${MOMO_ENABLED:-false}
+      STRIPE_ENABLED: ${STRIPE_ENABLED:-false}
+      PAYPAL_ENABLED: ${PAYPAL_ENABLED:-false}
+      # VietQR target bank — buyer scans, transfers from their bank app,
+      # admin manually confirms via POST /admin/vietqr/confirm/{paymentId}.
+      # Defaults VCB; replace with real account or leave empty to disable.
+      VIETQR_BANK_BIN: ${VIETQR_BANK_BIN:-970436}
+      VIETQR_ACCOUNT_NO: ${VIETQR_ACCOUNT_NO:-}
+      VIETQR_ACCOUNT_NAME: ${VIETQR_ACCOUNT_NAME:-}
 
   shipping-service:
     profiles: ["apps"]

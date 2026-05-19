@@ -7,7 +7,7 @@ import org.springframework.web.client.RestClient;
 import java.util.Objects;
 
 @Component
-@ConditionalOnProperty(name = "payment.mode", havingValue = "live")
+@ConditionalOnProperty(name = "payment.momo.enabled", havingValue = "true")
 public class RestMomoClient implements MomoClient {
     private final MomoProperties properties;
     private final RestClient restClient;

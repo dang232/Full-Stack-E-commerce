@@ -58,6 +58,12 @@ public class PaymentJpaEntity extends BaseJpaEntity {
         entity.method = payment.method();
         entity.status = payment.status();
         entity.transactionRef = payment.transactionRef();
+        // Seed createdAt from the domain so an UPDATE save (e.g. the admin
+        // VietQR confirm path) doesn't return a managed entity with
+        // createdAt=null. @PrePersist only fires on INSERT; merge() of a
+        // detached entity that fromDomain() built fresh leaves createdAt
+        // null otherwise. See BaseJpaEntity.setCreatedAt for the rationale.
+        entity.setCreatedAt(payment.createdAt());
         return entity;
     }
 
