@@ -714,6 +714,21 @@ services:
       VIETQR_BANK_BIN: ${VIETQR_BANK_BIN:-970436}
       VIETQR_ACCOUNT_NO: ${VIETQR_ACCOUNT_NO:-}
       VIETQR_ACCOUNT_NAME: ${VIETQR_ACCOUNT_NAME:-}
+      # Stripe credentials (sandbox keys from dashboard.stripe.com/test/apikeys).
+      # STRIPE_WEBHOOK_SECRET comes from `stripe listen` and rotates per session.
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      # PayPal v2 Checkout REST credentials (sandbox creds at developer.paypal.com).
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-}
+      PAYPAL_MODE: ${PAYPAL_MODE:-sandbox}
+      # SePay outbound polling for VietQR auto-confirm.
+      SEPAY_API_KEY: ${SEPAY_API_KEY:-}
+      SEPAY_ACCOUNT_ID: ${SEPAY_ACCOUNT_ID:-}
+      SEPAY_ENABLED: ${SEPAY_ENABLED:-false}
+      # FX provider for Stripe/PayPal (USD conversion).
+      FX_FALLBACK_RATE: ${FX_FALLBACK_RATE:-25500}
 
   shipping-service:
     profiles: ["apps"]

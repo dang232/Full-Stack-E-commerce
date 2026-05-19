@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.client.RestClient;
 
 @Configuration
 @EnableConfigurationProperties({
@@ -61,5 +62,16 @@ public class UseCaseConfig {
     @Bean
     HandleVnpayIpnUseCase handleVnpayIpnUseCase(PaymentRepositoryPort paymentRepositoryPort, LedgerService ledgerService) {
         return new HandleVnpayIpnUseCase(paymentRepositoryPort, ledgerService);
+    }
+
+    /**
+     * Spring Boot 4 ships {@link RestClient.Builder} as a prototype bean, but
+     * autowiring it into singletons via constructor injection requires an
+     * explicit bean definition in this module's @Configuration. Without this,
+     * FrankfurterFxAdapter / PayPalGateway / RestSepayClient fail to wire.
+     */
+    @Bean
+    RestClient.Builder restClientBuilder() {
+        return RestClient.builder();
     }
 }

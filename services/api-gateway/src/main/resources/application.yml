@@ -59,6 +59,16 @@ otel:
         probability: 0.1
 
 resilience4j:
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+    instances:
+      # PayPal create mints an OAuth token then creates the order — two
+      # sequential round-trips to an external sandbox. 10s gives enough
+      # headroom without letting a hung downstream block indefinitely.
+      payment-service:
+        timeout-duration: 10s
   circuitbreaker:
     configs:
       default:
