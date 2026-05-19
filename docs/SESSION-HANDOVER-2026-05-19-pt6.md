@@ -1,10 +1,21 @@
 # Session handover — 2026-05-19 (pt6: multi-payment rollout — VietQR + SePay + Stripe + PayPal)
 
-**Last commit (HEAD before this session's work):** `be835032` (the `test(fe): add @diagnostic Playwright spec walking pages for non-2xx` commit)
-**Working tree:** NOT YET COMMITTED. Entire 14-step rollout staged/untracked; next block opens with `git add -p` per spec step.
-**Gates:** payment-service Maven `Tests run: 66, Failures: 0, Errors: 0, Skipped: 0` (was 35/35 before this block — +31 new tests). FE typecheck (`npx tsc --noEmit`) exits 0.
+**Last commit (HEAD):** `06303f04` (`fix(payment): wire RestClient.Builder + paypal env + 405 fallback + 10s timelimiter`)
+**Commits this block:** 5 (since pt5 HEAD `be835032`).
+**Gates:** payment-service Maven `Tests run: 66, Failures: 0, Errors: 0, Skipped: 0`. FE typecheck (`npx tsc --noEmit`) exits 0. **Live e2e-day with all payment flags on: 67 passed, 0 failed.**
 
-This block executed the spec at `docs/superpowers/specs/2026-05-19-multi-payment-rollout-design.md` (v2). Four payment paths now working in parallel: VietQR production (manual confirm), SePay sandbox polling for VietQR auto-confirm, Stripe sandbox end-to-end (FE Elements → BE PaymentIntent → webhook → ledger), PayPal sandbox end-to-end (FE Smart Buttons → BE OAuth+order+capture → ledger).
+This block executed the spec at `docs/superpowers/specs/2026-05-19-multi-payment-rollout-design.md` (v2), then closed the loop with a sandbox-creds smoke run that uncovered three runtime bugs the unit tests didn't catch. All four payment paths now working in parallel: VietQR production (manual confirm), SePay sandbox polling for VietQR auto-confirm, Stripe sandbox end-to-end (FE Elements → BE PaymentIntent → webhook → ledger), PayPal sandbox end-to-end (FE Smart Buttons → BE OAuth+order+capture → ledger).
+
+## Commits this block (chronological)
+
+| # | Commit | What |
+|---|---|---|
+| 1 | `ad5ef428` | feat(payment): multi-method rollout — VietQR/SePay/Stripe/PayPal (all BE) |
+| 2 | `f3dbdf95` | feat(fe): multi-method checkout — Stripe Elements + PayPal Buttons + VietQR |
+| 3 | `4c037d23` | test(e2e): shape-only Stripe + PayPal + VietQR scenarios |
+| 4 | `20c87afe` | docs(payment): roadmap + spec + pt6 handover for multi-payment rollout |
+| 5 | `06303f04` | fix(payment): wire RestClient.Builder + paypal env + 405 fallback + 10s timelimiter |
+
 
 ## TL;DR
 
@@ -129,10 +140,10 @@ Sections render only on the success step of `CheckoutPage.tsx`, gated on `VITE_*
 
 ## What's still missing (deferred — pt6 → pt7)
 
-- **Squash commits.** Working tree currently has the entire rollout uncommitted. Next block opens with `git add -p` + per-step commits matching the 14 spec steps, then a final `gh pr create`.
 - **Stripe production cutover.** Sandbox keys work; prod requires Stripe Atlas (US LLC) or VN business reg. Doc steps live in `docs/PAYMENT-ROADMAP.md`.
 - **PayPal production webhook (`PAYMENT.CAPTURE.COMPLETED`).** Sandbox synchronous flow doesn't need it; prod does for refunds/disputes/chargebacks.
 - **SePay inbound webhook (HMAC `X-SePay-Signature`).** Lower-latency than 30s polling. Needs public domain.
+- **End-to-end Stripe webhook smoke.** `stripe listen --forward-to localhost:8092/payment/stripe/webhook` + `stripe trigger payment_intent.succeeded` to flip a sandbox payment to COMPLETED. Endpoint exists, signature verifier covered by unit tests, never driven live.
 - **VNPay re-enable.** Code path intact; gated off pending VN business reg.
 - **MoMo callback migration onto `PaymentPromotionService`.** Currently still on its own dedup; works correctly, just not deduplicated through the new path.
 - **Notifications inbox.** notification-service consumes Kafka; no inbox endpoint or FE bell yet. Multi-day: schema + REST + WebSocket push + FE bell.
@@ -154,6 +165,9 @@ The pt5 list still applies. New rules learned this block:
 6. **Stripe webhook needs the gateway permit-list.** `/payment/stripe/webhook` MUST be in `SecurityConfig` permitAll because Stripe signs the request, not us. Forgetting this returns 401 on every event.
 7. **`@ConditionalOnProperty` slice tests:** Tests that previously pinned `payment.mode=stub` now need per-method flags (`payment.cod.enabled=true`). `PaymentControllerHeaderTest` was migrated; new tests should follow.
 8. **Sub-agent silent-bail watch.** A designer + executor pair were dispatched mid-block and bailed without producing diffs. Memory rule `feedback_detect_silent_bail.md` says: verify diff before trusting the report. Confirmed by switching to direct execution mid-stream.
+9. **Spring Boot 4 doesn't auto-publish `RestClient.Builder` as a bean.** Constructor injection of `RestClient.Builder` UnsatisfiedDependency's at boot. Define `@Bean RestClient.Builder restClientBuilder() { return RestClient.builder(); }` in a `@Configuration` class. Bit me on FrankfurterFxAdapter / PayPalGateway / RestSepayClient simultaneously.
+10. **`docker-compose.yml` env passthrough is explicit.** Env vars in `.env` aren't auto-injected into containers — each service block has to list them under `environment:`. PayPal/Stripe/SePay creds were silently empty inside the container until the matching `STRIPE_*: ${STRIPE_*}` lines were added. Easy to miss because the boot log doesn't print missing env, just the resulting `IllegalArgumentException` at request time.
+11. **`@GetMapping` fallback handlers swallow non-GET methods as 405.** Resilience4j's circuit-breaker forwards to `forward:/fallback/{service}` regardless of incoming method; if the fallback only declares `@GetMapping`, every POST that times out comes back as 405 Method Not Allowed (looks like a routing bug, isn't). Use `@RequestMapping` (any method) on fallback controllers. Default Resilience4j `TimeLimiter` is 1s — overrides per service in `application.yml` under `resilience4j.timelimiter.instances.<name>`.
 
 ## File locations to know (new since pt5)
 
@@ -191,29 +205,30 @@ The pt5 list still applies. New rules learned this block:
 
 ## How to resume
 
-1. **Verify HEAD.** `git log --oneline -1` should show `be835032`. Working tree has staged/untracked files.
-2. **Inspect the diff** — `git status` shows all 14 spec steps' files. `git diff --cached` shows staged changes.
-3. **Next action:** `git add -p` per spec step (1–14), creating one commit per step, then `gh pr create` with the full rollout summary.
-4. **Run the gates** (stack must be up + seeded):
+1. **Verify HEAD.** `git log --oneline -1` should show `06303f04` (the fallback fix). All five commits this block are landed; working tree is clean except for `.gitignore` + `opencode.jsonc` (unrelated editor config, ignore).
+2. **Run the gates** (stack must be up + seeded):
    ```bash
-   cd services/payment-service && mvn clean test    # 66/66
-   cd fe && npx tsc --noEmit                         # 0 errors
+   cd services/payment-service && ./mvnw test                    # 66/66
+   cd fe && npx tsc --noEmit                                      # 0 errors
+   STRIPE_ENABLED=true PAYPAL_ENABLED=true VIETQR_ENABLED=true \
+     node infra/scripts/e2e-day.mjs                              # 67/67
    ```
-5. **Manual smoke tests** (optional, for confidence):
-   - Stripe: `stripe listen --forward-to localhost:8092/payment/stripe/webhook` then `stripe trigger payment_intent.succeeded`
-   - PayPal: Use sandbox account at developer.paypal.com
-   - SePay: Poller runs on schedule; check logs for UUID-in-memo filtering
-   - VietQR: Admin confirm via `AdminVietQrController` (already working)
+3. **Manual smoke (still TODO):**
+   - **Stripe webhook live drive.** `stripe listen --forward-to localhost:8092/payment/stripe/webhook` then `stripe trigger payment_intent.succeeded` — endpoint + verifier exist, never driven against the actual Stripe CLI.
+   - **PayPal capture flow.** FE Smart Buttons → `/payment/paypal/capture/{paymentId}/{paypalOrderId}` against a sandbox account at developer.paypal.com.
+   - **SePay polling.** Poller runs on schedule; once SePay creds land in `.env`, check logs for `sepay-skip-non-vietqr` / `sepay-skip-no-uuid-in-memo` / `payment-promoted provider=SEPAY`.
+   - **VietQR.** Already working; admin confirms via `AdminVietQrController`.
+4. **Open a PR** with the rollout summary if not already pushed.
 
 ## Final tally
 
 - **Started this block:** payment-service 35/35 tests at HEAD `be835032`.
-- **Ended:** payment-service 66/66 tests (+31 — Stripe, PayPal, SePay, FX, composite, promotion), FE typecheck clean.
-- **Commits this block:** 0 (working tree uncommitted; next block squashes per spec step).
-- **Diff vs pt5 HEAD:** ~+2800 / -400 across 30+ files (4 new packages, 7 new tests, 2 migrations, 2 FE sections, 1 gateway permit-list).
+- **Ended:** payment-service 66/66 tests (+31 — Stripe, PayPal, SePay, FX, composite, promotion), FE typecheck clean, **e2e-day 67/67** with all payment flags on.
+- **Commits this block:** 5 (4 feature + 1 fix). HEAD `06303f04`.
+- **Diff vs pt5 HEAD:** ~+2840 / -400 across 30+ files (4 new packages, 7 new tests, 2 migrations, 2 FE sections, 1 gateway permit-list, 1 RestClient.Builder bean, 1 fallback method fix, 1 timelimiter override).
 - **Production characteristics added:** multi-method payment dispatch, provider-namespaced dedup, FX caching, Stripe webhook verification, PayPal OAuth, SePay polling.
-- **Deferred items closed:** 4 payment paths (VietQR, SePay, Stripe, PayPal).
+- **Deferred items closed:** 4 payment paths (VietQR, SePay, Stripe, PayPal). Also closed three runtime bugs that the unit suite didn't catch (RestClient.Builder, env passthrough, fallback method).
 
 ## Resume hint
 
-Next session: `git status` → `git add -p` per spec step (1–14) → `gh pr create` with rollout summary.
+Next session: drive the Stripe webhook live (`stripe listen` + `stripe trigger payment_intent.succeeded`) to confirm the signed-event path end-to-end. After that, MoMo callback migration onto `PaymentPromotionService` is the smallest deferred item.
