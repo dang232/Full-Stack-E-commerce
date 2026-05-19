@@ -1,13 +1,12 @@
 package com.vnshop.userservice.infrastructure.web;
 
-import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminException;
-import com.vnshop.userservice.infrastructure.keycloak.KeycloakTokenClient;
+import com.vnshop.userservice.application.AuthSessionUseCase;
+import com.vnshop.userservice.application.RefreshTokenRejectedException;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakTokenClient.TokenSet;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,22 +44,22 @@ public class AuthSessionController {
     public static final String REFRESH_COOKIE_NAME = "vnshop_rt";
     private static final String COOKIE_PATH = "/auth";
 
-    private final KeycloakTokenClient tokenClient;
+    private final AuthSessionUseCase useCase;
     private final boolean cookieSecure;
     private final String cookieSameSite;
 
     public AuthSessionController(
-            KeycloakTokenClient tokenClient,
+            AuthSessionUseCase useCase,
             @Value("${vnshop.auth.cookie-secure:false}") boolean cookieSecure,
             @Value("${vnshop.auth.cookie-same-site:Lax}") String cookieSameSite) {
-        this.tokenClient = tokenClient;
+        this.useCase = useCase;
         this.cookieSecure = cookieSecure;
         this.cookieSameSite = cookieSameSite;
     }
 
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
-        TokenSet tokens = tokenClient.passwordGrant(request.username(), request.password());
+        TokenSet tokens = useCase.login(request.username(), request.password());
         writeRefreshCookie(response, tokens.refreshToken(), tokens.refreshExpiresIn());
         return ApiResponse.ok(new LoginResponse(tokens.accessToken(), tokens.accessExpiresIn()));
     }
@@ -68,13 +67,10 @@ public class AuthSessionController {
     @PostMapping("/refresh")
     public ApiResponse<LoginResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = readRefreshCookie(request);
-        if (refreshToken == null) {
-            throw new KeycloakAdminException(401, "no_session", "No refresh-token cookie present");
-        }
         TokenSet tokens;
         try {
-            tokens = tokenClient.refresh(refreshToken);
-        } catch (KeycloakAdminException e) {
+            tokens = useCase.refresh(refreshToken);
+        } catch (RefreshTokenRejectedException e) {
             // Keycloak rejected the refresh token (expired, revoked, etc.) —
             // clear the cookie so the FE knows to bounce to /login on the
             // next 401 instead of looping on /auth/refresh.
@@ -88,9 +84,7 @@ public class AuthSessionController {
     @PostMapping("/logout")
     public ApiResponse<LogoutResponse> logout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = readRefreshCookie(request);
-        if (refreshToken != null) {
-            tokenClient.revoke(refreshToken);
-        }
+        useCase.logout(refreshToken);
         clearRefreshCookie(response);
         return ApiResponse.ok(new LogoutResponse(true));
     }
@@ -132,8 +126,4 @@ public class AuthSessionController {
         }
         return null;
     }
-
-    public record LoginRequest(@NotBlank String username, @NotBlank String password) {}
-    public record LoginResponse(String accessToken, int accessExpiresIn) {}
-    public record LogoutResponse(boolean ok) {}
 }

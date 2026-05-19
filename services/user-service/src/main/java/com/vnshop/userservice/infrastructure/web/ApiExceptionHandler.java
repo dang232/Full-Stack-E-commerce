@@ -1,5 +1,7 @@
 package com.vnshop.userservice.infrastructure.web;
 
+import com.vnshop.userservice.application.NoSessionException;
+import com.vnshop.userservice.application.RefreshTokenRejectedException;
 import com.vnshop.userservice.domain.SellerNotFoundException;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminException;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,18 @@ public class ApiExceptionHandler {
         if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(status)
                 .body(ApiResponse.error(exception.getMessage(), exception.errorCode()));
+    }
+
+    @ExceptionHandler(NoSessionException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiResponse<Void> noSession(NoSessionException exception) {
+        return ApiResponse.error(exception.getMessage(), "no_session");
+    }
+
+    @ExceptionHandler(RefreshTokenRejectedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiResponse<Void> refreshTokenRejected(RefreshTokenRejectedException exception) {
+        return ApiResponse.error(exception.getMessage(), "refresh_rejected");
     }
 
     @ExceptionHandler(Exception.class)

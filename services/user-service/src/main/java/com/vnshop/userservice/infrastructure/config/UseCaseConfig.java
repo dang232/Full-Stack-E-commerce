@@ -1,6 +1,7 @@
 package com.vnshop.userservice.infrastructure.config;
 
 import com.vnshop.userservice.application.ApproveSellerUseCase;
+import com.vnshop.userservice.application.AuthSessionUseCase;
 import com.vnshop.userservice.application.GetPublicSellerUseCase;
 import com.vnshop.userservice.application.ListPendingSellersUseCase;
 import com.vnshop.userservice.application.ListPublicSellersUseCase;
@@ -14,6 +15,7 @@ import com.vnshop.userservice.application.WishlistUseCase;
 import com.vnshop.userservice.domain.port.out.SellerStatsPort;
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
 import com.vnshop.userservice.domain.port.out.WishlistRepositoryPort;
+import com.vnshop.userservice.infrastructure.keycloak.KeycloakTokenClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -72,5 +74,10 @@ public class UseCaseConfig {
     @Bean
     ListPublicSellersUseCase listPublicSellersUseCase(UserRepositoryPort userRepositoryPort, SellerStatsPort sellerStatsPort) {
         return new ListPublicSellersUseCase(userRepositoryPort, sellerStatsPort);
+    }
+
+    @Bean
+    AuthSessionUseCase authSessionUseCase(KeycloakTokenClient tokenClient) {
+        return new AuthSessionUseCase(tokenClient);
     }
 }
