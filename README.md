@@ -66,8 +66,10 @@ For a chronological view of what shipped, walk the handover series in order: `do
 +-------v----+ +---v---+ +-v-----+ +v-------+ +v--------+ +v------+ +v-------+
 |Search      | |Notif. | |Inv.   | |Pay     | |Shipping | |Recs   | |Messag- |
 |:8086       | |:8087  | |:8083  | |:8092   | |:8093    | |:8094  | |ing :8095|
-|Spring Boot | |NestJS | |Stock +| |VNPAY/  | |Carrier  | |Spring | |NestJS  |
-|Elasticsearch||+Kafka | |flash  | |MoMo    | |+ tracking|Boot   | |+WebSocket|
+|Spring Boot | |NestJS | |Stock +| |COD/    | |Carrier  | |Spring | |NestJS  |
+|Elasticsearch||+Kafka | |flash  | |VietQR/ | |+ tracking|Boot   | |+WebSocket|
+|            | |       | |       | |Stripe/ | |        | |       | |        |
+|            | |       | |       | |PayPal  | |        | |       | |        |
 +------------+ +-------+ +-------+ +--------+ +---------+ +-------+ +--------+
 
          Seller Finance (:8090, Spring Boot) — wallet + payouts
@@ -288,7 +290,7 @@ docker compose --profile apps down
 | coupon-service | 8088 | Spring Boot | legacy | Coupon validate/apply (superseded by order-service in app profile) |
 | seller-finance-service | 8090 | Spring Boot | apps | Seller wallet, payouts, transactions |
 | order-service | 8091 | Spring Boot | apps | Orders, sub-orders, checkout, coupons (in-process), saga orchestration, outbox, finance projections |
-| payment-service | 8092 | Spring Boot | apps | Payment intents, COD + VietQR live, MoMo Phase 2, VNPay deferred (see [PAYMENT-ROADMAP.md](docs/PAYMENT-ROADMAP.md)) |
+| payment-service | 8092 | Spring Boot | apps | Payment intents, COD + VietQR + SePay live, Stripe + PayPal sandbox-ready, VNPay deferred (see [PAYMENT-ROADMAP.md](docs/PAYMENT-ROADMAP.md)) |
 | shipping-service | 8093 | Spring Boot | apps | Shipment creation, carrier integration, tracking |
 | recommendations-service | 8094 | Spring Boot | apps | Frequently-bought-together via co-purchase aggregator |
 | messaging-service | 8095 | NestJS | apps | Buyer-seller direct messaging (REST + WebSocket fan-out) |

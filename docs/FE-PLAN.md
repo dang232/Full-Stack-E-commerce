@@ -191,18 +191,17 @@ Requires `x-user-id` header (set by gateway from JWT).
 
 ### 💳 payment-service (8092)
 
-See [PAYMENT-ROADMAP.md](./PAYMENT-ROADMAP.md) for the phased plan (VietQR now, MoMo next, VNPay deferred until business registration).
+See [PAYMENT-ROADMAP.md](./PAYMENT-ROADMAP.md) for the phased plan (VietQR + SePay Phase 1, Stripe + PayPal Phase 2 sandbox-ready, VNPay Phase 3 deferred).
 
 | Method | Path | Purpose | Status |
 |---|---|---|---|
 | POST | `/payment/cod/confirm` | Mark COD paid | ✅ live |
 | POST | `/payment/vietqr/create` | Render QR for bank-app transfer | ✅ live (Phase 1) |
 | POST | `/admin/vietqr/confirm/{paymentId}` | Admin manual confirm after seeing transfer | ✅ live (Phase 1) |
-| POST | `/payment/momo/create` | Init MoMo | 🟡 Phase 2 (needs creds) |
-| POST | `/payment/momo/ipn` | Server webhook (replaced by polling, no domain needed) | 🟡 Phase 2 |
-| POST | `/payment/vnpay/create` | Init VNPay | ⛔ deferred — needs registered VN business |
-| GET | `/payment/vnpay/return` | Browser return | ⛔ deferred |
-| GET | `/payment/vnpay/ipn` | Server webhook | ⛔ deferred |
+| POST | `/payment/stripe/create` | Create Stripe PaymentIntent | ✅ sandbox-ready (Phase 2) |
+| POST | `/payment/stripe/webhook` | Stripe webhook (verified by Stripe-Signature header) | ✅ sandbox-ready (Phase 2) |
+| POST | `/payment/paypal/create` | Create PayPal order | ✅ sandbox-ready (Phase 2) |
+| POST | `/payment/paypal/capture/{paymentId}/{paypalOrderId}` | Synchronous PayPal capture | ✅ sandbox-ready (Phase 2) |
 | GET | `/payment/status/{orderId}` | Poll payment status | ✅ live |
 
 ### 🚚 shipping-service (8093)
@@ -240,8 +239,12 @@ Gap: no `GET /shipping/track/{code}` endpoint exposed yet.
 4. **Add to cart** → `POST /cart/items`
 5. **View cart** → `GET /cart`
 6. **Checkout preview** → `POST /checkout/calculate` + `POST /checkout/shipping-options` + `POST /checkout/validate-coupon`
-7. **Place order** → `POST /orders` with `Idempotency-Key`
-8. **Pay** → COD confirms instantly, or `POST /payment/vietqr/create` → buyer scans QR in their banking app → admin confirms via `POST /admin/vietqr/confirm/{paymentId}`. (MoMo Phase 2; VNPay deferred — see [PAYMENT-ROADMAP.md](./PAYMENT-ROADMAP.md).)
+7. **Choose payment method** → `GET /checkout/payment-methods` returns enabled methods (COD, VietQR, Stripe, PayPal, etc.)
+8. **Pay** via one of four flows:
+   - **COD (instant):** `POST /payment/cod/confirm` → order moves to PAID immediately.
+   - **VietQR (scan & poll):** `POST /payment/vietqr/create` → FE renders QR → buyer scans in banking app → FE polls `/payment/status/{orderId}` until COMPLETED or admin confirms via `POST /admin/vietqr/confirm/{paymentId}`.
+   - **Stripe (Elements + webhook):** `POST /payment/stripe/create` → FE renders `<PaymentElement>` → buyer enters card → Stripe webhook POSTs to `/payment/stripe/webhook` → FE polls `/payment/status/{orderId}` until COMPLETED.
+   - **PayPal (Smart Buttons + sync capture):** `POST /payment/paypal/create` → FE renders `<PayPalButtons>` → buyer approves → FE calls `POST /payment/paypal/capture/{paypalOrderId}` → response returns promoted Payment synchronously (no polling).
 9. **Track** → `GET /orders/{id}` (poll status)
 10. **Post-delivery** → `POST /reviews`, optionally `POST /returns`
 11. **Inbox** → `GET /notifications`
