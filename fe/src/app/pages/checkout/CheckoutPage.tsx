@@ -20,6 +20,9 @@ import { placeOrder } from "../../lib/api/endpoints/orders";
 import { codConfirm, momoCreate, vnpayCreate } from "../../lib/api/endpoints/payment";
 import { myProfile } from "../../lib/api/endpoints/users";
 import type { Address } from "../../types/api";
+import { PayPalPaymentSection } from "../../components/checkout/PayPalPaymentSection";
+import { StripePaymentSection } from "../../components/checkout/StripePaymentSection";
+import { VietQrPaymentSection } from "../../components/checkout/VietQrPaymentSection";
 
 import { CheckoutAddressStep } from "./CheckoutAddressStep";
 import { CheckoutPaymentStep } from "./CheckoutPaymentStep";
@@ -309,6 +312,15 @@ export function CheckoutPage() {
         } catch {
           // COD confirmation is best-effort; buyer will see status update later.
         }
+      } else if (
+        selectedPaymentId === "STRIPE" ||
+        selectedPaymentId === "PAYPAL" ||
+        selectedPaymentId === "VIETQR"
+      ) {
+        // Order is placed; the inline section (rendered on the success screen)
+        // drives the actual payment via SDK / QR scan + poll.
+        setStep("success");
+        return;
       }
 
       setStep("success");
@@ -355,11 +367,50 @@ export function CheckoutPage() {
 
   if (step === "success") {
     return (
-      <CheckoutSuccess
-        placedOrderId={placedOrderId}
-        selectedPaymentId={selectedPaymentId}
-        finalTotal={finalTotal}
-      />
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        {placedOrderId &&
+        (selectedPaymentId === "STRIPE" ||
+          selectedPaymentId === "PAYPAL" ||
+          selectedPaymentId === "VIETQR") ? (
+          <div className="mb-6 rounded-2xl border-2 border-gray-100 bg-white p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              Hoàn tất thanh toán cho đơn {placedOrderId}
+            </h2>
+            {selectedPaymentId === "STRIPE" ? (
+              <StripePaymentSection
+                orderId={placedOrderId}
+                buyerId={profile?.userId ?? "BUYER"}
+                amount={finalTotal}
+                idempotencyKey={idempotencyKeyRef.current}
+                onCompleted={() => navigate(`/orders/${placedOrderId}`)}
+              />
+            ) : null}
+            {selectedPaymentId === "PAYPAL" ? (
+              <PayPalPaymentSection
+                orderId={placedOrderId}
+                buyerId={profile?.userId ?? "BUYER"}
+                amount={finalTotal}
+                idempotencyKey={idempotencyKeyRef.current}
+                onCompleted={() => navigate(`/orders/${placedOrderId}`)}
+              />
+            ) : null}
+            {selectedPaymentId === "VIETQR" ? (
+              <VietQrPaymentSection
+                orderId={placedOrderId}
+                buyerId={profile?.userId ?? "BUYER"}
+                amount={finalTotal}
+                idempotencyKey={idempotencyKeyRef.current}
+                onCompleted={() => navigate(`/orders/${placedOrderId}`)}
+              />
+            ) : null}
+          </div>
+        ) : null}
+        <CheckoutSuccess
+          placedOrderId={placedOrderId}
+          selectedPaymentId={selectedPaymentId}
+          finalTotal={finalTotal}
+        />
+      </div>
     );
   }
 

@@ -17,7 +17,7 @@ export interface ShippingOption {
 }
 
 export interface PaymentOption {
-  id: "VNPAY" | "MOMO" | "COD" | "BANK";
+  id: "VNPAY" | "MOMO" | "COD" | "BANK" | "STRIPE" | "PAYPAL" | "VIETQR";
   name: string;
   icon: string;
   desc: string;
@@ -50,6 +50,9 @@ export const FALLBACK_SHIPPING: ShippingOption[] = [
 export const FALLBACK_PAYMENT: PaymentOption[] = [
   { id: "VNPAY", name: "VNPay", icon: "💳", desc: "Thanh toán qua ví VNPay, QR Code" },
   { id: "MOMO", name: "MoMo", icon: "💜", desc: "Thanh toán qua ví MoMo" },
+  { id: "VIETQR", name: "VietQR", icon: "🏦", desc: "Quét QR chuyển khoản ngân hàng" },
+  { id: "STRIPE", name: "Thẻ quốc tế (Stripe)", icon: "💳", desc: "Visa, Mastercard, Amex via Stripe" },
+  { id: "PAYPAL", name: "PayPal", icon: "🅿️", desc: "Thanh toán qua tài khoản PayPal" },
   { id: "BANK", name: "Thẻ ngân hàng", icon: "🏦", desc: "Visa, Mastercard, JCB" },
   { id: "COD", name: "Thanh toán khi nhận hàng", icon: "💵", desc: "Trả tiền mặt khi nhận hàng" },
 ];

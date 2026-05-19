@@ -1,0 +1,139 @@
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+
+import { paymentStatus, stripeCreate } from "../../lib/api/endpoints/payment";
+
+interface Props {
+  orderId: string;
+  buyerId: string;
+  amount: number;
+  idempotencyKey: string;
+  onCompleted: () => void;
+}
+
+const STRIPE_ENABLED = import.meta.env.VITE_STRIPE_ENABLED === "true";
+const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "";
+
+const stripePromise: Promise<Stripe | null> | null = PUBLISHABLE_KEY
+  ? loadStripe(PUBLISHABLE_KEY)
+  : null;
+
+export function StripePaymentSection({
+  orderId,
+  buyerId,
+  amount,
+  idempotencyKey,
+  onCompleted,
+}: Props) {
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!STRIPE_ENABLED || !stripePromise) return;
+    if (clientSecret || loading) return;
+    setLoading(true);
+    stripeCreate({ orderId, buyerId, amount }, idempotencyKey)
+      .then((res) => {
+        setClientSecret(res.clientSecret);
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [orderId, buyerId, amount, idempotencyKey, clientSecret, loading]);
+
+  const options = useMemo(
+    () => (clientSecret ? { clientSecret, appearance: { theme: "stripe" as const } } : undefined),
+    [clientSecret],
+  );
+
+  if (!STRIPE_ENABLED) {
+    return (
+      <div className="rounded-2xl border-2 border-dashed border-gray-200 p-4 text-sm text-gray-500">
+        Stripe is disabled. Set <code>VITE_STRIPE_ENABLED=true</code> and{" "}
+        <code>VITE_STRIPE_PUBLISHABLE_KEY</code> to enable.
+      </div>
+    );
+  }
+  if (error) {
+    return <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
+  }
+  if (!clientSecret || !stripePromise || !options) {
+    return (
+      <div className="rounded-2xl border-2 border-gray-100 p-4 text-sm text-gray-500" data-testid="stripe-loading">
+        Đang khởi tạo Stripe…
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="stripe-section">
+      <Elements stripe={stripePromise} options={options}>
+        <StripeForm orderId={orderId} onCompleted={onCompleted} />
+      </Elements>
+    </div>
+  );
+}
+
+function StripeForm({ orderId, onCompleted }: { orderId: string; onCompleted: () => void }) {
+  const { t } = useTranslation();
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [polling, setPolling] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    const { error: confirmError } = await stripe.confirmPayment({
+      elements,
+      confirmParams: { return_url: `${window.location.origin}/checkout` },
+      redirect: "if_required",
+    });
+    setSubmitting(false);
+    if (confirmError) {
+      toast.error(confirmError.message ?? t("checkout.payment.placeOrderFailed"));
+      return;
+    }
+    // Stripe confirmed client-side — poll for the webhook to land.
+    setPolling(true);
+    const deadline = Date.now() + 5 * 60_000;
+    const tick = async () => {
+      if (Date.now() > deadline) {
+        setPolling(false);
+        toast.message("Đang xử lý — bạn sẽ nhận email khi hoàn tất.");
+        return;
+      }
+      try {
+        const status = await paymentStatus(orderId);
+        if (status.status === "COMPLETED") {
+          setPolling(false);
+          onCompleted();
+          return;
+        }
+      } catch {
+        // ignore transient failures
+      }
+      window.setTimeout(tick, 2000);
+    };
+    void tick();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
+      <button
+        type="submit"
+        disabled={!stripe || submitting || polling}
+        className="w-full px-6 py-3 rounded-xl text-white font-semibold disabled:opacity-50"
+        style={{ background: "#00BFB3" }}
+        data-testid="stripe-submit"
+      >
+        {polling ? "Đang xác nhận thanh toán…" : submitting ? "Đang xử lý…" : "Thanh toán"}
+      </button>
+    </form>
+  );
+}
