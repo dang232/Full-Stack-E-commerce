@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vnshop.couponservice.infrastructure.CouponJpaEntity;
-import com.vnshop.couponservice.infrastructure.CouponRepository;
+import com.vnshop.couponservice.infrastructure.persistence.CouponJpaEntity;
+import com.vnshop.couponservice.infrastructure.persistence.CouponJpaRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashMap;
@@ -46,7 +46,7 @@ class CouponControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private CouponRepository couponRepository;
+    private CouponJpaRepository couponRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

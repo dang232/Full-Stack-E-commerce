@@ -1,4 +1,4 @@
-package com.vnshop.couponservice.infrastructure;
+package com.vnshop.couponservice.infrastructure.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
