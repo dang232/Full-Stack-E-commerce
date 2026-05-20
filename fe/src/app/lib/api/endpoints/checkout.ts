@@ -13,8 +13,11 @@ export type { CheckoutCalculation };
 export { calculateCheckoutSchema };
 
 export interface CheckoutCalculateInput {
-  items: { productId: string; quantity: number }[];
-  addressId?: number;
+  /**
+   * Light shape — server resolves authoritative price from product-service.
+   * Mirrors the {@code POST /orders} contract: client never sends price.
+   */
+  items: { productId: string; variantSku?: string; quantity: number }[];
   couponCode?: string;
 }
 

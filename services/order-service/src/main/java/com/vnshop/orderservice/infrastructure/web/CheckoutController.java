@@ -50,7 +50,7 @@ public class CheckoutController {
 
     @PostMapping("/calculate")
     public ApiResponse<CheckoutBreakdownResponse> calculate(@Valid @RequestBody CalculateCheckoutRequest request) {
-        CalculateCheckoutUseCase.CheckoutBreakdown breakdown = calculateCheckoutUseCase.calculate(request.cartId());
+        CalculateCheckoutUseCase.CheckoutBreakdown breakdown = calculateCheckoutUseCase.calculate(request.toLineItems());
 
         return ApiResponse.ok(CheckoutBreakdownResponse.fromApplication(breakdown));
     }

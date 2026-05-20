@@ -150,19 +150,16 @@ test.describe("day simulation — buyer", () => {
     });
     expect(addr.ok(), `address add: ${addr.status()} ${await addr.text()}`).toBeTruthy();
 
-    // 4) Checkout calculate
-    // FINDING (pt8 day-sim): the FE's `/checkout/calculate` endpoint module
-    // sends `{items, addressId, couponCode}`, but the BE order-service
-    // CalculateCheckoutRequest expects `{cartId, shippingAddress, couponCode}`.
-    // Calling with the FE shape yields 500. Skipped for now — flagged in
-    // the session handover as a real schema mismatch (same class of bug as
-    // pt7's Address line1/street drift). The FE never actually surfaces a
-    // 500 because the React tree doesn't call it from any production code
-    // path yet — it's a wired-but-unused endpoint.
-    test.info().annotations.push({
-      type: "skip-with-finding",
-      description: "/checkout/calculate FE↔BE schema mismatch — FE sends {items,addressId}, BE wants {cartId,shippingAddress}. Same class as pt7 Address bug.",
+    // 4) Checkout calculate (light shape — BE resolves authoritative price
+    // from product-service, no client-supplied prices). Mirrors POST /orders.
+    const calc = await request.post(`${apiURL}/checkout/calculate`, {
+      headers,
+      data: { items: [{ productId: product.id, quantity: 1 }] },
     });
+    expect(calc.ok(), `checkout calc: ${calc.status()} ${await calc.text()}`).toBeTruthy();
+    const calcBody = await calc.json();
+    const itemsTotal = calcBody?.data?.itemsTotal ?? 0;
+    expect(Number(itemsTotal)).toBeGreaterThan(0);
 
     // 5) Place order — COD path, no external gateway needed.
     //
