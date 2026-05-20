@@ -1,11 +1,11 @@
-# Session handover — 2026-05-20 (pt9: full-day usage simulation, FE↔BE schema audit)
+# Session handover — 2026-05-20 (pt9: full-day usage simulation, FE↔BE schema audit, cleanup)
 
-**Last commit (HEAD):** `6e9f3ee` (`test(fe): day-in-the-life simulation spec for full-stack flow coverage`)
-**Commits this block:** 1 since pt8 HEAD `31bd6524`.
+**Last commit (HEAD):** `038535f4` (`fix(review,order): ReviewImageUploadServiceTest compile + bump projection concurrency`)
+**Commits this block:** 3 since pt8 HEAD `31bd6524`.
 **Gates:**
 - Playwright: **47/47 pass** (38 pre-existing + 9 new day-simulation tests).
 - FE typecheck: 0 errors. Vitest: **143/143** (23 files).
-- BE: 11/12 services green. review-service has 1 pre-existing compile error in `ReviewImageUploadServiceTest.activatesMetadataOnlyWhenPostUploadSignalsMatch` — unrelated to this block, predates pt7.
+- BE: **12/12 services green** (was 11/12 — fixed the review-service compile error this block).
 
 This block ran a full-day usage simulation against the live stack: every persona's documented flow, end-to-end. The simulation surfaced two real FE↔BE schema mismatches (same class as pt7's Address bug) and one read-model projection observability gap.
 
@@ -14,6 +14,8 @@ This block ran a full-day usage simulation against the live stack: every persona
 | # | Commit | What |
 |---|---|---|
 | 1 | `6e9f3ee` | test(fe): day-in-the-life simulation spec for full-stack flow coverage |
+| 2 | `5b68c1f6` | docs(pt9): full-day usage simulation — schema drift findings + read-model lag |
+| 3 | `038535f4` | fix(review,order): ReviewImageUploadServiceTest compile + bump projection concurrency |
 
 ## TL;DR
 
@@ -79,10 +81,18 @@ Run with `npx playwright test e2e/day-simulation.spec.ts --project=chromium` (~1
 ## What's still missing (deferred — pt9 → pt10)
 
 **Genuinely open code work:**
-- **`POST /orders` FE↔BE schema drift fix.** Either rewrite `fe/src/app/lib/api/endpoints/orders.ts:placeOrder` to send the BE-shaped denormalized item (looking up variantSku/sellerId/etc. from cart state at call time), or rewrite `services/order-service/.../CheckoutRequest.java` to accept the lighter `{productId, quantity}` shape and look up the rest server-side from the cart-service. The latter is more work but gives the BE the authoritative price (defense against client-side price tampering — the current denormalized shape **lets the client claim any unitPriceAmount**, which is a security finding worth flagging). Recommend: BE-side normalization.
-- **`POST /checkout/calculate` FE↔BE schema drift fix.** Same shape question. The endpoint is unused by the React tree today so it's lower priority, but if anyone wires it up they'll hit a 500.
-- **Order-list read-model projection latency.** Bump `OrderProjector` consumer concurrency (single config line in the `@KafkaListener` annotation) and confirm projections land within ~1s instead of ~30s. Test with the day-simulation spec — if the new poll loop in step 7 finds the order on attempt 0/1 instead of timing out, the fix worked.
-- **`review-service` `ReviewImageUploadServiceTest.activatesMetadataOnlyWhenPostUploadSignalsMatch` compile error.** Pre-existing, not from this block. Sub-10-minute fix.
+- **`POST /orders` BE-side normalization** (the big one). FE shouldn't be sending `unitPriceAmount` — it's a security finding (client can fake the price). The fix is non-trivial: order-service already has a `CartServiceAdapter` (`services/order-service/.../infrastructure/cart/CartServiceAdapter.java`) that fetches the cart over HTTP, but the cart-service response doesn't include `sellerId` or `variantSku` either. Shape of the fix:
+  - Extend `CartServiceAdapter` (or add a new `ProductServiceAdapter`) to look up `sellerId`, `variantSku`, `unitPrice`, `name`, `imageUrl` server-side per `productId`.
+  - Change `CheckoutRequest` to `{shippingAddress, items:[{productId, quantity}]}` only.
+  - Have `CreateOrderUseCase` build the full `OrderItem` list from the BE-side lookups.
+  - Update `OrderControllerTest` + `CreateOrderUseCaseTest` for the new flow.
+  - FE side: rewrite `placeOrder` in `orders.ts` to send the lighter shape.
+  Estimate: 2-3 hours including tests. Worth doing in its own session — touches the security boundary so should not be rushed.
+- **`POST /checkout/calculate` schema drift fix.** Same shape question as above; lower priority because no React code path calls it today. Defer until either (a) the FE wires it, or (b) the order-flow normalization above gives you a reusable cart→items shape to reuse here.
+
+**Pre-existing items already closed this block:**
+- ~~`review-service` `ReviewImageUploadServiceTest.activatesMetadataOnlyWhenPostUploadSignalsMatch` compile error.~~ **Fixed.** Test was written against an older `service.activate(...)` signature returning `ObjectMetadata`; current signature returns `ReviewImageActivationResponse` (record of strings). Updated. 6/6 review-service tests pass.
+- ~~Order-list read-model projection latency.~~ **Mitigated.** Bumped `OrderProjectionListener` `@KafkaListener` `concurrency=3`. Day-simulation now sees orders project immediately on its first poll instead of 30s+. Note: each topic still has only 1 partition, so concurrency=3 gives parallelism *across* topics, not within. If lag returns under sustained load, also bump partition counts on the `order.*` topics.
 
 **Genuinely open operational work:**
 - **PayPal capture round-trip.** Still unproven against live sandbox; needs a human at the browser.
@@ -90,6 +100,6 @@ Run with `npx playwright test e2e/day-simulation.spec.ts --project=chromium` (~1
 
 ## Resume hint
 
-Next session: **fix the `POST /orders` schema drift on the BE side** — accept the lighter `{productId, quantity}` payload from the FE, look up the variant/seller/price/image server-side from product-service via the cart-service. Closes the security finding (client can't fake `unitPriceAmount`) and the schema drift in one move. After that, bump the `OrderProjector` Kafka consumer concurrency. Both are <1hr changes that the day-simulation spec will validate immediately.
+Next session: **the `POST /orders` BE-side normalization + security fix** is the headline outstanding work, and it has a real security finding attached (FE can currently set arbitrary `unitPriceAmount`). Scope it as a 2-3 hour focused session — touches the security boundary, deserves its own attention. The day-simulation spec will validate the change immediately (the buyer flow's place-order step would no longer need the BE-shape composition workaround).
 
 The day-simulation pattern (drive every persona's documented flow end-to-end against the live stack) is the new default integration gate. The UX sweep gives you per-page render coverage; the day simulation gives you per-flow API coverage. Together they're cheap to run (~2min) and catch the kind of FE↔BE drift that survived 116/116 + 67/67 + 38-spec coverage all the way to pt9.
