@@ -2,7 +2,6 @@ package com.vnshop.reviewservice.domain.port.out;
 
 import com.vnshop.reviewservice.domain.ProductQuestion;
 import com.vnshop.reviewservice.domain.Review;
-import com.vnshop.reviewservice.domain.ReviewStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +14,7 @@ public interface ReviewRepositoryPort {
 
     List<Review> findByBuyerId(String buyerId);
 
-    List<Review> findByStatus(ReviewStatus status);
-
     Optional<Review> findReviewById(UUID reviewId);
-
-    Review moderate(UUID reviewId, ReviewStatus status);
 
     ProductQuestion saveQuestion(ProductQuestion question);
 

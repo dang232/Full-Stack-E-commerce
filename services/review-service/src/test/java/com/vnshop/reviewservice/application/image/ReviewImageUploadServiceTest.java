@@ -135,18 +135,8 @@ class ReviewImageUploadServiceTest {
         }
 
         @Override
-        public List<Review> findByStatus(ReviewStatus status) {
-            return List.of();
-        }
-
-        @Override
         public Optional<Review> findReviewById(UUID reviewId) {
             return Optional.ofNullable(reviews.get(reviewId));
-        }
-
-        @Override
-        public Review moderate(UUID reviewId, ReviewStatus status) {
-            return reviews.get(reviewId).withStatus(status);
         }
 
         @Override

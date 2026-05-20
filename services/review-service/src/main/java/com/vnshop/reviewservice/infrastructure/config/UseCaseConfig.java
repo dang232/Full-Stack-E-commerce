@@ -5,7 +5,6 @@ import com.vnshop.reviewservice.application.AskQuestionUseCase;
 import com.vnshop.reviewservice.application.CreateReviewUseCase;
 import com.vnshop.reviewservice.application.GetProductReviewsUseCase;
 import com.vnshop.reviewservice.application.GetQuestionsUseCase;
-import com.vnshop.reviewservice.application.ModerateReviewUseCase;
 import com.vnshop.reviewservice.application.VoteHelpfulUseCase;
 import com.vnshop.reviewservice.application.image.ReviewImageUploadService;
 import com.vnshop.reviewservice.application.storage.ObjectValidationPolicy;
@@ -28,11 +27,6 @@ public class UseCaseConfig {
     @Bean
     GetProductReviewsUseCase getProductReviewsUseCase(ReviewRepositoryPort reviewRepositoryPort) {
         return new GetProductReviewsUseCase(reviewRepositoryPort);
-    }
-
-    @Bean
-    ModerateReviewUseCase moderateReviewUseCase(ReviewRepositoryPort reviewRepositoryPort) {
-        return new ModerateReviewUseCase(reviewRepositoryPort);
     }
 
     @Bean

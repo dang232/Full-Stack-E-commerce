@@ -2,7 +2,6 @@ package com.vnshop.reviewservice.infrastructure.persistence;
 
 import com.vnshop.reviewservice.domain.ProductQuestion;
 import com.vnshop.reviewservice.domain.Review;
-import com.vnshop.reviewservice.domain.ReviewStatus;
 import com.vnshop.reviewservice.domain.port.out.ReviewRepositoryPort;
 import org.springframework.stereotype.Repository;
 
@@ -37,20 +36,8 @@ public class ReviewJpaRepository implements ReviewRepositoryPort {
     }
 
     @Override
-    public List<Review> findByStatus(ReviewStatus status) {
-        return reviewRepository.findByStatus(status).stream().map(ReviewJpaEntity::toDomain).toList();
-    }
-
-    @Override
     public Optional<Review> findReviewById(UUID reviewId) {
         return reviewRepository.findById(reviewId).map(ReviewJpaEntity::toDomain);
-    }
-
-    @Override
-    public Review moderate(UUID reviewId, ReviewStatus status) {
-        Review review = findReviewById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("review not found: " + reviewId));
-        return save(review.withStatus(status));
     }
 
     @Override
