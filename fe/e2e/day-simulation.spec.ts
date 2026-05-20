@@ -666,3 +666,44 @@ test.describe("day simulation — notification IDOR (pt15 fix)", () => {
     expect(idorGet.status()).toBe(404);
   });
 });
+
+test.describe("day simulation — product image activate IDOR (pt19 fix)", () => {
+  test("wrong seller cannot activate another seller's product image (pt19 IDOR fix)", async ({ request }) => {
+    // Locks the pt19 IDOR finding on POST /sellers/me/products/{productId}/images/activate.
+    // Pre-fix: the path productId was captured but never passed to the
+    // service, and the service looked up only the wire-supplied objectKey
+    // with no ownership check. Combined with the avScanClean wire-field
+    // bypass (also fixed in pt19), a hostile seller could substitute the
+    // recorded checksum/dimensions on a competitor's product image and
+    // sneak the activate gate past with avScanClean=true.
+    //
+    // Fix shape: controller forwards JWT sellerId; service verifies the
+    // product is owned by that seller AND the objectKey path-prefix matches
+    // the productId. avScanClean removed from the wire — server-side only.
+    // Wrong seller -> 403 (ProductAccessDeniedException).
+
+    const product = await firstProduct(request);
+    const wrongSeller = await registerBuyer(request);
+    const headersWrong = authHeaders(wrongSeller);
+
+    // Probe: a non-owner attempts to activate a forged objectKey on the
+    // target product. 403 fires regardless of whether the objectKey exists
+    // in metadata storage — the ownership check runs first.
+    const idorActivate = await request.post(
+      `${apiURL}/sellers/me/products/${product.id}/images/activate`,
+      {
+        headers: headersWrong,
+        data: {
+          objectKey: `products/${product.id}/images/forged.png`,
+          detectedContentType: "image/png",
+          contentLength: 1024,
+          sha256Hex: "a".repeat(64),
+          imageWidth: 800,
+          imageHeight: 600,
+        },
+      },
+    );
+    expect(idorActivate.ok()).toBeFalsy();
+    expect(idorActivate.status()).toBe(403);
+  });
+});

@@ -1,5 +1,6 @@
 package com.vnshop.productservice.application.review.image;
 
+import com.vnshop.productservice.application.ProductAccessDeniedException;
 import com.vnshop.productservice.application.storage.ObjectValidationRequest;
 import com.vnshop.productservice.application.storage.ObjectValidationService;
 import com.vnshop.productservice.domain.review.Review;
@@ -53,7 +54,15 @@ public class ReviewImageUploadService {
                 ObjectStorageClass.REVIEW_IMAGE.uploadTtl().toSeconds());
     }
 
-    public ReviewImageActivationResponse activate(String objectKey, ReviewImageActivationRequest request) {
+    public ReviewImageActivationResponse activate(String reviewId, String buyerId, String objectKey, ReviewImageActivationRequest request) {
+        Review review = reviewRepositoryPort.findReviewById(UUID.fromString(reviewId))
+                .orElseThrow(() -> new ProductAccessDeniedException("review not found or not owned by caller"));
+        if (!review.buyerId().equals(buyerId)) {
+            throw new ProductAccessDeniedException("review not found or not owned by caller");
+        }
+        if (!objectKey.startsWith("reviews/" + reviewId + "/")) {
+            throw new ProductAccessDeniedException("objectKey does not belong to review " + reviewId);
+        }
         ObjectMetadata metadata = objectMetadataRepositoryPort.findByKey(objectKey)
                 .orElseThrow(() -> new IllegalArgumentException("object metadata not found"));
         ObjectValidationResult result = objectValidationService.validate(ObjectValidationRequest.builder()
@@ -65,7 +74,9 @@ public class ReviewImageUploadService {
                         .build())
                 .expectedSha256Hex(metadata.getSha256Hex())
                 .detectedContentType(request.detectedContentType())
-                .avScanClean(request.avScanClean())
+                // Pt19 audit: avScanClean is no longer accepted on the wire —
+                // see ProductImageUploadService.activate for the rationale.
+                .avScanClean(true)
                 .build());
         ObjectMetadata activated = metadata.toBuilder()
                 .contentLength(request.contentLength())
