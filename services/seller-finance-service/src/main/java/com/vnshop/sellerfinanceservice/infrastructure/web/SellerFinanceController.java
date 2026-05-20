@@ -1,6 +1,5 @@
 package com.vnshop.sellerfinanceservice.infrastructure.web;
 
-import com.vnshop.sellerfinanceservice.application.CreditWalletUseCase;
 import com.vnshop.sellerfinanceservice.application.ListPayoutsUseCase;
 import com.vnshop.sellerfinanceservice.application.RequestPayoutUseCase;
 import com.vnshop.sellerfinanceservice.application.ViewWalletUseCase;
@@ -16,23 +15,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Note: POST /sellers/me/finance/credits intentionally removed in the
+ * pt13 audit pass. The endpoint allowed any authenticated seller to
+ * credit their own wallet with any orderAmount they chose, bypassing
+ * the legitimate Kafka-driven flow. CreditWalletUseCase is still wired
+ * via OrderCreatedFinanceListener — that's the only path that should
+ * ever credit a seller's wallet. Re-exposing it would require either
+ * an ADMIN role check or moving it under /admin/finance/**.
+ */
 @RestController
 @RequestMapping("/sellers/me/finance")
 public class SellerFinanceController {
     private final ViewWalletUseCase viewWalletUseCase;
     private final ListPayoutsUseCase listPayoutsUseCase;
-    private final CreditWalletUseCase creditWalletUseCase;
     private final RequestPayoutUseCase requestPayoutUseCase;
 
     public SellerFinanceController(
             ViewWalletUseCase viewWalletUseCase,
             ListPayoutsUseCase listPayoutsUseCase,
-            CreditWalletUseCase creditWalletUseCase,
             RequestPayoutUseCase requestPayoutUseCase
     ) {
         this.viewWalletUseCase = viewWalletUseCase;
         this.listPayoutsUseCase = listPayoutsUseCase;
-        this.creditWalletUseCase = creditWalletUseCase;
         this.requestPayoutUseCase = requestPayoutUseCase;
     }
 
@@ -51,13 +56,5 @@ public class SellerFinanceController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<PayoutResponse> requestPayout(@Valid @RequestBody PayoutRequest request) {
         return ApiResponse.ok(PayoutResponse.fromDomain(requestPayoutUseCase.request(JwtPrincipalUtil.currentSellerId(), request.amount())));
-    }
-
-    @PostMapping("/credits")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<CreditResponse> credit(@Valid @RequestBody CreditRequest request) {
-        // TODO: Wire request.idempotencyKey() into persisted credit dedupe once seller finance idempotency store exists.
-        CreditWalletUseCase.CreditWalletResult result = creditWalletUseCase.credit(JwtPrincipalUtil.currentSellerId(), request.orderAmount(), request.tier());
-        return ApiResponse.ok(new CreditResponse(WalletResponse.fromDomain(result.wallet()), result.commission(), result.sellerNet()));
     }
 }
