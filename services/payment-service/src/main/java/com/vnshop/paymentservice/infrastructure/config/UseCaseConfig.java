@@ -1,10 +1,12 @@
 package com.vnshop.paymentservice.infrastructure.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.paymentservice.application.GetPaymentStatusUseCase;
 import com.vnshop.paymentservice.application.HandleVnpayIpnUseCase;
 import com.vnshop.paymentservice.application.ProcessPaymentUseCase;
 import com.vnshop.paymentservice.application.ledger.LedgerService;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
+import com.vnshop.paymentservice.domain.port.out.OrderCatalogPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentIdempotencyKeyRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
@@ -43,6 +45,7 @@ public class UseCaseConfig {
             PaymentGatewayPort paymentGatewayPort,
             LedgerService ledgerService,
             PaymentIdempotencyKeyRepositoryPort paymentIdempotencyKeyRepository,
+            OrderCatalogPort orderCatalogPort,
             PlatformTransactionManager transactionManager
     ) {
         return new ProcessPaymentUseCase(
@@ -50,6 +53,7 @@ public class UseCaseConfig {
                 paymentGatewayPort,
                 ledgerService,
                 paymentIdempotencyKeyRepository,
+                orderCatalogPort,
                 new TransactionTemplate(transactionManager)
         );
     }
@@ -73,5 +77,18 @@ public class UseCaseConfig {
     @Bean
     RestClient.Builder restClientBuilder() {
         return RestClient.builder();
+    }
+
+    /**
+     * Pt12 added an HTTP client (OrderCatalogAdapter) that needs an ObjectMapper.
+     * payment-service is a Spring Boot service and Boot's auto-config provides
+     * one when spring-boot-starter-web is on the classpath, but the explicit
+     * bean here makes the dependency obvious to readers and protects against
+     * webmvc starters being swapped out.
+     */
+    @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+    ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }

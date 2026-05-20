@@ -391,8 +391,6 @@ export function CheckoutPage() {
             {selectedPaymentId === "STRIPE" ? (
               <StripePaymentSection
                 orderId={placedOrderId}
-                buyerId={profile?.userId ?? "BUYER"}
-                amount={finalTotal}
                 idempotencyKey={idempotencyKeyRef.current}
                 onCompleted={() => navigate(`/orders/${placedOrderId}`)}
               />
@@ -400,8 +398,6 @@ export function CheckoutPage() {
             {selectedPaymentId === "PAYPAL" ? (
               <PayPalPaymentSection
                 orderId={placedOrderId}
-                buyerId={profile?.userId ?? "BUYER"}
-                amount={finalTotal}
                 idempotencyKey={idempotencyKeyRef.current}
                 onCompleted={() => navigate(`/orders/${placedOrderId}`)}
               />
@@ -409,8 +405,6 @@ export function CheckoutPage() {
             {selectedPaymentId === "VIETQR" ? (
               <VietQrPaymentSection
                 orderId={placedOrderId}
-                buyerId={profile?.userId ?? "BUYER"}
-                amount={finalTotal}
                 idempotencyKey={idempotencyKeyRef.current}
                 onCompleted={() => navigate(`/orders/${placedOrderId}`)}
               />

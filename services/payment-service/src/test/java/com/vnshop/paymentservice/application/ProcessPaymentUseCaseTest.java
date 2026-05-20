@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.application;
 
+import com.vnshop.paymentservice.application.order.OrderSnapshot;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.Payment;
@@ -7,6 +8,7 @@ import com.vnshop.paymentservice.domain.PaymentIdempotencyKey;
 import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
+import com.vnshop.paymentservice.domain.port.out.OrderCatalogPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentIdempotencyKeyRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
@@ -47,10 +49,12 @@ class ProcessPaymentUseCaseTest {
         InMemoryPayments payments = new InMemoryPayments();
         CountingGateway gateway = new CountingGateway();
         InMemoryIdempotencyKeys keys = new InMemoryIdempotencyKeys();
-        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys);
+        InMemoryOrderCatalog catalog = new InMemoryOrderCatalog()
+                .add("ORDER-1", "BUYER-1", new BigDecimal("100000.00"));
+        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys, catalog);
 
         ProcessPaymentCommand cmd = new ProcessPaymentCommand("ORDER-1", "BUYER-1",
-                new BigDecimal("100000.00"), PaymentMethodInput.VNPAY, "key-A");
+                PaymentMethodInput.VNPAY, "key-A");
 
         Payment first = useCase.process(cmd);
         Payment second = useCase.process(cmd);
@@ -66,13 +70,16 @@ class ProcessPaymentUseCaseTest {
         InMemoryPayments payments = new InMemoryPayments();
         CountingGateway gateway = new CountingGateway();
         InMemoryIdempotencyKeys keys = new InMemoryIdempotencyKeys();
-        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys);
+        InMemoryOrderCatalog catalog = new InMemoryOrderCatalog()
+                .add("ORDER-1", "BUYER-1", new BigDecimal("100000.00"))
+                .add("ORDER-2", "BUYER-1", new BigDecimal("100000.00"));
+        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys, catalog);
 
         useCase.process(new ProcessPaymentCommand("ORDER-1", "BUYER-1",
-                new BigDecimal("100000.00"), PaymentMethodInput.VNPAY, "key-B"));
+                PaymentMethodInput.VNPAY, "key-B"));
 
         assertThatThrownBy(() -> useCase.process(new ProcessPaymentCommand("ORDER-2", "BUYER-1",
-                new BigDecimal("100000.00"), PaymentMethodInput.VNPAY, "key-B")))
+                PaymentMethodInput.VNPAY, "key-B")))
                 .isInstanceOf(IdempotencyKeyConflictException.class);
         assertThat(gateway.calls).isEqualTo(1);
     }
@@ -82,12 +89,15 @@ class ProcessPaymentUseCaseTest {
         InMemoryPayments payments = new InMemoryPayments();
         CountingGateway gateway = new CountingGateway();
         InMemoryIdempotencyKeys keys = new InMemoryIdempotencyKeys();
-        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys);
+        InMemoryOrderCatalog catalog = new InMemoryOrderCatalog()
+                .add("ORDER-1", "BUYER-1", new BigDecimal("100000.00"))
+                .add("ORDER-2", "BUYER-1", new BigDecimal("100000.00"));
+        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys, catalog);
 
         useCase.process(new ProcessPaymentCommand("ORDER-1", "BUYER-1",
-                new BigDecimal("100000.00"), PaymentMethodInput.VNPAY, "key-1"));
+                PaymentMethodInput.VNPAY, "key-1"));
         useCase.process(new ProcessPaymentCommand("ORDER-2", "BUYER-1",
-                new BigDecimal("100000.00"), PaymentMethodInput.VNPAY, "key-2"));
+                PaymentMethodInput.VNPAY, "key-2"));
 
         assertThat(gateway.calls).isEqualTo(2);
         assertThat(payments.saved).hasSize(2);
@@ -99,31 +109,93 @@ class ProcessPaymentUseCaseTest {
         InMemoryPayments payments = new InMemoryPayments();
         CountingGateway gateway = new CountingGateway();
         InMemoryIdempotencyKeys keys = new InMemoryIdempotencyKeys();
-        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys);
+        InMemoryOrderCatalog catalog = new InMemoryOrderCatalog()
+                .add("ORDER-1", "BUYER-1", new BigDecimal("50000.00"));
+        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys, catalog);
 
         useCase.process(new ProcessPaymentCommand("ORDER-1", "BUYER-1",
-                new BigDecimal("50000.00"), PaymentMethodInput.COD, null));
+                PaymentMethodInput.COD, null));
         useCase.process(new ProcessPaymentCommand("ORDER-1", "BUYER-1",
-                new BigDecimal("50000.00"), PaymentMethodInput.COD, "   "));
+                PaymentMethodInput.COD, "   "));
 
         assertThat(gateway.calls).isEqualTo(2);
         assertThat(keys.store).isEmpty();
     }
 
-    /**
-     * Issue 1 fix: when the ledger insert fails inside the transactional block, the whole
-     * unit of work must roll back. Spring's TransactionTemplate guarantees the payment row
-     * rollback at the DB layer; what we verify here is that <em>no idempotency key is
-     * persisted</em>, so a retry with the same key will re-attempt rather than returning a
-     * stale "success" pointer.
-     */
+    @Test
+    void chargesGatewayWithCatalogAmountNotClientClaim() {
+        InMemoryPayments payments = new InMemoryPayments();
+        CountingGateway gateway = new CountingGateway();
+        InMemoryIdempotencyKeys keys = new InMemoryIdempotencyKeys();
+        InMemoryOrderCatalog catalog = new InMemoryOrderCatalog()
+                .add("ORDER-9", "BUYER-1", new BigDecimal("999999.00"));
+        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys, catalog);
+
+        useCase.process(new ProcessPaymentCommand("ORDER-9", "BUYER-1",
+                PaymentMethodInput.VNPAY, null));
+
+        assertThat(payments.saved).hasSize(1);
+        assertThat(payments.saved.get(0).amount()).isEqualByComparingTo("999999.00");
+    }
+
+    @Test
+    void rejectsMismatchedBuyerWith403Equivalent() {
+        InMemoryPayments payments = new InMemoryPayments();
+        CountingGateway gateway = new CountingGateway();
+        InMemoryIdempotencyKeys keys = new InMemoryIdempotencyKeys();
+        InMemoryOrderCatalog catalog = new InMemoryOrderCatalog()
+                .add("ORDER-OWNED-BY-A", "BUYER-A", new BigDecimal("100000.00"));
+        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys, catalog);
+
+        assertThatThrownBy(() -> useCase.process(new ProcessPaymentCommand(
+                "ORDER-OWNED-BY-A", "BUYER-B", PaymentMethodInput.VNPAY, null)))
+                .isInstanceOf(OrderAccessDeniedException.class);
+
+        assertThat(gateway.calls).isEqualTo(0);
+        assertThat(payments.saved).isEmpty();
+    }
+
+    @Test
+    void rejectsAlreadyPaidOrderWith409Equivalent() {
+        InMemoryPayments payments = new InMemoryPayments();
+        CountingGateway gateway = new CountingGateway();
+        InMemoryIdempotencyKeys keys = new InMemoryIdempotencyKeys();
+        InMemoryOrderCatalog catalog = new InMemoryOrderCatalog()
+                .addWithStatus("ORDER-PAID", "BUYER-1", new BigDecimal("100000.00"), "COMPLETED");
+        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys, catalog);
+
+        assertThatThrownBy(() -> useCase.process(new ProcessPaymentCommand(
+                "ORDER-PAID", "BUYER-1", PaymentMethodInput.VNPAY, null)))
+                .isInstanceOf(OrderNotPayableException.class);
+
+        assertThat(gateway.calls).isEqualTo(0);
+    }
+
+    @Test
+    void rejectsMissingOrderWith404Equivalent() {
+        InMemoryPayments payments = new InMemoryPayments();
+        CountingGateway gateway = new CountingGateway();
+        InMemoryIdempotencyKeys keys = new InMemoryIdempotencyKeys();
+        InMemoryOrderCatalog catalog = new InMemoryOrderCatalog();
+        ProcessPaymentUseCase useCase = newUseCase(payments, gateway, keys, catalog);
+
+        assertThatThrownBy(() -> useCase.process(new ProcessPaymentCommand(
+                "ORDER-MISSING", "BUYER-1", PaymentMethodInput.VNPAY, null)))
+                .isInstanceOf(OrderNotFoundException.class);
+
+        assertThat(gateway.calls).isEqualTo(0);
+    }
+
     @Test
     void doesNotSaveIdempotencyKeyWhenLedgerInsertFails() {
         PaymentRepositoryPort payments = mock(PaymentRepositoryPort.class);
         PaymentGatewayPort gateway = mock(PaymentGatewayPort.class);
         LedgerService ledgerService = mock(LedgerService.class);
         PaymentIdempotencyKeyRepositoryPort keys = mock(PaymentIdempotencyKeyRepositoryPort.class);
+        OrderCatalogPort catalog = mock(OrderCatalogPort.class);
 
+        when(catalog.findByOrderId("ORDER-FAIL")).thenReturn(Optional.of(new OrderSnapshot(
+                "ORDER-FAIL", "BUYER-1", new BigDecimal("100000.00"), "VND", "PENDING")));
         when(keys.findByKey("key-fail")).thenReturn(Optional.empty());
         when(gateway.processPayment(any())).thenReturn(
                 new PaymentGatewayPort.GatewayPaymentResult(PaymentStatus.COMPLETED, "TXN-FAIL")
@@ -132,34 +204,28 @@ class ProcessPaymentUseCaseTest {
         doThrow(new RuntimeException("ledger DB down")).when(ledgerService).recordPayment(any(Payment.class));
 
         ProcessPaymentUseCase useCase = new ProcessPaymentUseCase(
-                payments, gateway, ledgerService, keys, recordingTransactionTemplate(),
+                payments, gateway, ledgerService, keys, catalog, recordingTransactionTemplate(),
                 Clock.fixed(Instant.parse("2026-05-17T10:00:00Z"), ZoneOffset.UTC)
         );
 
         assertThatThrownBy(() -> useCase.process(new ProcessPaymentCommand(
-                "ORDER-FAIL", "BUYER-1", new BigDecimal("100000.00"), PaymentMethodInput.VNPAY, "key-fail"
+                "ORDER-FAIL", "BUYER-1", PaymentMethodInput.VNPAY, "key-fail"
         ))).isInstanceOf(RuntimeException.class).hasMessageContaining("ledger DB down");
 
-        // Idempotency key NEVER reached the store. A retry with "key-fail" will re-enter the
-        // use case from the top — the gateway will be called again, which is the correct
-        // recovery behavior given that the previous charge was orphaned (logged) and is
-        // expected to be picked up by the reconciliation worker.
         verify(keys, never()).save(any());
     }
 
-    /**
-     * Issue 1 fix: the gateway side-effect must happen BEFORE we open the transaction.
-     * Charges are not rollback-able by deleting a row, so we charge first, then atomically
-     * persist the payment + ledger + idempotency key.
-     */
     @Test
     void callsGatewayBeforeOpeningTransaction() {
         PaymentRepositoryPort payments = mock(PaymentRepositoryPort.class);
         PaymentGatewayPort gateway = mock(PaymentGatewayPort.class);
         LedgerService ledgerService = mock(LedgerService.class);
         PaymentIdempotencyKeyRepositoryPort keys = mock(PaymentIdempotencyKeyRepositoryPort.class);
+        OrderCatalogPort catalog = mock(OrderCatalogPort.class);
         RecordingTransactionManager txManager = new RecordingTransactionManager();
 
+        when(catalog.findByOrderId("ORDER-ORD")).thenReturn(Optional.of(new OrderSnapshot(
+                "ORDER-ORD", "BUYER-1", new BigDecimal("100000.00"), "VND", "PENDING")));
         when(keys.findByKey("key-order")).thenReturn(Optional.empty());
         when(gateway.processPayment(any())).thenReturn(
                 new PaymentGatewayPort.GatewayPaymentResult(PaymentStatus.COMPLETED, "TXN-ORDER")
@@ -167,13 +233,13 @@ class ProcessPaymentUseCaseTest {
         when(payments.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         ProcessPaymentUseCase useCase = new ProcessPaymentUseCase(
-                payments, gateway, ledgerService, keys,
+                payments, gateway, ledgerService, keys, catalog,
                 new TransactionTemplate(txManager.proxy()),
                 Clock.fixed(Instant.parse("2026-05-17T10:00:00Z"), ZoneOffset.UTC)
         );
 
         useCase.process(new ProcessPaymentCommand(
-                "ORDER-ORD", "BUYER-1", new BigDecimal("100000.00"), PaymentMethodInput.VNPAY, "key-order"
+                "ORDER-ORD", "BUYER-1", PaymentMethodInput.VNPAY, "key-order"
         ));
 
         InOrder order = inOrder(gateway, txManager.proxy(), payments, ledgerService, keys);
@@ -185,9 +251,10 @@ class ProcessPaymentUseCaseTest {
         order.verify(txManager.proxy()).commit(any());
     }
 
-    private static ProcessPaymentUseCase newUseCase(InMemoryPayments payments, CountingGateway gateway, InMemoryIdempotencyKeys keys) {
+    private static ProcessPaymentUseCase newUseCase(InMemoryPayments payments, CountingGateway gateway,
+                                                    InMemoryIdempotencyKeys keys, InMemoryOrderCatalog catalog) {
         return new ProcessPaymentUseCase(payments, gateway, new LedgerService(new NoopLedgerRepository()), keys,
-                noopTransactionTemplate(),
+                catalog, noopTransactionTemplate(),
                 Clock.fixed(Instant.parse("2026-05-17T10:00:00Z"), ZoneOffset.UTC));
     }
 
@@ -195,14 +262,6 @@ class ProcessPaymentUseCaseTest {
         return new TransactionTemplate(new NoopPlatformTransactionManager());
     }
 
-    /**
-     * Same as {@link #noopTransactionTemplate()} but explicit about the rollback path —
-     * useful when a test wants to assert that the rollback branch is exercised. The no-op
-     * manager doesn't actually undo in-memory writes, but TransactionTemplate's contract
-     * guarantees the callback is wrapped in begin/(commit|rollback), so the rollback path
-     * means "no further writes were issued after the throw" — which is exactly what we
-     * assert via mock verification.
-     */
     private static TransactionTemplate recordingTransactionTemplate() {
         return new TransactionTemplate(new NoopPlatformTransactionManager());
     }
@@ -220,25 +279,33 @@ class ProcessPaymentUseCaseTest {
         public void rollback(TransactionStatus status) { }
     }
 
-    /**
-     * Wraps a real {@link NoopPlatformTransactionManager} in a Mockito spy so the InOrder
-     * assertion can verify {@code getTransaction} was invoked between the gateway call and
-     * the persistence calls. Spying gives us the recording behavior without re-implementing
-     * the manager.
-     */
     private static final class RecordingTransactionManager {
         private final PlatformTransactionManager delegate = mock(PlatformTransactionManager.class);
 
         RecordingTransactionManager() {
-            try {
-                when(delegate.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
-            } catch (Exception ex) {
-                throw new IllegalStateException(ex);
-            }
+            when(delegate.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
         }
 
         PlatformTransactionManager proxy() {
             return delegate;
+        }
+    }
+
+    private static final class InMemoryOrderCatalog implements OrderCatalogPort {
+        private final Map<String, OrderSnapshot> orders = new HashMap<>();
+
+        InMemoryOrderCatalog add(String orderId, String buyerId, BigDecimal amount) {
+            return addWithStatus(orderId, buyerId, amount, "PENDING");
+        }
+
+        InMemoryOrderCatalog addWithStatus(String orderId, String buyerId, BigDecimal amount, String status) {
+            orders.put(orderId, new OrderSnapshot(orderId, buyerId, amount, "VND", status));
+            return this;
+        }
+
+        @Override
+        public Optional<OrderSnapshot> findByOrderId(String orderId) {
+            return Optional.ofNullable(orders.get(orderId));
         }
     }
 

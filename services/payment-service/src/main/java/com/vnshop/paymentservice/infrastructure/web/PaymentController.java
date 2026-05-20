@@ -8,6 +8,7 @@ import com.vnshop.paymentservice.application.ProcessPaymentCommand;
 import com.vnshop.paymentservice.application.ProcessPaymentUseCase;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
+import com.vnshop.paymentservice.infrastructure.config.JwtPrincipalUtil;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoCallbackService;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoIpnRequest;
 import com.vnshop.paymentservice.infrastructure.gateway.VietQrService;
@@ -68,7 +69,7 @@ public class PaymentController {
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
             @Valid @RequestBody PaymentRequest request
     ) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.COD, idempotencyKey))));
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), JwtPrincipalUtil.currentUserId(), PaymentMethodInput.COD, idempotencyKey))));
     }
 
     @PostMapping("/vnpay/create")
@@ -76,7 +77,7 @@ public class PaymentController {
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
             @Valid @RequestBody PaymentRequest request
     ) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.VNPAY, idempotencyKey))));
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), JwtPrincipalUtil.currentUserId(), PaymentMethodInput.VNPAY, idempotencyKey))));
     }
 
     @GetMapping("/vnpay/ipn")
@@ -96,7 +97,7 @@ public class PaymentController {
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
             @Valid @RequestBody PaymentRequest request
     ) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), request.buyerId(), request.amount(), PaymentMethodInput.MOMO, idempotencyKey))));
+        return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), JwtPrincipalUtil.currentUserId(), PaymentMethodInput.MOMO, idempotencyKey))));
     }
 
     @PostMapping("/momo/ipn")
@@ -121,7 +122,7 @@ public class PaymentController {
         VietQrService qrService = vietQrService.orElseThrow(() ->
                 new IllegalStateException("VietQR is not enabled — set payment.vietqr.enabled=true"));
         Payment payment = processPaymentUseCase.process(new ProcessPaymentCommand(
-                request.orderId(), request.buyerId(), request.amount(),
+                request.orderId(), JwtPrincipalUtil.currentUserId(),
                 PaymentMethodInput.VIETQR, idempotencyKey));
         VietQrService.VietQrPayment qr = qrService.generate(
                 payment.paymentId().toString(), payment.amount());
@@ -149,7 +150,7 @@ public class PaymentController {
         PayPalGateway gateway = payPalGateway.orElseThrow(() ->
                 new IllegalStateException("PayPal is not enabled — set payment.paypal.enabled=true"));
         Payment payment = processPaymentUseCase.process(new ProcessPaymentCommand(
-                request.orderId(), request.buyerId(), request.amount(),
+                request.orderId(), JwtPrincipalUtil.currentUserId(),
                 PaymentMethodInput.PAYPAL, idempotencyKey));
         PayPalGateway.PayPalOrder order = gateway.createOrder(payment);
         return ApiResponse.ok(PayPalCreateResponse.of(
@@ -214,7 +215,7 @@ public class PaymentController {
         StripeGateway gateway = stripeGateway.orElseThrow(() ->
                 new IllegalStateException("Stripe is not enabled — set payment.stripe.enabled=true"));
         Payment payment = processPaymentUseCase.process(new ProcessPaymentCommand(
-                request.orderId(), request.buyerId(), request.amount(),
+                request.orderId(), JwtPrincipalUtil.currentUserId(),
                 PaymentMethodInput.STRIPE, idempotencyKey));
         StripeGateway.StripeIntent intent = gateway.createPaymentIntent(payment);
         return ApiResponse.ok(StripeCreateResponse.of(

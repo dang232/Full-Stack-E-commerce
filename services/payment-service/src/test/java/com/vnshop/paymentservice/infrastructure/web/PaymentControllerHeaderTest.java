@@ -8,9 +8,13 @@ import com.vnshop.paymentservice.application.ProcessPaymentUseCase;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -41,6 +45,16 @@ class PaymentControllerHeaderTest {
                 Instant.parse("2026-05-17T10:00:00Z"));
         when(processPaymentUseCase.process(any())).thenReturn(stub);
 
+        // Pt12: PaymentController now reads the buyer principal from the JWT
+        // via JwtPrincipalUtil.currentUserId(). Stand up a fake JWT in the
+        // SecurityContext so MockMvc requests have a principal to read.
+        Jwt jwt = Jwt.withTokenValue("test-token")
+                .header("alg", "none")
+                .claim("sub", "BUYER-1")
+                .build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(jwt, "test-token"));
+
         PaymentController controller = new PaymentController(
                 processPaymentUseCase,
                 mock(GetPaymentStatusUseCase.class),
@@ -55,9 +69,14 @@ class PaymentControllerHeaderTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void forwardsIdempotencyKeyHeaderToUseCase() throws Exception {
-        String body = mapper.writeValueAsString(new PaymentRequest("ORDER-1", "BUYER-1", new BigDecimal("100000.00")));
+        String body = mapper.writeValueAsString(new PaymentRequest("ORDER-1"));
 
         mockMvc.perform(post("/payment/vnpay/create")
                         .contentType(APPLICATION_JSON)
@@ -73,7 +92,7 @@ class PaymentControllerHeaderTest {
 
     @Test
     void leavesIdempotencyKeyNullWhenHeaderMissing() throws Exception {
-        String body = mapper.writeValueAsString(new PaymentRequest("ORDER-2", "BUYER-1", new BigDecimal("75000.00")));
+        String body = mapper.writeValueAsString(new PaymentRequest("ORDER-2"));
 
         mockMvc.perform(post("/payment/momo/create")
                         .contentType(APPLICATION_JSON)
@@ -88,7 +107,7 @@ class PaymentControllerHeaderTest {
 
     @Test
     void forwardsHeaderForCodConfirm() throws Exception {
-        String body = mapper.writeValueAsString(new PaymentRequest("ORDER-3", "BUYER-1", new BigDecimal("50000.00")));
+        String body = mapper.writeValueAsString(new PaymentRequest("ORDER-3"));
 
         mockMvc.perform(post("/payment/cod/confirm")
                         .contentType(APPLICATION_JSON)

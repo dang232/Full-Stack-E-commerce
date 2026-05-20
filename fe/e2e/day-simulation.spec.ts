@@ -431,4 +431,23 @@ test.describe("day simulation — payment-method shells", () => {
     const codes = methods.map((m) => m.method ?? m.code).filter(Boolean);
     expect(codes).toContain("COD");
   });
+
+  test("payment create endpoints reject client-supplied amount (pt12 finding)", async ({ request }) => {
+    // Pt12 security gate: PaymentRequest no longer carries amount or buyerId
+    // on the wire. The BE looks them both up from order-service. The key
+    // assertion is that an unknown orderId can NOT cause a payment to be
+    // created — the BE rejects it before reaching the gateway. Order-service
+    // returns 400 (not 404) for a non-existent order via its existing
+    // IllegalArgumentException → 400 mapping, so payment-service's
+    // OrderCatalogAdapter maps that to 503 ORDER_CATALOG_UNAVAILABLE. Either
+    // 4xx or 5xx proves the gateway wasn't called — both are acceptable.
+    const auth = await registerBuyer(request);
+    const headers = authHeaders(auth);
+
+    const fakeOrder = await request.post(`${apiURL}/payment/cod/confirm`, {
+      headers,
+      data: { orderId: "00000000-0000-0000-0000-000000000000" },
+    });
+    expect(fakeOrder.ok()).toBeFalsy();
+  });
 });

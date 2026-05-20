@@ -75,9 +75,16 @@ public class GrpcPaymentServer extends PaymentServiceGrpc.PaymentServiceImplBase
                     PaymentMethodInput.valueOf(request.getPaymentMethod().toUpperCase());
 
             ProcessPaymentCommand cmd = new ProcessPaymentCommand(
-                    request.getOrderId(), request.getBuyerId(), amount, method);
+                    request.getOrderId(), request.getBuyerId(), method);
 
-            Payment payment = processPaymentUseCase.process(cmd);
+            // Trusted service-to-service path: order-service initiates this
+            // call from CreateOrderUseCase BEFORE the order row is persisted,
+            // so the HTTP-side OrderCatalogPort lookup would 404. The amount
+            // comes from order-service's own domain model so it's already
+            // authoritative — bypass the catalog lookup via processInternal.
+            // The HTTP /payment/*/create endpoints continue to use the
+            // lookup-based process(cmd) entry point.
+            Payment payment = processPaymentUseCase.processInternal(cmd, amount);
 
             responseObserver.onNext(PaymentResponse.newBuilder()
                     .setPaymentId(payment.paymentId().toString())

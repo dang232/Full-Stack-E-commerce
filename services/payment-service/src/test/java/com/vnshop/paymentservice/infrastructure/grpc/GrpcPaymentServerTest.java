@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
 
 class GrpcPaymentServerTest {
 
@@ -61,7 +62,7 @@ class GrpcPaymentServerTest {
         UUID mockId = UUID.randomUUID();
         when(mockPayment.paymentId()).thenReturn(mockId);
         when(mockPayment.status()).thenReturn(PaymentStatus.PENDING);
-        when(processPaymentUseCase.process(any())).thenReturn(mockPayment);
+        when(processPaymentUseCase.processInternal(any(), any())).thenReturn(mockPayment);
 
         PaymentResponse response = stub.requestPayment(PaymentRequest.newBuilder()
                 .setOrderId("ord-1")
@@ -76,11 +77,13 @@ class GrpcPaymentServerTest {
         assertEquals(mockId.toString(), response.getPaymentId());
         assertEquals("PENDING", response.getStatus());
 
-        verify(processPaymentUseCase).process(argThat(cmd ->
+        // Pt12: gRPC is the trusted service-to-service path. The use case's
+        // processInternal entry point takes the trusted amount directly,
+        // bypassing the OrderCatalogPort lookup that the HTTP path uses.
+        verify(processPaymentUseCase).processInternal(argThat(cmd ->
                 cmd.orderId().equals("ord-1")
                         && cmd.buyerId().equals("buyer-1")
-                        && cmd.amount().equals(new BigDecimal("100000"))
-                        && cmd.method().name().equals("COD")));
+                        && cmd.method().name().equals("COD")), eq(new BigDecimal("100000")));
     }
 
     @Test
@@ -99,6 +102,9 @@ class GrpcPaymentServerTest {
 
     @Test
     void requestPaymentFailsWithNegativeAmount() {
+        // The gRPC server still validates amount > 0 before calling the use
+        // case, since this is the trusted service-to-service path. The HTTP
+        // path doesn't accept amount at all (resolved from OrderCatalogPort).
         assertThrows(Exception.class, () ->
                 stub.requestPayment(PaymentRequest.newBuilder()
                         .setOrderId("ord-1")

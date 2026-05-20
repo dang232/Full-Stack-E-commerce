@@ -6,8 +6,6 @@ import { paypalCapture, paypalCreate } from "../../lib/api/endpoints/payment";
 
 interface Props {
   orderId: string;
-  buyerId: string;
-  amount: number;
   idempotencyKey: string;
   onCompleted: () => void;
 }
@@ -17,8 +15,6 @@ const CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID ?? "";
 
 export function PayPalPaymentSection({
   orderId,
-  buyerId,
-  amount,
   idempotencyKey,
   onCompleted,
 }: Props) {
@@ -39,7 +35,7 @@ export function PayPalPaymentSection({
       <PayPalScriptProvider options={{ clientId: CLIENT_ID, currency: "USD" }}>
         <PayPalButtons
           createOrder={async () => {
-            const res = await paypalCreate({ orderId, buyerId, amount }, idempotencyKey);
+            const res = await paypalCreate({ orderId }, idempotencyKey);
             setPaymentId(res.payment.paymentId);
             return res.paypalOrderId;
           }}

@@ -1,9 +1,11 @@
 package com.vnshop.paymentservice.application;
 
+import com.vnshop.paymentservice.application.order.OrderSnapshot;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentIdempotencyKey;
 import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
+import com.vnshop.paymentservice.domain.port.out.OrderCatalogPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentIdempotencyKeyRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -29,6 +32,7 @@ public class ProcessPaymentUseCase {
     private final PaymentGatewayPort paymentGatewayPort;
     private final LedgerService ledgerService;
     private final PaymentIdempotencyKeyRepositoryPort idempotencyKeyRepository;
+    private final OrderCatalogPort orderCatalogPort;
     private final TransactionTemplate transactionTemplate;
     private final Clock clock;
 
@@ -37,9 +41,11 @@ public class ProcessPaymentUseCase {
             PaymentGatewayPort paymentGatewayPort,
             LedgerService ledgerService,
             PaymentIdempotencyKeyRepositoryPort idempotencyKeyRepository,
+            OrderCatalogPort orderCatalogPort,
             TransactionTemplate transactionTemplate
     ) {
-        this(paymentRepositoryPort, paymentGatewayPort, ledgerService, idempotencyKeyRepository, transactionTemplate, Clock.systemUTC());
+        this(paymentRepositoryPort, paymentGatewayPort, ledgerService, idempotencyKeyRepository,
+                orderCatalogPort, transactionTemplate, Clock.systemUTC());
     }
 
     public ProcessPaymentUseCase(
@@ -47,6 +53,7 @@ public class ProcessPaymentUseCase {
             PaymentGatewayPort paymentGatewayPort,
             LedgerService ledgerService,
             PaymentIdempotencyKeyRepositoryPort idempotencyKeyRepository,
+            OrderCatalogPort orderCatalogPort,
             TransactionTemplate transactionTemplate,
             Clock clock
     ) {
@@ -54,32 +61,60 @@ public class ProcessPaymentUseCase {
         this.paymentGatewayPort = Objects.requireNonNull(paymentGatewayPort, "paymentGatewayPort is required");
         this.ledgerService = Objects.requireNonNull(ledgerService, "ledgerService is required");
         this.idempotencyKeyRepository = Objects.requireNonNull(idempotencyKeyRepository, "idempotencyKeyRepository is required");
+        this.orderCatalogPort = Objects.requireNonNull(orderCatalogPort, "orderCatalogPort is required");
         this.transactionTemplate = Objects.requireNonNull(transactionTemplate, "transactionTemplate is required");
         this.clock = Objects.requireNonNull(clock, "clock is required");
     }
 
     /**
-     * Order of operations is correctness-critical:
+     * HTTP create-path entry point. Resolves the authoritative payable amount
+     * from order-service and rejects any client whose JWT principal doesn't
+     * match the order's buyer. Closes the price-tampering finding documented
+     * in {@code docs/SESSION-HANDOVER-2026-05-20-pt12.md}.
      *
-     * <ol>
-     *   <li>Look up the idempotency key. A previous successful run short-circuits to the cached payment;
-     *       a key reused with a different request body throws {@link IdempotencyKeyConflictException}.</li>
-     *   <li>Call the gateway <strong>outside</strong> any DB transaction. Gateway charges are real-world
-     *       side effects and cannot be rolled back by deleting a row. Doing this first means a retry that
-     *       reaches step 3 is the only kind of failure that risks orphaning a charge — and step 3 is
-     *       atomic.</li>
-     *   <li>Open a single TX and persist (a) the {@link Payment}, (b) the ledger entries when the gateway
-     *       reports a terminal {@code COMPLETED} status, and (c) the {@link PaymentIdempotencyKey}.
-     *       Everything in this block commits or rolls back together, so a retry with the same key never
-     *       sees a partially-recorded state.</li>
-     *   <li>If step 3 throws, the gateway charge is real but unrecorded. We log loudly with paymentId,
-     *       orderId, and the gateway transaction ref so the existing reconciliation worker (or a human
-     *       on-call) can pick up the orphan.</li>
-     * </ol>
+     * <p>For the trusted service-to-service gRPC path (where order-service
+     * itself initiates a payment as part of order creation, before the order
+     * row is even persisted) use {@link #processInternal(ProcessPaymentCommand,
+     * BigDecimal)} instead.
      */
     public Payment process(ProcessPaymentCommand command) {
+        OrderSnapshot order = orderCatalogPort.findByOrderId(command.orderId())
+                .orElseThrow(() -> new OrderNotFoundException(command.orderId()));
+        if (!order.buyerId().equals(command.buyerId())) {
+            throw new OrderAccessDeniedException(
+                    "buyer " + command.buyerId() + " does not own order " + command.orderId());
+        }
+        if (!order.isPayable()) {
+            throw new OrderNotPayableException(
+                    "order " + command.orderId() + " is not payable (status=" + order.paymentStatus() + ")");
+        }
+        return processWithAmount(command, order.finalAmount());
+    }
+
+    /**
+     * Trusted-caller entry point. Used by the gRPC server when order-service
+     * itself initiates a payment as part of {@code CreateOrderUseCase} — the
+     * order isn't persisted yet at that point so a back-lookup would 404, and
+     * the caller IS the source of truth so a back-lookup would be redundant.
+     * Skips the {@link OrderCatalogPort} round-trip.
+     *
+     * <p>Do NOT expose this to any HTTP-facing controller. The amount comes
+     * straight from the caller — that's safe only when the caller is another
+     * trusted service. The HTTP {@link #process(ProcessPaymentCommand)} path
+     * resolves the amount server-side specifically because the HTTP caller is
+     * the buyer's browser and cannot be trusted with it.
+     */
+    public Payment processInternal(ProcessPaymentCommand command, BigDecimal trustedAmount) {
+        Objects.requireNonNull(trustedAmount, "trustedAmount is required");
+        if (trustedAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("amount must be positive");
+        }
+        return processWithAmount(command, trustedAmount);
+    }
+
+    private Payment processWithAmount(ProcessPaymentCommand command, BigDecimal authoritativeAmount) {
         String idempotencyKey = normalize(command.idempotencyKey());
-        String requestHash = idempotencyKey == null ? null : computeRequestHash(command);
+        String requestHash = idempotencyKey == null ? null : computeRequestHash(command, authoritativeAmount);
 
         if (idempotencyKey != null) {
             Optional<PaymentIdempotencyKey> existing = idempotencyKeyRepository.findByKey(idempotencyKey);
@@ -97,7 +132,7 @@ public class ProcessPaymentUseCase {
             }
         }
 
-        Payment pendingPayment = Payment.pending(command.orderId(), command.buyerId(), command.amount(), toDomain(command.method()));
+        Payment pendingPayment = Payment.pending(command.orderId(), command.buyerId(), authoritativeAmount, toDomain(command.method()));
         // Gateway side-effect runs OUTSIDE the TX. A successful charge whose persistence later rolls
         // back is recoverable via reconciliation; a charge that's "rolled back" inside a TX boundary
         // is impossible — the bank already has the money.
@@ -150,14 +185,14 @@ public class ProcessPaymentUseCase {
 
     /**
      * Hash composition: SHA-256 over {@code orderId|buyerId|amount|method}.
-     * Matches the documented contract — same body + same key returns the cached
-     * payment, different body + same key returns a 422 conflict.
+     * The amount used is the BE-resolved authoritative amount, so legitimate
+     * retries with the same JWT and same orderId always land on the same hash.
      */
-    private static String computeRequestHash(ProcessPaymentCommand command) {
+    private static String computeRequestHash(ProcessPaymentCommand command, BigDecimal authoritativeAmount) {
         String canonical = String.join("|",
                 String.valueOf(command.orderId()),
                 String.valueOf(command.buyerId()),
-                command.amount() == null ? "null" : command.amount().stripTrailingZeros().toPlainString(),
+                authoritativeAmount == null ? "null" : authoritativeAmount.stripTrailingZeros().toPlainString(),
                 command.method() == null ? "null" : command.method().name()
         );
         try {

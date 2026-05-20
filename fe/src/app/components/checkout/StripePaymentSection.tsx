@@ -8,8 +8,6 @@ import { paymentStatus, stripeCreate } from "../../lib/api/endpoints/payment";
 
 interface Props {
   orderId: string;
-  buyerId: string;
-  amount: number;
   idempotencyKey: string;
   onCompleted: () => void;
 }
@@ -23,8 +21,6 @@ const stripePromise: Promise<Stripe | null> | null = PUBLISHABLE_KEY
 
 export function StripePaymentSection({
   orderId,
-  buyerId,
-  amount,
   idempotencyKey,
   onCompleted,
 }: Props) {
@@ -36,13 +32,13 @@ export function StripePaymentSection({
     if (!STRIPE_ENABLED || !stripePromise) return;
     if (clientSecret || loading) return;
     setLoading(true);
-    stripeCreate({ orderId, buyerId, amount }, idempotencyKey)
+    stripeCreate({ orderId }, idempotencyKey)
       .then((res) => {
         setClientSecret(res.clientSecret);
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [orderId, buyerId, amount, idempotencyKey, clientSecret, loading]);
+  }, [orderId, idempotencyKey, clientSecret, loading]);
 
   const options = useMemo(
     () => (clientSecret ? { clientSecret, appearance: { theme: "stripe" as const } } : undefined),

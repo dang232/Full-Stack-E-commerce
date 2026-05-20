@@ -4,16 +4,12 @@ import { paymentStatus, vietqrCreate } from "../../lib/api/endpoints/payment";
 
 interface Props {
   orderId: string;
-  buyerId: string;
-  amount: number;
   idempotencyKey: string;
   onCompleted: () => void;
 }
 
 export function VietQrPaymentSection({
   orderId,
-  buyerId,
-  amount,
   idempotencyKey,
   onCompleted,
 }: Props) {
@@ -27,7 +23,7 @@ export function VietQrPaymentSection({
 
   useEffect(() => {
     if (qr || error) return;
-    vietqrCreate({ orderId, buyerId, amount }, idempotencyKey)
+    vietqrCreate({ orderId }, idempotencyKey)
       .then((res) =>
         setQr({
           qrImageUrl: res.qrImageUrl,
@@ -37,7 +33,7 @@ export function VietQrPaymentSection({
         }),
       )
       .catch((err: Error) => setError(err.message));
-  }, [orderId, buyerId, amount, idempotencyKey, qr, error]);
+  }, [orderId, idempotencyKey, qr, error]);
 
   useEffect(() => {
     if (!qr) return;
