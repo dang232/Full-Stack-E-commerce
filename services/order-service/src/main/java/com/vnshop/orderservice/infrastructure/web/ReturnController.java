@@ -75,7 +75,8 @@ public class ReturnController {
 
     @PostMapping("/{returnId}/disputes")
     public ApiResponse<DisputeResponse> dispute(@PathVariable UUID returnId, @Valid @RequestBody DisputeRequest request) {
-        return ApiResponse.ok(DisputeResponse.fromDomain(disputeUseCase.open(returnId, request.buyerReason(), request.sellerResponse())));
+        return ApiResponse.ok(DisputeResponse.fromDomain(
+                disputeUseCase.open(returnId, JwtPrincipalUtil.currentUserId(), request.buyerReason(), request.sellerResponse())));
     }
 
 }
