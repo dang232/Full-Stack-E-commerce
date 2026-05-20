@@ -52,22 +52,24 @@ public class AuthController {
             // an empty roles claim for the user, which is fine for the buyer
             // happy path. Login + profile work without it.
         }
-        // Materialise the buyer profile only when the phone passes the domain
-        // validator (E.164 +84 prefix). Otherwise defer profile creation to
-        // the first PUT /users/me — the seeded test users already work this
-        // way and the FE upserts on demand.
-        if (request.phone() != null && !request.phone().isBlank()) {
-            try {
-                String fullName = (request.firstName() + " " + request.lastName()).trim();
-                registerBuyerUseCase.register(new RegisterBuyerCommand(
-                        userId,
-                        fullName,
-                        request.phone(),
-                        null));
-            } catch (IllegalArgumentException ignored) {
-                // Bad phone format — keep the Keycloak account, let the user
-                // fill in their profile after first login.
-            }
+        // Always materialise the buyer profile so subsequent calls (address add,
+        // profile view) don't 400 with "buyer profile not found". Phone is
+        // optional — RegisterBuyerUseCase tolerates null/blank and skips the
+        // E.164 +84 validation in that case. Bad phone formats are dropped on
+        // the floor (keep the Keycloak account, surface the error on the next
+        // PUT /users/me) so a typo'd phone never wedges registration.
+        try {
+            String fullName = (request.firstName() + " " + request.lastName()).trim();
+            String phone = (request.phone() != null && !request.phone().isBlank())
+                    ? request.phone()
+                    : null;
+            registerBuyerUseCase.register(new RegisterBuyerCommand(
+                    userId,
+                    fullName,
+                    phone,
+                    null));
+        } catch (IllegalArgumentException ex) {
+            log.warn("buyer profile materialisation deferred for keycloakId={}: {}", userId, ex.getMessage());
         }
         return ApiResponse.ok(new RegisterResponse(userId, request.email()));
     }

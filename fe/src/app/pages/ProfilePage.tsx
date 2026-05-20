@@ -430,10 +430,14 @@ export function ProfilePage() {
                       ] as const
                     ).map((field) => (
                       <div key={field.key}>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label
+                          htmlFor={`addr-${field.key}`}
+                          className="block text-xs font-medium text-gray-600 mb-1"
+                        >
                           {t(field.labelKey)}
                         </label>
                         <input
+                          id={`addr-${field.key}`}
                           value={newAddress[field.key] ?? ""}
                           onChange={(e) =>
                             setNewAddress((prev) => ({ ...prev, [field.key]: e.target.value }))

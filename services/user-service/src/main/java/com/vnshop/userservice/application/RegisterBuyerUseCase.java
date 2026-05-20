@@ -15,10 +15,13 @@ public class RegisterBuyerUseCase {
     }
 
     public BuyerProfile register(RegisterBuyerCommand command) {
+        PhoneNumber phone = (command.phone() == null || command.phone().isBlank())
+                ? null
+                : new PhoneNumber(command.phone());
         BuyerProfile buyerProfile = new BuyerProfile(
                 command.keycloakId(),
                 command.name(),
-                new PhoneNumber(command.phone()),
+                phone,
                 command.avatarUrl(),
                 List.of()
         );
