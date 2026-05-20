@@ -166,28 +166,11 @@ test.describe("day simulation — buyer", () => {
 
     // 5) Place order — COD path, no external gateway needed.
     //
-    // FINDING (pt8 day-sim, second mismatch in this flow): the FE's
-    // `placeOrder` endpoint module sends `{items:[{productId,quantity}],
-    // addressId, paymentMethod}`, but the BE order-service CheckoutRequest
-    // expects `{shippingAddress:{street,ward,district,city},
-    // items:[{productId,variantSku,sellerId,name,quantity,unitPriceAmount,
-    // unitPriceCurrency,imageUrl}]}` — fully denormalized, no addressId/
-    // paymentMethod fields. Calling with the FE shape yields 500. We compose
-    // the BE-shaped payload directly here so the rest of the order flow can
-    // be exercised; the FE drift is logged in the handover for follow-up.
-    const detailRes = await request.get(`${apiURL}/products/${product.id}`);
-    expect(detailRes.ok()).toBeTruthy();
-    const detail = (await detailRes.json())?.data ?? {};
-    const variantSku = detail?.variants?.[0]?.sku ?? detail?.sku ?? "default";
-    const sellerId = detail?.sellerId ?? detail?.seller?.id ?? "seller1";
-    const unitPriceAmount = detail?.price?.amount ?? detail?.price ?? 100_000;
-    const unitPriceCurrency = detail?.price?.currency ?? "VND";
-    // Product image can be a string or {url, ...} object depending on the
-    // shape; OrderItemRequest only accepts a String, so coerce.
-    const rawImage = detail?.images?.[0] ?? detail?.image ?? "";
-    const imageUrl = typeof rawImage === "string" ? rawImage : (rawImage?.url ?? "");
-    const productName = detail?.name ?? "Day Sim Product";
-
+    // Post-pt9 fix: BE now accepts the light client shape
+    // {shippingAddress, items:[{productId, variantSku?, quantity}]} and
+    // resolves sellerId / name / unitPrice / image server-side from the
+    // product-service. Closes the price-tampering security finding —
+    // the client cannot influence the recorded order total.
     const idem = `day-sim-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const place = await request.post(`${apiURL}/orders`, {
       headers: { ...headers, "Idempotency-Key": idem },
@@ -198,16 +181,7 @@ test.describe("day simulation — buyer", () => {
           district: "101",
           city: "Ho Chi Minh",
         },
-        items: [{
-          productId: product.id,
-          variantSku,
-          sellerId,
-          name: productName,
-          quantity: 1,
-          unitPriceAmount,
-          unitPriceCurrency,
-          imageUrl,
-        }],
+        items: [{ productId: product.id, quantity: 1 }],
       },
     });
     if (!place.ok()) {
@@ -229,16 +203,7 @@ test.describe("day simulation — buyer", () => {
           district: "101",
           city: "Ho Chi Minh",
         },
-        items: [{
-          productId: product.id,
-          variantSku,
-          sellerId,
-          name: productName,
-          quantity: 1,
-          unitPriceAmount,
-          unitPriceCurrency,
-          imageUrl,
-        }],
+        items: [{ productId: product.id, quantity: 1 }],
       },
     });
     expect(replay.ok()).toBeTruthy();

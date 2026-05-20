@@ -14,9 +14,20 @@ import { api } from "../client";
 export type { PendingSubOrder, Return };
 
 export interface PlaceOrderInput {
-  items: { productId: string; quantity: number }[];
-  addressId?: number;
-  paymentMethod: PaymentMethod;
+  /**
+   * Server-side resolved at /orders. Send only what the client legitimately
+   * knows — productId, optional variantSku, and quantity. Price, seller,
+   * name, and image are looked up by order-service against product-service
+   * to prevent client-side price tampering.
+   */
+  items: { productId: string; variantSku?: string; quantity: number }[];
+  shippingAddress: {
+    street: string;
+    ward?: string;
+    district: string;
+    city: string;
+  };
+  paymentMethod?: PaymentMethod;
   couponCode?: string;
   shippingChoices?: { sellerId: string; code: string }[];
   notes?: string;

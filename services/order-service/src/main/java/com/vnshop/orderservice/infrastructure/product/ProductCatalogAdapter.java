@@ -1,0 +1,172 @@
+package com.vnshop.orderservice.infrastructure.product;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vnshop.orderservice.application.catalog.CatalogProduct;
+import com.vnshop.orderservice.domain.Money;
+import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Reads canonical product details from product-service over HTTP. Used by
+ * the checkout path to resolve light {@code (productId, variantSku?, quantity)}
+ * line items into the full {@link com.vnshop.orderservice.domain.OrderItem}
+ * shape the domain requires.
+ *
+ * <p>Behind a circuit breaker so a product-service outage degrades to a
+ * checkout 503 rather than a hung thread pool. 404 is treated as
+ * "product not found" (an empty {@link Optional}), not a CB-tripping
+ * failure.
+ */
+@Component
+public class ProductCatalogAdapter implements ProductCatalogPort {
+    private static final String PRODUCT_BREAKER = "productServiceCircuitBreaker";
+
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+    private final CircuitBreaker circuitBreaker;
+    private final String productUrl;
+
+    public ProductCatalogAdapter(
+            ObjectMapper objectMapper,
+            CircuitBreakerRegistry circuitBreakerRegistry,
+            @Value("${vnshop.product-service.base-url:http://product-service:8082}") String baseUrl,
+            @Value("${vnshop.product-service.connect-timeout-ms:1000}") long connectTimeoutMs,
+            @Value("${vnshop.product-service.read-timeout-ms:2000}") long readTimeoutMs
+    ) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
+        factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
+        this.restTemplate = new RestTemplate(factory);
+        this.objectMapper = objectMapper;
+        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker(PRODUCT_BREAKER);
+        this.productUrl = baseUrl + "/products";
+    }
+
+    @Override
+    public Optional<CatalogProduct> findByProductId(String productId) {
+        try {
+            return circuitBreaker.executeSupplier(() -> fetch(productId));
+        } catch (CallNotPermittedException e) {
+            throw new ProductCatalogUnavailableException(
+                    "product-service circuit breaker OPEN — refusing call until recovery window elapses", e);
+        }
+    }
+
+    private Optional<CatalogProduct> fetch(String productId) {
+        String url = productUrl + "/" + productId;
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
+            String json = response.getBody();
+            if (json == null || json.isBlank()) {
+                return Optional.empty();
+            }
+            ApiResponseDto wrapper = objectMapper.readValue(json, ApiResponseDto.class);
+            if (wrapper == null || wrapper.data == null) {
+                return Optional.empty();
+            }
+            return Optional.of(toDomain(wrapper.data));
+        } catch (HttpStatusCodeException e) {
+            if (e.getStatusCode().value() == 404) {
+                return Optional.empty();
+            }
+            throw new ProductCatalogUnavailableException(
+                    "product-service returned " + e.getStatusCode() + ": " + e.getResponseBodyAsString(), e);
+        } catch (ResourceAccessException e) {
+            throw new ProductCatalogUnavailableException(
+                    "product-service unreachable or timed out: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new ProductCatalogUnavailableException("failed to read product-service response: " + e.getMessage(), e);
+        }
+    }
+
+    private static CatalogProduct toDomain(ProductDataDto data) {
+        List<CatalogProduct.Variant> variants = data.variants == null ? List.of()
+                : data.variants.stream()
+                        .map(v -> new CatalogProduct.Variant(
+                                v.sku,
+                                new Money(
+                                        v.priceAmount == null ? BigDecimal.ZERO : v.priceAmount,
+                                        v.priceCurrency == null || v.priceCurrency.isBlank() ? "VND" : v.priceCurrency)))
+                        .toList();
+        String imageUrl = (data.images == null || data.images.isEmpty()) ? "" : data.images.get(0).url;
+        return new CatalogProduct(data.id, data.sellerId, data.name, variants, imageUrl);
+    }
+
+    // --- DTOs mirroring product-service ApiResponse<ProductResponse> wire shape ---
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class ApiResponseDto {
+        @JsonProperty("data")
+        public ProductDataDto data;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class ProductDataDto {
+        @JsonProperty("id")
+        public String id;
+
+        @JsonProperty("sellerId")
+        public String sellerId;
+
+        @JsonProperty("name")
+        public String name;
+
+        @JsonProperty("variants")
+        public List<VariantDto> variants;
+
+        @JsonProperty("images")
+        public List<ImageDto> images;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class VariantDto {
+        @JsonProperty("sku")
+        public String sku;
+
+        @JsonProperty("priceAmount")
+        public BigDecimal priceAmount;
+
+        @JsonProperty("priceCurrency")
+        public String priceCurrency;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class ImageDto {
+        @JsonProperty("url")
+        public String url;
+    }
+
+    @Configuration
+    public static class CircuitBreakerBeanConfig {
+        @Bean(name = PRODUCT_BREAKER)
+        public CircuitBreaker productServiceCircuitBreaker(CircuitBreakerRegistry registry) {
+            return registry.circuitBreaker(PRODUCT_BREAKER, CircuitBreakerConfig.custom()
+                    .failureRateThreshold(50)
+                    .slidingWindowSize(20)
+                    .minimumNumberOfCalls(10)
+                    .waitDurationInOpenState(Duration.ofSeconds(30))
+                    .permittedNumberOfCallsInHalfOpenState(3)
+                    .build());
+        }
+    }
+}

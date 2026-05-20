@@ -4,6 +4,7 @@ import com.vnshop.orderservice.application.AcceptOrderUseCase;
 import com.vnshop.orderservice.application.ApproveReturnUseCase;
 import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
 import com.vnshop.orderservice.application.CancelOrderUseCase;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase;
 import com.vnshop.orderservice.application.CompleteReturnUseCase;
 import com.vnshop.orderservice.application.CreateOrderUseCase;
 import com.vnshop.orderservice.application.DisputeQueryUseCase;
@@ -39,6 +40,7 @@ import com.vnshop.orderservice.domain.port.out.InvoiceStoragePort;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
+import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
 import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
 import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
@@ -66,6 +68,14 @@ public class UseCaseConfig {
             OrderEventPublisherPort orderEventPublisherPort
     ) {
         return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort);
+    }
+
+    @Bean
+    CheckoutOrderUseCase checkoutOrderUseCase(
+            ProductCatalogPort productCatalogPort,
+            CreateOrderUseCase createOrderUseCase
+    ) {
+        return new CheckoutOrderUseCase(productCatalogPort, createOrderUseCase);
     }
 
     @Bean

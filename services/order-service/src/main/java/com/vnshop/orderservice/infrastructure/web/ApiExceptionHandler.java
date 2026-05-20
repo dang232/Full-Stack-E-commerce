@@ -1,7 +1,9 @@
 package com.vnshop.orderservice.infrastructure.web;
 
+import com.vnshop.orderservice.application.CheckoutOrderUseCase;
 import com.vnshop.orderservice.domain.InvoiceAccessDeniedException;
 import com.vnshop.orderservice.domain.coupon.CouponException;
+import com.vnshop.orderservice.infrastructure.product.ProductCatalogUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,19 @@ public class ApiExceptionHandler {
             default -> HttpStatus.BAD_REQUEST;
         };
         return ResponseEntity.status(status).body(ApiResponse.error(exception.getMessage(), exception.code()));
+    }
+
+    @ExceptionHandler(CheckoutOrderUseCase.ProductNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> productNotFound(CheckoutOrderUseCase.ProductNotFoundException exception) {
+        return ApiResponse.error(exception.getMessage(), "PRODUCT_NOT_FOUND");
+    }
+
+    @ExceptionHandler(ProductCatalogUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ApiResponse<Void> productCatalogDown(ProductCatalogUnavailableException exception) {
+        log.warn("product-catalog-unavailable: {}", exception.getMessage());
+        return ApiResponse.error("Product catalog is temporarily unavailable", "PRODUCT_CATALOG_UNAVAILABLE");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -262,9 +262,21 @@ export function CheckoutPage() {
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
     try {
+      const selectedAddress = addresses[selectedAddressIndex];
+      if (!selectedAddress) {
+        toast.error(t("checkout.address.missingValidation"));
+        setIsProcessing(false);
+        return;
+      }
       const order = await placeOrder(
         {
           items: cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          shippingAddress: {
+            street: selectedAddress.street,
+            ward: selectedAddress.ward,
+            district: selectedAddress.district ?? "",
+            city: selectedAddress.city,
+          },
           paymentMethod: selectedPaymentId,
           notes: note || undefined,
           shippingChoices: shipping ? [{ sellerId: "_", code: shipping.id }] : undefined,

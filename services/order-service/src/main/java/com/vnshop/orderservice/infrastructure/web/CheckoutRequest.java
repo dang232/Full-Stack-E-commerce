@@ -1,7 +1,6 @@
 package com.vnshop.orderservice.infrastructure.web;
 
-import com.vnshop.orderservice.domain.Order;
-import com.vnshop.orderservice.domain.OrderItem;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase.CheckoutLineItem;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +11,7 @@ public record CheckoutRequest(
         @Valid @NotNull AddressRequest shippingAddress,
         @Valid @NotEmpty List<OrderItemRequest> items) {
 
-    List<OrderItem> toItems() {
-        return items.stream().map(OrderItemRequest::toDomain).toList();
+    List<CheckoutLineItem> toLineItems() {
+        return items.stream().map(OrderItemRequest::toLineItem).toList();
     }
 }

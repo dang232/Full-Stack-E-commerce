@@ -2,8 +2,8 @@ package com.vnshop.orderservice.infrastructure.web;
 
 import com.vnshop.orderservice.application.CancelOrderCommand;
 import com.vnshop.orderservice.application.CancelOrderUseCase;
-import com.vnshop.orderservice.application.CreateOrderCommand;
-import com.vnshop.orderservice.application.CreateOrderUseCase;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase.CheckoutOrderCommand;
 import com.vnshop.orderservice.application.ViewOrderUseCase;
 import com.vnshop.orderservice.application.query.OrderQueryHandler;
 import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
@@ -29,14 +29,14 @@ import java.util.UUID;
 public class OrderController {
     private static final String IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
 
-    private final CreateOrderUseCase createOrderUseCase;
+    private final CheckoutOrderUseCase checkoutOrderUseCase;
     private final CancelOrderUseCase cancelOrderUseCase;
     private final OrderQueryHandler orderQueryHandler;
     private final ViewOrderUseCase viewOrderUseCase;
 
-    public OrderController(CreateOrderUseCase createOrderUseCase, CancelOrderUseCase cancelOrderUseCase,
+    public OrderController(CheckoutOrderUseCase checkoutOrderUseCase, CancelOrderUseCase cancelOrderUseCase,
             OrderQueryHandler orderQueryHandler, ViewOrderUseCase viewOrderUseCase) {
-        this.createOrderUseCase = createOrderUseCase;
+        this.checkoutOrderUseCase = checkoutOrderUseCase;
         this.cancelOrderUseCase = cancelOrderUseCase;
         this.orderQueryHandler = orderQueryHandler;
         this.viewOrderUseCase = viewOrderUseCase;
@@ -48,7 +48,11 @@ public class OrderController {
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER) String idempotencyKey,
             @Valid @RequestBody CheckoutRequest request
     ) {
-        return ApiResponse.ok(OrderResponse.fromDomain(createOrderUseCase.create(new CreateOrderCommand(JwtPrincipalUtil.currentUserId(), request.shippingAddress().toDomain(), request.toItems(), idempotencyKey))));
+        return ApiResponse.ok(OrderResponse.fromDomain(checkoutOrderUseCase.checkout(new CheckoutOrderCommand(
+                JwtPrincipalUtil.currentUserId(),
+                request.shippingAddress().toDomain(),
+                request.toLineItems(),
+                idempotencyKey))));
     }
 
     @GetMapping
