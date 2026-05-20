@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.infrastructure.web;
 
 import com.vnshop.orderservice.application.CheckoutOrderUseCase;
+import com.vnshop.orderservice.application.OrderAccessDeniedException;
 import com.vnshop.orderservice.domain.InvoiceAccessDeniedException;
 import com.vnshop.orderservice.domain.coupon.CouponException;
 import com.vnshop.orderservice.infrastructure.product.ProductCatalogUnavailableException;
@@ -21,6 +22,13 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiResponse<Void> forbidden(InvoiceAccessDeniedException exception) {
         return ApiResponse.error(exception.getMessage(), "INVOICE_ACCESS_DENIED");
+    }
+
+    @ExceptionHandler(OrderAccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> orderAccessDenied(OrderAccessDeniedException exception) {
+        log.warn("order-access-denied: {}", exception.getMessage());
+        return ApiResponse.error("Not authorized for this order", "ORDER_ACCESS_DENIED");
     }
 
     @ExceptionHandler(CouponException.class)

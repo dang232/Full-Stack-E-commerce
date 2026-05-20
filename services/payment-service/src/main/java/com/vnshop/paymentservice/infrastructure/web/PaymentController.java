@@ -210,7 +210,13 @@ public class PaymentController {
 
     @GetMapping("/status/{orderId}")
     public ApiResponse<PaymentResponse> status(@PathVariable String orderId) {
-        return ApiResponse.ok(PaymentResponse.fromDomain(getPaymentStatusUseCase.getByOrderId(orderId)));
+        // Pt13 follow-up IDOR fix: any authenticated buyer could probe
+        // arbitrary orderIds and read another buyer's payment status. The
+        // buyer-aware variant cross-checks against the JWT principal. The
+        // unauthenticated/gRPC variant lives on getByOrderId(orderId) for
+        // trusted callers (order-service polling, etc.).
+        return ApiResponse.ok(PaymentResponse.fromDomain(
+                getPaymentStatusUseCase.getByOrderIdForBuyer(orderId, JwtPrincipalUtil.currentUserId())));
     }
 
     /**

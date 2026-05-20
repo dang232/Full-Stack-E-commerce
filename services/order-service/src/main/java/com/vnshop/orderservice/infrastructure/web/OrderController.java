@@ -68,7 +68,8 @@ public class OrderController {
 
     @GetMapping("/{id}")
     public ApiResponse<OrderResponse> get(@PathVariable UUID id) {
-        return ApiResponse.ok(OrderResponse.fromDomain(viewOrderUseCase.view(id)));
+        return ApiResponse.ok(OrderResponse.fromDomain(
+                viewOrderUseCase.viewForBuyer(id, JwtPrincipalUtil.currentUserId())));
     }
 
     @DeleteMapping("/{id}/cancel")
