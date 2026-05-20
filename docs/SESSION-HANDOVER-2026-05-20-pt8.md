@@ -84,11 +84,16 @@ The pt5 + pt6 + pt7 lists still apply. New rules learned this block:
 
 ## What's still missing (deferred — pt8 → pt9)
 
+**Pt7 list audit.** Two items I had inherited as "still missing" were actually already shipped — pt7's deferred list had drifted from reality. Re-verified this block:
+
+- ~~Notifications inbox.~~ **Already shipped.** `NotificationController` has `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/{id}/read`, `POST /notifications/mark-all-read`. Gateway routes them. FE has `NotificationBell` component mounted in `Root.tsx:168`, `useNotifications` hook, and the `notifications.ts` endpoint module. Drove it via the gateway as `buyer1`/`test`: 200 with `{count: 0}` and an empty page (no events for that user yet, but the read path is wired).
+- ~~Real GHN/GHTK shipping rate adapter.~~ **Already shipped, just needs sandbox creds.** `LiveCarrierGateway` (Primary, `@ConditionalOnProperty(shipping.carrier.mode=live)`), `GhnCarrierGateway`, `GhtkCarrierGateway`, `GhnProperties`/`GhtkProperties`, and `CarrierGatewaysTest` (27/27 pass) all exist. The yml binds env vars `GHN_TOKEN`/`GHTK_TOKEN` etc; default `CARRIER_MODE=stub`. What remains is operational — flip to `live` with real GHN/GHTK sandbox creds and validate against the real APIs. Not a code task.
+
+**Genuinely still open:**
+
 - **PayPal capture round-trip.** Smart Buttons render on the success step (FE creds inlined post-pt6), the BE OAuth + create + capture path is unit-tested, but the live FE → sandbox PayPal popup → `/payment/paypal/capture` round-trip has never been driven by hand. Last unproven payment path. **Needs you at the browser.**
-- **Notifications inbox.** notification-service consumes Kafka but no inbox endpoint or FE bell yet.
-- **Real GHN/GHTK shipping rate adapter.** `LiveCarrierGateway` scaffolding exists; needs API key wiring + integration tests.
-- **OneDrive durability.** The reparse-point fix only persists until OneDrive next decides to evict the files. Pinned via a `pretest` hook in `fe/package.json` this block (see "What shipped" below). For non-test invocations (`npx playwright test ...` directly), still vulnerable — the durable cure is `attrib +P -U fe/e2e/*.spec.ts` once after every clone, or pin via Explorer.
+- **OneDrive durability.** The pretest hook (this block) heals `npm run test:e2e`, but invoking `npx playwright test` directly still depends on whoever last touched the file. Long-term cure is `attrib +P fe/e2e/*.spec.ts` once after every clone, or moving the repo out of OneDrive entirely.
 
 ## Resume hint
 
-Next session: **drive the PayPal capture round-trip in the browser** — still the last unproven sandbox path. If you'd rather work autonomously, the smallest open item is the `network-diagnostic` `seller1` fixture fix; the dispatching-parallel-agents pattern from this block (with the silent-bail recovery loop) is the new default for autonomous queue drain. The full Playwright suite passing 38/38 is the new baseline regression gate.
+Next session: **drive the PayPal capture round-trip in the browser** — still the last unproven sandbox path and effectively the only code-side outstanding work in the pt7 carry-over. Pt7's deferred queue was over-stated by two items; what looks like "missing features" is often already implemented but never re-verified in handovers. **Audit before delegating** is the rule that saved the most time this block: the second sub-agent burned 24 minutes investigating a Playwright "discovery bug" that was actually a OneDrive filesystem quirk, and another agent burned 11 minutes about to "implement" a MoMo migration before bailing — both salvageable only because the diff was checked before the report was trusted.
