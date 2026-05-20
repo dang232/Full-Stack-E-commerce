@@ -23,11 +23,10 @@ describe("users endpoint Zod schemas", () => {
     avatarUrl: "",
     addresses: [
       {
-        line1: "12 Lê Lợi",
+        street: "12 Lê Lợi",
         ward: "Bến Nghé",
         district: "Quận 1",
         city: "Hồ Chí Minh",
-        country: "VN",
         isDefault: true,
       },
     ],
@@ -46,9 +45,8 @@ describe("users endpoint Zod schemas", () => {
     // the invariant that the address mutation response is the full profile.
     const bareArray = [
       {
-        line1: "12 Lê Lợi",
+        street: "12 Lê Lợi",
         city: "Hồ Chí Minh",
-        country: "VN",
       },
     ];
     expect(() => userProfileSchema.parse(bareArray)).toThrow();
@@ -66,16 +64,15 @@ describe("users endpoint Zod schemas", () => {
 
   it("addressSchema accepts the AddressResponse shape with optional fields", () => {
     const parsed = addressSchema.parse({
-      line1: "12 Lê Lợi",
+      street: "12 Lê Lợi",
       city: "Hồ Chí Minh",
-      country: "VN",
     });
-    expect(parsed.line1).toBe("12 Lê Lợi");
-    expect(parsed.country).toBe("VN");
+    expect(parsed.street).toBe("12 Lê Lợi");
+    expect(parsed.city).toBe("Hồ Chí Minh");
   });
 
-  it("addressSchema requires line1 and city", () => {
+  it("addressSchema requires street and city", () => {
     expect(() => addressSchema.parse({ city: "HCM" })).toThrow();
-    expect(() => addressSchema.parse({ line1: "12 Lê Lợi" })).toThrow();
+    expect(() => addressSchema.parse({ street: "12 Lê Lợi" })).toThrow();
   });
 });

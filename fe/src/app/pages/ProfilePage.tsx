@@ -43,18 +43,16 @@ const TABS: { id: ProfileTab; labelKey: string; icon: typeof User }[] = [
 ];
 
 const EMPTY_ADDRESS: Address = {
-  line1: "",
+  street: "",
   ward: "",
   district: "",
   city: "",
-  province: "",
-  country: "VN",
   phone: "",
   isDefault: false,
 };
 
 function formatAddressLine(a: Address): string {
-  return [a.line1, a.ward, a.district, a.city, a.province].filter(Boolean).join(", ");
+  return [a.street, a.ward, a.district, a.city].filter(Boolean).join(", ");
 }
 
 export function ProfilePage() {
@@ -424,7 +422,7 @@ export function ProfilePage() {
                   <div className="border border-dashed border-gray-200 rounded-2xl p-4 mb-4 space-y-3">
                     {(
                       [
-                        { key: "line1", labelKey: "profile.addresses.fields.line1" },
+                        { key: "street", labelKey: "profile.addresses.fields.street" },
                         { key: "ward", labelKey: "profile.addresses.fields.ward" },
                         { key: "district", labelKey: "profile.addresses.fields.district" },
                         { key: "city", labelKey: "profile.addresses.fields.city" },
@@ -456,7 +454,7 @@ export function ProfilePage() {
                     </label>
                     <button
                       onClick={() => {
-                        if (!newAddress.line1 || !newAddress.city) {
+                        if (!newAddress.street || !newAddress.district || !newAddress.city) {
                           toast.error(t("profile.addresses.validateMissing"));
                           return;
                         }

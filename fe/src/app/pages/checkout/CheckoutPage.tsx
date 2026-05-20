@@ -144,7 +144,7 @@ export function CheckoutPage() {
       "checkout",
       "calculate",
       cartItems.map((i) => `${i.productId}:${i.quantity}`).join(","),
-      addresses[selectedAddressIndex]?.line1,
+      addresses[selectedAddressIndex]?.street,
       appliedCoupon,
     ],
     queryFn: () =>

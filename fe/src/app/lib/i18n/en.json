@@ -739,7 +739,7 @@
       "addToggleOpen": "Add address",
       "addToggleClose": "Close",
       "fields": {
-        "line1": "Street, house number",
+        "street": "Street, house number",
         "ward": "Ward",
         "district": "District",
         "city": "City / Province",
@@ -750,7 +750,7 @@
       "saveAddress": "Save address",
       "saving": "Saving...",
       "empty": "You don't have any addresses yet.",
-      "validateMissing": "Please enter the street and city",
+      "validateMissing": "Please enter the street, district and city",
       "addedOk": "Address added",
       "addedErr": "Couldn't add address",
       "defaultedOk": "Set as default address",

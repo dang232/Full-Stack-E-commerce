@@ -93,7 +93,7 @@ function fromServer(o: ServerOrder): UIOrder {
     total: o.total,
     shipping: o.shippingFee ?? 0,
     discount: o.discount ?? 0,
-    address: o.address ? [o.address.line1, o.address.city].filter(Boolean).join(", ") : "",
+    address: o.address ? [o.address.street, o.address.city].filter(Boolean).join(", ") : "",
     trackingCode: sub?.trackingCode ?? undefined,
     carrier: sub?.carrier ?? undefined,
     seller: sub?.sellerName ?? "",

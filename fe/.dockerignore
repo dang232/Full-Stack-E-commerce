@@ -6,3 +6,10 @@ coverage
 .turbo
 .vscode
 .idea
+# Playwright e2e suites + reports — not part of the runtime bundle.
+# Some specs trip BuildKit's file-walk on Windows hosts; excluding them
+# is the right fix anyway since they aren't shipped to the nginx image.
+e2e
+playwright-report
+test-results
+playwright.config.ts

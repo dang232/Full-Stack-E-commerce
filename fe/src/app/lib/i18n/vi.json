@@ -739,7 +739,7 @@
       "addToggleOpen": "Thêm địa chỉ",
       "addToggleClose": "Đóng",
       "fields": {
-        "line1": "Số nhà, đường",
+        "street": "Số nhà, đường",
         "ward": "Phường/Xã",
         "district": "Quận/Huyện",
         "city": "Tỉnh/Thành phố",
@@ -750,7 +750,7 @@
       "saveAddress": "Lưu địa chỉ",
       "saving": "Đang lưu...",
       "empty": "Bạn chưa có địa chỉ nào.",
-      "validateMissing": "Vui lòng nhập số nhà/đường và thành phố",
+      "validateMissing": "Vui lòng nhập số nhà/đường, quận/huyện và thành phố",
       "addedOk": "Đã thêm địa chỉ",
       "addedErr": "Không thể thêm địa chỉ",
       "defaultedOk": "Đã đặt làm địa chỉ mặc định",

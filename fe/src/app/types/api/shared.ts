@@ -32,15 +32,15 @@ export interface Page<T> {
 
 export const addressSchema = z
   .object({
-    line1: z.string(),
-    line2: z.string().optional(),
+    street: z.string(),
     ward: z.string().optional(),
     district: z.string().optional(),
     city: z.string(),
-    province: z.string().optional(),
-    country: z.string().default("VN"),
-    phone: z.string().optional(),
     isDefault: z.boolean().optional(),
+    // Kept FE-side only — the form still collects phone for UX, but the
+    // user-service Address record drops it on POST and doesn't return it
+    // on GET. Treat as optional/best-effort until the BE shape grows.
+    phone: z.string().optional(),
   })
   .passthrough();
 export type Address = z.infer<typeof addressSchema>;
