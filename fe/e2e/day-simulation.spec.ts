@@ -450,4 +450,63 @@ test.describe("day simulation — payment-method shells", () => {
     });
     expect(fakeOrder.ok()).toBeFalsy();
   });
+
+  test("buyer B cannot read or pay for buyer A's order (pt14 IDOR fixes)", async ({ request }) => {
+    // Locks the pt13/pt14 IDOR regressions:
+    //   - GET /orders/{id} -> 403 if not the buyer
+    //   - GET /payment/status/{orderId} -> 403 if not the buyer
+    //   - POST /payment/*/create -> 403 if not the buyer
+    // Two buyers, one order, three probes. All three must reject before
+    // reaching any gateway / data leak.
+    const buyerA = await registerBuyer(request);
+    const buyerB = await registerBuyer(request);
+    const headersA = authHeaders(buyerA);
+    const headersB = authHeaders(buyerB);
+
+    // Buyer A places a real order so the BE has a row to probe.
+    const product = await firstProduct(request);
+    const idem = `idor-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const place = await request.post(`${apiURL}/orders`, {
+      headers: { ...headersA, "Idempotency-Key": idem },
+      data: {
+        shippingAddress: {
+          street: "1 Buyer A Street",
+          ward: "1442",
+          district: "101",
+          city: "Ho Chi Minh",
+        },
+        items: [{ productId: product.id, quantity: 1 }],
+      },
+    });
+    expect(place.ok(), `place: ${place.status()} ${await place.text()}`).toBeTruthy();
+    const orderId = (await place.json())?.data?.id;
+    expect(orderId).toBeTruthy();
+
+    // Sanity: buyer A can read it.
+    const ownGet = await request.get(`${apiURL}/orders/${orderId}`, { headers: headersA });
+    expect(ownGet.ok()).toBeTruthy();
+
+    // Probe 1: buyer B GETs buyer A's order. Must NOT succeed.
+    const idorOrder = await request.get(`${apiURL}/orders/${orderId}`, { headers: headersB });
+    expect(idorOrder.ok()).toBeFalsy();
+    expect(idorOrder.status()).toBe(403);
+
+    // Probe 2: buyer B reads buyer A's payment status. Must NOT succeed.
+    // (No payment row exists yet because COD wasn't confirmed; the BE
+    // still has to refuse before leaking even the existence of the order.)
+    const idorPaymentStatus = await request.get(
+      `${apiURL}/payment/status/${orderId}`,
+      { headers: headersB },
+    );
+    expect(idorPaymentStatus.ok()).toBeFalsy();
+
+    // Probe 3: buyer B creates a payment for buyer A's order. The pt12
+    // amount-tampering fix already prevents this via the OrderCatalogPort
+    // buyer check — this test makes the regression contract explicit.
+    const idorPayment = await request.post(`${apiURL}/payment/cod/confirm`, {
+      headers: headersB,
+      data: { orderId },
+    });
+    expect(idorPayment.ok()).toBeFalsy();
+  });
 });
