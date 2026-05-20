@@ -1,8 +1,8 @@
 # Session handover — 2026-05-19 (pt6: multi-payment rollout — VietQR + SePay + Stripe + PayPal)
 
-**Last commit (HEAD):** `cf9b08c4` (`fix(payment): permit /payment/*/webhook in payment-service SecurityConfig`)
-**Commits this block:** 6 (since pt5 HEAD `be835032`).
-**Gates:** payment-service Maven `Tests run: 66, Failures: 0, Errors: 0, Skipped: 0`. FE typecheck (`npx tsc --noEmit`) exits 0. **Live e2e-day with all payment flags on: 67 passed, 0 failed.** **Stripe webhook driven live end-to-end on 2026-05-20:** `stripe trigger payment_intent.succeeded --add payment_intent:metadata.paymentId=<uuid>` flips PENDING → COMPLETED, `payment-promoted provider=STRIPE` logged.
+**Last commit (HEAD):** `4efcbee6` (`fix(fe): forward VITE_STRIPE/PAYPAL flags through docker-compose build args`)
+**Commits this block:** 7 (since pt5 HEAD `be835032`).
+**Gates:** payment-service Maven `Tests run: 66, Failures: 0, Errors: 0, Skipped: 0`. FE typecheck (`npx tsc --noEmit`) exits 0. **Live e2e-day with all payment flags on: 67 passed, 0 failed.** **Stripe webhook driven live end-to-end on 2026-05-20:** `stripe trigger payment_intent.succeeded --add payment_intent:metadata.paymentId=<uuid>` flips PENDING → COMPLETED, `payment-promoted provider=STRIPE` logged. **FE checkout chunk now bakes the Stripe + PayPal sandbox creds** (verified by grepping the lazy-loaded `index-*.js` bundle).
 
 This block executed the spec at `docs/superpowers/specs/2026-05-19-multi-payment-rollout-design.md` (v2), then closed the loop with a sandbox-creds smoke run that uncovered three runtime bugs the unit tests didn't catch. All four payment paths now working in parallel: VietQR production (manual confirm), SePay sandbox polling for VietQR auto-confirm, Stripe sandbox end-to-end (FE Elements → BE PaymentIntent → webhook → ledger), PayPal sandbox end-to-end (FE Smart Buttons → BE OAuth+order+capture → ledger).
 
@@ -16,6 +16,7 @@ This block executed the spec at `docs/superpowers/specs/2026-05-19-multi-payment
 | 4 | `20c87afe` | docs(payment): roadmap + spec + pt6 handover for multi-payment rollout |
 | 5 | `06303f04` | fix(payment): wire RestClient.Builder + paypal env + 405 fallback + 10s timelimiter |
 | 6 | `cf9b08c4` | fix(payment): permit /payment/*/webhook in payment-service SecurityConfig |
+| 7 | `4efcbee6` | fix(fe): forward VITE_STRIPE/PAYPAL flags through docker-compose build args |
 
 
 ## TL;DR
@@ -168,6 +169,7 @@ The pt5 list still applies. New rules learned this block:
 9. **Spring Boot 4 doesn't auto-publish `RestClient.Builder` as a bean.** Constructor injection of `RestClient.Builder` UnsatisfiedDependency's at boot. Define `@Bean RestClient.Builder restClientBuilder() { return RestClient.builder(); }` in a `@Configuration` class. Bit me on FrankfurterFxAdapter / PayPalGateway / RestSepayClient simultaneously.
 10. **`docker-compose.yml` env passthrough is explicit.** Env vars in `.env` aren't auto-injected into containers — each service block has to list them under `environment:`. PayPal/Stripe/SePay creds were silently empty inside the container until the matching `STRIPE_*: ${STRIPE_*}` lines were added. Easy to miss because the boot log doesn't print missing env, just the resulting `IllegalArgumentException` at request time.
 11. **`@GetMapping` fallback handlers swallow non-GET methods as 405.** Resilience4j's circuit-breaker forwards to `forward:/fallback/{service}` regardless of incoming method; if the fallback only declares `@GetMapping`, every POST that times out comes back as 405 Method Not Allowed (looks like a routing bug, isn't). Use `@RequestMapping` (any method) on fallback controllers. Default Resilience4j `TimeLimiter` is 1s — overrides per service in `application.yml` under `resilience4j.timelimiter.instances.<name>`.
+12. **Vite inlines `VITE_*` at *build* time, not container runtime.** Adding `VITE_STRIPE_ENABLED=true` to `.env` does nothing on its own — `import.meta.env.VITE_STRIPE_ENABLED` resolves to `undefined` at build, the `if (!STRIPE_ENABLED)` placeholder branch keeps rendering, and the Elements/Smart-Buttons section silently never mounts on the success step. Three layers must agree: (a) `fe/Dockerfile` declares an `ARG VITE_X=` + `ENV VITE_X=$VITE_X` in the build stage; (b) `docker-compose.yml` `frontend.build.args` forwards `VITE_X: ${VITE_X:-default}` from `.env`; (c) `.env` actually sets `VITE_X`. Verify by grepping the rebuilt lazy-loaded checkout chunk for the publishable creds (`pk_test_*`, PayPal client id) — if they're inlined and the disabled-fallback string is gone (DCE'd by `"true"==="true"`), Vite saw them. Rebuild with `docker compose up -d --build frontend` after any change.
 
 ## File locations to know (new since pt5)
 
@@ -205,7 +207,7 @@ The pt5 list still applies. New rules learned this block:
 
 ## How to resume
 
-1. **Verify HEAD.** `git log --oneline -1` should show `06303f04` (the fallback fix). All five commits this block are landed; working tree is clean except for `.gitignore` + `opencode.jsonc` (unrelated editor config, ignore).
+1. **Verify HEAD.** `git log --oneline -1` should show `4efcbee6` (the FE build-args fix). All seven commits this block are landed on local `main` (unpushed). Working tree is clean except for `.gitignore` + `opencode.jsonc` (unrelated editor config, ignore).
 2. **Run the gates** (stack must be up + seeded):
    ```bash
    cd services/payment-service && ./mvnw test                    # 66/66
@@ -215,7 +217,8 @@ The pt5 list still applies. New rules learned this block:
    ```
 3. **Manual smoke (still TODO):**
    - **Stripe webhook live drive.** ✅ **Done 2026-05-20.** `stripe trigger payment_intent.succeeded --add payment_intent:metadata.paymentId=29dd30f0-bb51-4fd7-a628-c73701026c8a` flipped that payment PENDING → COMPLETED with `pi_3TZ1rxETJXVjsFVG1I91pV4J`, signature verified, `payment-promoted provider=STRIPE` logged. Took the SecurityConfig fix in `cf9b08c4` to clear the 401.
-   - **PayPal capture flow.** FE Smart Buttons → `/payment/paypal/capture/{paymentId}/{paypalOrderId}` against a sandbox account at developer.paypal.com.
+   - **FE checkout sections render.** ✅ **Done 2026-05-20.** Verified via bundle grep — `pk_test_*` + PayPal sandbox client id are inlined into the lazy-loaded checkout chunk; the disabled-fallback strings were DCE'd. Open `http://localhost:3000` (port 3000 = nginx container; 5173 is dev-server only), add a product → cart → checkout, place an order paying with Stripe or PayPal, the live sections appear on the success step.
+   - **PayPal capture flow.** FE Smart Buttons → `/payment/paypal/capture/{paymentId}/{paypalOrderId}` against a sandbox account at developer.paypal.com — sections now render (gotcha #12), capture itself still unproven live.
    - **SePay polling.** Poller runs on schedule; once SePay creds land in `.env`, check logs for `sepay-skip-non-vietqr` / `sepay-skip-no-uuid-in-memo` / `payment-promoted provider=SEPAY`.
    - **VietQR.** Already working; admin confirms via `AdminVietQrController`.
 4. **Open a PR** with the rollout summary if not already pushed.
@@ -223,12 +226,12 @@ The pt5 list still applies. New rules learned this block:
 ## Final tally
 
 - **Started this block:** payment-service 35/35 tests at HEAD `be835032`.
-- **Ended:** payment-service 66/66 tests (+31 — Stripe, PayPal, SePay, FX, composite, promotion), FE typecheck clean, **e2e-day 67/67** with all payment flags on, **Stripe webhook driven live end-to-end**.
-- **Commits this block:** 6 (4 feature + 2 fix). HEAD `cf9b08c4`.
-- **Diff vs pt5 HEAD:** ~+2847 / -402 across 30+ files (4 new packages, 7 new tests, 2 migrations, 2 FE sections, 1 gateway permit-list, 1 service permit-list, 1 RestClient.Builder bean, 1 fallback method fix, 1 timelimiter override).
-- **Production characteristics added:** multi-method payment dispatch, provider-namespaced dedup, FX caching, Stripe webhook verification (now live-validated), PayPal OAuth, SePay polling.
-- **Deferred items closed:** 4 payment paths (VietQR, SePay, Stripe live-validated, PayPal). Also closed four runtime bugs that the unit suite didn't catch (RestClient.Builder, env passthrough, fallback method, service-level webhook permit).
+- **Ended:** payment-service 66/66 tests (+31 — Stripe, PayPal, SePay, FX, composite, promotion), FE typecheck clean, **e2e-day 67/67** with all payment flags on, **Stripe webhook driven live end-to-end**, **FE Stripe + PayPal sandbox creds inlined into the checkout chunk** (verified via bundle grep + DCE check).
+- **Commits this block:** 7 (4 feature + 3 fix). HEAD `4efcbee6`.
+- **Diff vs pt5 HEAD:** ~+2864 / -403 across 30+ files (4 new packages, 7 new tests, 2 migrations, 2 FE sections, 1 gateway permit-list, 1 service permit-list, 4 FE build args, 1 RestClient.Builder bean, 1 fallback method fix, 1 timelimiter override).
+- **Production characteristics added:** multi-method payment dispatch, provider-namespaced dedup, FX caching, Stripe webhook verification (now live-validated), PayPal OAuth, SePay polling, FE build-arg propagation for payment provider creds.
+- **Deferred items closed:** 4 payment paths (VietQR, SePay, Stripe live-validated, PayPal sections render — capture still unproven). Also closed five runtime bugs that the unit suite didn't catch (RestClient.Builder, env passthrough, fallback method, service-level webhook permit, FE build-arg passthrough).
 
 ## Resume hint
 
-Next session: drive the **PayPal capture** in the browser (FE Smart Buttons → `/payment/paypal/capture/...` against a sandbox developer.paypal.com account) — that's the last unproven live path. After that, MoMo callback migration onto `PaymentPromotionService` is the smallest deferred item. Stripe webhook is now fully proven (commit `cf9b08c4`).
+Next session: drive the **PayPal capture** in the browser end-to-end. The Smart Buttons now mount on the success step (gotcha #12 closed); what's still unproven is the round-trip — sandbox PayPal popup login → approval → `/payment/paypal/capture/{paymentId}/{paypalOrderId}` → ledger flips PAID synchronously. After that, MoMo callback migration onto `PaymentPromotionService` is the smallest deferred item.
