@@ -101,6 +101,29 @@ class CompleteReturnUseCaseTest {
         assertThat(refunds.calls).isEmpty();
     }
 
+    @Test
+    void completeRejectsReturnNotInApprovedStateWithoutRefund() {
+        // Return.complete() guards on status — only APPROVED can transition to
+        // COMPLETED. The use case happens to call complete() AFTER the seller
+        // ownership gate AFTER the order/sub-order lookup, so the IllegalStateException
+        // path crosses real production code. Without this test, a future refactor
+        // that loosened Return's state guard could let a refund fire on a return
+        // still in REQUESTED state.
+        UUID orderId = UUID.randomUUID();
+        UUID returnId = UUID.randomUUID();
+        Long subOrderId = 100L;
+        orders.save(orderWith(orderId, subOrderId, SELLER_OWNER));
+        // Seed in REQUESTED, not APPROVED.
+        returns.save(new Return(returnId, orderId.toString(), subOrderId, "buyer-1", "broken"));
+
+        assertThatThrownBy(() -> useCase.complete(returnId, SELLER_OWNER))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("REQUESTED");
+        assertThat(refunds.calls).isEmpty();
+        assertThat(returns.findById(returnId).orElseThrow().status())
+                .isEqualTo(ReturnStatus.REQUESTED);
+    }
+
     private static Return approvedReturn(UUID returnId, UUID orderId, Long subOrderId, String buyerId) {
         // Returns must be APPROVED before they can complete — match the real
         // state machine so the test exercises the same path production hits.

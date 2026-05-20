@@ -67,9 +67,6 @@ class ReviewImageUploadServiceTest {
     @Test
     void activateRejectsRequestFromWrongBuyerWithAccessDenied() {
         UUID reviewId = UUID.randomUUID();
-        reviewRepository.save(Review.pending(
-                "product-1", "buyer-1", "order-1", 5, "great", List.of(), true));
-        // Domain factory mints its own UUID, so build a Review with the id we want.
         Review seeded = new Review(reviewId, "product-1", "buyer-1", "order-1", 5,
                 "great", List.of(), true, 0, ReviewStatus.PENDING, java.time.Instant.now());
         reviewRepository.save(seeded);
