@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { FindNotificationByIdUseCase } from './find-notification-by-id.use-case';
 import { FindUserNotificationsUseCase } from './find-user-notifications.use-case';
 import { Notification } from '../domain/notification';
@@ -43,6 +44,10 @@ describe('Find notification use cases', () => {
     },
     findById: (id) =>
       Promise.resolve(id === 'notification-1' ? notification : null),
+    findByIdAndUserId: (id, userId) =>
+      Promise.resolve(
+        id === 'notification-1' && userId === 'user-1' ? notification : null,
+      ),
     markSent: () => Promise.resolve(),
     markRead: (id, userId) =>
       Promise.resolve(
@@ -74,10 +79,16 @@ describe('Find notification use cases', () => {
     expect(oversizedPage.size).toBe(100);
   });
 
-  it('finds notification by id', async () => {
+  it('finds notification by id scoped to the requesting user', async () => {
     const useCase = new FindNotificationByIdUseCase(repository);
 
-    await expect(useCase.execute('notification-1')).resolves.toBe(notification);
-    await expect(useCase.execute('missing')).resolves.toBeNull();
+    // Owner gets the notification.
+    await expect(useCase.execute('notification-1', 'user-1')).resolves.toBe(notification);
+
+    // Wrong owner: repository returns null → use case throws 404.
+    await expect(useCase.execute('notification-1', 'other-user')).rejects.toThrow(NotFoundException);
+
+    // Non-existent id: also throws 404 (existence is not leaked).
+    await expect(useCase.execute('missing', 'user-1')).rejects.toThrow(NotFoundException);
   });
 });

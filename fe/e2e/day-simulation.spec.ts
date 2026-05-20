@@ -621,3 +621,48 @@ test.describe("day simulation — payment-method shells", () => {
     expect(idorPayment.ok()).toBeFalsy();
   });
 });
+
+test.describe("day simulation — notification IDOR (pt15 fix)", () => {
+  test("buyer B cannot read buyer A's notification by id (pt15 IDOR fix)", async ({ request }) => {
+    // Locks the pt15 IDOR finding on GET /notifications/:id.
+    // A notification's `data` field embeds order details, payment events, and
+    // dispute updates — a guessable UUID would be a PII leak. The fix scopes
+    // the repository query to { id, userId } so a foreign caller gets 404
+    // (not 403 — existence must not be leaked either).
+
+    const buyerA = await registerBuyer(request);
+    const buyerB = await registerBuyer(request);
+    const headersA = authHeaders(buyerA);
+    const headersB = authHeaders(buyerB);
+
+    // Buyer A creates a notification via the test endpoint.
+    const create = await request.post(`${apiURL}/notifications/test`, {
+      headers: headersA,
+    });
+    expect(create.ok(), `create notification: ${create.status()} ${await create.text()}`).toBeTruthy();
+
+    // Buyer A reads their own notification list to harvest the id.
+    const list = await request.get(`${apiURL}/notifications?size=5`, {
+      headers: headersA,
+    });
+    expect(list.ok(), `list notifications: ${list.status()} ${await list.text()}`).toBeTruthy();
+    const listBody = await list.json();
+    const notificationId = listBody?.data?.content?.[0]?.id;
+    expect(notificationId, "no notification id in list response").toBeTruthy();
+
+    // Sanity: buyer A can read their own notification.
+    const ownGet = await request.get(`${apiURL}/notifications/${notificationId}`, {
+      headers: headersA,
+    });
+    expect(ownGet.ok(), `owner GET failed: ${ownGet.status()} ${await ownGet.text()}`).toBeTruthy();
+
+    // Probe: buyer B GETs buyer A's notification by id. Must NOT succeed.
+    // The fix returns 404 (not 403) so the existence of the notification is
+    // not leaked to the probing user.
+    const idorGet = await request.get(`${apiURL}/notifications/${notificationId}`, {
+      headers: headersB,
+    });
+    expect(idorGet.ok()).toBeFalsy();
+    expect(idorGet.status()).toBe(404);
+  });
+});

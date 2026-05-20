@@ -85,14 +85,11 @@ export class NotificationController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string) {
-    const notification = await this.findNotificationByIdUseCase.execute(id);
-
-    if (!notification) {
-      throw new NotFoundException('Notification not found');
-    }
-
-    return ApiResponse.ok(notification);
+  async findById(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    const userId = req.user.sub;
+    return ApiResponse.ok(
+      await this.findNotificationByIdUseCase.execute(id, userId),
+    );
   }
 
   @Post('test')

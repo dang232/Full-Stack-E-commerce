@@ -67,6 +67,14 @@ export class NotificationMikroOrmRepository implements NotificationRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdAndUserId(
+    id: string,
+    userId: string,
+  ): Promise<Notification | null> {
+    const entity = await this.repository.findOne({ id, userId });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async markSent(id: string): Promise<void> {
     const entity = await this.repository.findOne({ id });
     if (!entity) return;

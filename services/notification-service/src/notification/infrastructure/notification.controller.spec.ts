@@ -95,8 +95,12 @@ describe('NotificationController', () => {
       FindNotificationByIdUseCase,
       'execute'
     > = {
-      execute: (id: string) =>
-        Promise.resolve(id === 'notification-1' ? notification : null),
+      execute: (id: string, userId: string) => {
+        if (id === 'notification-1' && userId === 'user-1') {
+          return Promise.resolve(notification);
+        }
+        return Promise.reject(new NotFoundException('Notification not found'));
+      },
     };
 
     const sendNotificationUseCase: Pick<SendNotificationUseCase, 'send'> = {
@@ -172,7 +176,7 @@ describe('NotificationController', () => {
 
   it('returns notification by id', async () => {
     const result: SuccessResponse<Notification> =
-      await controller.findById('notification-1');
+      await controller.findById(requestFor('user-1'), 'notification-1');
 
     expect(result.success).toBe(true);
     expect(result.data).toBe(notification);
@@ -181,9 +185,9 @@ describe('NotificationController', () => {
   });
 
   it('throws NotFoundException when notification missing', async () => {
-    await expect(controller.findById('missing')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      controller.findById(requestFor('user-1'), 'missing'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('creates test notification scoped to the JWT subject', async () => {

@@ -25,6 +25,7 @@ export interface NotificationRepository {
     page: PageQuery,
   ): Promise<PageResult<Notification>>;
   findById(id: string): Promise<Notification | null>;
+  findByIdAndUserId(id: string, userId: string): Promise<Notification | null>;
   markSent(id: string): Promise<void>;
   markRead(id: string, userId: string): Promise<Notification | null>;
   markAllRead(userId: string): Promise<number>;
