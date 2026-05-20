@@ -601,6 +601,18 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      # Object storage — pre-existing bit-rot, surfaced + fixed in pt14.
+      # ReviewImageUploadService unconditionally injects ObjectStoragePort
+      # but the @ConditionalOnProperty on ObjectStorageConfig was never
+      # satisfied, so cold rebuilds failed to wire the bean.
+      VNSHOP_OBJECT_STORAGE_ENABLED: ${OBJECT_STORAGE_ENABLED:-true}
+      VNSHOP_OBJECT_STORAGE_PROFILE: ${OBJECT_STORAGE_PROFILE:-MINIO}
+      VNSHOP_OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET_REVIEWS:-vnshop-reviews}
+      VNSHOP_OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-http://minio:9000}
+      VNSHOP_OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-auto}
+      VNSHOP_OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-vnshop}
+      VNSHOP_OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-vnshop123}
+      VNSHOP_OBJECT_STORAGE_PATH_STYLE_ACCESS: ${OBJECT_STORAGE_PATH_STYLE:-true}
 
   seller-finance-service:
     profiles: ["apps"]
