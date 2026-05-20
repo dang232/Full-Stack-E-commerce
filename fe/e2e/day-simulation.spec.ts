@@ -451,6 +451,117 @@ test.describe("day simulation — payment-method shells", () => {
     expect(fakeOrder.ok()).toBeFalsy();
   });
 
+  test("pt15 IDOR: wrong seller cannot approve/reject/complete a return; wrong buyer cannot open a dispute", async ({ request }) => {
+    // Locks the four IDOR regressions closed in pt15 (ReturnController):
+    //   - POST /returns/{id}/approve  → 403 if caller is not the SubOrder's seller
+    //   - POST /returns/{id}/reject   → 403 if caller is not the SubOrder's seller
+    //   - POST /returns/{id}/complete → 403 if caller is not the SubOrder's seller
+    //     (critical: /complete triggers a real refund — a wrong-seller call
+    //      would issue money back for a return the seller never reviewed)
+    //   - POST /returns/{id}/disputes → 403 if caller is not the return's buyer
+    //
+    // ReturnAuthorization.requireSellerOwnsReturn and DisputeUseCase.open both
+    // throw OrderAccessDeniedException before any state-machine check, so the
+    // IDOR gate fires even when the return is in REQUESTED state.
+    //
+    // Attacker strategy: a fresh buyer (registered via /auth/register) is used
+    // as the wrong-seller probe. The gateway has no role gate on /returns/**
+    // (only .anyExchange().authenticated()), so the request reaches order-service.
+    // JwtPrincipalUtil.currentSellerId() returns jwt.sub — the buyer's sub won't
+    // match seller1's sub, so ReturnAuthorization throws 403.
+
+    const buyerA = await registerBuyer(request);
+    const headersA = authHeaders(buyerA);
+    const seller1 = await loginByUsername(request, "seller1");
+    const headersSeller1 = authHeaders(seller1);
+    const product = await firstProduct(request);
+
+    // Step 1: buyer A places a COD order.
+    const idem = `idor-return-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const place = await request.post(`${apiURL}/orders`, {
+      headers: { ...headersA, "Idempotency-Key": idem },
+      data: {
+        shippingAddress: { street: "1 Return IDOR St", ward: "1442", district: "101", city: "Ho Chi Minh" },
+        items: [{ productId: product.id, quantity: 1 }],
+      },
+    });
+    expect(place.ok(), `place order: ${place.status()} ${await place.text()}`).toBeTruthy();
+    const placeBody = await place.json();
+    const orderId = placeBody?.data?.id;
+    const subOrderId: number = placeBody?.data?.subOrders?.[0]?.subOrderId;
+    expect(orderId, "no orderId in place response").toBeTruthy();
+    expect(subOrderId, "no subOrderId in place response").toBeTruthy();
+
+    // Step 2: confirm COD payment so the order advances past PENDING.
+    const pay = await request.post(`${apiURL}/payment/cod/confirm`, {
+      headers: headersA,
+      data: { orderId },
+    });
+    expect(pay.ok(), `cod confirm: ${pay.status()} ${await pay.text()}`).toBeTruthy();
+
+    // Step 3: seller1 accepts the suborder.
+    const accept = await request.put(`${apiURL}/seller/orders/${subOrderId}/accept`, {
+      headers: headersSeller1,
+    });
+    expect(accept.ok(), `seller accept: ${accept.status()} ${await accept.text()}`).toBeTruthy();
+
+    // Step 4: seller1 ships the suborder — RequestReturnUseCase requires
+    // carrier + trackingNumber to be set before a return can be submitted.
+    const ship = await request.put(`${apiURL}/seller/orders/${subOrderId}/ship`, {
+      headers: headersSeller1,
+      data: { carrier: "ViettelPost", trackingNumber: `TRK${Date.now()}` },
+    });
+    expect(ship.ok(), `seller ship: ${ship.status()} ${await ship.text()}`).toBeTruthy();
+
+    // Step 5: buyer A submits a return request.
+    const returnReq = await request.post(`${apiURL}/returns`, {
+      headers: headersA,
+      data: { subOrderId, reason: "Item damaged on arrival" },
+    });
+    expect(returnReq.ok(), `request return: ${returnReq.status()} ${await returnReq.text()}`).toBeTruthy();
+    const returnBody = await returnReq.json();
+    const returnId: string = returnBody?.data?.returnId;
+    expect(returnId, "no returnId in return response").toBeTruthy();
+
+    // Probe 1 (seller IDOR): a fresh buyer acts as the wrong-seller attacker.
+    // ReturnAuthorization.requireSellerOwnsReturn fires before any state check.
+    const wrongSeller = await registerBuyer(request);
+    const headersWrongSeller = authHeaders(wrongSeller);
+
+    const badApprove = await request.post(`${apiURL}/returns/${returnId}/approve`, {
+      headers: headersWrongSeller,
+    });
+    expect(badApprove.ok()).toBeFalsy();
+    expect(badApprove.status()).toBe(403);
+
+    const badReject = await request.post(`${apiURL}/returns/${returnId}/reject`, {
+      headers: headersWrongSeller,
+    });
+    expect(badReject.ok()).toBeFalsy();
+    expect(badReject.status()).toBe(403);
+
+    // /complete triggers a real refund via RefundRequestPort — the IDOR gate
+    // must stop this before any money moves.
+    const badComplete = await request.post(`${apiURL}/returns/${returnId}/complete`, {
+      headers: headersWrongSeller,
+    });
+    expect(badComplete.ok()).toBeFalsy();
+    expect(badComplete.status()).toBe(403);
+
+    // Probe 2 (buyer IDOR on dispute): buyer B opens a dispute on buyer A's
+    // return. DisputeUseCase.open checks buyerId === return.buyerId before
+    // any other logic — a wrong buyer would pollute the admin disputes queue.
+    const buyerB = await registerBuyer(request);
+    const headersB = authHeaders(buyerB);
+
+    const badDispute = await request.post(`${apiURL}/returns/${returnId}/disputes`, {
+      headers: headersB,
+      data: { buyerReason: "I want a refund" },
+    });
+    expect(badDispute.ok()).toBeFalsy();
+    expect(badDispute.status()).toBe(403);
+  });
+
   test("buyer B cannot read or pay for buyer A's order (pt14 IDOR fixes)", async ({ request }) => {
     // Locks the pt13/pt14 IDOR regressions:
     //   - GET /orders/{id} -> 403 if not the buyer
