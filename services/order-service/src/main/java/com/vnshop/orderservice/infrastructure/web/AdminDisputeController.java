@@ -2,6 +2,7 @@ package com.vnshop.orderservice.infrastructure.web;
 
 import com.vnshop.orderservice.application.DisputeUseCase;
 import com.vnshop.orderservice.application.ListOpenDisputesUseCase;
+import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +34,7 @@ public class AdminDisputeController {
 
     @PostMapping("/{disputeId}/resolve")
     public ApiResponse<DisputeResponse> resolve(@PathVariable UUID disputeId, @Valid @RequestBody ResolveDisputeRequest request) {
-        return ApiResponse.ok(DisputeResponse.fromDomain(disputeUseCase.resolve(disputeId, request.adminResolution())));
+        return ApiResponse.ok(DisputeResponse.fromDomain(
+                disputeUseCase.resolve(disputeId, request.adminResolution(), JwtPrincipalUtil.currentUserId())));
     }
 }

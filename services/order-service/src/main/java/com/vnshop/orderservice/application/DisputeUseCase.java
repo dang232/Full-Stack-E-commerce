@@ -37,10 +37,10 @@ public class DisputeUseCase {
         return disputeRepository.save(new Dispute(UUID.randomUUID(), orderReturn.returnId().toString(), buyerReason, sellerResponse));
     }
 
-    public Dispute resolve(UUID disputeId, String adminResolution) {
+    public Dispute resolve(UUID disputeId, String adminResolution, String resolvedBy) {
         Dispute dispute = disputeRepository.findById(disputeId)
                 .orElseThrow(() -> new IllegalArgumentException("dispute not found: " + disputeId));
-        dispute.resolve(adminResolution);
+        dispute.resolve(adminResolution, resolvedBy);
         return disputeRepository.save(dispute);
     }
 }
