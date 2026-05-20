@@ -104,6 +104,16 @@ public class RouteConfig {
             .route("seller-products", route -> route.path("/sellers/me/products/**")
                 .filters(filters -> resilient(filters, "product-service"))
                 .uri(productServiceUri))
+            // Seller analytics — daily revenue/order-count aggregate scoped to the
+            // caller's sellerId. Lives on order-service. Must precede /sellers/**.
+            .route("seller-analytics", route -> route.path("/sellers/me/revenue", "/sellers/me/analytics/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            // Seller finance — wallet balance + payout history/requests for the
+            // caller. Lives on seller-finance-service. Must precede /sellers/**.
+            .route("seller-finance-me", route -> route.path("/sellers/me/finance/**")
+                .filters(filters -> resilient(filters, "seller-finance-service"))
+                .uri(sellerFinanceServiceUri))
             .route("users", route -> route.path("/users/**", "/sellers/**")
                 .filters(filters -> resilient(filters, "user-service"))
                 .uri(userServiceUri))
