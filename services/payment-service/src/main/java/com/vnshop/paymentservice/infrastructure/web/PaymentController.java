@@ -187,6 +187,18 @@ public class PaymentController {
         if (existing.method() != com.vnshop.paymentservice.domain.PaymentMethod.PAYPAL) {
             throw new IllegalArgumentException("payment is not PayPal: " + paymentId);
         }
+        // Pt13 follow-up: defense-in-depth on /paypal/capture. The original
+        // design assumed only the legitimate FE had both paymentId and
+        // paypalOrderId, but either could leak via logs / error reports. A
+        // malicious authenticated buyer who guessed both could race-capture
+        // someone else's PENDING payment (no monetary gain — capture sends
+        // the legitimate buyer's funds to the legitimate buyer's order — but
+        // could confuse order state). Buyer mismatch -> 403.
+        String caller = JwtPrincipalUtil.currentUserId();
+        if (!existing.buyerId().equals(caller)) {
+            throw new com.vnshop.paymentservice.application.OrderAccessDeniedException(
+                    "buyer " + caller + " does not own payment " + paymentId);
+        }
         PayPalGateway.PayPalCapture capture = gateway.capture(paypalOrderId);
         PaymentPromotionService.PromotionResult result = promotionService.promote(
                 PaymentPromotionService.PromotionCommand.fromCallback(
