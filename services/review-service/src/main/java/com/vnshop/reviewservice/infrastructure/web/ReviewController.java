@@ -1,10 +1,10 @@
 package com.vnshop.reviewservice.infrastructure.web;
 
 import com.vnshop.reviewservice.application.CreateReviewCommand;
-import com.vnshop.reviewservice.application.CreateReviewCommand;
 import com.vnshop.reviewservice.application.CreateReviewUseCase;
 import com.vnshop.reviewservice.application.GetProductReviewsUseCase;
 import com.vnshop.reviewservice.application.VoteHelpfulUseCase;
+import com.vnshop.reviewservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +41,13 @@ public class ReviewController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ReviewResponse> create(@Valid @RequestBody CreateReviewRequest request) {
-        return ApiResponse.ok(ReviewResponse.fromDomain(createReviewUseCase.create(new CreateReviewCommand(request.productId(), request.buyerId(), request.orderId(), request.rating(), request.text(), request.images()))));
+        return ApiResponse.ok(ReviewResponse.fromDomain(createReviewUseCase.create(new CreateReviewCommand(
+                request.productId(),
+                JwtPrincipalUtil.currentUserId(),
+                request.orderId(),
+                request.rating(),
+                request.text(),
+                request.images()))));
     }
 
     @PutMapping("/{id}/helpful")

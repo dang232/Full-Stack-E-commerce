@@ -4,6 +4,7 @@ import com.vnshop.reviewservice.application.AnswerQuestionUseCase;
 import com.vnshop.reviewservice.application.AskQuestionCommand;
 import com.vnshop.reviewservice.application.AskQuestionUseCase;
 import com.vnshop.reviewservice.application.GetQuestionsUseCase;
+import com.vnshop.reviewservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +41,8 @@ public class QuestionController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<QuestionResponse> ask(@Valid @RequestBody AskQuestionRequest request) {
-        return ApiResponse.ok(QuestionResponse.fromDomain(askQuestionUseCase.ask(new AskQuestionCommand(request.productId(), request.buyerId(), request.question()))));
+        return ApiResponse.ok(QuestionResponse.fromDomain(askQuestionUseCase.ask(new AskQuestionCommand(
+                request.productId(), JwtPrincipalUtil.currentUserId(), request.question()))));
     }
 
     @PutMapping("/{id}/answer")
