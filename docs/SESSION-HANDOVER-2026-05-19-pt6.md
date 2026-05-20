@@ -1,8 +1,8 @@
 # Session handover — 2026-05-19 (pt6: multi-payment rollout — VietQR + SePay + Stripe + PayPal)
 
-**Last commit (HEAD):** `06303f04` (`fix(payment): wire RestClient.Builder + paypal env + 405 fallback + 10s timelimiter`)
-**Commits this block:** 5 (since pt5 HEAD `be835032`).
-**Gates:** payment-service Maven `Tests run: 66, Failures: 0, Errors: 0, Skipped: 0`. FE typecheck (`npx tsc --noEmit`) exits 0. **Live e2e-day with all payment flags on: 67 passed, 0 failed.**
+**Last commit (HEAD):** `cf9b08c4` (`fix(payment): permit /payment/*/webhook in payment-service SecurityConfig`)
+**Commits this block:** 6 (since pt5 HEAD `be835032`).
+**Gates:** payment-service Maven `Tests run: 66, Failures: 0, Errors: 0, Skipped: 0`. FE typecheck (`npx tsc --noEmit`) exits 0. **Live e2e-day with all payment flags on: 67 passed, 0 failed.** **Stripe webhook driven live end-to-end on 2026-05-20:** `stripe trigger payment_intent.succeeded --add payment_intent:metadata.paymentId=<uuid>` flips PENDING → COMPLETED, `payment-promoted provider=STRIPE` logged.
 
 This block executed the spec at `docs/superpowers/specs/2026-05-19-multi-payment-rollout-design.md` (v2), then closed the loop with a sandbox-creds smoke run that uncovered three runtime bugs the unit tests didn't catch. All four payment paths now working in parallel: VietQR production (manual confirm), SePay sandbox polling for VietQR auto-confirm, Stripe sandbox end-to-end (FE Elements → BE PaymentIntent → webhook → ledger), PayPal sandbox end-to-end (FE Smart Buttons → BE OAuth+order+capture → ledger).
 
@@ -15,6 +15,7 @@ This block executed the spec at `docs/superpowers/specs/2026-05-19-multi-payment
 | 3 | `4c037d23` | test(e2e): shape-only Stripe + PayPal + VietQR scenarios |
 | 4 | `20c87afe` | docs(payment): roadmap + spec + pt6 handover for multi-payment rollout |
 | 5 | `06303f04` | fix(payment): wire RestClient.Builder + paypal env + 405 fallback + 10s timelimiter |
+| 6 | `cf9b08c4` | fix(payment): permit /payment/*/webhook in payment-service SecurityConfig |
 
 
 ## TL;DR
@@ -90,7 +91,7 @@ Flow: FE → `/payment/stripe/create` → BE persists PENDING + creates PaymentI
 
 **Tests:** `StripeGatewayTest` (happy path, external_amount/currency/fx_rate persisted), `StripeWebhookControllerTest` (signature verify, idempotency, promotion).
 
-**Gateway permit-list:** `/payment/stripe/webhook` MUST be in `SecurityConfig.permitAll()` because Stripe signs the request, not us. Forgetting this returns 401 on every event.
+**Gateway permit-list:** `/payment/stripe/webhook` MUST be in `SecurityConfig.permitAll()` because Stripe signs the request, not us. Forgetting this returns 401 on every event. **AND** `payment-service` itself must permit the same path (added in commit `cf9b08c4`) — `stripe listen --forward-to localhost:8092/...` bypasses the api-gateway entirely in local dev, so the gateway's permit doesn't help; the service-level OAuth2 resource server rejects the request before the signature verifier runs.
 
 **Manual smoke:** `stripe listen --forward-to localhost:8092/payment/stripe/webhook` then `stripe trigger payment_intent.succeeded`.
 
@@ -143,7 +144,6 @@ Sections render only on the success step of `CheckoutPage.tsx`, gated on `VITE_*
 - **Stripe production cutover.** Sandbox keys work; prod requires Stripe Atlas (US LLC) or VN business reg. Doc steps live in `docs/PAYMENT-ROADMAP.md`.
 - **PayPal production webhook (`PAYMENT.CAPTURE.COMPLETED`).** Sandbox synchronous flow doesn't need it; prod does for refunds/disputes/chargebacks.
 - **SePay inbound webhook (HMAC `X-SePay-Signature`).** Lower-latency than 30s polling. Needs public domain.
-- **End-to-end Stripe webhook smoke.** `stripe listen --forward-to localhost:8092/payment/stripe/webhook` + `stripe trigger payment_intent.succeeded` to flip a sandbox payment to COMPLETED. Endpoint exists, signature verifier covered by unit tests, never driven live.
 - **VNPay re-enable.** Code path intact; gated off pending VN business reg.
 - **MoMo callback migration onto `PaymentPromotionService`.** Currently still on its own dedup; works correctly, just not deduplicated through the new path.
 - **Notifications inbox.** notification-service consumes Kafka; no inbox endpoint or FE bell yet. Multi-day: schema + REST + WebSocket push + FE bell.
@@ -162,7 +162,7 @@ The pt5 list still applies. New rules learned this block:
 3. **PayPal `Map.getOrDefault(String, String)` fails type inference on wildcard maps.** Use explicit null checks: `m.get("status") != null ? m.get("status").toString() : "CREATED"`.
 4. **SePay outbound polling auth header is `Authorization: Apikey {key}`** — NOT HMAC. The HMAC `X-SePay-Signature` is inbound-webhook-only and easy to confuse from forum posts.
 5. **PayPal v2 Checkout REST capture id lives at `purchase_units[0].payments.captures[0].id`**, not at the order root. Fall back to order id when the array is missing (e.g. when capture races behind a `PAYER_ACTION_REQUIRED` flow).
-6. **Stripe webhook needs the gateway permit-list.** `/payment/stripe/webhook` MUST be in `SecurityConfig` permitAll because Stripe signs the request, not us. Forgetting this returns 401 on every event.
+6. **Stripe webhook needs the gateway permit-list — AND the payment-service permit-list.** `/payment/stripe/webhook` MUST be in api-gateway `SecurityConfig` permitAll because Stripe signs the request, not us. **In local dev `stripe listen --forward-to localhost:8092/...` bypasses the gateway entirely**, so payment-service's own `SecurityConfig` must also permit the path or every event 401s before the signature verifier runs. Both layers, every time. Pattern is `/payment/*/webhook` to forward-cover PayPal's deferred webhook and any future provider.
 7. **`@ConditionalOnProperty` slice tests:** Tests that previously pinned `payment.mode=stub` now need per-method flags (`payment.cod.enabled=true`). `PaymentControllerHeaderTest` was migrated; new tests should follow.
 8. **Sub-agent silent-bail watch.** A designer + executor pair were dispatched mid-block and bailed without producing diffs. Memory rule `feedback_detect_silent_bail.md` says: verify diff before trusting the report. Confirmed by switching to direct execution mid-stream.
 9. **Spring Boot 4 doesn't auto-publish `RestClient.Builder` as a bean.** Constructor injection of `RestClient.Builder` UnsatisfiedDependency's at boot. Define `@Bean RestClient.Builder restClientBuilder() { return RestClient.builder(); }` in a `@Configuration` class. Bit me on FrankfurterFxAdapter / PayPalGateway / RestSepayClient simultaneously.
@@ -214,7 +214,7 @@ The pt5 list still applies. New rules learned this block:
      node infra/scripts/e2e-day.mjs                              # 67/67
    ```
 3. **Manual smoke (still TODO):**
-   - **Stripe webhook live drive.** `stripe listen --forward-to localhost:8092/payment/stripe/webhook` then `stripe trigger payment_intent.succeeded` — endpoint + verifier exist, never driven against the actual Stripe CLI.
+   - **Stripe webhook live drive.** ✅ **Done 2026-05-20.** `stripe trigger payment_intent.succeeded --add payment_intent:metadata.paymentId=29dd30f0-bb51-4fd7-a628-c73701026c8a` flipped that payment PENDING → COMPLETED with `pi_3TZ1rxETJXVjsFVG1I91pV4J`, signature verified, `payment-promoted provider=STRIPE` logged. Took the SecurityConfig fix in `cf9b08c4` to clear the 401.
    - **PayPal capture flow.** FE Smart Buttons → `/payment/paypal/capture/{paymentId}/{paypalOrderId}` against a sandbox account at developer.paypal.com.
    - **SePay polling.** Poller runs on schedule; once SePay creds land in `.env`, check logs for `sepay-skip-non-vietqr` / `sepay-skip-no-uuid-in-memo` / `payment-promoted provider=SEPAY`.
    - **VietQR.** Already working; admin confirms via `AdminVietQrController`.
@@ -223,12 +223,12 @@ The pt5 list still applies. New rules learned this block:
 ## Final tally
 
 - **Started this block:** payment-service 35/35 tests at HEAD `be835032`.
-- **Ended:** payment-service 66/66 tests (+31 — Stripe, PayPal, SePay, FX, composite, promotion), FE typecheck clean, **e2e-day 67/67** with all payment flags on.
-- **Commits this block:** 5 (4 feature + 1 fix). HEAD `06303f04`.
-- **Diff vs pt5 HEAD:** ~+2840 / -400 across 30+ files (4 new packages, 7 new tests, 2 migrations, 2 FE sections, 1 gateway permit-list, 1 RestClient.Builder bean, 1 fallback method fix, 1 timelimiter override).
-- **Production characteristics added:** multi-method payment dispatch, provider-namespaced dedup, FX caching, Stripe webhook verification, PayPal OAuth, SePay polling.
-- **Deferred items closed:** 4 payment paths (VietQR, SePay, Stripe, PayPal). Also closed three runtime bugs that the unit suite didn't catch (RestClient.Builder, env passthrough, fallback method).
+- **Ended:** payment-service 66/66 tests (+31 — Stripe, PayPal, SePay, FX, composite, promotion), FE typecheck clean, **e2e-day 67/67** with all payment flags on, **Stripe webhook driven live end-to-end**.
+- **Commits this block:** 6 (4 feature + 2 fix). HEAD `cf9b08c4`.
+- **Diff vs pt5 HEAD:** ~+2847 / -402 across 30+ files (4 new packages, 7 new tests, 2 migrations, 2 FE sections, 1 gateway permit-list, 1 service permit-list, 1 RestClient.Builder bean, 1 fallback method fix, 1 timelimiter override).
+- **Production characteristics added:** multi-method payment dispatch, provider-namespaced dedup, FX caching, Stripe webhook verification (now live-validated), PayPal OAuth, SePay polling.
+- **Deferred items closed:** 4 payment paths (VietQR, SePay, Stripe live-validated, PayPal). Also closed four runtime bugs that the unit suite didn't catch (RestClient.Builder, env passthrough, fallback method, service-level webhook permit).
 
 ## Resume hint
 
-Next session: drive the Stripe webhook live (`stripe listen` + `stripe trigger payment_intent.succeeded`) to confirm the signed-event path end-to-end. After that, MoMo callback migration onto `PaymentPromotionService` is the smallest deferred item.
+Next session: drive the **PayPal capture** in the browser (FE Smart Buttons → `/payment/paypal/capture/...` against a sandbox developer.paypal.com account) — that's the last unproven live path. After that, MoMo callback migration onto `PaymentPromotionService` is the smallest deferred item. Stripe webhook is now fully proven (commit `cf9b08c4`).
