@@ -373,6 +373,14 @@ services:
         # the PKCE redirect flow, so vnshop-web (PKCE-only) won't work for
         # passwordLogin / refreshTokens.
         VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-vnshop-api}
+        # Payment provider toggles + publishable creds. Vite inlines at build,
+        # so adding/removing requires `up -d --build frontend`. Defaults are
+        # `false`/empty so the success step renders the disabled-placeholder
+        # rather than the live Stripe/PayPal section when creds aren't set.
+        VITE_STRIPE_ENABLED: ${VITE_STRIPE_ENABLED:-false}
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY:-}
+        VITE_PAYPAL_ENABLED: ${VITE_PAYPAL_ENABLED:-false}
+        VITE_PAYPAL_CLIENT_ID: ${VITE_PAYPAL_CLIENT_ID:-}
     container_name: vnshop-frontend
     ports:
       - "3000:80"
