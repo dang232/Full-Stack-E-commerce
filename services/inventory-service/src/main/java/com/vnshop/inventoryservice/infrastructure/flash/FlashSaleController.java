@@ -4,6 +4,7 @@ import com.vnshop.inventoryservice.application.GetActiveFlashSaleCampaignsUseCas
 import com.vnshop.inventoryservice.application.ReserveFlashSaleCommand;
 import com.vnshop.inventoryservice.application.ReserveFlashSaleResult;
 import com.vnshop.inventoryservice.application.ReserveFlashSaleUseCase;
+import com.vnshop.inventoryservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -29,7 +30,7 @@ public class FlashSaleController {
 	@PostMapping("/reserve")
 	public ApiResponse<ReserveFlashSaleResponse> reserve(@Valid @RequestBody ReserveFlashSaleRequest request) {
 		ReserveFlashSaleResult result = reserveFlashSaleUseCase.reserve(
-				new ReserveFlashSaleCommand(request.productId(), request.buyerId(), request.quantity()));
+				new ReserveFlashSaleCommand(request.productId(), JwtPrincipalUtil.currentUserId(), request.quantity()));
 		return ApiResponse.ok(new ReserveFlashSaleResponse(
 				result.reservationId(),
 				result.status(),
@@ -43,7 +44,7 @@ public class FlashSaleController {
 
 	@PostMapping("/release/{reservationId}")
 	public ApiResponse<Void> release(@PathVariable String reservationId) {
-		reserveFlashSaleUseCase.release(UUID.fromString(reservationId));
+		reserveFlashSaleUseCase.release(UUID.fromString(reservationId), JwtPrincipalUtil.currentUserId());
 		return ApiResponse.ok(null);
 	}
 

@@ -1,5 +1,6 @@
 package com.vnshop.inventoryservice.infrastructure.flash;
 
+import com.vnshop.inventoryservice.application.FlashSaleAccessDeniedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,12 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> badRequest(IllegalArgumentException exception) {
         return ApiResponse.error(exception.getMessage(), "BAD_REQUEST");
+    }
+
+    @ExceptionHandler(FlashSaleAccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> flashSaleAccessDenied(FlashSaleAccessDeniedException exception) {
+        return ApiResponse.error(exception.getMessage(), "FORBIDDEN");
     }
 
     @ExceptionHandler(Exception.class)

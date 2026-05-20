@@ -17,7 +17,10 @@ import { api } from "../client";
 
 export type { ActiveFlashSaleCampaign, FlashSaleReservation };
 
-export const reserveFlashSale = (body: { productId: string; buyerId: string; quantity: number }) =>
+// buyerId is derived from the JWT server-side (pt22 audit fix).
+// Sending it on the wire was an impersonation channel — the BE used to write
+// whatever `buyerId` you supplied as the reservation owner.
+export const reserveFlashSale = (body: { productId: string; quantity: number }) =>
   api.post("/flash-sale/reserve", reserveFlashSaleResponseSchema, body);
 
 export const flashSaleStock = (productId: string) =>
