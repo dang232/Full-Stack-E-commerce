@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
+import com.vnshop.paymentservice.application.PaymentPromotionService;
 import com.vnshop.paymentservice.domain.JournalEntry;
 import com.vnshop.paymentservice.domain.LedgerEntry;
 import com.vnshop.paymentservice.domain.Payment;
@@ -94,6 +95,28 @@ class MomoCallbackServiceTest {
     }
 
     @Test
+    void ipnWithFailedResultPersistsTerminalStatusWithoutCreditingLedger() {
+        CapturingPaymentRepository repository = new CapturingPaymentRepository(payment(PaymentStatus.PENDING, null));
+        CapturingLedgerRepository ledgerRepository = new CapturingLedgerRepository();
+        CapturingCallbackLogStore callbackLogStore = new CapturingCallbackLogStore();
+        CapturingPaymentCallbackOutbox outbox = new CapturingPaymentCallbackOutbox();
+        MomoCallbackService service = service(repository, ledgerRepository, callbackLogStore, outbox);
+
+        // resultCode != 0 → MomoGateway.verifyIpn returns FAILED
+        MomoCallbackService.MomoIpnResult result = service.handleIpn(MomoGatewayTest.ipn(paymentId().toString(), 2812345678L, 1006, 120000L));
+
+        assertThat(result.resultCode()).isEqualTo(0);
+        assertThat(repository.payment.status()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(repository.payment.transactionRef()).isEqualTo("2812345678");
+        assertThat(repository.savedPayments).hasSize(1);
+        assertThat(ledgerRepository.savedEntries).isEmpty();
+        assertThat(callbackLogStore.savedAttempts).hasSize(1);
+        assertThat(callbackLogStore.savedAttempts.get(0).processingStatus()).isEqualTo("FAILED");
+        assertThat(outbox.savedRecords).hasSize(1);
+        assertThat(outbox.savedRecords.get(0).status()).isEqualTo("FAILED");
+    }
+
+    @Test
     void gatewayReturnVerificationDoesNotMutatePayment() {
         CapturingPaymentRepository repository = new CapturingPaymentRepository(payment(PaymentStatus.PENDING, null));
         MomoGateway gateway = new MomoGateway(PROPERTIES, new CapturingMomoClient());
@@ -111,7 +134,9 @@ class MomoCallbackServiceTest {
     }
 
     private static MomoCallbackService service(CapturingPaymentRepository repository, CapturingLedgerRepository ledgerRepository, CapturingCallbackLogStore callbackLogStore, CapturingPaymentCallbackOutbox outbox) {
-        return new MomoCallbackService(repository, new LedgerService(ledgerRepository), new MomoGateway(PROPERTIES, new CapturingMomoClient()), callbackLogStore, outbox);
+        LedgerService ledgerService = new LedgerService(ledgerRepository);
+        PaymentPromotionService promotion = new PaymentPromotionService(repository, ledgerService, outbox);
+        return new MomoCallbackService(repository, new MomoGateway(PROPERTIES, new CapturingMomoClient()), callbackLogStore, outbox, promotion);
     }
 
     private static Payment payment(PaymentStatus status, String transactionRef) {
