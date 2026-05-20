@@ -1,9 +1,11 @@
 package com.vnshop.inventoryservice.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.vnshop.inventoryservice.domain.FlashSaleReservation;
 import com.vnshop.inventoryservice.domain.port.out.FlashSaleReservationPort;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,10 +40,47 @@ class ReserveFlashSaleUseCaseTest {
 		assertThat(reservation.getReservationId()).isNull();
 	}
 
+	@Test
+	void releaseOwnedReservationCallsPort() {
+		var port = new InMemoryFlashSaleReservationPort(true, 5);
+		var useCase = new ReserveFlashSaleUseCase(port);
+		UUID reservationId = UUID.randomUUID();
+		port.save(new FlashSaleReservation(reservationId, "product-1", "buyer-1", 1,
+				FlashSaleReservation.Status.RESERVED, Instant.now(), Instant.now().plusSeconds(900)));
+
+		useCase.release(reservationId, "buyer-1");
+
+		assertThat(port.released).containsExactly(reservationId);
+	}
+
+	@Test
+	void releaseByWrongCallerThrowsAccessDenied() {
+		var port = new InMemoryFlashSaleReservationPort(true, 5);
+		var useCase = new ReserveFlashSaleUseCase(port);
+		UUID reservationId = UUID.randomUUID();
+		port.save(new FlashSaleReservation(reservationId, "product-1", "buyer-1", 1,
+				FlashSaleReservation.Status.RESERVED, Instant.now(), Instant.now().plusSeconds(900)));
+
+		assertThatThrownBy(() -> useCase.release(reservationId, "buyer-2"))
+				.isInstanceOf(FlashSaleAccessDeniedException.class);
+		assertThat(port.released).isEmpty();
+	}
+
+	@Test
+	void releaseUnknownReservationIsSilentNoOp() {
+		var port = new InMemoryFlashSaleReservationPort(true, 5);
+		var useCase = new ReserveFlashSaleUseCase(port);
+
+		useCase.release(UUID.randomUUID(), "buyer-1");
+
+		assertThat(port.released).isEmpty();
+	}
+
 	private static final class InMemoryFlashSaleReservationPort implements FlashSaleReservationPort {
 		private final boolean reserveResult;
 		private final long stock;
 		private final Map<UUID, FlashSaleReservation> reservations = new ConcurrentHashMap<>();
+		final java.util.List<UUID> released = new java.util.ArrayList<>();
 
 		private InMemoryFlashSaleReservationPort(boolean reserveResult, long stock) {
 			this.reserveResult = reserveResult;
@@ -65,6 +104,7 @@ class ReserveFlashSaleUseCaseTest {
 
 		@Override
 		public void release(UUID reservationId) {
+			released.add(reservationId);
 		}
 
 		@Override
