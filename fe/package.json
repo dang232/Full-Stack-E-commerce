@@ -15,7 +15,9 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\" \"e2e/**/*.{ts,tsx}\"",
     "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "pretest:e2e": "node scripts/hydrate-e2e.mjs",
+    "test:e2e:ui": "playwright test --ui",
+    "pretest:e2e:ui": "node scripts/hydrate-e2e.mjs"
   },
   "dependencies": {
     "@figma/astraui": "1.0.0",

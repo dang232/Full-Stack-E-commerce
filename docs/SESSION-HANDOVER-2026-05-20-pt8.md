@@ -65,7 +65,7 @@ The pt5 + pt6 + pt7 lists still apply. New rules learned this block:
 
 ## Test inventory after this block
 
-- Playwright e2e: `38 tests in 10 files` discoverable (was 17 in 2). The 8 newly-discoverable specs were never validated this block — only their *discovery* was unblocked. Whether they pass against the current backend is unknown and a follow-up. Smoke spec is the cheapest to start with.
+- Playwright e2e: `38 tests in 10 files` discoverable (was 17 in 2). **All 38 pass against the current backend** (4 smoke + 17 legacy + 17 ux-sweep+address). The 8 newly-discoverable specs (`smoke`, `buyer-happy-path`, `guest-cart`, `authenticated-routes`, `role-routes`, `sellers`, `payment-multi-method`, `network-diagnostic`) were all green on first run — they were never broken, just invisible. Two non-blocking diagnostic findings from `network-diagnostic.spec.ts`: `400 GET /users/me` (auth-bootstrap probe, benign per pt7 gotcha #20) and `404 GET /sellers/seller1` (stale fixture; diagnostic spec captures-without-asserting so it doesn't fail).
 - Vitest: untouched (no FE schema changes).
 - BE: payment-service `67/67` (+1 FAILED-IPN regression for MoMo). user-service `116/116` from pt7, untouched. seller-finance + recommendations untouched.
 
@@ -85,11 +85,10 @@ The pt5 + pt6 + pt7 lists still apply. New rules learned this block:
 ## What's still missing (deferred — pt8 → pt9)
 
 - **PayPal capture round-trip.** Smart Buttons render on the success step (FE creds inlined post-pt6), the BE OAuth + create + capture path is unit-tested, but the live FE → sandbox PayPal popup → `/payment/paypal/capture` round-trip has never been driven by hand. Last unproven payment path. **Needs you at the browser.**
-- **Validate the 8 newly-discovered legacy Playwright specs.** Discovery is unblocked; whether `smoke.spec.ts`, `buyer-happy-path.spec.ts`, `guest-cart.spec.ts`, `authenticated-routes.spec.ts`, `role-routes.spec.ts`, `sellers.spec.ts`, `payment-multi-method.spec.ts`, and `network-diagnostic.spec.ts` actually pass against the current backend is a separate exercise. Run them one at a time; the ux-sweep spec covers more surface so the regression risk is contained — but if any of these fail, the failure is information.
 - **Notifications inbox.** notification-service consumes Kafka but no inbox endpoint or FE bell yet.
 - **Real GHN/GHTK shipping rate adapter.** `LiveCarrierGateway` scaffolding exists; needs API key wiring + integration tests.
-- **OneDrive durability.** The reparse-point fix only persists until OneDrive next decides to evict the files. Either pin `fe/e2e/` via Explorer's "Always keep on this device", or add a `pretest` hook in `fe/package.json` that runs the hydration one-liner.
+- **OneDrive durability.** The reparse-point fix only persists until OneDrive next decides to evict the files. Pinned via a `pretest` hook in `fe/package.json` this block (see "What shipped" below). For non-test invocations (`npx playwright test ...` directly), still vulnerable — the durable cure is `attrib +P -U fe/e2e/*.spec.ts` once after every clone, or pin via Explorer.
 
 ## Resume hint
 
-Next session: **drive the PayPal capture round-trip in the browser** — still the last unproven sandbox path. If you'd rather work autonomously, pick up the legacy Playwright specs validation — running `npx playwright test e2e/smoke.spec.ts --project=chromium` is the cheapest first step and either gives you a clean pass (delete the "still missing" entry) or a failure that points at a real gap. The dispatching-parallel-agents pattern from this block plus the silent-bail recovery loop is the new default for autonomous queue drain.
+Next session: **drive the PayPal capture round-trip in the browser** — still the last unproven sandbox path. If you'd rather work autonomously, the smallest open item is the `network-diagnostic` `seller1` fixture fix; the dispatching-parallel-agents pattern from this block (with the silent-bail recovery loop) is the new default for autonomous queue drain. The full Playwright suite passing 38/38 is the new baseline regression gate.
