@@ -59,6 +59,20 @@ class DisputeTest {
     }
 
     @Test
+    void resolveRejectsNullResolvedBy() {
+        // Pin the null contract: requireNonBlank handles null and blank
+        // identically, both as IllegalArgumentException. A future refactor
+        // that swapped to !str.isEmpty() would NPE on null instead — this
+        // test makes that drift visible.
+        Dispute dispute = new Dispute(DISPUTE_ID, RETURN_ID, "wrong size", null);
+
+        assertThatThrownBy(() -> dispute.resolve("partial refund issued", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("resolvedBy");
+        assertThat(dispute.status()).isEqualTo(DisputeStatus.OPEN);
+    }
+
+    @Test
     void resolveCannotRunTwice() {
         Dispute dispute = new Dispute(DISPUTE_ID, RETURN_ID, "wrong size", null);
         dispute.resolve("partial refund issued", "admin-42");
