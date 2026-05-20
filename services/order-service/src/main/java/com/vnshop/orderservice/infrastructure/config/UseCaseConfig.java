@@ -198,13 +198,13 @@ public class UseCaseConfig {
     }
 
     @Bean
-    ApproveReturnUseCase approveReturnUseCase(ReturnRepositoryPort returnRepositoryPort) {
-        return new ApproveReturnUseCase(returnRepositoryPort);
+    ApproveReturnUseCase approveReturnUseCase(ReturnRepositoryPort returnRepositoryPort, OrderRepositoryPort orderRepositoryPort) {
+        return new ApproveReturnUseCase(returnRepositoryPort, orderRepositoryPort);
     }
 
     @Bean
-    RejectReturnUseCase rejectReturnUseCase(ReturnRepositoryPort returnRepositoryPort) {
-        return new RejectReturnUseCase(returnRepositoryPort);
+    RejectReturnUseCase rejectReturnUseCase(ReturnRepositoryPort returnRepositoryPort, OrderRepositoryPort orderRepositoryPort) {
+        return new RejectReturnUseCase(returnRepositoryPort, orderRepositoryPort);
     }
 
     @Bean

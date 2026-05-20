@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.application;
 
 import com.vnshop.orderservice.domain.Return;
+import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 
 import java.util.Objects;
@@ -8,14 +9,21 @@ import java.util.UUID;
 
 public class RejectReturnUseCase {
     private final ReturnRepositoryPort returnRepository;
+    private final OrderRepositoryPort orderRepository;
 
-    public RejectReturnUseCase(ReturnRepositoryPort returnRepository) {
+    public RejectReturnUseCase(ReturnRepositoryPort returnRepository, OrderRepositoryPort orderRepository) {
         this.returnRepository = Objects.requireNonNull(returnRepository, "returnRepository is required");
+        this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository is required");
     }
 
-    public Return reject(UUID returnId) {
+    /**
+     * Pt14 audit fix: only the seller who owns the SubOrder being returned
+     * may reject. See {@link ApproveReturnUseCase} for the same gate.
+     */
+    public Return reject(UUID returnId, String sellerId) {
         Return orderReturn = returnRepository.findById(returnId)
                 .orElseThrow(() -> new IllegalArgumentException("return not found: " + returnId));
+        ReturnAuthorization.requireSellerOwnsReturn(orderRepository, orderReturn, sellerId);
         orderReturn.reject();
         return returnRepository.save(orderReturn);
     }

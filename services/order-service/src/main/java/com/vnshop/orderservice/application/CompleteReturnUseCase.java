@@ -22,9 +22,15 @@ public class CompleteReturnUseCase {
         this.refundRequestPort = Objects.requireNonNull(refundRequestPort, "refundRequestPort is required");
     }
 
-    public Return complete(UUID returnId) {
+    /**
+     * Pt14 audit fix: only the seller who owns the SubOrder being returned
+     * may complete. The seller is the natural completer because they ship
+     * the refund — admins go through a separate admin endpoint.
+     */
+    public Return complete(UUID returnId, String sellerId) {
         Return orderReturn = returnRepository.findById(returnId)
                 .orElseThrow(() -> new IllegalArgumentException("return not found: " + returnId));
+        ReturnAuthorization.requireSellerOwnsReturn(orderRepository, orderReturn, sellerId);
         Order order = orderRepository.findById(UUID.fromString(orderReturn.orderId()))
                 .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderReturn.orderId()));
         Money refundAmount = order.subOrders().stream()
