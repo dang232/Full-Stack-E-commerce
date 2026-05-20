@@ -267,8 +267,8 @@ test.describe("UX sweep — admin", () => {
     // Try the seeded admin login. If it bounces back to /login, skip the
     // suite — we don't want a red because the realm hasn't been seeded.
     await page.goto("/login");
-    await page.locator("#identifier").fill("admin");
-    await page.locator("#password").fill("admin");
+    await page.locator("#identifier").fill("admin1");
+    await page.locator("#password").fill("test");
     await page.getByRole("button", { name: /sign in|đăng nhập/i }).click();
     await page.waitForTimeout(2_000);
     if (new URL(page.url()).pathname !== "/") {
