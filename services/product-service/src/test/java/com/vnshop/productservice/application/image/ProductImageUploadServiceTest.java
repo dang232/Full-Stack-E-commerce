@@ -242,21 +242,4 @@ class ProductImageUploadServiceTest {
             return Optional.empty();
         }
     }
-
-    private static final class FakeObjectMetadataRepository implements ObjectMetadataRepositoryPort {
-        private final Map<String, ObjectMetadata> saved = new HashMap<>();
-        final java.util.List<String> findByKeyCalls = new java.util.ArrayList<>();
-
-        @Override
-        public ObjectMetadata save(ObjectMetadata metadata) {
-            saved.put(metadata.getKey(), metadata);
-            return metadata;
-        }
-
-        @Override
-        public Optional<ObjectMetadata> findByKey(String key) {
-            findByKeyCalls.add(key);
-            return Optional.ofNullable(saved.get(key));
-        }
-    }
 }

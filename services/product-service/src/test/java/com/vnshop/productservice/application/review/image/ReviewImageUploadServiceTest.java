@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.vnshop.productservice.application.ProductAccessDeniedException;
+import com.vnshop.productservice.application.image.FakeObjectMetadataRepository;
 import com.vnshop.productservice.application.storage.ObjectValidationPolicy;
 import com.vnshop.productservice.application.storage.ObjectValidationService;
 import com.vnshop.productservice.domain.review.ProductQuestion;
@@ -132,22 +133,5 @@ class ReviewImageUploadServiceTest {
         @Override public URI getSignedDownloadUrl(String key, ObjectStorageClass storageClass) { return URI.create("https://storage.test/" + key); }
         @Override public void deleteObject(String key) {}
         @Override public Optional<ObjectMetadata> headObject(String key) { return Optional.empty(); }
-    }
-
-    private static final class FakeObjectMetadataRepository implements ObjectMetadataRepositoryPort {
-        final Map<String, ObjectMetadata> saved = new HashMap<>();
-        final List<String> findByKeyCalls = new ArrayList<>();
-
-        @Override
-        public ObjectMetadata save(ObjectMetadata metadata) {
-            saved.put(metadata.getKey(), metadata);
-            return metadata;
-        }
-
-        @Override
-        public Optional<ObjectMetadata> findByKey(String key) {
-            findByKeyCalls.add(key);
-            return Optional.ofNullable(saved.get(key));
-        }
     }
 }
