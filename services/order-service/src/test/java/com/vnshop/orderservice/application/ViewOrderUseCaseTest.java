@@ -10,12 +10,8 @@ import com.vnshop.orderservice.domain.Order;
 import com.vnshop.orderservice.domain.OrderItem;
 import com.vnshop.orderservice.domain.PaymentStatus;
 import com.vnshop.orderservice.domain.SubOrder;
-import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +25,7 @@ import org.junit.jupiter.api.Test;
 class ViewOrderUseCaseTest {
     private static final Money TEN_THOUSAND = new Money(BigDecimal.valueOf(10_000), "VND");
 
-    private final FakeOrderRepository repository = new FakeOrderRepository();
+    private final TestFakes.FakeOrderRepository repository = new TestFakes.FakeOrderRepository();
     private final ViewOrderUseCase useCase = new ViewOrderUseCase(repository);
 
     @Test
@@ -93,27 +89,5 @@ class ViewOrderUseCaseTest {
         return new Order(orderId, "ORD-1", buyerId, shippingAddress, List.of(subOrder),
                 TEN_THOUSAND, Money.ZERO, Money.ZERO,
                 "COD", PaymentStatus.PENDING, "idem-1");
-    }
-
-    private static final class FakeOrderRepository implements OrderRepositoryPort {
-        private final Map<UUID, Order> orders = new HashMap<>();
-
-        @Override
-        public Order save(Order order) {
-            orders.put(order.id(), order);
-            return order;
-        }
-
-        @Override
-        public Optional<Order> findById(UUID orderId) {
-            return Optional.ofNullable(orders.get(orderId));
-        }
-
-        @Override public Optional<Order> findByOrderNumber(String orderNumber) { return Optional.empty(); }
-        @Override public Optional<Order> findByIdempotencyKey(String idempotencyKey) { return Optional.empty(); }
-        @Override public List<Order> findByBuyerId(String buyerId) { return List.of(); }
-        @Override public Optional<Order> findBySubOrderId(Long subOrderId) { return Optional.empty(); }
-        @Override public Optional<String> findOrderIdBySubOrderId(Long subOrderId) { return Optional.empty(); }
-        @Override public List<Order> findBySellerIdAndFulfillmentStatus(String sellerId, FulfillmentStatus status) { return List.of(); }
     }
 }

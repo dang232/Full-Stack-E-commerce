@@ -12,16 +12,11 @@ import com.vnshop.orderservice.domain.PaymentStatus;
 import com.vnshop.orderservice.domain.Return;
 import com.vnshop.orderservice.domain.ReturnStatus;
 import com.vnshop.orderservice.domain.SubOrder;
-import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
-import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -38,8 +33,8 @@ class CompleteReturnUseCaseTest {
     private static final String SELLER_ATTACKER = "seller-2";
     private static final Money TEN_THOUSAND = new Money(BigDecimal.valueOf(10_000), "VND");
 
-    private final FakeReturnRepository returns = new FakeReturnRepository();
-    private final FakeOrderRepository orders = new FakeOrderRepository();
+    private final TestFakes.FakeReturnRepository returns = new TestFakes.FakeReturnRepository();
+    private final TestFakes.FakeOrderRepository orders = new TestFakes.FakeOrderRepository();
     private final RecordingRefundPort refunds = new RecordingRefundPort();
     private final CompleteReturnUseCase useCase = new CompleteReturnUseCase(returns, orders, refunds);
 
@@ -148,48 +143,6 @@ class CompleteReturnUseCaseTest {
         @Override
         public void requestRefund(Return orderReturn, Money amount) {
             calls.add(new Call(orderReturn.returnId(), amount));
-        }
-    }
-
-    private static final class FakeOrderRepository implements OrderRepositoryPort {
-        private final Map<UUID, Order> orders = new HashMap<>();
-
-        @Override
-        public Order save(Order order) {
-            orders.put(order.id(), order);
-            return order;
-        }
-
-        @Override
-        public Optional<Order> findById(UUID orderId) {
-            return Optional.ofNullable(orders.get(orderId));
-        }
-
-        @Override public Optional<Order> findByOrderNumber(String orderNumber) { return Optional.empty(); }
-        @Override public Optional<Order> findByIdempotencyKey(String idempotencyKey) { return Optional.empty(); }
-        @Override public List<Order> findByBuyerId(String buyerId) { return List.of(); }
-        @Override public Optional<Order> findBySubOrderId(Long subOrderId) { return Optional.empty(); }
-        @Override public Optional<String> findOrderIdBySubOrderId(Long subOrderId) { return Optional.empty(); }
-        @Override public List<Order> findBySellerIdAndFulfillmentStatus(String sellerId, FulfillmentStatus status) { return List.of(); }
-    }
-
-    private static final class FakeReturnRepository implements ReturnRepositoryPort {
-        private final Map<UUID, Return> returns = new HashMap<>();
-
-        @Override
-        public Return save(Return r) {
-            returns.put(r.returnId(), r);
-            return r;
-        }
-
-        @Override
-        public Optional<Return> findById(UUID returnId) {
-            return Optional.ofNullable(returns.get(returnId));
-        }
-
-        @Override
-        public List<Return> findByBuyerId(String buyerId) {
-            return List.of();
         }
     }
 }

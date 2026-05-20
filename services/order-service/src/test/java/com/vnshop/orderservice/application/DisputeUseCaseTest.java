@@ -7,8 +7,6 @@ import com.vnshop.orderservice.domain.Dispute;
 import com.vnshop.orderservice.domain.DisputeStatus;
 import com.vnshop.orderservice.domain.Return;
 import com.vnshop.orderservice.domain.port.out.DisputeRepositoryPort;
-import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +16,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class DisputeUseCaseTest {
-    private final FakeReturnRepository returns = new FakeReturnRepository();
+    private final TestFakes.FakeReturnRepository returns = new TestFakes.FakeReturnRepository();
     private final FakeDisputeRepository disputes = new FakeDisputeRepository();
     private final DisputeUseCase useCase = new DisputeUseCase(returns, disputes);
 
@@ -84,26 +82,6 @@ class DisputeUseCaseTest {
         assertThatThrownBy(() -> useCase.resolve(UUID.randomUUID(), "partial refund", "admin-42"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("dispute not found");
-    }
-
-    private static final class FakeReturnRepository implements ReturnRepositoryPort {
-        private final Map<UUID, Return> returns = new HashMap<>();
-
-        @Override
-        public Return save(Return r) {
-            returns.put(r.returnId(), r);
-            return r;
-        }
-
-        @Override
-        public Optional<Return> findById(UUID returnId) {
-            return Optional.ofNullable(returns.get(returnId));
-        }
-
-        @Override
-        public List<Return> findByBuyerId(String buyerId) {
-            return List.of();
-        }
     }
 
     private static final class FakeDisputeRepository implements DisputeRepositoryPort {
