@@ -84,7 +84,7 @@ class ReviewImageUploadServiceTest {
         reviewRepository.save(review(UUID.fromString("00000000-0000-0000-0000-000000000101"), "buyer-1"));
         ReviewImageUploadResponse response = service.createUpload(validRequest().build());
 
-        ObjectMetadata activated = service.activate(response.getObjectKey(), ReviewImageActivationRequest.builder()
+        ReviewImageActivationResponse activated = service.activate(response.getObjectKey(), ReviewImageActivationRequest.builder()
                 .detectedContentType("image/webp")
                 .contentLength(2048)
                 .sha256Hex("b".repeat(64))
@@ -93,7 +93,7 @@ class ReviewImageUploadServiceTest {
                 .avScanClean(true)
                 .build());
 
-        assertThat(activated.getQuarantineState()).isEqualTo(ObjectQuarantineState.ACTIVE);
+        assertThat(activated.quarantineState()).isEqualTo(ObjectQuarantineState.ACTIVE.name());
         assertThat(metadataRepository.saved.get(response.getObjectKey()).getQuarantineState()).isEqualTo(ObjectQuarantineState.ACTIVE);
     }
 
