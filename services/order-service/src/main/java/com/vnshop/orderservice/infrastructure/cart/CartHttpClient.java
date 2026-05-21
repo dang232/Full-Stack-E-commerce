@@ -25,11 +25,6 @@ public interface CartHttpClient {
      * @return raw JSON string from cart-service, or {@code null} if the body
      *         is empty
      */
-    /**
-     * Returns the raw JSON body so that {@link CartServiceAdapter} can apply
-     * its existing null-safe mapping and domain-exception translation without
-     * duplicating that logic here.
-     */
     @GetExchange("/cart")
     String getCart(@RequestHeader("x-user-id") String userId);
 }

@@ -12,7 +12,9 @@ import org.springframework.web.service.annotation.HttpExchange;
  * directly.
  *
  * <p>The {@code Authorization} header is optional so the proxy can be called
- * from unauthenticated contexts (e.g. background jobs) without throwing.
+ * outside an active request security context without throwing — the security
+ * boundary is enforced at order-service, which will return 401/403 if the
+ * call needs auth.
  * {@link OrderCatalogAdapter} is responsible for extracting the caller's JWT
  * from the security context and forwarding it here.
  */
