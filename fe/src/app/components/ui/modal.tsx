@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
 import { type ReactNode, type MouseEvent } from "react";
 
@@ -107,7 +107,7 @@ export function Modal({
                     className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center disabled:opacity-50 shrink-0"
                     aria-label="Đóng"
                   >
-                    <X size={16} />
+                    <IconX size={16} />
                   </button>
                 ) : null}
               </div>

@@ -1,14 +1,5 @@
+import { IconBell, IconCircleCheck, IconLayoutDashboard, IconPackage, IconSettings, IconShoppingBag, IconStar, IconWallet } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Bell,
-  CheckCircle,
-  LayoutDashboard,
-  Package,
-  Settings,
-  ShoppingBag,
-  Star,
-  Wallet,
-} from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,13 +17,13 @@ import { SellerWallet } from "./SellerWallet";
 
 type SellerTab = "dashboard" | "products" | "orders" | "reviews" | "wallet" | "settings";
 
-const NAV_ITEMS: { id: SellerTab; labelKey: string; icon: typeof LayoutDashboard }[] = [
-  { id: "dashboard", labelKey: "seller.nav.dashboard", icon: LayoutDashboard },
-  { id: "products", labelKey: "seller.nav.products", icon: Package },
-  { id: "orders", labelKey: "seller.nav.orders", icon: ShoppingBag },
-  { id: "reviews", labelKey: "seller.nav.reviews", icon: Star },
-  { id: "wallet", labelKey: "seller.nav.wallet", icon: Wallet },
-  { id: "settings", labelKey: "seller.nav.settings", icon: Settings },
+const NAV_ITEMS: { id: SellerTab; labelKey: string; icon: typeof IconLayoutDashboard }[] = [
+  { id: "dashboard", labelKey: "seller.nav.dashboard", icon: IconLayoutDashboard },
+  { id: "products", labelKey: "seller.nav.products", icon: IconPackage },
+  { id: "orders", labelKey: "seller.nav.orders", icon: IconShoppingBag },
+  { id: "reviews", labelKey: "seller.nav.reviews", icon: IconStar },
+  { id: "wallet", labelKey: "seller.nav.wallet", icon: IconWallet },
+  { id: "settings", labelKey: "seller.nav.settings", icon: IconSettings },
 ];
 
 export function SellerPage() {
@@ -83,7 +74,7 @@ export function SellerPage() {
               <h1 className="text-lg font-bold text-gray-800">{sellerName}</h1>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span className="flex items-center gap-1 text-green-500 font-medium">
-                  <CheckCircle size={13} /> {t("seller.loggedIn")}
+                  <IconCircleCheck size={13} /> {t("seller.loggedIn")}
                 </span>
                 {pendingOrders.length > 0 ? (
                   <>
@@ -98,7 +89,7 @@ export function SellerPage() {
           </div>
           <div className="flex gap-2">
             <button className="relative p-2.5 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50">
-              <Bell size={18} />
+              <IconBell size={18} />
             </button>
           </div>
         </div>

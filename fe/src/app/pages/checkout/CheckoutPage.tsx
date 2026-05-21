@@ -1,5 +1,5 @@
+import { IconArrowLeft, IconCircleCheck, IconCreditCard, IconLogin, IconPackage } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle, LogIn, Package } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,9 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import { PayPalPaymentSection } from "../../components/checkout/PayPalPaymentSection";
+import { StripePaymentSection } from "../../components/checkout/StripePaymentSection";
+import { VietQrPaymentSection } from "../../components/checkout/VietQrPaymentSection";
 import { useAuth } from "../../hooks/use-auth";
 import { useCart } from "../../hooks/use-cart";
 import { ApiError } from "../../lib/api";
@@ -20,9 +23,6 @@ import { placeOrder } from "../../lib/api/endpoints/orders";
 import { codConfirm, momoCreate, vnpayCreate } from "../../lib/api/endpoints/payment";
 import { myProfile } from "../../lib/api/endpoints/users";
 import type { Address } from "../../types/api";
-import { PayPalPaymentSection } from "../../components/checkout/PayPalPaymentSection";
-import { StripePaymentSection } from "../../components/checkout/StripePaymentSection";
-import { VietQrPaymentSection } from "../../components/checkout/VietQrPaymentSection";
 
 import { CheckoutAddressStep } from "./CheckoutAddressStep";
 import { CheckoutPaymentStep } from "./CheckoutPaymentStep";
@@ -103,7 +103,7 @@ export function CheckoutPage() {
           codeToFallback[p.code] ?? {
             id: p.code as PaymentOption["id"],
             name: p.name,
-            icon: "💳",
+            Icon: IconCreditCard,
             desc: p.description ?? "",
           },
       );
@@ -229,7 +229,7 @@ export function CheckoutPage() {
           className="px-8 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
           style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
         >
-          <LogIn size={16} /> {t("auth.login")}
+          <IconLogin size={16} /> {t("auth.login")}
         </button>
       </div>
     );
@@ -246,7 +246,7 @@ export function CheckoutPage() {
   if (cartItems.length === 0 && step !== "success") {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <Package size={56} className="mx-auto mb-4 text-gray-200" />
+        <IconPackage size={56} className="mx-auto mb-4 text-gray-200" />
         <h2 className="text-xl font-bold text-gray-600 mb-3">{t("checkout.emptyCartTitle")}</h2>
         <button
           onClick={() => navigate("/")}
@@ -427,7 +427,7 @@ export function CheckoutPage() {
           onClick={() => (step === "address" ? navigate("/cart") : setStep(stepOrder[stepIdx - 1]))}
           className="p-2 rounded-xl hover:bg-white text-gray-500"
         >
-          <ArrowLeft size={20} />
+          <IconArrowLeft size={20} />
         </button>
         <h1 className="text-xl font-bold text-gray-800">{t("checkout.title")}</h1>
       </div>
@@ -446,7 +446,7 @@ export function CheckoutPage() {
                     color: isDone || isActive ? "white" : "#9ca3af",
                   }}
                 >
-                  {isDone ? <CheckCircle size={18} /> : <s.icon size={18} />}
+                  {isDone ? <IconCircleCheck size={18} /> : <s.icon size={18} />}
                 </div>
                 <span
                   className={`text-xs mt-1 font-medium ${

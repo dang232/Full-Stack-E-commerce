@@ -1,22 +1,5 @@
+import { IconUser, IconMapPin, IconBell, IconShield, IconCreditCard, IconPackage, IconHeart, IconStar, IconCamera, IconEdit, IconPlus, IconTrash, IconChevronRight, IconLogout, IconAlertCircle, IconDeviceFloppy } from "@tabler/icons-react";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import {
-  User,
-  MapPin,
-  Bell,
-  Shield,
-  CreditCard,
-  Package,
-  Heart,
-  Star,
-  Camera,
-  Edit3,
-  Plus,
-  Trash2,
-  ChevronRight,
-  LogOut,
-  AlertCircle,
-  Save,
-} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -35,11 +18,11 @@ import type { Address, UserProfile } from "../types/api";
 
 type ProfileTab = "info" | "addresses" | "payment" | "security";
 
-const TABS: { id: ProfileTab; labelKey: string; icon: typeof User }[] = [
-  { id: "info", labelKey: "profile.tabs.info", icon: User },
-  { id: "addresses", labelKey: "profile.tabs.addresses", icon: MapPin },
-  { id: "payment", labelKey: "profile.tabs.payment", icon: CreditCard },
-  { id: "security", labelKey: "profile.tabs.security", icon: Shield },
+const TABS: { id: ProfileTab; labelKey: string; icon: typeof IconUser }[] = [
+  { id: "info", labelKey: "profile.tabs.info", icon: IconUser },
+  { id: "addresses", labelKey: "profile.tabs.addresses", icon: IconMapPin },
+  { id: "payment", labelKey: "profile.tabs.payment", icon: IconCreditCard },
+  { id: "security", labelKey: "profile.tabs.security", icon: IconShield },
 ];
 
 const EMPTY_ADDRESS: Address = {
@@ -163,25 +146,25 @@ export function ProfilePage() {
   const menuItems = useMemo(
     () => [
       {
-        icon: Package,
+        icon: IconPackage,
         label: t("profile.menu.ordersLabel"),
         desc: t("profile.menu.ordersDesc"),
         path: "/orders",
       },
       {
-        icon: Heart,
+        icon: IconHeart,
         label: t("profile.menu.wishlistLabel"),
         desc: t("profile.menu.wishlistDesc"),
         path: "/wishlist",
       },
       {
-        icon: Star,
+        icon: IconStar,
         label: t("profile.menu.reviewsLabel"),
         desc: t("profile.menu.reviewsDesc"),
         path: "/orders",
       },
       {
-        icon: Bell,
+        icon: IconBell,
         label: t("profile.menu.notificationsLabel"),
         desc: t("profile.menu.notificationsDesc"),
         path: "/profile",
@@ -236,7 +219,7 @@ export function ProfilePage() {
                 className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow"
                 style={{ background: "#00BFB3" }}
               >
-                <Camera size={13} color="white" />
+                <IconCamera size={13} color="white" />
               </button>
             </div>
             <h2 className="font-bold text-gray-800 text-lg">{displayName}</h2>
@@ -264,7 +247,7 @@ export function ProfilePage() {
                   <p className="text-sm font-medium text-gray-800">{item.label}</p>
                   <p className="text-xs text-gray-400">{item.desc}</p>
                 </div>
-                <ChevronRight size={15} className="text-gray-400" />
+                <IconChevronRight size={15} className="text-gray-400" />
               </button>
             ))}
           </div>
@@ -273,7 +256,7 @@ export function ProfilePage() {
             onClick={logout}
             className="w-full py-3 rounded-2xl text-red-500 border border-red-200 flex items-center justify-center gap-2 text-sm font-medium hover:bg-red-50 transition-colors bg-white shadow-sm"
           >
-            <LogOut size={16} /> {t("profile.logout")}
+            <IconLogout size={16} /> {t("profile.logout")}
           </button>
         </div>
 
@@ -315,7 +298,7 @@ export function ProfilePage() {
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white disabled:opacity-50"
                         style={{ background: "#00BFB3" }}
                       >
-                        <Save size={14} />
+                        <IconDeviceFloppy size={14} />
                         {updateProfileMutation.isPending
                           ? t("profile.info.saving")
                           : t("profile.info.save")}
@@ -327,7 +310,7 @@ export function ProfilePage() {
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border"
                       style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
                     >
-                      <Edit3 size={14} /> {t("profile.info.edit")}
+                      <IconEdit size={14} /> {t("profile.info.edit")}
                     </button>
                   )}
                 </div>
@@ -396,7 +379,7 @@ export function ProfilePage() {
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white"
                     style={{ background: "#00BFB3" }}
                   >
-                    <Plus size={14} />{" "}
+                    <IconPlus size={14} />{" "}
                     {showAddForm
                       ? t("profile.addresses.addToggleClose")
                       : t("profile.addresses.addToggleOpen")}
@@ -492,7 +475,7 @@ export function ProfilePage() {
                             ) : null}
                           </div>
                           <div className="flex items-start gap-1.5">
-                            <MapPin size={13} className="mt-0.5 shrink-0 text-gray-400" />
+                            <IconMapPin size={13} className="mt-0.5 shrink-0 text-gray-400" />
                             <p className="text-sm text-gray-500 leading-relaxed">
                               {formatAddressLine(addr)}
                             </p>
@@ -504,7 +487,7 @@ export function ProfilePage() {
                               onClick={() => removeAddressMutation.mutate(i)}
                               className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-400 hover:bg-red-50"
                             >
-                              <Trash2 size={13} />
+                              <IconTrash size={13} />
                             </button>
                           ) : null}
                         </div>
@@ -529,7 +512,7 @@ export function ProfilePage() {
               <div>
                 <h3 className="font-bold text-gray-800 mb-3">{t("profile.payment.title")}</h3>
                 <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 flex items-start gap-2">
-                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                  <IconAlertCircle size={14} className="shrink-0 mt-0.5" />
                   <p>{t("profile.payment.comingSoonBanner")}</p>
                 </div>
               </div>

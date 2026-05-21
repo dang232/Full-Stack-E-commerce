@@ -1,4 +1,4 @@
-import { CreditCard, MapPin, Package, Truck } from "lucide-react";
+import { IconCreditCard, IconMapPin, IconPackage, IconTruck } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
 import { formatPrice } from "../../lib/format";
@@ -37,7 +37,7 @@ export function CheckoutReviewStep({
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-            <MapPin size={15} style={{ color: "#00BFB3" }} />{" "}
+            <IconMapPin size={15} style={{ color: "#00BFB3" }} />{" "}
             {t("checkout.review.shippingAddress")}
           </h3>
           <button
@@ -68,7 +68,7 @@ export function CheckoutReviewStep({
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-            <Truck size={15} style={{ color: "#00BFB3" }} />{" "}
+            <IconTruck size={15} style={{ color: "#00BFB3" }} />{" "}
             {t("checkout.review.shippingMethod")}
           </h3>
           <button
@@ -88,7 +88,7 @@ export function CheckoutReviewStep({
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-            <CreditCard size={15} style={{ color: "#00BFB3" }} />{" "}
+            <IconCreditCard size={15} style={{ color: "#00BFB3" }} />{" "}
             {t("checkout.review.paymentMethod")}
           </h3>
           <button
@@ -106,7 +106,7 @@ export function CheckoutReviewStep({
 
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <h3 className="font-semibold text-gray-700 flex items-center gap-2 mb-3">
-          <Package size={15} style={{ color: "#00BFB3" }} />{" "}
+          <IconPackage size={15} style={{ color: "#00BFB3" }} />{" "}
           {t("checkout.review.productsCount", { count: cartItems.length })}
         </h3>
         <div className="space-y-3">

@@ -1,33 +1,4 @@
-import {
-  Check,
-  Copy,
-  ChevronRight,
-  Star,
-  Zap,
-  Heart,
-  ShoppingCart,
-  Bell,
-  Search,
-  Package,
-  Tag,
-  Shield,
-  Truck,
-  ArrowRight,
-  TrendingUp,
-  Eye,
-  AlertCircle,
-  Info,
-  CheckCircle,
-  XCircle,
-  Plus,
-  Minus,
-  X,
-  Filter,
-  SlidersHorizontal,
-  Store,
-  User,
-  Home,
-} from "lucide-react";
+import { IconCheck, IconCopy, IconChevronRight, IconStar, IconBolt, IconHeart, IconShoppingCart, IconBell, IconSearch, IconPackage, IconTag, IconShield, IconTruck, IconArrowRight, IconTrendingUp, IconEye, IconAlertCircle, IconInfoCircle, IconCircleCheck, IconCircleX, IconPlus, IconMinus, IconX, IconFilter, IconAdjustmentsHorizontal, IconBuildingStore, IconUser, IconHome } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 
@@ -80,7 +51,7 @@ const SEMANTIC_COLORS: ColorSwatch[] = [
   { name: "Success", hex: "#10B981" },
   { name: "Warning", hex: "#F59E0B", textDark: true },
   { name: "Error", hex: "#EF4444" },
-  { name: "Info", hex: "#3B82F6" },
+  { name: "IconInfoCircle", hex: "#3B82F6" },
 ];
 
 function SwatchRow({ swatches }: { swatches: ColorSwatch[] }) {
@@ -107,7 +78,7 @@ function SwatchRow({ swatches }: { swatches: ColorSwatch[] }) {
             <span
               className={`opacity-0 group-hover:opacity-100 transition-opacity ${s.textDark ? "text-gray-800" : "text-white"}`}
             >
-              {copied === s.hex ? <Check size={14} /> : <Copy size={14} />}
+              {copied === s.hex ? <IconCheck size={14} /> : <IconCopy size={14} />}
             </span>
           </div>
           <div
@@ -210,7 +181,7 @@ function ButtonShowcase() {
                     height="16"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="currentColor"
+                    color="currentColor"
                     strokeWidth="2.5"
                   >
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -237,13 +208,13 @@ function ButtonShowcase() {
               className="px-5 py-2.5 rounded-xl text-white font-semibold transition-all hover:opacity-90 active:scale-95 flex items-center gap-1.5"
               style={{ background: "#FF6200" }}
             >
-              <Zap size={15} fill="white" /> Mua ngay
+              <IconBolt size={15} fill="white" /> Mua ngay
             </button>
             <button
               className="px-6 py-3 rounded-xl text-white font-semibold text-lg flex items-center gap-2 transition-all hover:opacity-90 active:scale-95"
               style={{ background: "linear-gradient(135deg, #FF6200, #FF8C00)" }}
             >
-              <ShoppingCart size={20} /> Đặt hàng
+              <IconShoppingCart size={20} /> Đặt hàng
             </button>
           </div>
         </div>
@@ -267,7 +238,7 @@ function ButtonShowcase() {
               className="px-5 py-2.5 rounded-xl font-semibold border-2 transition-all hover:bg-red-50"
               style={{ color: "#EF4444", borderColor: "#EF4444" }}
             >
-              Xóa sản phẩm
+              IconXóa sản phẩm
             </button>
           </div>
         </div>
@@ -279,22 +250,22 @@ function ButtonShowcase() {
               className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90"
               style={{ background: "#00BFB3" }}
             >
-              <Heart size={18} />
+              <IconHeart size={18} />
             </button>
             <button className="w-10 h-10 rounded-xl flex items-center justify-center border-2 border-gray-200 text-gray-600 hover:bg-gray-50 transition-all">
-              <Heart size={18} />
+              <IconHeart size={18} />
             </button>
             <button
               className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:opacity-90 shadow-lg"
               style={{ background: "#FF6200" }}
             >
-              <Plus size={20} />
+              <IconPlus size={20} />
             </button>
             <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all">
-              <Minus size={18} />
+              <IconMinus size={18} />
             </button>
             <button className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all">
-              <X size={18} />
+              <IconX size={18} />
             </button>
           </div>
         </div>
@@ -393,7 +364,7 @@ function BadgesShowcase() {
               className="flex items-center gap-1 px-2.5 py-1 rounded-full text-white text-xs font-bold"
               style={{ background: "#E53E3E" }}
             >
-              <Zap size={10} fill="white" /> Flash Sale
+              <IconBolt size={10} fill="white" /> Flash Sale
             </span>
             <span
               className="px-2.5 py-1 rounded-full text-white text-xs font-bold"
@@ -417,13 +388,13 @@ function BadgesShowcase() {
               className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
               style={{ background: "#FFF3E0", color: "#FF6200" }}
             >
-              <Truck size={10} /> Miễn ship
+              <IconTruck size={10} /> Miễn ship
             </span>
             <span
               className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
               style={{ background: "#E6FAF9", color: "#00BFB3" }}
             >
-              <Shield size={10} /> Chính hãng
+              <IconShield size={10} /> Chính hãng
             </span>
             <span
               className="px-2.5 py-1 rounded-full text-xs font-bold"
@@ -559,7 +530,7 @@ function InputsShowcase() {
               style={{ borderColor: "#EF4444", boxShadow: "0 0 0 3px rgba(239,68,68,0.1)" }}
             />
             <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-              <AlertCircle size={12} /> Số điện thoại không hợp lệ
+              <IconAlertCircle size={12} /> Số điện thoại không hợp lệ
             </p>
           </div>
           {/* Disabled */}
@@ -580,10 +551,10 @@ function InputsShowcase() {
           </div>
         </div>
         <div className="space-y-4">
-          <Label>Search & Select</Label>
-          {/* Search input */}
+          <Label>IconSearch & Select</Label>
+          {/* IconSearch input */}
           <div className="relative">
-            <Search
+            <IconSearch
               size={16}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
             />
@@ -656,7 +627,7 @@ function CardsShowcase() {
         <div className="group rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 bg-white">
           <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
             <div className="w-full h-full bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center">
-              <Package size={48} className="text-teal-300" />
+              <IconPackage size={48} className="text-teal-300" />
             </div>
             <span
               className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-white text-xs font-bold"
@@ -668,7 +639,7 @@ function CardsShowcase() {
               className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold"
               style={{ background: "#FFF3E0", color: "#FF6200" }}
             >
-              <Truck size={9} /> Free
+              <IconTruck size={9} /> Free
             </span>
           </div>
           <div className="p-3.5">
@@ -678,7 +649,7 @@ function CardsShowcase() {
             </p>
             <div className="flex items-center gap-1 mb-2">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Star
+                <IconStar
                   key={i}
                   size={11}
                   fill={i <= 4 ? "#FF6200" : "none"}
@@ -709,7 +680,7 @@ function CardsShowcase() {
               className="w-14 h-14 rounded-xl bg-white shadow-md flex items-center justify-center mb-1"
               style={{ border: "2px solid #00BFB3" }}
             >
-              <Store size={24} style={{ color: "#00BFB3" }} />
+              <IconBuildingStore size={24} style={{ color: "#00BFB3" }} />
             </div>
           </div>
           <div className="px-4 pt-2 pb-4">
@@ -724,7 +695,7 @@ function CardsShowcase() {
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
               <span className="flex items-center gap-0.5">
-                <Star size={10} fill="#FF6200" stroke="#FF6200" /> 4.9
+                <IconStar size={10} fill="#FF6200" color="#FF6200" /> 4.9
               </span>
               <span>12.5k sản phẩm</span>
               <span>98% phản hồi</span>
@@ -757,7 +728,7 @@ function CardsShowcase() {
               </div>
               <div className="flex items-center gap-0.5 mb-2">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} size={11} fill="#FF6200" stroke="#FF6200" />
+                  <IconStar key={i} size={11} fill="#FF6200" color="#FF6200" />
                 ))}
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
@@ -770,7 +741,7 @@ function CardsShowcase() {
                     height="12"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="currentColor"
+                    color="currentColor"
                     strokeWidth="2"
                   >
                     <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
@@ -794,7 +765,7 @@ function AlertsShowcase() {
       <div className="space-y-3">
         {[
           {
-            icon: CheckCircle,
+            icon: IconCircleCheck,
             bg: "#D1FAE5",
             border: "#6EE7B7",
             text: "#065F46",
@@ -802,7 +773,7 @@ function AlertsShowcase() {
             desc: "Đơn hàng VNS-20240115-001 đã được xác nhận. Dự kiến giao trong 2-3 ngày.",
           },
           {
-            icon: Info,
+            icon: IconInfoCircle,
             bg: "#DBEAFE",
             border: "#93C5FD",
             text: "#1E40AF",
@@ -810,7 +781,7 @@ function AlertsShowcase() {
             desc: "Flash Sale kết thúc sau 02:30:15. Mua ngay để hưởng ưu đãi -50%.",
           },
           {
-            icon: AlertCircle,
+            icon: IconAlertCircle,
             bg: "#FEF3C7",
             border: "#FCD34D",
             text: "#92400E",
@@ -818,7 +789,7 @@ function AlertsShowcase() {
             desc: "Chỉ còn 5 sản phẩm trong kho. Đặt ngay để không bỏ lỡ!",
           },
           {
-            icon: XCircle,
+            icon: IconCircleX,
             bg: "#FEE2E2",
             border: "#FCA5A5",
             text: "#991B1B",
@@ -919,30 +890,30 @@ function SpacingShowcase() {
 
 // ─── Icons Reference ──────────────────────────────────────────────────────────
 const ICON_SET = [
-  { icon: Search, name: "Search" },
-  { icon: ShoppingCart, name: "Cart" },
-  { icon: Heart, name: "Heart" },
-  { icon: Bell, name: "Bell" },
-  { icon: Star, name: "Star" },
-  { icon: Zap, name: "Zap" },
-  { icon: Truck, name: "Truck" },
-  { icon: Shield, name: "Shield" },
-  { icon: Package, name: "Package" },
-  { icon: Tag, name: "Tag" },
-  { icon: Store, name: "Store" },
-  { icon: User, name: "User" },
-  { icon: TrendingUp, name: "Trending" },
-  { icon: Eye, name: "Eye" },
-  { icon: Filter, name: "Filter" },
-  { icon: SlidersHorizontal, name: "Sliders" },
-  { icon: Plus, name: "Plus" },
-  { icon: X, name: "X" },
-  { icon: Check, name: "Check" },
-  { icon: ArrowRight, name: "Arrow" },
-  { icon: ChevronRight, name: "Chevron" },
-  { icon: Info, name: "Info" },
-  { icon: AlertCircle, name: "Alert" },
-  { icon: CheckCircle, name: "Success" },
+  { icon: IconSearch, name: "IconSearch" },
+  { icon: IconShoppingCart, name: "Cart" },
+  { icon: IconHeart, name: "IconHeart" },
+  { icon: IconBell, name: "IconBell" },
+  { icon: IconStar, name: "IconStar" },
+  { icon: IconBolt, name: "IconBolt" },
+  { icon: IconTruck, name: "IconTruck" },
+  { icon: IconShield, name: "IconShield" },
+  { icon: IconPackage, name: "IconPackage" },
+  { icon: IconTag, name: "IconTag" },
+  { icon: IconBuildingStore, name: "IconBuildingStore" },
+  { icon: IconUser, name: "IconUser" },
+  { icon: IconTrendingUp, name: "Trending" },
+  { icon: IconEye, name: "IconEye" },
+  { icon: IconFilter, name: "IconFilter" },
+  { icon: IconAdjustmentsHorizontal, name: "Sliders" },
+  { icon: IconPlus, name: "IconPlus" },
+  { icon: IconX, name: "IconX" },
+  { icon: IconCheck, name: "IconCheck" },
+  { icon: IconArrowRight, name: "Arrow" },
+  { icon: IconChevronRight, name: "Chevron" },
+  { icon: IconInfoCircle, name: "IconInfoCircle" },
+  { icon: IconAlertCircle, name: "Alert" },
+  { icon: IconCircleCheck, name: "Success" },
 ];
 
 function IconsShowcase() {
@@ -977,10 +948,10 @@ function NavigationDemo() {
           </div>
           <div className="flex border-t border-gray-100 px-2 py-2">
             {[
-              { id: "home", icon: Home, label: "Trang chủ" },
-              { id: "search", icon: Search, label: "Tìm kiếm" },
-              { id: "cart", icon: ShoppingCart, label: "Giỏ hàng", badge: 3 },
-              { id: "profile", icon: User, label: "Tài khoản" },
+              { id: "home", icon: IconHome, label: "Trang chủ" },
+              { id: "search", icon: IconSearch, label: "Tìm kiếm" },
+              { id: "cart", icon: IconShoppingCart, label: "Giỏ hàng", badge: 3 },
+              { id: "profile", icon: IconUser, label: "Tài khoản" },
             ].map(({ id, icon: Icon, label, badge }) => (
               <button
                 key={id}
@@ -1092,7 +1063,7 @@ export function DesignSystemPage() {
     "Màu sắc",
     "Chữ",
     "Nút bấm",
-    "Badge & Tag",
+    "Badge & IconTag",
     "Form & Input",
     "Card",
     "Alert",
@@ -1177,7 +1148,7 @@ export function DesignSystemPage() {
                       <span className="font-medium text-green-600">Success</span> cho trạng thái
                       thành công, <span className="font-medium text-yellow-600">Warning</span> cho
                       cảnh báo, <span className="font-medium text-red-500">Error</span> cho lỗi và
-                      xóa, <span className="font-medium text-blue-500">Info</span> cho thông tin.
+                      xóa, <span className="font-medium text-blue-500">IconInfoCircle</span> cho thông tin.
                     </p>
                   </div>
                 </Card>
@@ -1194,7 +1165,7 @@ export function DesignSystemPage() {
               <ButtonShowcase />
             </Section>
           ) : null}
-          {active === "Badge & Tag" ? (
+          {active === "Badge & IconTag" ? (
             <Section
               title="Badges & Tags"
               subtitle="Nhãn trạng thái, khuyến mãi, danh mục và thông báo"
@@ -1291,7 +1262,7 @@ function Sparkles(props: { size?: number; className?: string }) {
       height={props.size || 24}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="currentColor"
+      color="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

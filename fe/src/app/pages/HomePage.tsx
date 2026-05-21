@@ -1,19 +1,5 @@
+import { IconChevronRight, IconStar, IconBolt, IconTruck, IconShield, IconRefresh, IconHeadphones, IconTrendingUp, IconAward, IconSparkles, IconGift, IconRosetteDiscountCheck, IconPackage, IconDeviceMobile, IconShirt, IconBallFootball, IconBrandApple, IconBrandGooglePlay, IconUserCircle, IconBrush } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ChevronRight,
-  Star,
-  Zap,
-  Truck,
-  Shield,
-  RefreshCw,
-  Headphones,
-  TrendingUp,
-  Award,
-  Sparkles,
-  Gift,
-  BadgeCheck,
-  Package,
-} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useMemo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -66,7 +52,7 @@ function SectionHeader({
           style={{ color }}
         >
           {cta}{" "}
-          <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+          <IconChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
       ) : null}
     </div>
@@ -119,7 +105,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
               className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight"
               style={{ background: "#E53E3E" }}
             >
-              <Zap size={9} fill="white" /> Flash
+              <IconBolt size={9} fill="white" /> Flash
             </span>
           ) : null}
           {product.badge === "new" ? (
@@ -136,7 +122,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
             className="absolute top-2.5 right-2.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-white text-xs font-semibold"
             style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
           >
-            <Truck size={9} /> Free
+            <IconTruck size={9} /> Free
           </span>
         ) : null}
         {/* Wishlist */}
@@ -189,7 +175,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
           ) : null}
         </div>
         <div className="flex items-center gap-1.5 pt-2.5 border-t border-gray-100">
-          <Star size={11} fill="#FF6200" stroke="#FF6200" />
+          <IconStar size={11} fill="#FF6200" color="#FF6200" />
           <span className="text-xs font-semibold text-gray-700">{product.rating}</span>
           <span className="text-xs text-gray-400">
             (
@@ -251,7 +237,7 @@ function HeroSection() {
         <span
           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-6 tracking-wide bg-white/15 border border-white/25 backdrop-blur-sm"
         >
-          <Sparkles size={14} /> {t("home.hero.eyebrow")}
+          <IconSparkles size={14} /> {t("home.hero.eyebrow")}
         </span>
         <h1
           className="text-3xl md:text-5xl font-black leading-tight tracking-tight mb-4"
@@ -268,7 +254,7 @@ function HeroSection() {
             className="px-6 py-3 rounded-2xl font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center gap-2"
             style={{ background: "linear-gradient(135deg, #FF6200 0%, #FF8C00 100%)" }}
           >
-            {t("home.hero.ctaShop")} <ChevronRight size={16} />
+            {t("home.hero.ctaShop")} <IconChevronRight size={16} />
           </button>
           {!isLoggedIn ? (
             <button
@@ -289,7 +275,7 @@ function PromoStrip() {
   const { t } = useTranslation();
   return (
     <ComingSoonCard
-      icon={<Gift size={20} />}
+      icon={<IconGift size={20} />}
       title={t("home.suggestions")}
       description={t("home.comingSoon.promo")}
     />
@@ -333,7 +319,7 @@ function FlashSaleSection() {
                 className="w-11 h-11 rounded-xl flex items-center justify-center"
                 style={{ background: "rgba(255,255,255,0.15)" }}
               >
-                <Zap size={24} fill="white" className="text-white" />
+                <IconBolt size={24} fill="white" className="text-white" />
               </div>
               <div>
                 <p
@@ -433,10 +419,10 @@ function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
                   src={imageSrc}
                   alt={productName ?? c.productId}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  placeholder={<Zap size={36} className="text-white/70" />}
+                  placeholder={<IconBolt size={36} className="text-white/70" />}
                 />
               ) : (
-                <Zap
+                <IconBolt
                   size={36}
                   className="text-white/70 group-hover:scale-110 transition-transform"
                 />
@@ -552,10 +538,10 @@ function CategoriesSection() {
 function TrustBar() {
   const { t } = useTranslation();
   const items = [
-    { icon: Truck, textKey: "trust.freeShipping", subKey: "trust.freeShippingSub", color: "#00BFB3" },
-    { icon: Shield, textKey: "trust.authentic", subKey: "trust.authenticSub", color: "#3B82F6" },
-    { icon: RefreshCw, textKey: "trust.returns", subKey: "trust.returnsSub", color: "#10B981" },
-    { icon: Headphones, textKey: "trust.support247", subKey: "trust.support247Sub", color: "#F59E0B" },
+    { icon: IconTruck, textKey: "trust.freeShipping", subKey: "trust.freeShippingSub", color: "#00BFB3" },
+    { icon: IconShield, textKey: "trust.authentic", subKey: "trust.authenticSub", color: "#3B82F6" },
+    { icon: IconRefresh, textKey: "trust.returns", subKey: "trust.returnsSub", color: "#10B981" },
+    { icon: IconHeadphones, textKey: "trust.support247", subKey: "trust.support247Sub", color: "#F59E0B" },
   ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100">
@@ -585,7 +571,7 @@ function PromoBanners() {
   const { t } = useTranslation();
   return (
     <ComingSoonCard
-      icon={<BadgeCheck size={20} />}
+      icon={<IconRosetteDiscountCheck size={20} />}
       title={t("home.bestsellers")}
       description={t("home.comingSoon.promo")}
     />
@@ -628,14 +614,14 @@ function SellerCard({ seller }: { seller: PublicSeller }) {
         <p className="text-sm font-semibold text-gray-900 truncate">{seller.shopName}</p>
         {seller.ratingAvg !== null && seller.ratingAvg !== undefined ? (
           <div className="flex items-center justify-center gap-1 mt-1">
-            <Star size={11} fill="#FF6200" stroke="#FF6200" />
+            <IconStar size={11} fill="#FF6200" color="#FF6200" />
             <span className="text-xs font-semibold text-gray-700">
               {seller.ratingAvg.toFixed(1)}
             </span>
           </div>
         ) : null}
         <p className="text-xs text-gray-400 mt-0.5">
-          {seller.totalProducts} <Package size={10} className="inline" />
+          {seller.totalProducts} <IconPackage size={10} className="inline" />
         </p>
       </div>
     </motion.div>
@@ -657,7 +643,7 @@ function SellerShowcase() {
   if (isError || (!isLoading && sellers.length === 0)) {
     return (
       <ComingSoonCard
-        icon={<Award size={20} />}
+        icon={<IconAward size={20} />}
         title={t("home.sellersSection.title")}
         description={t("home.sellersSection.empty")}
       />
@@ -688,7 +674,7 @@ function SellerShowcase() {
             onClick={() => void navigate("/sellers")}
             className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-dashed border-gray-200 hover:border-gray-300 transition-colors cursor-pointer shrink-0 w-40 text-gray-400 hover:text-gray-600"
           >
-            <ChevronRight size={24} />
+            <IconChevronRight size={24} />
             <span className="text-xs font-medium">{t("home.sellersSection.viewAll")}</span>
           </button>
         </div>
@@ -703,7 +689,7 @@ function TrendingBar() {
   return (
     <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-dashed border-gray-200">
       <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-gray-100">
-        <TrendingUp size={16} style={{ color: "#FF6200" }} />
+        <IconTrendingUp size={16} style={{ color: "#FF6200" }} />
         <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">
           {t("home.trending")}
         </span>
@@ -720,11 +706,11 @@ function ProductsSection() {
   const [activeTab, setActiveTab] = useState("all");
   const { data: catalog = [] as Product[] } = useProducts();
   const tabs = [
-    { id: "all", labelKey: "home.tabs.all", emoji: "✨" },
-    { id: "electronics", labelKey: "home.tabs.electronics", emoji: "📱" },
-    { id: "fashion", labelKey: "home.tabs.fashion", emoji: "👗" },
-    { id: "beauty", labelKey: "home.tabs.beauty", emoji: "💄" },
-    { id: "sports", labelKey: "home.tabs.sports", emoji: "⚽" },
+    { id: "all", labelKey: "home.tabs.all", Icon: IconSparkles },
+    { id: "electronics", labelKey: "home.tabs.electronics", Icon: IconDeviceMobile },
+    { id: "fashion", labelKey: "home.tabs.fashion", Icon: IconShirt },
+    { id: "beauty", labelKey: "home.tabs.beauty", Icon: IconBrush },
+    { id: "sports", labelKey: "home.tabs.sports", Icon: IconBallFootball },
   ];
   const filtered = useMemo(
     () => (activeTab === "all" ? catalog : catalog.filter((p) => p.category === activeTab)),
@@ -736,7 +722,7 @@ function ProductsSection() {
       <div className="flex items-end justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <Sparkles size={18} style={{ color: "#00BFB3" }} />
+            <IconSparkles size={18} style={{ color: "#00BFB3" }} />
             <span
               className="text-xs font-bold uppercase tracking-widest"
               style={{ color: "#00BFB3" }}
@@ -758,7 +744,7 @@ function ProductsSection() {
           style={{ color: "#00BFB3" }}
         >
           {t("home.viewAll")}{" "}
-          <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+          <IconChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
 
@@ -779,7 +765,10 @@ function ProductsSection() {
                 : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
             }
           >
-            <span>{tab.emoji}</span> {t(tab.labelKey)}
+            <span className="inline-flex items-center gap-1.5">
+              <tab.Icon size={14} />
+              {t(tab.labelKey)}
+            </span>
           </button>
         ))}
       </div>
@@ -890,7 +879,7 @@ function AppBanner() {
       />
       <div className="relative z-10 px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
         <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-          <span className="text-2xl">📱</span>
+          <IconDeviceMobile size={24} className="text-white" stroke={2} />
         </div>
         <div className="flex-1">
           <h3
@@ -906,13 +895,13 @@ function AppBanner() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
             style={{ color: "#009990" }}
           >
-            <span>🍎</span> {t("home.appStore")}
+            <IconBrandApple size={18} stroke={2} /> {t("home.appStore")}
           </button>
           <button
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
             style={{ color: "#009990" }}
           >
-            <span>🤖</span> {t("home.googlePlay")}
+            <IconBrandGooglePlay size={18} stroke={2} /> {t("home.googlePlay")}
           </button>
         </div>
       </div>
@@ -970,7 +959,7 @@ function UserWidget() {
               className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
               style={{ background: "#E6FAF9" }}
             >
-              <span className="text-3xl">👋</span>
+              <IconUserCircle size={32} stroke={1.75} style={{ color: "#00BFB3" }} />
             </div>
             <p className="font-semibold text-gray-800 mb-1">{t("home.greetingTitle")}</p>
             <p className="text-xs text-gray-500 mb-4">{t("home.greetingSubtitle")}</p>
@@ -1004,7 +993,7 @@ function UserWidget() {
           style={{ background: "rgba(255,255,255,0.4)" }}
         />
         <div className="flex items-center gap-2 mb-2">
-          <Gift size={16} className="text-white" />
+          <IconGift size={16} className="text-white" />
           <p className="font-bold text-sm">{t("home.voucherToday")}</p>
         </div>
         <p className="text-white/70 text-xs mb-3">{t("home.voucherSub")}</p>

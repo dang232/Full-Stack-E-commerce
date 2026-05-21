@@ -1,4 +1,5 @@
-import { Sparkles, ChevronRight, ShieldCheck, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { IconSparkles, IconChevronRight, IconShieldCheck, IconAlertCircle, IconEye, IconEyeOff, IconRocket, IconStar, IconShoppingBag, IconLock } from "@tabler/icons-react";
+import type { Icon as TablerIcon } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useSearchParams } from "react-router";
@@ -23,10 +24,10 @@ export function LoginPage() {
   }
 
   const trustItems = [
-    { emoji: "🚀", labelKey: "login.trustItems.fastDelivery", val: "2h" },
-    { emoji: "⭐", labelKey: "login.trustItems.ratingAvg", val: "4.9★" },
-    { emoji: "🛍️", labelKey: "login.trustItems.authentic", val: "10k+" },
-    { emoji: "🔒", labelKey: "login.trustItems.secure", val: "SSL" },
+    { Icon: IconRocket, labelKey: "login.trustItems.fastDelivery", val: "2h" },
+    { Icon: IconStar, labelKey: "login.trustItems.ratingAvg", val: "4.9★" },
+    { Icon: IconShoppingBag, labelKey: "login.trustItems.authentic", val: "10k+" },
+    { Icon: IconLock, labelKey: "login.trustItems.secure", val: "SSL" },
   ];
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -75,7 +76,7 @@ export function LoginPage() {
               className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{ background: "#00BFB3" }}
             >
-              <Sparkles size={20} color="white" />
+              <IconSparkles size={20} color="white" />
             </div>
             <span
               className="font-black text-xl text-gray-800"
@@ -128,14 +129,14 @@ export function LoginPage() {
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                 </button>
               </div>
             </div>
 
             {error ? (
               <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-700">
-                <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+                <IconAlertCircle size={16} className="flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             ) : null}
@@ -167,7 +168,7 @@ export function LoginPage() {
                 </>
               ) : (
                 <>
-                  {t("login.form.submit")} <ChevronRight size={18} />
+                  {t("login.form.submit")} <IconChevronRight size={18} />
                 </>
               )}
             </button>
@@ -192,7 +193,7 @@ export function LoginPage() {
 }
 
 interface BrandPanelProps {
-  trustItems: { emoji: string; labelKey: string; val: string }[];
+  trustItems: { Icon: TablerIcon; labelKey: string; val: string }[];
   t: (k: string) => string;
 }
 
@@ -213,7 +214,7 @@ function BrandPanel({ trustItems, t }: BrandPanelProps) {
       <div className="relative z-10 text-center text-white max-w-sm">
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
-            <Sparkles size={28} />
+            <IconSparkles size={28} />
           </div>
         </div>
         <h1
@@ -230,7 +231,7 @@ function BrandPanel({ trustItems, t }: BrandPanelProps) {
               key={item.labelKey}
               className="bg-white/10 rounded-2xl p-3.5 text-center backdrop-blur-sm"
             >
-              <p className="text-xl mb-0.5">{item.emoji}</p>
+              <item.Icon size={22} stroke={1.75} className="mx-auto mb-1 text-white/90" />
               <p className="font-black text-base">{item.val}</p>
               <p className="text-white/70 text-xs">{t(item.labelKey)}</p>
             </div>
@@ -238,7 +239,7 @@ function BrandPanel({ trustItems, t }: BrandPanelProps) {
         </div>
 
         <p className="mt-6 text-white/60 text-xs flex items-center justify-center gap-2">
-          <ShieldCheck size={14} />
+          <IconShieldCheck size={14} />
           <Trans
             i18nKey="login.trust5m"
             components={{ 1: <span className="text-white font-bold" /> }}

@@ -1,4 +1,4 @@
-import { Loader2, MessageCircle, Search, Send } from "lucide-react";
+import { IconLoader2, IconMessageCircle, IconSearch, IconSend } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
@@ -59,10 +59,10 @@ function ThreadList({
     <aside className="flex flex-col w-full md:w-80 border-r border-gray-100 bg-white">
       <div className="p-4 border-b border-gray-100">
         <h2 className="font-bold text-base text-gray-800 flex items-center gap-2">
-          <MessageCircle size={18} style={{ color: "#00BFB3" }} /> {t("messaging.listHeader")}
+          <IconMessageCircle size={18} style={{ color: "#00BFB3" }} /> {t("messaging.listHeader")}
         </h2>
         <label className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
-          <Search size={14} className="text-gray-400" />
+          <IconSearch size={14} className="text-gray-400" />
           <input
             value={filter}
             onChange={(e) => onFilterChange(e.target.value)}
@@ -75,7 +75,7 @@ function ThreadList({
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="p-6 flex items-center justify-center text-gray-400 text-sm gap-2">
-            <Loader2 size={14} className="animate-spin" /> {t("messaging.loading")}
+            <IconLoader2 size={14} className="animate-spin" /> {t("messaging.loading")}
           </div>
         ) : filtered.length === 0 ? (
           <p className="p-6 text-sm text-gray-400 text-center">{t("messaging.noThreads")}</p>
@@ -253,9 +253,9 @@ function MessagePane({
           style={{ background: "#00BFB3" }}
         >
           {sendMessage.isPending ? (
-            <Loader2 size={14} className="animate-spin" />
+            <IconLoader2 size={14} className="animate-spin" />
           ) : (
-            <Send size={14} />
+            <IconSend size={14} />
           )}
           {t("messaging.send")}
         </button>

@@ -1,25 +1,4 @@
-import {
-  ShoppingCart,
-  Heart,
-  Bell,
-  Sun,
-  Moon,
-  Menu,
-  X,
-  Home,
-  Package,
-  User,
-  LogOut,
-  Settings,
-  Store,
-  LayoutDashboard,
-  ChevronDown,
-  Sparkles,
-  Phone,
-  MapPin,
-  Tag,
-  Headphones,
-} from "lucide-react";
+import { IconShoppingCart, IconHeart, IconBell, IconSun, IconMoon, IconMenu2, IconX, IconHome, IconPackage, IconUser, IconLogout, IconSettings, IconBuildingStore, IconLayoutDashboard, IconChevronDown, IconSparkles, IconPhone, IconMapPin, IconTag, IconHeadphones, IconPalette } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -68,10 +47,10 @@ function Navbar() {
         <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-white/80 text-xs">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5">
-              <Phone size={11} /> {t("nav.freePhone")}
+              <IconPhone size={11} /> {t("nav.freePhone")}
             </span>
             <span className="flex items-center gap-1.5">
-              <MapPin size={11} /> {t("nav.nationwide")}
+              <IconMapPin size={11} /> {t("nav.nationwide")}
             </span>
           </div>
           <div className="flex items-center gap-5">
@@ -79,20 +58,20 @@ function Navbar() {
               onClick={() => navigate("/seller")}
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
-              <Store size={11} /> {t("nav.sellerChannel")}
+              <IconBuildingStore size={11} /> {t("nav.sellerChannel")}
             </button>
             <button
               onClick={() => navigate("/admin")}
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
-              <LayoutDashboard size={11} /> {t("nav.admin")}
+              <IconLayoutDashboard size={11} /> {t("nav.admin")}
             </button>
             <span className="w-px h-3 bg-white/20" />
             <button
               onClick={toggleTheme}
               className="flex items-center gap-1 hover:text-white transition-colors"
             >
-              {isDark ? <Sun size={11} /> : <Moon size={11} />}
+              {isDark ? <IconSun size={11} /> : <IconMoon size={11} />}
               {isDark ? t("nav.light") : t("nav.dark")}
             </button>
             <LanguageSwitcher />
@@ -109,7 +88,7 @@ function Navbar() {
               className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg"
               style={{ background: "rgba(255,255,255,0.2)" }}
             >
-              <Sparkles className="w-5 h-5 text-white" />
+              <IconSparkles className="w-5 h-5 text-white" />
             </div>
             <div>
               <span
@@ -141,7 +120,7 @@ function Navbar() {
               className="relative p-2 text-white rounded-lg hover:bg-white/10 transition-colors"
               title={t("auth.wishlist")}
             >
-              <Heart size={22} />
+              <IconHeart size={22} />
               {wishlist.length > 0 ? (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
                   {wishlist.length}
@@ -154,7 +133,7 @@ function Navbar() {
               className="relative p-2 text-white rounded-lg hover:bg-white/10 transition-colors"
               title={t("cart.title")}
             >
-              <ShoppingCart size={22} />
+              <IconShoppingCart size={22} />
               {cartCount > 0 ? (
                 <span
                   className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 rounded-full text-white text-[10px] font-bold flex items-center justify-center"
@@ -167,7 +146,7 @@ function Navbar() {
 
             <NotificationBell />
 
-            {/* User menu */}
+            {/* IconUser menu */}
             {isLoggedIn ? (
               <div className="relative ml-1">
                 <button
@@ -190,7 +169,7 @@ function Navbar() {
                   <span className="hidden md:block text-sm font-medium max-w-[80px] truncate">
                     {user?.name?.split(" ").pop()}
                   </span>
-                  <ChevronDown size={14} className="hidden md:block" />
+                  <IconChevronDown size={14} className="hidden md:block" />
                 </button>
                 <AnimatePresence>
                   {userMenuOpen ? (
@@ -223,11 +202,11 @@ function Navbar() {
                         </p>
                       </div>
                       {[
-                        { icon: User, label: t("auth.myAccount"), path: "/profile" },
-                        { icon: Package, label: t("auth.myOrders"), path: "/orders" },
-                        { icon: Heart, label: t("auth.wishlist"), path: "/wishlist" },
-                        { icon: Bell, label: t("auth.notifications"), path: "#" },
-                        { icon: Settings, label: t("auth.settings"), path: "#" },
+                        { icon: IconUser, label: t("auth.myAccount"), path: "/profile" },
+                        { icon: IconPackage, label: t("auth.myOrders"), path: "/orders" },
+                        { icon: IconHeart, label: t("auth.wishlist"), path: "/wishlist" },
+                        { icon: IconBell, label: t("auth.notifications"), path: "#" },
+                        { icon: IconSettings, label: t("auth.settings"), path: "#" },
                       ].map((item) => (
                         <button
                           key={item.label}
@@ -254,7 +233,7 @@ function Navbar() {
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-red-50 transition-colors text-left text-red-500"
                         >
-                          <LogOut size={16} /> {t("auth.logout")}
+                          <IconLogout size={16} /> {t("auth.logout")}
                         </button>
                       </div>
                     </motion.div>
@@ -272,7 +251,7 @@ function Navbar() {
             )}
 
             <button className="md:hidden p-2 text-white" onClick={() => setMenuOpen((o) => !o)}>
-              {menuOpen ? <X size={22} /> : <Menu size={22} />}
+              {menuOpen ? <IconX size={22} /> : <IconMenu2 size={22} />}
             </button>
           </div>
         </div>
@@ -296,11 +275,11 @@ function Navbar() {
             onClick={() => navigate("/search")}
             className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
           >
-            <Tag size={14} />
+            <IconTag size={14} />
             <span>{t("nav.allCategories")}</span>
           </button>
           <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-            <Headphones size={14} />
+            <IconHeadphones size={14} />
             <span>{t("nav.support")}</span>
           </button>
         </nav>
@@ -329,11 +308,11 @@ function Navbar() {
                 placeholder={t("search.mobilePlaceholder")}
               />
               {[
-                { icon: Home, label: t("nav.home"), path: "/" },
-                { icon: Package, label: t("auth.myOrders"), path: "/orders" },
-                { icon: Heart, label: t("auth.wishlist"), path: "/wishlist" },
-                { icon: User, label: t("auth.myAccount"), path: "/profile" },
-                { icon: Store, label: t("nav.sellerChannel"), path: "/seller" },
+                { icon: IconHome, label: t("nav.home"), path: "/" },
+                { icon: IconPackage, label: t("auth.myOrders"), path: "/orders" },
+                { icon: IconHeart, label: t("auth.wishlist"), path: "/wishlist" },
+                { icon: IconUser, label: t("auth.myAccount"), path: "/profile" },
+                { icon: IconBuildingStore, label: t("nav.sellerChannel"), path: "/seller" },
               ].map((item) => (
                 <button
                   key={item.path}
@@ -377,7 +356,7 @@ export function Root() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5" style={{ color: "#00BFB3" }} />
+                <IconSparkles className="w-5 h-5" style={{ color: "#00BFB3" }} />
                 <span
                   className="text-white font-bold text-lg"
                   style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
@@ -443,9 +422,10 @@ export function Root() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate("/design-system")}
-                className="px-3 py-1.5 rounded-lg border border-gray-700 text-gray-500 text-xs hover:border-teal-600 hover:text-teal-400 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-700 text-gray-500 text-xs hover:border-teal-600 hover:text-teal-400 transition-colors"
               >
-                🎨 Design System
+                <IconPalette size={14} stroke={1.75} />
+                Design System
               </button>
               {["DMCA", "BoCongThuong", "SSL"].map((b) => (
                 <div

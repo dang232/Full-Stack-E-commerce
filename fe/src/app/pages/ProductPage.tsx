@@ -1,17 +1,5 @@
+import { IconStar, IconTruck, IconShield, IconRefresh, IconChevronRight, IconChevronLeft, IconHeart, IconShare, IconBuildingStore, IconMessage, IconThumbUp } from "@tabler/icons-react";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import {
-  Star,
-  Truck,
-  Shield,
-  RefreshCw,
-  ChevronRight,
-  ChevronLeft,
-  Heart,
-  Share2,
-  Store,
-  MessageSquare,
-  ThumbsUp,
-} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -82,7 +70,7 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
     return (
       <div className="mt-8 bg-white rounded-2xl p-5 shadow-sm">
         <div className="flex items-center gap-3 text-sm text-gray-500">
-          <Store size={18} className="text-gray-300" />
+          <IconBuildingStore size={18} className="text-gray-300" />
           <span>{t("product.seller.comingSoon")}</span>
         </div>
       </div>
@@ -112,7 +100,7 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
           <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500 flex-wrap">
             {seller.ratingAvg !== null && seller.ratingAvg !== undefined ? (
               <span className="flex items-center gap-1">
-                <Star size={11} fill="#FF6200" stroke="#FF6200" />
+                <IconStar size={11} fill="#FF6200" color="#FF6200" />
                 <span className="font-semibold text-gray-700">{seller.ratingAvg.toFixed(1)}</span>
               </span>
             ) : null}
@@ -212,14 +200,14 @@ export function ProductPage() {
         <button onClick={() => navigate("/")} className="hover:text-gray-700">
           {t("product.breadcrumbHome")}
         </button>
-        <ChevronRight size={14} />
+        <IconChevronRight size={14} />
         <button
           onClick={() => navigate(`/search?cat=${product.category}`)}
           className="hover:text-gray-700"
         >
           {product.categoryLabel}
         </button>
-        <ChevronRight size={14} />
+        <IconChevronRight size={14} />
         <span className="text-gray-700 truncate max-w-xs">{product.name}</span>
       </nav>
 
@@ -248,13 +236,13 @@ export function ProductPage() {
                   onClick={() => setImageIdx((i) => (i - 1 + images.length) % images.length)}
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 shadow-md flex items-center justify-center hover:bg-white transition-colors"
                 >
-                  <ChevronLeft size={18} className="text-gray-700" />
+                  <IconChevronLeft size={18} className="text-gray-700" />
                 </button>
                 <button
                   onClick={() => setImageIdx((i) => (i + 1) % images.length)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 shadow-md flex items-center justify-center hover:bg-white transition-colors"
                 >
-                  <ChevronRight size={18} className="text-gray-700" />
+                  <IconChevronRight size={18} className="text-gray-700" />
                 </button>
               </>
             ) : null}
@@ -319,10 +307,10 @@ export function ProductPage() {
                     color: loved ? "#FF6200" : "#6b7280",
                   }}
                 >
-                  <Heart size={18} fill={loved ? "currentColor" : "none"} />
+                  <IconHeart size={18} fill={loved ? "currentColor" : "none"} />
                 </button>
                 <button className="p-2.5 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50">
-                  <Share2 size={18} />
+                  <IconShare size={18} />
                 </button>
               </div>
             </div>
@@ -483,7 +471,7 @@ export function ProductPage() {
           <div className="grid grid-cols-3 gap-3">
             {[
               {
-                icon: Truck,
+                icon: IconTruck,
                 text:
                   product.shippingFee === 0
                     ? t("product.trust.freeShipping")
@@ -491,12 +479,12 @@ export function ProductPage() {
                 sub: t("product.trust.shipVia", { method: product.shipping }),
               },
               {
-                icon: Shield,
+                icon: IconShield,
                 text: t("product.trust.protection"),
                 sub: t("product.trust.protectionSub"),
               },
               {
-                icon: RefreshCw,
+                icon: IconRefresh,
                 text: t("product.trust.returns"),
                 sub: t("product.trust.returnsSub"),
               },
@@ -594,7 +582,7 @@ export function ProductPage() {
                     return (
                       <div key={star} className="flex items-center gap-2">
                         <span className="text-xs w-4 text-gray-500">{star}</span>
-                        <Star size={11} fill="#F59E0B" className="text-amber-400" />
+                        <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
                         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full"
@@ -621,7 +609,7 @@ export function ProductPage() {
                         onClick={() => setReviewDraft((d) => ({ ...d, rating: n }))}
                         type="button"
                       >
-                        <Star
+                        <IconStar
                           size={20}
                           fill={n <= reviewDraft.rating ? "#F59E0B" : "#e5e7eb"}
                           className={n <= reviewDraft.rating ? "text-amber-400" : "text-gray-200"}
@@ -703,14 +691,14 @@ export function ProductPage() {
                         disabled={voteHelpful.isPending}
                         className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                       >
-                        <ThumbsUp size={13} />{" "}
+                        <IconThumbUp size={13} />{" "}
                         {t("product.reviews.helpful", { count: review.helpful ?? 0 })}
                       </button>
                     </div>
                   ))
                 : !liveReviewsQuery.isLoading && (
                     <div className="py-8 text-center">
-                      <MessageSquare size={40} className="mx-auto mb-3 text-gray-300" />
+                      <IconMessage size={40} className="mx-auto mb-3 text-gray-300" />
                       <p className="text-gray-500">{t("product.reviews.empty")}</p>
                     </div>
                   )}

@@ -1,4 +1,4 @@
-import { Mail, Send, ChevronRight, AlertCircle, CheckCircle2 } from "lucide-react";
+import { IconMail, IconSend, IconChevronRight, IconAlertCircle, IconCircleCheck } from "@tabler/icons-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -70,7 +70,7 @@ export function PasswordResetPage() {
             className="w-12 h-12 rounded-2xl mx-auto mb-4 flex items-center justify-center"
             style={{ background: "rgba(0,191,179,0.1)" }}
           >
-            <Mail size={24} color="#00BFB3" />
+            <IconMail size={24} color="#00BFB3" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             {t("passwordReset.title")}
@@ -81,7 +81,7 @@ export function PasswordResetPage() {
         {submitted ? (
           <div className="space-y-4">
             <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-100 text-sm text-emerald-800">
-              <CheckCircle2 size={18} className="flex-shrink-0 mt-0.5" />
+              <IconCircleCheck size={18} className="flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">{t("passwordReset.successTitle")}</p>
                 <p className="mt-1 text-emerald-700">{t("passwordReset.successBody")}</p>
@@ -92,7 +92,7 @@ export function PasswordResetPage() {
               className="block w-full text-center px-4 py-2.5 rounded-xl text-white font-medium"
               style={{ background: "#00BFB3" }}
             >
-              <ChevronRight size={16} className="inline mr-1" />
+              <IconChevronRight size={16} className="inline mr-1" />
               {t("passwordReset.backToLogin")}
             </Link>
           </div>
@@ -119,7 +119,7 @@ export function PasswordResetPage() {
 
             {error ? (
               <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-700">
-                <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+                <IconAlertCircle size={16} className="flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             ) : null}
@@ -130,7 +130,7 @@ export function PasswordResetPage() {
               className="w-full px-4 py-2.5 rounded-xl text-white font-medium disabled:opacity-60 disabled:cursor-not-allowed"
               style={{ background: "#00BFB3" }}
             >
-              <Send size={16} className="inline mr-1.5" />
+              <IconSend size={16} className="inline mr-1.5" />
               {submitting ? t("passwordReset.submitting") : t("passwordReset.submit")}
             </button>
 

@@ -1,16 +1,5 @@
+import { IconTrash, IconPlus, IconMinus, IconShoppingCart, IconTag, IconTruck, IconChevronRight, IconShield, IconArrowLeft, IconLogin } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
-import {
-  Trash2,
-  Plus,
-  Minus,
-  ShoppingCart,
-  Tag,
-  Truck,
-  ChevronRight,
-  Shield,
-  ArrowLeft,
-  LogIn,
-} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -111,7 +100,7 @@ export function CartPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <ShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
+          <IconShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
           <h2 className="text-2xl font-bold text-gray-600 mb-3">{t("cart.loginPromptTitle")}</h2>
           <p className="text-gray-400 mb-8">{t("cart.loginPromptSub")}</p>
           <button
@@ -119,7 +108,7 @@ export function CartPage() {
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2"
             style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
           >
-            <LogIn size={16} /> {t("auth.login")}
+            <IconLogin size={16} /> {t("auth.login")}
           </button>
         </motion.div>
       </div>
@@ -154,7 +143,7 @@ export function CartPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <ShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
+          <IconShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
           <h2 className="text-2xl font-bold text-gray-600 mb-3">{t("cart.emptyTitle")}</h2>
           <p className="text-gray-400 mb-8">{t("cart.emptySub")}</p>
           <button
@@ -189,7 +178,7 @@ export function CartPage() {
           onClick={() => navigate(-1)}
           className="p-2 rounded-xl hover:bg-white transition-colors text-gray-500"
         >
-          <ArrowLeft size={20} />
+          <IconArrowLeft size={20} />
         </button>
         <h1
           className="text-2xl font-bold text-gray-800"
@@ -216,7 +205,7 @@ export function CartPage() {
                 >
                   <span className="font-semibold text-gray-700 text-sm">{group.sellerName}</span>
                   <span className="ml-auto text-xs text-gray-400 flex items-center gap-1">
-                    <Truck size={12} />
+                    <IconTruck size={12} />
                     {totalAmount >= FREE_SHIPPING_THRESHOLD
                       ? t("cart.freeShippingTag")
                       : t("cart.shipFee", { fee: formatPrice(FLAT_SHIPPING_FEE) })}
@@ -255,7 +244,7 @@ export function CartPage() {
                               onClick={() => onUpdate(item.productId, item.quantity - 1)}
                               className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 text-gray-600 transition-colors"
                             >
-                              <Minus size={13} />
+                              <IconMinus size={13} />
                             </button>
                             <span className="w-10 text-center text-sm font-medium">
                               {item.quantity}
@@ -264,7 +253,7 @@ export function CartPage() {
                               onClick={() => onUpdate(item.productId, item.quantity + 1)}
                               className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 text-gray-600 transition-colors"
                             >
-                              <Plus size={13} />
+                              <IconPlus size={13} />
                             </button>
                           </div>
                           <div className="text-right">
@@ -283,7 +272,7 @@ export function CartPage() {
                         onClick={() => onRemove(item.productId)}
                         className="p-2 h-fit rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors shrink-0"
                       >
-                        <Trash2 size={16} />
+                        <IconTrash size={16} />
                       </button>
                     </motion.div>
                   ))}
@@ -297,14 +286,14 @@ export function CartPage() {
             className="flex items-center gap-2 text-sm font-medium"
             style={{ color: "#00BFB3" }}
           >
-            <ArrowLeft size={16} /> {t("cart.continueShopping")}
+            <IconArrowLeft size={16} /> {t("cart.continueShopping")}
           </button>
         </div>
 
         <div className="space-y-4">
           <div className="bg-white rounded-2xl shadow-sm p-5">
             <div className="flex items-center gap-2 mb-3">
-              <Tag size={18} style={{ color: "#FF6200" }} />
+              <IconTag size={18} style={{ color: "#FF6200" }} />
               <h3 className="font-semibold text-gray-800">{t("cart.couponHeader")}</h3>
             </div>
             <div className="flex gap-2">
@@ -386,7 +375,7 @@ export function CartPage() {
               className="w-full mt-5 py-4 rounded-xl text-white font-bold text-base shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
             >
-              {t("cart.proceedCheckout")} <ChevronRight size={18} />
+              {t("cart.proceedCheckout")} <IconChevronRight size={18} />
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-2">
@@ -402,7 +391,7 @@ export function CartPage() {
           </div>
 
           <div className="flex items-center gap-2 text-xs text-gray-500 justify-center">
-            <Shield size={14} style={{ color: "#00BFB3" }} />
+            <IconShield size={14} style={{ color: "#00BFB3" }} />
             <span>{t("cart.sslNotice")}</span>
           </div>
         </div>

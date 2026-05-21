@@ -1,4 +1,4 @@
-import { Bell, Check } from "lucide-react";
+import { IconBell, IconCheck } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
@@ -78,7 +78,7 @@ export function NotificationBell() {
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <Bell size={22} />
+        <IconBell size={22} />
         {unreadCount > 0 ? (
           <span
             className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 rounded-full text-white text-[10px] font-bold flex items-center justify-center"
@@ -112,7 +112,7 @@ export function NotificationBell() {
               ) : null}
               {!isLoading && items.length === 0 ? (
                 <div className="px-4 py-10 text-center">
-                  <Bell size={32} className="mx-auto mb-3 text-gray-200" />
+                  <IconBell size={32} className="mx-auto mb-3 text-gray-200" />
                   <p className="text-sm text-gray-400">Chưa có thông báo nào</p>
                 </div>
               ) : null}
@@ -131,7 +131,7 @@ export function NotificationBell() {
                             color: n.read === false ? "#00BFB3" : "#9ca3af",
                           }}
                         >
-                          {n.read === false ? <Bell size={14} /> : <Check size={14} />}
+                          {n.read === false ? <IconBell size={14} /> : <IconCheck size={14} />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">

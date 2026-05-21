@@ -1,5 +1,5 @@
+import { IconAlertCircle, IconChartBar, IconPackage, IconTrendingUp, IconUsers, IconWallet } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, BarChart3, Package, TrendingUp, Users, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Area,
@@ -60,38 +60,38 @@ export function AdminDashboard() {
           <p className="text-sm text-gray-500">{t("admin.dashboard.subtitle")}</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-600">
-          <BarChart3 size={15} /> {t("admin.dashboard.exportReport")}
+          <IconChartBar size={15} /> {t("admin.dashboard.exportReport")}
         </button>
       </div>
 
       {summaryQuery.error instanceof ApiError ? (
         <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
-          <AlertCircle size={14} className="shrink-0 mt-0.5" />
+          <IconAlertCircle size={14} className="shrink-0 mt-0.5" />
           <p>{t("admin.dashboard.kpiLoadFail", { message: summaryQuery.error.message })}</p>
         </div>
       ) : null}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          icon={TrendingUp}
+          icon={IconTrendingUp}
           label={t("admin.dashboard.kpi.totalRevenue")}
           value={totalRevenue !== null ? formatPrice(totalRevenue) : "—"}
           color="#00BFB3"
         />
         <KPICard
-          icon={Users}
+          icon={IconUsers}
           label={t("admin.dashboard.kpi.totalUsers")}
           value={totalUsers !== null ? totalUsers.toLocaleString() : "—"}
           color="#3B82F6"
         />
         <KPICard
-          icon={Package}
+          icon={IconPackage}
           label={t("admin.dashboard.kpi.totalOrders")}
           value={totalOrders !== null ? totalOrders.toLocaleString() : "—"}
           color="#FF6200"
         />
         <KPICard
-          icon={Wallet}
+          icon={IconWallet}
           label={t("admin.dashboard.kpi.totalSellers")}
           value={totalSellers !== null ? totalSellers.toLocaleString() : "—"}
           color="#F59E0B"
@@ -136,7 +136,7 @@ export function AdminDashboard() {
               <Area
                 type="monotone"
                 dataKey="amount"
-                stroke="#00BFB3"
+                color="#00BFB3"
                 strokeWidth={2.5}
                 fill="url(#revGrad)"
               />

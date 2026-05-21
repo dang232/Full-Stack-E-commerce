@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ProductDetail, ProductSummary } from "../../types/api";
 import type { ProductId } from "../../types/api/branded-ids";
+
 import { fromServer, pct } from "./product-mapper";
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
+import { IconAlertCircle, IconLayoutDashboard, IconStar, IconTag, IconUsers, IconWallet } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, LayoutDashboard, Star, Tag, Users, Wallet } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,13 +20,13 @@ import { SellersApproval } from "./SellersApproval";
 
 type AdminTab = "dashboard" | "sellers" | "reviews" | "coupons" | "disputes" | "payouts";
 
-const NAV_ITEMS: { id: AdminTab; labelKey: string; icon: typeof LayoutDashboard }[] = [
-  { id: "dashboard", labelKey: "admin.nav.dashboard", icon: LayoutDashboard },
-  { id: "sellers", labelKey: "admin.nav.sellers", icon: Users },
-  { id: "reviews", labelKey: "admin.nav.reviews", icon: Star },
-  { id: "coupons", labelKey: "admin.nav.coupons", icon: Tag },
-  { id: "disputes", labelKey: "admin.nav.disputes", icon: AlertCircle },
-  { id: "payouts", labelKey: "admin.nav.payouts", icon: Wallet },
+const NAV_ITEMS: { id: AdminTab; labelKey: string; icon: typeof IconLayoutDashboard }[] = [
+  { id: "dashboard", labelKey: "admin.nav.dashboard", icon: IconLayoutDashboard },
+  { id: "sellers", labelKey: "admin.nav.sellers", icon: IconUsers },
+  { id: "reviews", labelKey: "admin.nav.reviews", icon: IconStar },
+  { id: "coupons", labelKey: "admin.nav.coupons", icon: IconTag },
+  { id: "disputes", labelKey: "admin.nav.disputes", icon: IconAlertCircle },
+  { id: "payouts", labelKey: "admin.nav.payouts", icon: IconWallet },
 ];
 
 export function AdminPage() {
@@ -74,7 +74,7 @@ export function AdminPage() {
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
               style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
             >
-              <LayoutDashboard size={22} className="text-white" />
+              <IconLayoutDashboard size={22} className="text-white" />
             </div>
             <div>
               <h1 className="text-lg font-bold text-gray-800">{t("admin.console")}</h1>

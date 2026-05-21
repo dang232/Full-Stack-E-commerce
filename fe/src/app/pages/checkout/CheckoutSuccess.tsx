@@ -1,4 +1,4 @@
-import { CheckCircle } from "lucide-react";
+import { IconCircleCheck } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { Trans, useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -28,7 +28,7 @@ export function CheckoutSuccess({ placedOrderId, selectedPaymentId, finalTotal }
           className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6"
           style={{ background: "rgba(0,191,179,0.12)" }}
         >
-          <CheckCircle size={48} style={{ color: "#00BFB3" }} />
+          <IconCircleCheck size={48} style={{ color: "#00BFB3" }} />
         </div>
         <h1
           className="text-3xl font-black text-gray-800 mb-3"

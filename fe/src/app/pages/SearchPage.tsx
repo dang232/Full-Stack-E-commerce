@@ -1,4 +1,4 @@
-import { SlidersHorizontal, Star, Truck, X, Zap, Grid3X3, LayoutList, Search } from "lucide-react";
+import { IconAdjustmentsHorizontal, IconStar, IconTruck, IconX, IconBolt, IconLayoutGrid, IconLayoutList, IconSearch } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -57,7 +57,7 @@ function ProductListItem({ product }: { product: Product }) {
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star
+              <IconStar
                 key={i} // eslint-disable-line react/no-array-index-key -- decorative star rating, no stable id
                 size={12}
                 className={
@@ -80,7 +80,7 @@ function ProductListItem({ product }: { product: Product }) {
               className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
               style={{ background: "rgba(0,191,179,0.1)", color: "#00BFB3" }}
             >
-              <Truck size={10} /> {t("search.freeShippingTag")}
+              <IconTruck size={10} /> {t("search.freeShippingTag")}
             </span>
           ) : null}
           {product.colors?.slice(0, 3).map((c) => (
@@ -104,7 +104,7 @@ function ProductListItem({ product }: { product: Product }) {
             height="16"
             viewBox="0 0 24 24"
             fill={loved ? "currentColor" : "none"}
-            stroke="currentColor"
+            color="currentColor"
             strokeWidth="2"
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -177,7 +177,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
             height="12"
             viewBox="0 0 24 24"
             fill={loved ? "currentColor" : "none"}
-            stroke="currentColor"
+            color="currentColor"
             strokeWidth="2.5"
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -200,7 +200,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
           {product.name}
         </h3>
         <div className="flex items-center gap-1 mb-2">
-          <Star size={11} fill="#F59E0B" className="text-amber-400" />
+          <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
           <span className="text-xs text-gray-700">{product.rating}</span>
           <span className="text-xs text-gray-400">
             (
@@ -379,10 +379,10 @@ export function SearchPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Search bar */}
+      {/* IconSearch bar */}
       <form onSubmit={handleSearch} className="flex gap-3 mb-6">
         <div className="flex-1 flex items-center bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <Search size={18} className="ml-4 text-gray-400 shrink-0" />
+          <IconSearch size={18} className="ml-4 text-gray-400 shrink-0" />
           <input
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
@@ -398,7 +398,7 @@ export function SearchPage() {
               }}
               className="pr-3 text-gray-400"
             >
-              <X size={16} />
+              <IconX size={16} />
             </button>
           ) : null}
         </div>
@@ -545,7 +545,7 @@ export function SearchPage() {
                 >
                   <div className="flex">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
+                      <IconStar
                         key={i} // eslint-disable-line react/no-array-index-key -- decorative star rating, no stable id
                         size={13}
                         fill={i < r ? "#F59E0B" : "#e5e7eb"}
@@ -608,7 +608,7 @@ export function SearchPage() {
               <p className="text-gray-800 font-medium">
                 {isFlash ? (
                   <span className="inline-flex items-center gap-1 mr-2 text-red-500 font-bold">
-                    <Zap size={16} fill="currentColor" /> Flash Sale
+                    <IconBolt size={16} fill="currentColor" /> Flash Sale
                   </span>
                 ) : null}
                 {query ? t("search.resultsForQuery", { q: query }) : t("search.allProducts")}
@@ -624,7 +624,7 @@ export function SearchPage() {
                 onClick={() => setShowFilters(!showFilters)}
                 className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium"
               >
-                <SlidersHorizontal size={16} />
+                <IconAdjustmentsHorizontal size={16} />
                 {t("search.filterToggle")} {activeFilterCount > 0 ? `(${activeFilterCount})` : null}
               </button>
               <div className="hidden sm:flex border border-gray-200 rounded-xl overflow-hidden bg-white">
@@ -636,7 +636,7 @@ export function SearchPage() {
                     color: viewMode === "grid" ? "white" : "#6b7280",
                   }}
                 >
-                  <Grid3X3 size={16} />
+                  <IconLayoutGrid size={16} />
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
@@ -646,7 +646,7 @@ export function SearchPage() {
                     color: viewMode === "list" ? "white" : "#6b7280",
                   }}
                 >
-                  <LayoutList size={16} />
+                  <IconLayoutList size={16} />
                 </button>
               </div>
               <select
@@ -676,7 +676,7 @@ export function SearchPage() {
                     return cat ? categoryDisplayLabel(cat) : selectedCat;
                   })()}
                   <button onClick={() => setCategory("")}>
-                    <X size={12} />
+                    <IconX size={12} />
                   </button>
                 </span>
               ) : null}
@@ -687,7 +687,7 @@ export function SearchPage() {
                 >
                   {selectedBrand}
                   <button onClick={() => setSelectedBrand("")}>
-                    <X size={12} />
+                    <IconX size={12} />
                   </button>
                 </span>
               ) : null}
@@ -703,7 +703,7 @@ export function SearchPage() {
                       setPriceMax("");
                     }}
                   >
-                    <X size={12} />
+                    <IconX size={12} />
                   </button>
                 </span>
               ) : null}
@@ -714,7 +714,7 @@ export function SearchPage() {
                 >
                   {t("search.ratingAtLeast", { r: minRating })}
                   <button onClick={() => setMinRating(0)}>
-                    <X size={12} />
+                    <IconX size={12} />
                   </button>
                 </span>
               ) : null}
@@ -725,7 +725,7 @@ export function SearchPage() {
                 >
                   {t("search.freeShipping")}
                   <button onClick={() => setFreeShipOnly(false)}>
-                    <X size={12} />
+                    <IconX size={12} />
                   </button>
                 </span>
               ) : null}
@@ -735,7 +735,7 @@ export function SearchPage() {
           {/* Empty state */}
           {paginated.length === 0 ? (
             <div className="py-24 text-center bg-white rounded-2xl">
-              <Search size={48} className="mx-auto mb-4 text-gray-300" />
+              <IconSearch size={48} className="mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">{t("search.emptyTitle")}</h3>
               <p className="text-sm text-gray-400 mb-6">{t("search.emptySub")}</p>
               <button

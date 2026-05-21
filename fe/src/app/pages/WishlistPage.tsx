@@ -1,5 +1,5 @@
+import { IconHeart, IconShoppingCart, IconStar, IconTrash, IconShare, IconFilter } from "@tabler/icons-react";
 import { useQueries } from "@tanstack/react-query";
-import { Heart, ShoppingCart, Star, Trash2, Share2, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -82,10 +82,10 @@ export function WishlistPage() {
         </div>
         <div className="flex gap-2">
           <button className="p-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
-            <Share2 size={18} />
+            <IconShare size={18} />
           </button>
           <button className="p-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
-            <Filter size={18} />
+            <IconFilter size={18} />
           </button>
         </div>
       </div>
@@ -96,7 +96,7 @@ export function WishlistPage() {
           animate={{ opacity: 1, y: 0 }}
           className="py-24 text-center bg-white rounded-2xl"
         >
-          <Heart size={64} className="mx-auto mb-5 text-gray-200" />
+          <IconHeart size={64} className="mx-auto mb-5 text-gray-200" />
           <h2 className="text-xl font-bold text-gray-500 mb-3">{t("wishlist.emptyTitle")}</h2>
           <p className="text-sm text-gray-400 mb-8 max-w-xs mx-auto">{t("wishlist.emptySub")}</p>
           <button
@@ -116,7 +116,7 @@ export function WishlistPage() {
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm shadow disabled:opacity-50"
               style={{ background: "#FF6200" }}
             >
-              <ShoppingCart size={16} /> {t("wishlist.addAll")}
+              <IconShoppingCart size={16} /> {t("wishlist.addAll")}
             </button>
             <button
               onClick={() => {
@@ -125,7 +125,7 @@ export function WishlistPage() {
               }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm border border-gray-200 bg-white text-gray-600 hover:border-red-300 hover:text-red-500 transition-colors"
             >
-              <Trash2 size={16} /> {t("wishlist.clearAll")}
+              <IconTrash size={16} /> {t("wishlist.clearAll")}
             </button>
           </div>
 
@@ -182,7 +182,7 @@ export function WishlistPage() {
                         }}
                         className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-white"
                       >
-                        <Heart size={14} fill="#FF6200" className="text-[#FF6200]" />
+                        <IconHeart size={14} fill="#FF6200" className="text-[#FF6200]" />
                       </button>
                     </div>
                     <div className="p-3">
@@ -194,7 +194,7 @@ export function WishlistPage() {
                       </button>
                       {p.rating !== undefined || p.reviewCount !== undefined ? (
                         <div className="flex items-center gap-1 mt-1 mb-2">
-                          <Star size={11} fill="#F59E0B" className="text-amber-400" />
+                          <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
                           <span className="text-xs text-gray-600">{p.rating ?? 0}</span>
                           <span className="text-xs text-gray-400">
                             ({(p.reviewCount ?? 0).toLocaleString()})
@@ -216,7 +216,7 @@ export function WishlistPage() {
                         className="w-full py-2 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
                         style={{ background: "#00BFB3" }}
                       >
-                        <ShoppingCart size={13} /> {t("wishlist.addToCart")}
+                        <IconShoppingCart size={13} /> {t("wishlist.addToCart")}
                       </button>
                     </div>
                   </motion.div>

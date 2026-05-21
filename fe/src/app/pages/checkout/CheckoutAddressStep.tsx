@@ -1,4 +1,4 @@
-import { AlertCircle, Plus } from "lucide-react";
+import { IconAlertCircle, IconPlus } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -32,7 +32,7 @@ export function CheckoutAddressStep({
       ) : null}
       {!isLoading && addresses.length === 0 ? (
         <div className="bg-white rounded-2xl p-5 text-sm text-gray-500 flex items-start gap-3">
-          <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
+          <IconAlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-gray-700">{t("checkout.address.noAddressesTitle")}</p>
             <p className="mt-1">{t("checkout.address.noAddressesSub")}</p>
@@ -93,7 +93,7 @@ export function CheckoutAddressStep({
         onClick={() => navigate("/profile")}
         className="w-full py-3 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 text-sm font-medium text-gray-500 hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors bg-white"
       >
-        <Plus size={16} /> {t("checkout.address.addNew")}
+        <IconPlus size={16} /> {t("checkout.address.addNew")}
       </button>
     </div>
   );

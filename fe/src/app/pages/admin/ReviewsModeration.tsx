@@ -1,5 +1,5 @@
+import { IconCircleCheck, IconStar, IconCircleX } from "@tabler/icons-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Star, XCircle } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -92,7 +92,7 @@ export function ReviewsModeration() {
               </div>
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
+                  <IconStar
                     key={i} // eslint-disable-line react/no-array-index-key -- decorative star rating, no stable id
                     size={14}
                     fill={i < r.rating ? "#F59E0B" : "#e5e7eb"}
@@ -111,14 +111,14 @@ export function ReviewsModeration() {
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                 style={{ background: "#10B981" }}
               >
-                <CheckCircle size={13} /> {t("admin.reviewsModeration.approve")}
+                <IconCircleCheck size={13} /> {t("admin.reviewsModeration.approve")}
               </button>
               <button
                 onClick={() => setRejectFor(r.id)}
                 disabled={reject.isPending}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 disabled:opacity-50"
               >
-                <XCircle size={13} /> {t("admin.reviewsModeration.reject")}
+                <IconCircleX size={13} /> {t("admin.reviewsModeration.reject")}
               </button>
             </div>
           </div>

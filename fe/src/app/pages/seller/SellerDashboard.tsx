@@ -1,4 +1,4 @@
-import { Eye, ShoppingBag, Star, Wallet } from "lucide-react";
+import { IconEye, IconShoppingBag, IconStar, IconWallet } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -65,19 +65,19 @@ export function SellerDashboard({
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          icon={Wallet}
+          icon={IconWallet}
           label={t("seller.dashboard.kpi.balance")}
           value={walletBalance !== null ? formatPrice(walletBalance) : "—"}
           color="#00BFB3"
         />
         <KPICard
-          icon={ShoppingBag}
+          icon={IconShoppingBag}
           label={t("seller.dashboard.kpi.pending")}
           value={String(pendingOrders.length)}
           color="#FF6200"
         />
-        <KPICard icon={Eye} label={t("seller.dashboard.kpi.views")} value="—" color="#3B82F6" />
-        <KPICard icon={Star} label={t("seller.dashboard.kpi.rating")} value="—" color="#F59E0B" />
+        <KPICard icon={IconEye} label={t("seller.dashboard.kpi.views")} value="—" color="#3B82F6" />
+        <KPICard icon={IconStar} label={t("seller.dashboard.kpi.rating")} value="—" color="#F59E0B" />
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -127,7 +127,7 @@ export function SellerDashboard({
               <Area
                 type="monotone"
                 dataKey="revenue"
-                stroke="#00BFB3"
+                color="#00BFB3"
                 strokeWidth={2.5}
                 fill="url(#revenueGrad)"
               />

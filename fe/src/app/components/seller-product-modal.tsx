@@ -1,5 +1,5 @@
+import { IconPhoto, IconLoader2, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ImageIcon, Loader2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -324,11 +324,11 @@ function SellerProductModalBody({
           >
             {isBusy ? (
               <>
-                <Loader2 size={14} className="animate-spin" /> {submitLabel}
+                <IconLoader2 size={14} className="animate-spin" /> {submitLabel}
               </>
             ) : (
               <>
-                <Plus size={14} /> {submitLabel}
+                <IconPlus size={14} /> {submitLabel}
               </>
             )}
           </button>
@@ -357,7 +357,7 @@ function SellerProductModalBody({
                   className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white disabled:opacity-50"
                   aria-label="Xoá ảnh"
                 >
-                  <Trash2 size={12} className="text-red-500" />
+                  <IconTrash size={12} className="text-red-500" />
                 </button>
               </div>
             ))}
@@ -369,7 +369,7 @@ function SellerProductModalBody({
                 <img src={s.previewUrl} alt={s.file.name} className="w-full h-full object-cover" />
                 {phase === "uploading" ? (
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <Loader2 size={20} className="text-white animate-spin" />
+                    <IconLoader2 size={20} className="text-white animate-spin" />
                   </div>
                 ) : null}
                 <button
@@ -379,7 +379,7 @@ function SellerProductModalBody({
                   className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white disabled:opacity-50"
                   aria-label="Bỏ ảnh"
                 >
-                  <Trash2 size={12} className="text-red-500" />
+                  <IconTrash size={12} className="text-red-500" />
                 </button>
               </div>
             ))}
@@ -390,7 +390,7 @@ function SellerProductModalBody({
                 disabled={isBusy}
                 className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors disabled:opacity-50"
               >
-                <ImageIcon size={20} />
+                <IconPhoto size={20} />
                 <span className="text-[11px] font-medium">Thêm ảnh</span>
               </button>
             ) : null}

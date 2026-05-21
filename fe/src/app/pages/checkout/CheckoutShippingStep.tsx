@@ -1,4 +1,4 @@
-import { Truck } from "lucide-react";
+import { IconTruck } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
 import { formatPrice } from "../../lib/format";
@@ -38,7 +38,7 @@ export function CheckoutShippingStep({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Truck
+                <IconTruck
                   size={20}
                   style={{
                     color: selectedShippingId === method.id ? "#00BFB3" : "#6b7280",

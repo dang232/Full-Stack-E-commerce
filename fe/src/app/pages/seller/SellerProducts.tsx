@@ -1,4 +1,4 @@
-import { AlertCircle, Edit, Filter, Plus, Search } from "lucide-react";
+import { IconAlertCircle, IconEdit, IconFilter, IconPlus, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,18 +26,18 @@ export function SellerProducts() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-semibold text-sm"
           style={{ background: "#FF6200" }}
         >
-          <Plus size={16} /> {t("seller.products.addNew")}
+          <IconPlus size={16} /> {t("seller.products.addNew")}
         </button>
       </div>
 
       <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
-        <AlertCircle size={14} className="shrink-0 mt-0.5" />
+        <IconAlertCircle size={14} className="shrink-0 mt-0.5" />
         <p>{t("seller.products.fallbackBanner")}</p>
       </div>
 
       <div className="flex gap-3">
         <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
-          <Search size={16} className="text-gray-400" />
+          <IconSearch size={16} className="text-gray-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -46,7 +46,7 @@ export function SellerProducts() {
           />
         </div>
         <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm text-gray-600">
-          <Filter size={15} /> {t("seller.products.filter")}
+          <IconFilter size={15} /> {t("seller.products.filter")}
         </button>
       </div>
 
@@ -102,7 +102,7 @@ export function SellerProducts() {
                     className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors"
                     title={t("seller.products.editTooltip")}
                   >
-                    <Edit size={14} />
+                    <IconEdit size={14} />
                   </button>
                 </td>
               </tr>

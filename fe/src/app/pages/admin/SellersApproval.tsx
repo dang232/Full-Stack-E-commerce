@@ -1,5 +1,5 @@
+import { IconCircleCheck, IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Search } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -37,7 +37,7 @@ export function SellersApproval() {
         <h2 className="text-xl font-bold text-gray-800">{t("admin.sellers.title")}</h2>
       </div>
       <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
-        <Search size={16} className="text-gray-400" />
+        <IconSearch size={16} className="text-gray-400" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -74,7 +74,7 @@ export function SellersApproval() {
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                 style={{ background: "#00BFB3" }}
               >
-                <CheckCircle size={13} /> {t("admin.sellers.approve")}
+                <IconCircleCheck size={13} /> {t("admin.sellers.approve")}
               </button>
             </div>
           ))}

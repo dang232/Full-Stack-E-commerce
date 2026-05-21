@@ -1,5 +1,5 @@
+import { IconStar, IconPackage } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Star, Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router";
 
@@ -75,7 +75,7 @@ function SellerProductCard({ product }: { product: ProductSummary }) {
         </div>
         {product.rating !== undefined ? (
           <div className="flex items-center gap-1 mt-1.5">
-            <Star size={11} fill="#FF6200" stroke="#FF6200" />
+            <IconStar size={11} fill="#FF6200" color="#FF6200" />
             <span className="text-xs font-semibold text-gray-700">{product.rating}</span>
           </div>
         ) : null}
@@ -162,13 +162,13 @@ export function SellerDetailPage() {
             <div className="flex items-center gap-4 mt-1.5 flex-wrap text-sm text-gray-500">
               {seller.ratingAvg !== null && seller.ratingAvg !== undefined ? (
                 <span className="flex items-center gap-1">
-                  <Star size={13} fill="#FF6200" stroke="#FF6200" />
+                  <IconStar size={13} fill="#FF6200" color="#FF6200" />
                   <span className="font-semibold text-gray-700">{seller.ratingAvg.toFixed(1)}</span>
                   <span>({t("sellerDetail.ratingsLabel", { count: seller.ratingCount })})</span>
                 </span>
               ) : null}
               <span className="flex items-center gap-1">
-                <Package size={13} />
+                <IconPackage size={13} />
                 {t("sellerDetail.productCount", { count: seller.totalProducts })}
               </span>
               <span>{t("sellerDetail.joined", { date: joinedDate })}</span>
@@ -193,7 +193,7 @@ export function SellerDetailPage() {
 
         {products.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
-            <Package size={48} className="mx-auto mb-3 text-gray-200" />
+            <IconPackage size={48} className="mx-auto mb-3 text-gray-200" />
             <p className="text-sm">{t("sellerDetail.noProducts")}</p>
           </div>
         ) : (

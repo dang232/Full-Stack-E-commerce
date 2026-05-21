@@ -1,5 +1,5 @@
+import { IconCircleCheck, IconPackage, IconTruck } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Package, Truck } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -104,7 +104,7 @@ export function SellerOrders({
       ) : null}
       {!isLoading && orders.length === 0 && !error ? (
         <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <Package size={40} className="mx-auto mb-3 text-gray-300" />
+          <IconPackage size={40} className="mx-auto mb-3 text-gray-300" />
           <p className="text-sm text-gray-500">{t("seller.orders.empty")}</p>
         </div>
       ) : null}
@@ -137,7 +137,7 @@ export function SellerOrders({
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                         style={{ background: "#00BFB3" }}
                       >
-                        <CheckCircle size={13} /> {t("seller.orders.accept")}
+                        <IconCircleCheck size={13} /> {t("seller.orders.accept")}
                       </button>
                       <button
                         onClick={() => setRejectFor(order.id)}
@@ -155,7 +155,7 @@ export function SellerOrders({
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                       style={{ background: "#FF6200" }}
                     >
-                      <Truck size={13} /> {t("seller.orders.ship")}
+                      <IconTruck size={13} /> {t("seller.orders.ship")}
                     </button>
                   ) : null}
                 </div>

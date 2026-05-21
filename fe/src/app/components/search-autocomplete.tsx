@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { IconSearch } from "@tabler/icons-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 interface SearchAutocompleteProps {
@@ -107,7 +107,7 @@ export function SearchAutocomplete({
           style={{ background: "#FF6200" }}
           aria-label="Tìm kiếm"
         >
-          <Search size={18} />
+          <IconSearch size={18} />
         </button>
       </form>
 
@@ -137,7 +137,7 @@ export function SearchAutocomplete({
                   idx === activeIndex ? "bg-gray-100" : "hover:bg-gray-50"
                 } text-gray-800`}
               >
-                <Search size={14} className="text-gray-400" />
+                <IconSearch size={14} className="text-gray-400" />
                 <span className="truncate">{suggestion}</span>
               </button>
             </li>

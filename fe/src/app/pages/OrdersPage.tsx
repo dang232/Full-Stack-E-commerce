@@ -1,19 +1,5 @@
+import { IconPackage, IconTruck, IconCircleCheck, IconCircleX, IconClock, IconRefresh, IconMapPin, IconMessage, IconStar, IconRotate, IconAlertCircle, IconLogin, IconArrowsLeftRight } from "@tabler/icons-react";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import {
-  Package,
-  Truck,
-  CheckCircle,
-  XCircle,
-  Clock,
-  RefreshCw,
-  MapPin,
-  MessageSquare,
-  Star,
-  RotateCcw,
-  AlertCircle,
-  LogIn,
-  ArrowLeftRight,
-} from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,36 +24,36 @@ type OrderTab = "all" | "pending" | "confirmed" | "shipping" | "delivered" | "ca
 
 const STATUS_CONFIG: Record<
   UIOrder["status"],
-  { labelKey: string; icon: typeof Package; color: string; bg: string }
+  { labelKey: string; icon: typeof IconPackage; color: string; bg: string }
 > = {
-  pending: { labelKey: "orders.status.pending", icon: Clock, color: "#F59E0B", bg: "#FEF3C7" },
+  pending: { labelKey: "orders.status.pending", icon: IconClock, color: "#F59E0B", bg: "#FEF3C7" },
   confirmed: {
     labelKey: "orders.status.confirmed",
-    icon: CheckCircle,
+    icon: IconCircleCheck,
     color: "#3B82F6",
     bg: "#EFF6FF",
   },
   shipping: {
     labelKey: "orders.status.shipping",
-    icon: Truck,
+    icon: IconTruck,
     color: "#00BFB3",
     bg: "rgba(0,191,179,0.08)",
   },
   delivered: {
     labelKey: "orders.status.delivered",
-    icon: CheckCircle,
+    icon: IconCircleCheck,
     color: "#10B981",
     bg: "#ECFDF5",
   },
   cancelled: {
     labelKey: "orders.status.cancelled",
-    icon: XCircle,
+    icon: IconCircleX,
     color: "#EF4444",
     bg: "#FEF2F2",
   },
   returned: {
     labelKey: "orders.status.returned",
-    icon: RotateCcw,
+    icon: IconRotate,
     color: "#8B5CF6",
     bg: "#F5F3FF",
   },
@@ -153,7 +139,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
                   className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                   style={{ background: i === 0 ? "#00BFB3" : "#9ca3af" }}
                 >
-                  <CheckCircle size={14} color="white" />
+                  <IconCircleCheck size={14} color="white" />
                 </div>
                 {i < events.length - 1 ? <div className="w-0.5 h-8 mt-1 bg-gray-200" /> : null}
               </div>
@@ -180,7 +166,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
                     style={{ background: done ? "#00BFB3" : "#e5e7eb" }}
                   >
                     {done ? (
-                      <CheckCircle size={14} color="white" />
+                      <IconCircleCheck size={14} color="white" />
                     ) : (
                       <div className="w-2 h-2 rounded-full bg-gray-400" />
                     )}
@@ -208,7 +194,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
           className="mt-2 p-3 rounded-xl flex items-center gap-2 text-sm"
           style={{ background: "rgba(0,191,179,0.08)" }}
         >
-          <MapPin size={15} style={{ color: "#00BFB3" }} />
+          <IconMapPin size={15} style={{ color: "#00BFB3" }} />
           <span className="text-gray-600">
             {t("orders.tracking.estimated")}{" "}
             <strong>
@@ -220,11 +206,11 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
 
       {canFetch && tracking.isError ? (
         <p className="text-[11px] text-amber-600 mt-4 flex items-center gap-1.5">
-          <AlertCircle size={12} /> {t("orders.tracking.errorBanner")}
+          <IconAlertCircle size={12} /> {t("orders.tracking.errorBanner")}
         </p>
       ) : !canFetch ? (
         <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1.5">
-          <AlertCircle size={12} /> {t("orders.tracking.noCodeBanner")}
+          <IconAlertCircle size={12} /> {t("orders.tracking.noCodeBanner")}
         </p>
       ) : null}
     </Modal>
@@ -324,7 +310,7 @@ function ReturnModal({
       />
 
       <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
-        <AlertCircle size={14} className="shrink-0 mt-0.5" />
+        <IconAlertCircle size={14} className="shrink-0 mt-0.5" />
         <p>{t("orders.return.footnote")}</p>
       </div>
     </Modal>
@@ -446,7 +432,7 @@ function OrderCard({
               className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2"
               style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
             >
-              <MapPin size={15} /> {t("orders.actions.track")}
+              <IconMapPin size={15} /> {t("orders.actions.track")}
             </button>
           ) : null}
           {order.status === "delivered" ? (
@@ -455,13 +441,13 @@ function OrderCard({
                 onClick={() => onReorder(order.items)}
                 className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 border-gray-200 text-gray-600 hover:bg-gray-50"
               >
-                <RefreshCw size={14} /> {t("orders.actions.reorder")}
+                <IconRefresh size={14} /> {t("orders.actions.reorder")}
               </button>
               <button
                 onClick={() => setShowReturn(true)}
                 className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 border-amber-200 text-amber-600 hover:bg-amber-50"
               >
-                <ArrowLeftRight size={14} /> {t("orders.actions.return")}
+                <IconArrowsLeftRight size={14} /> {t("orders.actions.return")}
               </button>
               <button
                 onClick={() => {
@@ -472,7 +458,7 @@ function OrderCard({
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 text-white"
                 style={{ background: "#FF6200" }}
               >
-                <Star size={14} /> {t("orders.actions.review")}
+                <IconStar size={14} /> {t("orders.actions.review")}
               </button>
             </>
           ) : null}
@@ -481,7 +467,7 @@ function OrderCard({
               onClick={() => onCancel(order.id)}
               className="flex items-center gap-2 py-2.5 px-4 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50"
             >
-              <XCircle size={14} /> {t("orders.actions.cancel")}
+              <IconCircleX size={14} /> {t("orders.actions.cancel")}
             </button>
           ) : null}
           <button
@@ -495,7 +481,7 @@ function OrderCard({
             }}
             className="py-2.5 px-4 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-1 hover:bg-gray-50"
           >
-            <MessageSquare size={14} /> {t("orders.actions.chat")}
+            <IconMessage size={14} /> {t("orders.actions.chat")}
           </button>
         </div>
       </motion.div>
@@ -572,14 +558,14 @@ export function OrdersPage() {
   if (!authenticated) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <Package size={64} className="mx-auto mb-6 text-gray-200" />
+        <IconPackage size={64} className="mx-auto mb-6 text-gray-200" />
         <h2 className="text-xl font-bold text-gray-600 mb-3">{t("orders.loginPromptTitle")}</h2>
         <button
           onClick={() => login("/orders")}
           className="px-8 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
           style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
         >
-          <LogIn size={16} /> {t("auth.login")}
+          <IconLogin size={16} /> {t("auth.login")}
         </button>
       </div>
     );
@@ -626,7 +612,7 @@ export function OrdersPage() {
           : null}
         {filtered.length === 0 ? (
           <div className="py-16 text-center bg-white rounded-2xl">
-            <Package size={48} className="mx-auto mb-4 text-gray-200" />
+            <IconPackage size={48} className="mx-auto mb-4 text-gray-200" />
             <p className="text-gray-500 font-medium">{t("orders.empty")}</p>
           </div>
         ) : null}

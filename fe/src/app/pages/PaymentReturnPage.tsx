@@ -1,4 +1,4 @@
-import { CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { IconCircleCheck, IconAlertCircle, IconClock } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 
@@ -122,7 +122,7 @@ export function PaymentReturnPage() {
             className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center animate-pulse"
             style={{ background: "rgba(0,191,179,0.12)" }}
           >
-            <Clock size={36} style={{ color: "#00BFB3" }} />
+            <IconClock size={36} style={{ color: "#00BFB3" }} />
           </div>
           <h1
             className="text-2xl font-bold text-gray-800 mb-3"
@@ -143,7 +143,7 @@ export function PaymentReturnPage() {
             className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center"
             style={{ background: "rgba(16,185,129,0.12)" }}
           >
-            <CheckCircle size={48} style={{ color: "#10B981" }} />
+            <IconCircleCheck size={48} style={{ color: "#10B981" }} />
           </div>
           <h1
             className="text-3xl font-black text-gray-800 mb-3"
@@ -186,7 +186,7 @@ export function PaymentReturnPage() {
             className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
             style={{ background: "rgba(239,68,68,0.12)" }}
           >
-            <AlertCircle size={40} style={{ color: "#EF4444" }} />
+            <IconAlertCircle size={40} style={{ color: "#EF4444" }} />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Thanh toán không thành công</h1>
           <p className="text-sm text-gray-500 mb-6">
@@ -216,7 +216,7 @@ export function PaymentReturnPage() {
             className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
             style={{ background: "rgba(245,158,11,0.12)" }}
           >
-            <AlertCircle size={40} style={{ color: "#F59E0B" }} />
+            <IconAlertCircle size={40} style={{ color: "#F59E0B" }} />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Không xác định được trạng thái</h1>
           <p className="text-sm text-gray-500 mb-6">

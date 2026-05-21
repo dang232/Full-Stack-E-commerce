@@ -1,11 +1,21 @@
-import { CheckCircle, CreditCard, MapPin, Truck } from "lucide-react";
+import {
+  IconBrandPaypal,
+  IconBuildingBank,
+  IconCash,
+  IconCircleCheck,
+  IconCreditCard,
+  IconMapPin,
+  IconQrcode,
+  IconTruck,
+  IconWallet,
+} from "@tabler/icons-react";
 
 export type Step = "address" | "shipping" | "payment" | "review" | "success";
 
 export interface CheckoutStepConfig {
   id: Step;
   labelKey: string;
-  icon: typeof MapPin;
+  icon: typeof IconMapPin;
 }
 
 export interface ShippingOption {
@@ -19,15 +29,15 @@ export interface ShippingOption {
 export interface PaymentOption {
   id: "VNPAY" | "MOMO" | "COD" | "BANK" | "STRIPE" | "PAYPAL" | "VIETQR";
   name: string;
-  icon: string;
+  Icon: typeof IconCreditCard;
   desc: string;
 }
 
 export const STEPS: CheckoutStepConfig[] = [
-  { id: "address", labelKey: "checkout.steps.address", icon: MapPin },
-  { id: "shipping", labelKey: "checkout.steps.shipping", icon: Truck },
-  { id: "payment", labelKey: "checkout.steps.payment", icon: CreditCard },
-  { id: "review", labelKey: "checkout.steps.review", icon: CheckCircle },
+  { id: "address", labelKey: "checkout.steps.address", icon: IconMapPin },
+  { id: "shipping", labelKey: "checkout.steps.shipping", icon: IconTruck },
+  { id: "payment", labelKey: "checkout.steps.payment", icon: IconCreditCard },
+  { id: "review", labelKey: "checkout.steps.review", icon: IconCircleCheck },
 ];
 
 export const FALLBACK_SHIPPING: ShippingOption[] = [
@@ -48,11 +58,16 @@ export const FALLBACK_SHIPPING: ShippingOption[] = [
 ];
 
 export const FALLBACK_PAYMENT: PaymentOption[] = [
-  { id: "VNPAY", name: "VNPay", icon: "💳", desc: "Thanh toán qua ví VNPay, QR Code" },
-  { id: "MOMO", name: "MoMo", icon: "💜", desc: "Thanh toán qua ví MoMo" },
-  { id: "VIETQR", name: "VietQR", icon: "🏦", desc: "Quét QR chuyển khoản ngân hàng" },
-  { id: "STRIPE", name: "Thẻ quốc tế (Stripe)", icon: "💳", desc: "Visa, Mastercard, Amex via Stripe" },
-  { id: "PAYPAL", name: "PayPal", icon: "🅿️", desc: "Thanh toán qua tài khoản PayPal" },
-  { id: "BANK", name: "Thẻ ngân hàng", icon: "🏦", desc: "Visa, Mastercard, JCB" },
-  { id: "COD", name: "Thanh toán khi nhận hàng", icon: "💵", desc: "Trả tiền mặt khi nhận hàng" },
+  { id: "VNPAY", name: "VNPay", Icon: IconWallet, desc: "Thanh toán qua ví VNPay, QR Code" },
+  { id: "MOMO", name: "MoMo", Icon: IconWallet, desc: "Thanh toán qua ví MoMo" },
+  { id: "VIETQR", name: "VietQR", Icon: IconQrcode, desc: "Quét QR chuyển khoản ngân hàng" },
+  {
+    id: "STRIPE",
+    name: "Thẻ quốc tế (Stripe)",
+    Icon: IconCreditCard,
+    desc: "Visa, Mastercard, Amex via Stripe",
+  },
+  { id: "PAYPAL", name: "PayPal", Icon: IconBrandPaypal, desc: "Thanh toán qua tài khoản PayPal" },
+  { id: "BANK", name: "Thẻ ngân hàng", Icon: IconBuildingBank, desc: "Visa, Mastercard, JCB" },
+  { id: "COD", name: "Thanh toán khi nhận hàng", Icon: IconCash, desc: "Trả tiền mặt khi nhận hàng" },
 ];

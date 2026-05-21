@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -106,7 +106,7 @@ export function FormDialog({
             disabled={isSubmitting}
             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center disabled:opacity-50"
           >
-            <X size={16} />
+            <IconX size={16} />
           </button>
         </div>
 

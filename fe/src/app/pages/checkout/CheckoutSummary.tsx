@@ -1,4 +1,4 @@
-import { Check, CheckCircle, ChevronRight, Tag } from "lucide-react";
+import { IconCheck, IconCircleCheck, IconChevronRight, IconTag } from "@tabler/icons-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 
@@ -95,7 +95,7 @@ export function CheckoutSummary({
                 style={{ color: "#00BFB3" }}
                 type="button"
               >
-                <Tag size={12} />
+                <IconTag size={12} />
                 {showCouponPicker
                   ? t("checkout.summary.togglePickerHide")
                   : t("checkout.summary.togglePicker")}
@@ -233,7 +233,7 @@ export function CheckoutSummary({
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium"
                   style={{ background: "rgba(0,191,179,0.08)", color: "#00BFB3" }}
                 >
-                  <Check size={14} />
+                  <IconCheck size={14} />
                   <span>{t("checkout.summary.couponApplied", { code: appliedCoupon })}</span>
                   {discount > 0 ? <span className="ml-1">-{formatPrice(discount)}</span> : null}
                 </div>
@@ -284,11 +284,11 @@ export function CheckoutSummary({
             </span>
           ) : step === "review" ? (
             <>
-              <CheckCircle size={16} /> {t("checkout.summary.placeOrder")}
+              <IconCircleCheck size={16} /> {t("checkout.summary.placeOrder")}
             </>
           ) : (
             <>
-              {t("checkout.summary.next")} <ChevronRight size={16} />
+              {t("checkout.summary.next")} <IconChevronRight size={16} />
             </>
           )}
         </button>

@@ -1,11 +1,11 @@
 import { createElement, lazy, Suspense, type ReactNode } from "react";
 import { createBrowserRouter } from "react-router";
 
+import { ErrorBoundary } from "./components/error-boundary";
 import { myOrdersOptions } from "./hooks/use-orders";
 import { productDetailOptions } from "./hooks/use-products";
 import { profileOptions } from "./hooks/use-profile";
 import { sellerDetailOptions, sellerProductsOptions } from "./hooks/use-sellers";
-import { ErrorBoundary } from "./components/error-boundary";
 import { RequireAuth, RequireRole } from "./lib/auth/role-guard";
 import { queryClient } from "./lib/query-client";
 import { HomePage } from "./pages/HomePage";

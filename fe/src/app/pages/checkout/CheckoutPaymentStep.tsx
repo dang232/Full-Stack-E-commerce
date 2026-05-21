@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import { IconShield } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
 import type { PaymentOption } from "./types";
@@ -31,7 +31,15 @@ export function CheckoutPaymentStep({
             }}
           >
             <div className="flex items-center gap-4">
-              <span className="text-2xl">{method.icon}</span>
+              <span
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{
+                  background: selectedPaymentId === method.id ? "rgba(0,191,179,0.12)" : "#f3f4f6",
+                  color: selectedPaymentId === method.id ? "#00BFB3" : "#6b7280",
+                }}
+              >
+                <method.Icon size={22} stroke={2} />
+              </span>
               <div className="flex-1">
                 <p className="font-semibold text-sm text-gray-800">{method.name}</p>
                 <p className="text-xs text-gray-500">{method.desc}</p>
@@ -51,7 +59,7 @@ export function CheckoutPaymentStep({
         ))}
       </div>
       <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 px-1">
-        <Shield size={14} style={{ color: "#00BFB3" }} />
+        <IconShield size={14} style={{ color: "#00BFB3" }} />
         <span>{t("checkout.payment.sslNotice")}</span>
       </div>
     </div>
