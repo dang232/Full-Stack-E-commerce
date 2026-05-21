@@ -10,16 +10,11 @@ import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -41,25 +36,17 @@ import java.util.Optional;
 public class ProductCatalogAdapter implements ProductCatalogPort {
     private static final String PRODUCT_BREAKER = "productServiceCircuitBreaker";
 
-    private final RestTemplate restTemplate;
+    private final ProductHttpClient productHttpClient;
     private final ObjectMapper objectMapper;
     private final CircuitBreaker circuitBreaker;
-    private final String productUrl;
 
     public ProductCatalogAdapter(
+            ProductHttpClient productHttpClient,
             ObjectMapper objectMapper,
-            CircuitBreakerRegistry circuitBreakerRegistry,
-            @Value("${vnshop.product-service.base-url:http://product-service:8082}") String baseUrl,
-            @Value("${vnshop.product-service.connect-timeout-ms:1000}") long connectTimeoutMs,
-            @Value("${vnshop.product-service.read-timeout-ms:2000}") long readTimeoutMs
-    ) {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
-        factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
-        this.restTemplate = new RestTemplate(factory);
+            CircuitBreakerRegistry circuitBreakerRegistry) {
+        this.productHttpClient = productHttpClient;
         this.objectMapper = objectMapper;
         this.circuitBreaker = circuitBreakerRegistry.circuitBreaker(PRODUCT_BREAKER);
-        this.productUrl = baseUrl + "/products";
     }
 
     @Override
@@ -73,10 +60,8 @@ public class ProductCatalogAdapter implements ProductCatalogPort {
     }
 
     private Optional<CatalogProduct> fetch(String productId) {
-        String url = productUrl + "/" + productId;
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
-            String json = response.getBody();
+            String json = productHttpClient.getProduct(productId);
             if (json == null || json.isBlank()) {
                 return Optional.empty();
             }
@@ -85,7 +70,7 @@ public class ProductCatalogAdapter implements ProductCatalogPort {
                 return Optional.empty();
             }
             return Optional.of(toDomain(wrapper.data));
-        } catch (HttpStatusCodeException e) {
+        } catch (RestClientResponseException e) {
             if (e.getStatusCode().value() == 404) {
                 return Optional.empty();
             }
