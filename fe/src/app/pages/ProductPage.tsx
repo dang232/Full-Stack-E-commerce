@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
   Star,
   Truck,
@@ -11,7 +11,6 @@ import {
   Store,
   MessageSquare,
   ThumbsUp,
-  Package,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
@@ -23,7 +22,7 @@ import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
 import { useAuth } from "../hooks/use-auth";
 import { useProductReviews } from "../hooks/use-product-reviews";
-import { useProduct } from "../hooks/use-products";
+import { productDetailOptions } from "../hooks/use-products";
 import { useFrequentlyBoughtTogether, useYouMayAlsoLike } from "../hooks/use-recommendations";
 import { useSellerDetail } from "../hooks/use-sellers";
 import { ApiError } from "../lib/api";
@@ -138,8 +137,7 @@ export function ProductPage() {
   const { addToCart, toggleWishlist, isWishlisted } = useVNShop();
   const { t } = useTranslation();
 
-  const productQuery = useProduct(id ?? "");
-  const product = productQuery.data;
+  const { data: product } = useSuspenseQuery(productDetailOptions(id ?? ""));
   // Recommendations come from the recommendations-service (BE) — see
   // services/recommendations-service. The previous incarnation filtered the
   // full catalog by category client-side (`useProducts()` -> `.filter(...)`)
@@ -192,26 +190,11 @@ export function ProductPage() {
   const [questionDraft, setQuestionDraft] = useState("");
 
   const [imageIdx, setImageIdx] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] ?? "");
-  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] ?? "");
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] ?? "");
+  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] ?? "");
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"desc" | "reviews" | "qa">("desc");
-  const loved = isWishlisted(product?.id ?? "");
-
-  if (!product)
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-24 text-center">
-        <Package size={64} className="mx-auto mb-4 text-gray-300" />
-        <h2 className="text-xl font-bold text-gray-600">{t("product.notFoundTitle")}</h2>
-        <button
-          onClick={() => navigate(-1)}
-          className="mt-4 px-6 py-2.5 rounded-xl text-white font-medium"
-          style={{ background: "#00BFB3" }}
-        >
-          {t("product.back")}
-        </button>
-      </div>
-    );
+  const loved = isWishlisted(product.id);
 
   const handleAddToCart = () => addToCart(product, quantity);
   const handleBuyNow = () => {
