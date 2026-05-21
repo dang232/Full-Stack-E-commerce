@@ -8,43 +8,27 @@ import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientResponseException;
 
 @Component
 public class CartServiceAdapter implements CartRepositoryPort {
 
-    private final RestTemplate restTemplate;
+    private final CartHttpClient cartHttpClient;
     private final ObjectMapper objectMapper;
     private final CircuitBreaker circuitBreaker;
-    private final String cartUrl;
 
     public CartServiceAdapter(
+            CartHttpClient cartHttpClient,
             ObjectMapper objectMapper,
-            @Qualifier("cartServiceCircuitBreaker") CircuitBreaker circuitBreaker,
-            @Value("${vnshop.cart-service.base-url:http://cart-service:8084}") String baseUrl,
-            @Value("${vnshop.cart-service.connect-timeout-ms:1000}") long connectTimeoutMs,
-            @Value("${vnshop.cart-service.read-timeout-ms:2000}") long readTimeoutMs
-    ) {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
-        factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
-        this.restTemplate = new RestTemplate(factory);
+            @Qualifier("cartServiceCircuitBreaker") CircuitBreaker circuitBreaker) {
+        this.cartHttpClient = cartHttpClient;
         this.objectMapper = objectMapper;
         this.circuitBreaker = circuitBreaker;
-        this.cartUrl = baseUrl + "/cart";
     }
 
     @Override
@@ -58,18 +42,9 @@ public class CartServiceAdapter implements CartRepositoryPort {
     }
 
     private CartSnapshot fetchCart(String cartId) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("x-user-id", cartId);
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
-                    cartUrl,
-                    HttpMethod.GET,
-                    entity,
-                    String.class);
+            String json = cartHttpClient.getCart(cartId);
 
-            String json = response.getBody();
             if (json == null) {
                 return new CartSnapshot(cartId, List.of());
             }
@@ -90,7 +65,7 @@ public class CartServiceAdapter implements CartRepositoryPort {
 
             return new CartSnapshot(cartId, items);
 
-        } catch (HttpStatusCodeException e) {
+        } catch (RestClientResponseException e) {
             if (e.getStatusCode().value() == 404) {
                 // 404 is "no cart yet" — a normal empty result, not a CB-tripping failure.
                 return new CartSnapshot(cartId, List.of());
