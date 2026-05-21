@@ -25,11 +25,11 @@ import { useAuth } from "../hooks/use-auth";
 import { useProductReviews } from "../hooks/use-product-reviews";
 import { useProduct } from "../hooks/use-products";
 import { useFrequentlyBoughtTogether, useYouMayAlsoLike } from "../hooks/use-recommendations";
+import { useSellerDetail } from "../hooks/use-sellers";
 import { ApiError } from "../lib/api";
 import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions";
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
-import { getSeller } from "../lib/api/endpoints/sellers";
 import { formatPrice } from "../lib/format";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {
@@ -61,12 +61,7 @@ function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number
 function SellerCard({ sellerId }: { sellerId?: string }) {
   const { t } = useTranslation();
 
-  const sellerQuery = useQuery({
-    queryKey: ["sellers", "detail", sellerId],
-    queryFn: () => getSeller(sellerId!),
-    enabled: !!sellerId,
-    retry: false,
-  });
+  const sellerQuery = useSellerDetail(sellerId);
 
   if (!sellerId) return null;
 

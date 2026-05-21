@@ -1,12 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
 import { Star, Package, Store, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { ApiError } from "../lib/api";
-import { productList } from "../lib/api/endpoints/products";
-import { getSeller } from "../lib/api/endpoints/sellers";
+import { useSellerDetail, useSellerProducts } from "../hooks/use-sellers";
 import { formatPrice } from "../lib/format";
 import type { ProductSummary } from "../types/api";
 
@@ -91,19 +89,8 @@ export function SellerDetailPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const sellerQuery = useQuery({
-    queryKey: ["sellers", "detail", id],
-    queryFn: () => getSeller(id!),
-    enabled: !!id,
-    retry: false,
-  });
-
-  const productsQuery = useQuery({
-    queryKey: ["catalog", "products", { sellerId: id }],
-    queryFn: () => productList({ sellerId: id }),
-    enabled: !!id,
-    retry: false,
-  });
+  const sellerQuery = useSellerDetail(id);
+  const productsQuery = useSellerProducts(id);
 
   if (sellerQuery.isLoading) return <SellerDetailSkeleton />;
 

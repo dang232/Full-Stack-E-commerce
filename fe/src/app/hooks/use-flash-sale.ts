@@ -1,4 +1,4 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { queryOptions, useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import {
@@ -8,7 +8,13 @@ import {
 import { productById } from "../lib/api/endpoints/products";
 import type { ProductDetail } from "../types/api";
 
-const ACTIVE_KEY = ["flash-sale", "active"] as const;
+export const flashSaleCampaignsOptions = () =>
+  queryOptions<ActiveFlashSaleCampaign[]>({
+    queryKey: ["flash-sale", "active"],
+    queryFn: () => listActiveFlashSaleCampaigns(),
+    staleTime: 60_000,
+    retry: false,
+  });
 
 /**
  * Active flash-sale campaigns from inventory-service. Public — no auth gate.
@@ -16,12 +22,7 @@ const ACTIVE_KEY = ["flash-sale", "active"] as const;
  * fall-back when individual cards need a live `stockRemaining` value.
  */
 export function useFlashSaleCampaigns() {
-  const query = useQuery<ActiveFlashSaleCampaign[]>({
-    queryKey: ACTIVE_KEY,
-    queryFn: () => listActiveFlashSaleCampaigns(),
-    staleTime: 60_000,
-    retry: false,
-  });
+  const query = useQuery(flashSaleCampaignsOptions());
 
   return {
     campaigns: query.data ?? [],
@@ -46,6 +47,9 @@ export interface FlashSaleItem {
  * Items whose product fetch is loading or errored are still surfaced — the
  * caller decides whether to show a placeholder. The campaign's `salePrice`
  * and `originalPrice` remain authoritative; the product's `price` is ignored.
+ *
+ * Note: product queries use the same key as productDetailOptions so the cache
+ * is shared with ProductPage — a product already loaded there won't re-fetch.
  */
 export function useFlashSaleWithProducts() {
   const { campaigns, isLoading: campaignsLoading, error } = useFlashSaleCampaigns();

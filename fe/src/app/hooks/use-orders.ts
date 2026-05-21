@@ -1,20 +1,26 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { cancelOrder, myOrders, orderById } from "../lib/api/endpoints/orders";
 
-export function useMyOrders(params: { page?: number; size?: number; status?: string } = {}) {
-  return useQuery({
-    queryKey: ["orders", params],
+export const myOrdersOptions = (params: { page?: number; size?: number; status?: string } = {}) =>
+  queryOptions({
+    queryKey: ["orders", params] as const,
     queryFn: () => myOrders(params),
   });
-}
 
-export function useOrder(id: string | undefined) {
-  return useQuery({
-    queryKey: ["orders", "detail", id],
+export const orderDetailOptions = (id: string | undefined) =>
+  queryOptions({
+    queryKey: ["orders", "detail", id] as const,
     queryFn: () => orderById(id!),
     enabled: !!id,
   });
+
+export function useMyOrders(params: { page?: number; size?: number; status?: string } = {}) {
+  return useQuery(myOrdersOptions(params));
+}
+
+export function useOrder(id: string | undefined) {
+  return useQuery(orderDetailOptions(id));
 }
 
 export function useCancelOrder() {
@@ -22,8 +28,9 @@ export function useCancelOrder() {
   return useMutation({
     mutationFn: (id: string) => cancelOrder(id),
     onSuccess: (_, id) => {
+      // Prefix-invalidate all order list variants, then the specific detail.
       void qc.invalidateQueries({ queryKey: ["orders"] });
-      void qc.invalidateQueries({ queryKey: ["orders", "detail", id] });
+      void qc.invalidateQueries({ queryKey: orderDetailOptions(id).queryKey });
     },
   });
 }

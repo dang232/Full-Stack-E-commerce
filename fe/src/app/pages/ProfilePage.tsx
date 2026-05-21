@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   User,
   MapPin,
@@ -23,9 +23,9 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "../hooks/use-auth";
+import { useProfile } from "../hooks/use-profile";
 import { ApiError } from "../lib/api";
 import {
-  myProfile,
   updateProfile,
   addAddress,
   setDefaultAddress,
@@ -62,11 +62,7 @@ export function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const { t } = useTranslation();
 
-  const profileQuery = useQuery({
-    queryKey: ["users", "me"],
-    queryFn: myProfile,
-    enabled: ready && authenticated,
-  });
+  const profileQuery = useProfile({ enabled: ready && authenticated });
 
   const profile = profileQuery.data;
   const addresses: Address[] = profile?.addresses ?? [];
