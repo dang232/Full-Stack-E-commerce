@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
   User,
   MapPin,
@@ -23,7 +23,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "../hooks/use-auth";
-import { useProfile } from "../hooks/use-profile";
+import { profileOptions } from "../hooks/use-profile";
 import { ApiError } from "../lib/api";
 import {
   updateProfile,
@@ -62,7 +62,7 @@ export function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const { t } = useTranslation();
 
-  const profileQuery = useProfile({ enabled: ready && authenticated });
+  const profileQuery = useSuspenseQuery(profileOptions());
 
   const profile = profileQuery.data;
   const addresses: Address[] = profile?.addresses ?? [];
@@ -331,17 +331,6 @@ export function ProfilePage() {
                     </button>
                   )}
                 </div>
-
-                {profileQuery.isLoading ? (
-                  <p className="text-sm text-gray-400">{t("profile.info.loading")}</p>
-                ) : null}
-
-                {profileQuery.error && !profileQuery.isLoading ? (
-                  <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 flex items-start gap-2">
-                    <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                    <p>{t("profile.info.fallbackBanner")}</p>
-                  </div>
-                ) : null}
 
                 <div className="space-y-5 mt-4">
                   {[

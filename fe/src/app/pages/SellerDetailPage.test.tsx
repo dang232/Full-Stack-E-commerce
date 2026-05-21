@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
-import { type ReactNode } from "react";
+import { type ReactNode, Suspense } from "react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
+import { ErrorBoundary } from "../components/error-boundary";
 import { ApiError } from "../lib/api";
 
 const getSellerMock = vi.fn();
@@ -41,7 +42,14 @@ function makeWrapper(id = "s1") {
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[`/sellers/${id}`]}>
           <Routes>
-            <Route path="/sellers/:id" element={children} />
+            <Route
+              path="/sellers/:id"
+              element={
+                <ErrorBoundary>
+                  <Suspense fallback={<div>Loading…</div>}>{children}</Suspense>
+                </ErrorBoundary>
+              }
+            />
             <Route path="/" element={<div>Home</div>} />
           </Routes>
         </MemoryRouter>
@@ -79,8 +87,10 @@ describe("SellerDetailPage", () => {
     const { Wrapper } = makeWrapper("ghost");
     render(<SellerDetailPage />, { wrapper: Wrapper });
 
+    // useSuspenseQuery throws on error — the ErrorBoundary catches it and
+    // renders the ApiError message.
     await waitFor(() =>
-      expect(screen.getByText("sellerDetail.notFound")).toBeInTheDocument(),
+      expect(screen.getByText("not found")).toBeInTheDocument(),
     );
   });
 

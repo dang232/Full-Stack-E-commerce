@@ -1,10 +1,10 @@
-import { Star, Package, Store, ChevronRight } from "lucide-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Star, Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
-import { ApiError } from "../lib/api";
-import { useSellerDetail, useSellerProducts } from "../hooks/use-sellers";
+import { sellerDetailOptions, sellerProductsOptions } from "../hooks/use-sellers";
 import { formatPrice } from "../lib/format";
 import type { ProductSummary } from "../types/api";
 
@@ -86,53 +86,10 @@ function SellerProductCard({ product }: { product: ProductSummary }) {
 
 export function SellerDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const sellerQuery = useSellerDetail(id);
-  const productsQuery = useSellerProducts(id);
-
-  if (sellerQuery.isLoading) return <SellerDetailSkeleton />;
-
-  if (
-    sellerQuery.isError &&
-    sellerQuery.error instanceof ApiError &&
-    sellerQuery.error.status === 404
-  ) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-24 text-center">
-        <Store size={64} className="mx-auto mb-4 text-gray-300" />
-        <h2 className="text-xl font-bold text-gray-600">{t("sellerDetail.notFound")}</h2>
-        <button
-          onClick={() => void navigate("/")}
-          className="mt-4 px-6 py-2.5 rounded-xl text-white font-medium"
-          style={{ background: "#00BFB3" }}
-        >
-          <ChevronRight size={16} className="inline mr-1" />
-          {t("product.breadcrumbHome")}
-        </button>
-      </div>
-    );
-  }
-
-  if (sellerQuery.isError) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-24 text-center">
-        <Store size={64} className="mx-auto mb-4 text-gray-300" />
-        <h2 className="text-xl font-bold text-gray-600">{t("sellerDetail.error")}</h2>
-        <button
-          onClick={() => void navigate("/")}
-          className="mt-4 px-6 py-2.5 rounded-xl text-white font-medium"
-          style={{ background: "#00BFB3" }}
-        >
-          {t("product.breadcrumbHome")}
-        </button>
-      </div>
-    );
-  }
-
-  const seller = sellerQuery.data;
-  if (!seller) return null;
+  const { data: seller } = useSuspenseQuery(sellerDetailOptions(id));
+  const { data: productsData } = useSuspenseQuery(sellerProductsOptions(id));
 
   const initial = seller.shopName.charAt(0).toUpperCase();
 
@@ -147,7 +104,7 @@ export function SellerDetailPage() {
     }
   })();
 
-  const products = productsQuery.data?.content ?? [];
+  const products = productsData?.content ?? [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -234,14 +191,7 @@ export function SellerDetailPage() {
           {t("sellerDetail.products")}
         </h2>
 
-        {productsQuery.isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              // eslint-disable-next-line react/no-array-index-key -- skeleton placeholder
-              <div key={i} className="h-64 rounded-2xl bg-gray-100 animate-pulse" />
-            ))}
-          </div>
-        ) : products.length === 0 ? (
+        {products.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
             <Package size={48} className="mx-auto mb-3 text-gray-200" />
             <p className="text-sm">{t("sellerDetail.noProducts")}</p>

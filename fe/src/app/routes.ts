@@ -5,6 +5,7 @@ import { myOrdersOptions } from "./hooks/use-orders";
 import { productDetailOptions } from "./hooks/use-products";
 import { profileOptions } from "./hooks/use-profile";
 import { sellerDetailOptions, sellerProductsOptions } from "./hooks/use-sellers";
+import { ErrorBoundary } from "./components/error-boundary";
 import { RequireAuth, RequireRole } from "./lib/auth/role-guard";
 import { queryClient } from "./lib/query-client";
 import { HomePage } from "./pages/HomePage";
@@ -61,7 +62,15 @@ const Fallback = () =>
 /* eslint-disable react/no-children-prop -- createElement passes children via props by design */
 const lazyRoute = (el: ReactNode) =>
   createElement(Suspense, { fallback: createElement(Fallback) }, el);
+const suspenseWithBoundary = (el: ReactNode) =>
+  createElement(
+    ErrorBoundary,
+    null,
+    createElement(Suspense, { fallback: createElement(Fallback) }, el),
+  );
 const guarded = (el: ReactNode) => createElement(RequireAuth, { children: lazyRoute(el) });
+const guardedWithBoundary = (el: ReactNode) =>
+  createElement(RequireAuth, { children: suspenseWithBoundary(el) });
 const sellerOnly = (el: ReactNode) =>
   createElement(RequireRole, { role: "SELLER", children: lazyRoute(el) });
 const adminOnly = (el: ReactNode) =>
@@ -75,7 +84,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: HomePage },
       { path: "search", element: lazyRoute(createElement(SearchPage)) },
-      { path: "product/:id", element: lazyRoute(createElement(ProductPage)), loader: ({ params }) => {
+      { path: "product/:id", element: suspenseWithBoundary(createElement(ProductPage)), loader: ({ params }) => {
         const id = params.id ?? "";
         // Prefetch in parallel — loader doesn't block render, just primes the cache.
         void queryClient.prefetchQuery(productDetailOptions(id));
@@ -83,11 +92,11 @@ export const router = createBrowserRouter([
       }},
       { path: "cart", element: lazyRoute(createElement(CartPage)) },
       { path: "checkout", element: guarded(createElement(CheckoutPage)) },
-      { path: "orders", element: guarded(createElement(OrdersPage)), loader: () => {
+      { path: "orders", element: guardedWithBoundary(createElement(OrdersPage)), loader: () => {
         void queryClient.prefetchQuery(myOrdersOptions());
         return null;
       }},
-      { path: "profile", element: guarded(createElement(ProfilePage)), loader: () => {
+      { path: "profile", element: guardedWithBoundary(createElement(ProfilePage)), loader: () => {
         void queryClient.prefetchQuery(profileOptions());
         return null;
       }},
@@ -100,7 +109,7 @@ export const router = createBrowserRouter([
       { path: "design-system", element: lazyRoute(createElement(DesignSystemPage)) },
       { path: "payment/return/:provider", element: lazyRoute(createElement(PaymentReturnPage)) },
       { path: "messages", element: guarded(createElement(MessagesPage)) },
-      { path: "sellers/:id", element: lazyRoute(createElement(SellerDetailPage)), loader: ({ params }) => {
+      { path: "sellers/:id", element: suspenseWithBoundary(createElement(SellerDetailPage)), loader: ({ params }) => {
         const id = params.id ?? "";
         void queryClient.prefetchQuery(sellerDetailOptions(id));
         void queryClient.prefetchQuery(sellerProductsOptions(id));

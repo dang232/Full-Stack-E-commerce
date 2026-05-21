@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
   Package,
   Truck,
@@ -24,7 +24,7 @@ import { ImageWithFallback } from "../components/image-with-fallback";
 import { Modal } from "../components/ui/modal";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
-import { useCancelOrder, useMyOrders } from "../hooks/use-orders";
+import { useCancelOrder, myOrdersOptions } from "../hooks/use-orders";
 import { ApiError } from "../lib/api";
 import { requestReturn } from "../lib/api/endpoints/orders";
 import { getTracking } from "../lib/api/endpoints/shipping";
@@ -507,7 +507,7 @@ export function OrdersPage() {
   const navigate = useNavigate();
   const { ready, authenticated, login } = useAuth();
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
-  const ordersQuery = useMyOrders({ size: 50 });
+  const ordersQuery = useSuspenseQuery(myOrdersOptions({ size: 50 }));
   const cancelOrder = useCancelOrder();
   const { addItemAsync } = useCart();
   const { t } = useTranslation();
@@ -612,27 +612,7 @@ export function OrdersPage() {
       </div>
 
       <div className="space-y-4">
-        {ordersQuery.isLoading ? (
-          <div className="py-16 text-center text-sm text-gray-400">{t("orders.loading")}</div>
-        ) : null}
-        {ordersQuery.error && !ordersQuery.isLoading ? (
-          <div className="py-16 text-center bg-white rounded-2xl">
-            <AlertCircle size={48} className="mx-auto mb-4 text-red-300" />
-            <p className="text-gray-600 font-medium mb-2">
-              {ordersQuery.error instanceof ApiError
-                ? ordersQuery.error.message
-                : t("orders.loadError")}
-            </p>
-            <button
-              onClick={() => navigate("/")}
-              className="text-sm font-medium"
-              style={{ color: "#00BFB3" }}
-            >
-              {t("orders.backToHome")}
-            </button>
-          </div>
-        ) : null}
-        {!ordersQuery.isLoading && !ordersQuery.error && filtered.length > 0
+        {filtered.length > 0
           ? filtered.map((entry) => (
               <OrderCard
                 key={entry.ui.id}
@@ -644,7 +624,7 @@ export function OrdersPage() {
               />
             ))
           : null}
-        {!ordersQuery.isLoading && !ordersQuery.error && filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="py-16 text-center bg-white rounded-2xl">
             <Package size={48} className="mx-auto mb-4 text-gray-200" />
             <p className="text-gray-500 font-medium">{t("orders.empty")}</p>
