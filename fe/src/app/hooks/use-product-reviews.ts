@@ -5,7 +5,7 @@ import type { Review } from "../types/api";
 
 export const productReviewsOptions = (productId: string) =>
   queryOptions<Review[]>({
-    queryKey: ["catalog", "reviews", "product", productId],
+    queryKey: ["catalog", "reviews", "product", productId] as const,
     queryFn: () => reviewsByProduct(productId),
     enabled: !!productId,
   });

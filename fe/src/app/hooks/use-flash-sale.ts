@@ -10,7 +10,7 @@ import type { ProductDetail } from "../types/api";
 
 export const flashSaleCampaignsOptions = () =>
   queryOptions<ActiveFlashSaleCampaign[]>({
-    queryKey: ["flash-sale", "active"],
+    queryKey: ["flash-sale", "active"] as const,
     queryFn: () => listActiveFlashSaleCampaigns(),
     staleTime: 60_000,
     retry: false,

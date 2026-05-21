@@ -5,7 +5,7 @@ import type { Category } from "../types/api";
 
 export const categoriesOptions = () =>
   queryOptions<Category[]>({
-    queryKey: ["catalog", "categories"],
+    queryKey: ["catalog", "categories"] as const,
     queryFn: () => categoryTree(),
   });
 

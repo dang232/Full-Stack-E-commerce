@@ -6,7 +6,7 @@ import type { Product } from "../types/ui";
 
 export const productListOptions = () =>
   queryOptions<Product[]>({
-    queryKey: ["catalog", "products", "list"],
+    queryKey: ["catalog", "products", "list"] as const,
     queryFn: async () => {
       const page = await productList({ size: 50 });
       return page.content.map(fromServer);
@@ -15,7 +15,7 @@ export const productListOptions = () =>
 
 export const productDetailOptions = (id: string) =>
   queryOptions<Product>({
-    queryKey: ["catalog", "products", "detail", id],
+    queryKey: ["catalog", "products", "detail", id] as const,
     queryFn: async () => fromServer(await productById(id)),
     enabled: !!id,
   });

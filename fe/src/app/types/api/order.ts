@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { cartItemSchema } from "./cart";
+import { PAYMENT_METHOD_VALUES, PAYMENT_STATUS_VALUES } from "./payment";
 import { addressSchema } from "./shared";
 
 /** Wire values emitted by order-service FulfillmentStatus.name() */
@@ -21,19 +22,6 @@ export const RETURN_STATUS_VALUES = [
   "COMPLETED",
 ] as const;
 
-/** Wire values emitted by order-service PaymentStatus.name() */
-export const ORDER_PAYMENT_STATUS_VALUES = ["PENDING", "COMPLETED", "FAILED"] as const;
-
-/** Wire values emitted by payment-service PaymentMethod.name() */
-export const ORDER_PAYMENT_METHOD_VALUES = [
-  "COD",
-  "VNPAY",
-  "MOMO",
-  "VIETQR",
-  "STRIPE",
-  "PAYPAL",
-] as const;
-
 export const subOrderSchema = z
   .object({
     id: z.string(),
@@ -51,8 +39,8 @@ export const orderSchema = z
   .object({
     id: z.string(),
     status: z.string(),
-    paymentStatus: z.enum(ORDER_PAYMENT_STATUS_VALUES).optional(),
-    paymentMethod: z.enum(ORDER_PAYMENT_METHOD_VALUES).optional(),
+    paymentStatus: z.enum(PAYMENT_STATUS_VALUES).optional(),
+    paymentMethod: z.enum(PAYMENT_METHOD_VALUES).optional(),
     subtotal: z.number().optional(),
     shippingFee: z.number().optional(),
     discount: z.number().optional(),

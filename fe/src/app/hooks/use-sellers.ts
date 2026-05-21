@@ -6,7 +6,7 @@ import type { PublicSeller, ProductSummary, Page } from "../types/api";
 
 export const sellerDetailOptions = (id: string | undefined) =>
   queryOptions<PublicSeller>({
-    queryKey: ["sellers", "detail", id],
+    queryKey: ["sellers", "detail", id] as const,
     queryFn: () => getSeller(id!),
     enabled: !!id,
     retry: false,
@@ -14,7 +14,7 @@ export const sellerDetailOptions = (id: string | undefined) =>
 
 export const sellerProductsOptions = (sellerId: string | undefined) =>
   queryOptions<Page<ProductSummary>>({
-    queryKey: ["catalog", "products", { sellerId }],
+    queryKey: ["catalog", "products", { sellerId }] as const,
     queryFn: () => productList({ sellerId }),
     enabled: !!sellerId,
     retry: false,

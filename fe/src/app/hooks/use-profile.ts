@@ -5,7 +5,7 @@ import type { UserProfile } from "../types/api";
 
 export const profileOptions = () =>
   queryOptions<UserProfile>({
-    queryKey: ["users", "me"],
+    queryKey: ["users", "me"] as const,
     queryFn: myProfile,
   });
 

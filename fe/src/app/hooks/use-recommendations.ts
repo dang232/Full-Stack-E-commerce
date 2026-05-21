@@ -11,7 +11,7 @@ const YMAL_DEFAULT_LIMIT = 8;
 
 export const fbtOptions = (productId: string | undefined, limit = FBT_DEFAULT_LIMIT) =>
   queryOptions<RecommendationItem[]>({
-    queryKey: ["recommendations", "fbt", productId, limit],
+    queryKey: ["recommendations", "fbt", productId, limit] as const,
     queryFn: () => frequentlyBoughtTogether(productId ?? "", limit),
     enabled: !!productId,
     staleTime: 5 * 60_000,
@@ -20,7 +20,7 @@ export const fbtOptions = (productId: string | undefined, limit = FBT_DEFAULT_LI
 
 export const ymalOptions = (productId: string | undefined, limit = YMAL_DEFAULT_LIMIT) =>
   queryOptions<RecommendationItem[]>({
-    queryKey: ["recommendations", "ymal", productId, limit],
+    queryKey: ["recommendations", "ymal", productId, limit] as const,
     queryFn: () => youMayAlsoLike(productId ?? "", limit),
     enabled: !!productId,
     staleTime: 5 * 60_000,
