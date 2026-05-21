@@ -261,6 +261,12 @@
       "promo": "Khuyến mãi sẽ hiển thị tại đây khi được phát hành.",
       "trending": "Xu hướng tìm kiếm sẽ hiển thị tại đây.",
       "sellers": "Shop uy tín sẽ được giới thiệu tại đây."
+    },
+    "sellersSection": {
+      "title": "Shop Nổi Bật",
+      "subtitle": "Người bán được xác minh trên VNShop",
+      "viewAll": "Xem tất cả",
+      "empty": "Chưa có shop nào để hiển thị."
     }
   },
   "footer": {
@@ -880,14 +886,6 @@
   },
   "common": {
     "loading": "Đang tải..."
-  },
-  "home": {
-    "sellersSection": {
-      "title": "Shop Nổi Bật",
-      "subtitle": "Người bán được xác minh trên VNShop",
-      "viewAll": "Xem tất cả",
-      "empty": "Chưa có shop nào để hiển thị."
-    }
   },
   "sellerDetail": {
     "notFound": "Không tìm thấy shop",

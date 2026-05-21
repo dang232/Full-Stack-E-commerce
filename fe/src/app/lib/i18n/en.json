@@ -261,6 +261,12 @@
       "promo": "Promotions will appear here once published.",
       "trending": "Trending searches will appear here as they emerge.",
       "sellers": "Verified shops will be showcased here soon."
+    },
+    "sellersSection": {
+      "title": "Featured Shops",
+      "subtitle": "Verified sellers on VNShop",
+      "viewAll": "View all",
+      "empty": "No shops to display yet."
     }
   },
   "footer": {
@@ -880,14 +886,6 @@
   },
   "common": {
     "loading": "Loading..."
-  },
-  "home": {
-    "sellersSection": {
-      "title": "Featured Shops",
-      "subtitle": "Verified sellers on VNShop",
-      "viewAll": "View all",
-      "empty": "No shops to display yet."
-    }
   },
   "sellerDetail": {
     "notFound": "Shop not found",
