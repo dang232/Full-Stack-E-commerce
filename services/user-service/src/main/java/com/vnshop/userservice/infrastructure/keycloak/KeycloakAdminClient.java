@@ -16,6 +16,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Thin wrapper over the Keycloak Admin API. Acquires a service-account token via
@@ -33,6 +35,7 @@ public class KeycloakAdminClient {
     private final String clientId;
     private final String clientSecret;
 
+    private final Lock tokenLock = new ReentrantLock();
     private volatile String cachedToken;
     private volatile Instant cachedTokenExpiresAt = Instant.EPOCH;
 
@@ -187,36 +190,49 @@ public class KeycloakAdminClient {
         }
     }
 
-    private synchronized String adminToken() {
+    private String adminToken() {
+        // Fast path: token still valid — no lock needed (volatile read is sufficient).
         if (cachedToken != null && Instant.now().isBefore(cachedTokenExpiresAt)) {
             return cachedToken;
         }
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("grant_type", "client_credentials");
-        form.add("client_id", clientId);
-        form.add("client_secret", clientSecret);
+        // Slow path: acquire a ReentrantLock so the blocking HTTP call to Keycloak
+        // does NOT pin the carrier thread under virtual-thread scheduling (see commit
+        // 77b34f78 / gotcha #50). synchronized would pin; ReentrantLock parks instead.
+        tokenLock.lock();
         try {
-            String responseBody = http.post()
-                    .uri(baseUrl + "/realms/" + realm + "/protocol/openid-connect/token")
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(form)
-                    .retrieve()
-                    .body(String.class);
-            if (responseBody == null) {
-                throw new KeycloakAdminException(500, "admin_token_failed", "Keycloak returned empty response for the admin token request");
+            // Re-check after acquiring the lock — another thread may have refreshed.
+            if (cachedToken != null && Instant.now().isBefore(cachedTokenExpiresAt)) {
+                return cachedToken;
             }
-            JsonNode body = MAPPER.readTree(responseBody);
-            if (!body.hasNonNull("access_token")) {
-                throw new KeycloakAdminException(500, "admin_token_failed", "Keycloak returned no access token for the admin client");
+            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+            form.add("grant_type", "client_credentials");
+            form.add("client_id", clientId);
+            form.add("client_secret", clientSecret);
+            try {
+                String responseBody = http.post()
+                        .uri(baseUrl + "/realms/" + realm + "/protocol/openid-connect/token")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .body(form)
+                        .retrieve()
+                        .body(String.class);
+                if (responseBody == null) {
+                    throw new KeycloakAdminException(500, "admin_token_failed", "Keycloak returned empty response for the admin token request");
+                }
+                JsonNode body = MAPPER.readTree(responseBody);
+                if (!body.hasNonNull("access_token")) {
+                    throw new KeycloakAdminException(500, "admin_token_failed", "Keycloak returned no access token for the admin client");
+                }
+                cachedToken = body.get("access_token").asText();
+                int expiresIn = body.path("expires_in").asInt(60);
+                cachedTokenExpiresAt = Instant.now().plus(Duration.ofSeconds(Math.max(10, expiresIn - 30)));
+                return cachedToken;
+            } catch (HttpStatusCodeException e) {
+                throw new KeycloakAdminException(e.getStatusCode().value(), "admin_token_failed", parseError(e.getResponseBodyAsString(), "Couldn't reach Keycloak admin"));
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                throw new KeycloakAdminException(500, "admin_token_failed", "Couldn't parse Keycloak token response");
             }
-            cachedToken = body.get("access_token").asText();
-            int expiresIn = body.path("expires_in").asInt(60);
-            cachedTokenExpiresAt = Instant.now().plus(Duration.ofSeconds(Math.max(10, expiresIn - 30)));
-            return cachedToken;
-        } catch (HttpStatusCodeException e) {
-            throw new KeycloakAdminException(e.getStatusCode().value(), "admin_token_failed", parseError(e.getResponseBodyAsString(), "Couldn't reach Keycloak admin"));
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            throw new KeycloakAdminException(500, "admin_token_failed", "Couldn't parse Keycloak token response");
+        } finally {
+            tokenLock.unlock();
         }
     }
 
