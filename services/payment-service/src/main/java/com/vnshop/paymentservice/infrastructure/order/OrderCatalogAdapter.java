@@ -5,22 +5,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.paymentservice.application.order.OrderSnapshot;
 import com.vnshop.paymentservice.domain.port.out.OrderCatalogPort;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -40,33 +32,19 @@ import java.util.Optional;
 @Component
 public class OrderCatalogAdapter implements OrderCatalogPort {
 
-    private final RestTemplate restTemplate;
+    private final OrderHttpClient orderHttpClient;
     private final ObjectMapper objectMapper;
-    private final String ordersUrl;
 
-    public OrderCatalogAdapter(
-            ObjectMapper objectMapper,
-            @Value("${vnshop.order-service.base-url:http://order-service:8091}") String baseUrl,
-            @Value("${vnshop.order-service.connect-timeout-ms:1000}") long connectTimeoutMs,
-            @Value("${vnshop.order-service.read-timeout-ms:2000}") long readTimeoutMs
-    ) {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
-        factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
-        this.restTemplate = new RestTemplate(factory);
+    public OrderCatalogAdapter(OrderHttpClient orderHttpClient, ObjectMapper objectMapper) {
+        this.orderHttpClient = orderHttpClient;
         this.objectMapper = objectMapper;
-        this.ordersUrl = baseUrl + "/orders";
     }
 
     @Override
     public Optional<OrderSnapshot> findByOrderId(String orderId) {
-        String url = ordersUrl + "/" + orderId;
-        HttpHeaders headers = new HttpHeaders();
-        currentBearerToken().ifPresent(token -> headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token));
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        String authHeader = currentBearerToken().map(t -> "Bearer " + t).orElse(null);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            String json = response.getBody();
+            String json = orderHttpClient.getOrder(orderId, authHeader);
             if (json == null || json.isBlank()) {
                 return Optional.empty();
             }
@@ -75,7 +53,7 @@ public class OrderCatalogAdapter implements OrderCatalogPort {
                 return Optional.empty();
             }
             return Optional.of(toDomain(wrapper.data));
-        } catch (HttpStatusCodeException e) {
+        } catch (RestClientResponseException e) {
             if (e.getStatusCode().value() == 404) {
                 return Optional.empty();
             }
