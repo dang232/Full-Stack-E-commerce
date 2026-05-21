@@ -9,6 +9,7 @@ import {
   toggleWishlistItem,
   type WishlistResponse,
 } from "../lib/api/endpoints/wishlist";
+import type { ProductId } from "../types/api/branded-ids";
 
 import { useAuth } from "./use-auth";
 
@@ -62,7 +63,7 @@ export function useWishlist() {
     void (async () => {
       const current = qc.getQueryData<WishlistResponse>(WISHLIST_KEY) ?? EMPTY;
       const knownIds = new Set(current.productIds);
-      const missing = legacyIds.filter((id) => !knownIds.has(id));
+      const missing = legacyIds.filter((id) => !knownIds.has(id as ProductId));
       for (const id of missing) {
         try {
           await addWishlistItem(id);
@@ -82,21 +83,22 @@ export function useWishlist() {
   const data = query.data ?? EMPTY;
 
   const patchAfterToggle = (productId: string, inWishlist: boolean) => {
+    const pid = productId as ProductId;
     qc.setQueryData<WishlistResponse>(WISHLIST_KEY, (prev) => {
       const base = prev ?? EMPTY;
-      const has = base.productIds.includes(productId);
+      const has = base.productIds.includes(pid);
       if (inWishlist === has) return base;
       if (inWishlist) {
         return {
           ...base,
-          productIds: [productId, ...base.productIds],
-          items: [{ productId }, ...base.items],
+          productIds: [pid, ...base.productIds],
+          items: [{ productId: pid }, ...base.items],
         };
       }
       return {
         ...base,
-        productIds: base.productIds.filter((id) => id !== productId),
-        items: base.items.filter((item) => item.productId !== productId),
+        productIds: base.productIds.filter((id) => id !== pid),
+        items: base.items.filter((item) => item.productId !== pid),
       };
     });
   };
@@ -111,7 +113,7 @@ export function useWishlist() {
     onMutate: async (productId) => {
       await qc.cancelQueries({ queryKey: WISHLIST_KEY });
       const previous = qc.getQueryData<WishlistResponse>(WISHLIST_KEY);
-      const has = previous?.productIds.includes(productId) ?? false;
+      const has = previous?.productIds.includes(productId as ProductId) ?? false;
       const nextInWishlist = !has;
       patchAfterToggle(productId, nextInWishlist);
       return { previous, nextInWishlist };
@@ -156,7 +158,7 @@ export function useWishlist() {
    *   reconciled with the server response once it lands.
    */
   const toggle = (productId: string): boolean => {
-    const has = data.productIds.includes(productId);
+    const has = data.productIds.includes(productId as ProductId);
     toggleMutation.mutate(productId);
     return !has;
   };
@@ -165,7 +167,7 @@ export function useWishlist() {
     ids: data.productIds,
     items: data.items,
     count: data.productIds.length,
-    has: (productId: string) => data.productIds.includes(productId),
+    has: (productId: string) => data.productIds.includes(productId as ProductId),
     toggle,
     remove: (productId: string) => removeMutation.mutate(productId),
     clear: () => clearMutation.mutate(),

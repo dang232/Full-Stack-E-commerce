@@ -4,6 +4,7 @@
  * after the file → folder split.
  */
 
+export * from "./branded-ids";
 export * from "./shared";
 export * from "./product";
 export * from "./category";

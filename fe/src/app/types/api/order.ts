@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { cartItemSchema } from "./cart";
+import { orderIdSchema, sellerIdSchema } from "./branded-ids";
 import { PAYMENT_METHOD_VALUES, PAYMENT_STATUS_VALUES } from "./payment";
 import { addressSchema } from "./shared";
 
@@ -25,7 +26,7 @@ export const RETURN_STATUS_VALUES = [
 export const subOrderSchema = z
   .object({
     id: z.string(),
-    sellerId: z.string().optional(),
+    sellerId: sellerIdSchema.optional(),
     sellerName: z.string().optional(),
     status: z.enum(FULFILLMENT_STATUS_VALUES),
     items: z.array(cartItemSchema).optional(),
@@ -37,7 +38,7 @@ export const subOrderSchema = z
 
 export const orderSchema = z
   .object({
-    id: z.string(),
+    id: orderIdSchema,
     status: z.string(),
     paymentStatus: z.enum(PAYMENT_STATUS_VALUES).optional(),
     paymentMethod: z.enum(PAYMENT_METHOD_VALUES).optional(),
@@ -57,7 +58,7 @@ export type Order = z.infer<typeof orderSchema>;
 export const returnSchema = z
   .object({
     id: z.string(),
-    orderId: z.string(),
+    orderId: orderIdSchema,
     status: z.enum(RETURN_STATUS_VALUES),
     reason: z.string().optional(),
     refundAmount: z.number().optional(),
@@ -71,7 +72,7 @@ export type Return = z.infer<typeof returnSchema>;
 export const pendingSubOrderSchema = z
   .object({
     id: z.string(),
-    orderId: z.string(),
+    orderId: orderIdSchema,
     status: z.enum(FULFILLMENT_STATUS_VALUES),
     items: z.array(z.unknown()).optional(),
     createdAt: z.string().optional(),

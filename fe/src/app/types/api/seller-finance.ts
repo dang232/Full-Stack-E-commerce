@@ -1,8 +1,10 @@
 import { z } from "zod";
 
+import { sellerIdSchema } from "./branded-ids";
+
 export const walletSchema = z
   .object({
-    sellerId: z.string().optional(),
+    sellerId: sellerIdSchema.optional(),
     balance: z.number(),
     pending: z.number().optional(),
     currency: z.string().default("VND"),

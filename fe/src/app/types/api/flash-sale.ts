@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { productIdSchema } from "./branded-ids";
+
 /**
  * Inventory-service flash-sale schemas (FE-PLAN §2 inventory-service / 8083).
  * Reservations are produced by `/flash-sale/reserve`; stock is the per-product
@@ -17,7 +19,7 @@ export type FlashSaleReservation = z.infer<typeof reserveFlashSaleResponseSchema
 
 export const flashSaleStockResponseSchema = z
   .object({
-    productId: z.string(),
+    productId: productIdSchema,
     stock: z.number(),
   })
   .passthrough();
@@ -31,7 +33,7 @@ export const flashSaleStockResponseSchema = z
 export const activeFlashSaleCampaignSchema = z
   .object({
     id: z.string(),
-    productId: z.string(),
+    productId: productIdSchema,
     originalPrice: z.number(),
     salePrice: z.number(),
     stockTotal: z.number(),

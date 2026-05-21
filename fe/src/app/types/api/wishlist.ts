@@ -1,15 +1,17 @@
 import { z } from "zod";
 
+import { productIdSchema } from "./branded-ids";
+
 const wishlistEntrySchema = z
   .object({
-    productId: z.string(),
+    productId: productIdSchema,
     createdAt: z.string().optional(),
   })
   .passthrough();
 
 export const wishlistResponseSchema = z
   .object({
-    productIds: z.array(z.string()),
+    productIds: z.array(productIdSchema),
     items: z.array(wishlistEntrySchema),
   })
   .passthrough();
@@ -17,7 +19,7 @@ export type WishlistResponse = z.infer<typeof wishlistResponseSchema>;
 
 export const wishlistToggleResponseSchema = z
   .object({
-    productId: z.string(),
+    productId: productIdSchema,
     changed: z.boolean(),
     inWishlist: z.boolean(),
   })

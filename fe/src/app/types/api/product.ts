@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { productIdSchema, sellerIdSchema } from "./branded-ids";
+
 // BE returns image objects ({url, alt, sortOrder}); some other endpoints (e.g.
 // search) emit a flat string array; legacy demo data sometimes ships single
 // `image`. Accept all three shapes and let `fromServer` flatten.
@@ -28,7 +30,7 @@ const productVariantSchema = z
 
 export const productSummarySchema = z
   .object({
-    id: z.string(),
+    id: productIdSchema,
     name: z.string(),
     price: z.number().optional(),
     originalPrice: z.number().optional(),
@@ -38,7 +40,7 @@ export const productSummarySchema = z
     category: z.string().optional(),
     categoryId: z.string().optional(),
     brand: z.string().optional(),
-    sellerId: z.string().optional(),
+    sellerId: sellerIdSchema.optional(),
     sellerName: z.string().optional(),
     rating: z.number().optional(),
     reviewCount: z.number().optional(),

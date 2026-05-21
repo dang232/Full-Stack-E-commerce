@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { productIdSchema, sellerIdSchema } from "./branded-ids";
+
 /**
  * Admin / staff-facing schemas backing the admin control plane. The buyer-side
  * coupon surface lives in `./coupon.ts`; this file's couponSchema is the
@@ -46,7 +48,7 @@ export type Dispute = z.infer<typeof disputeSchema>;
 export const adminPayoutSchema = z
   .object({
     id: z.string(),
-    sellerId: z.string(),
+    sellerId: sellerIdSchema,
     amount: z.number(),
     status: z.string(),
     requestedAt: z.string().optional(),
@@ -87,11 +89,11 @@ export const dashboardRevenuePointSchema = z
 export type DashboardRevenuePoint = z.infer<typeof dashboardRevenuePointSchema>;
 
 export const dashboardTopProductSchema = z
-  .object({ productId: z.string(), name: z.string().optional(), revenue: z.number() })
+  .object({ productId: productIdSchema, name: z.string().optional(), revenue: z.number() })
   .passthrough();
 export type DashboardTopProduct = z.infer<typeof dashboardTopProductSchema>;
 
 export const dashboardTopSellerSchema = z
-  .object({ sellerId: z.string(), shopName: z.string().optional(), revenue: z.number() })
+  .object({ sellerId: sellerIdSchema, shopName: z.string().optional(), revenue: z.number() })
   .passthrough();
 export type DashboardTopSeller = z.infer<typeof dashboardTopSellerSchema>;

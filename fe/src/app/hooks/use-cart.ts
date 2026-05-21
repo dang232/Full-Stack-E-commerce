@@ -9,6 +9,7 @@ import {
   updateCartItem,
 } from "../lib/api/endpoints/cart";
 import type { Cart } from "../types/api";
+import type { ProductId } from "../types/api/branded-ids";
 
 import { useAuth } from "./use-auth";
 
@@ -60,7 +61,7 @@ function writeGuestCart(items: GuestCartItem[]): void {
 function guestItemsToCart(items: GuestCartItem[]): Cart {
   return {
     items: items.map((it) => ({
-      productId: it.productId,
+      productId: it.productId as ProductId,
       name: "",
       price: 0,
       quantity: it.quantity,
@@ -79,7 +80,7 @@ function optimisticAdd(cart: Cart | undefined, productId: string, quantity: numb
     items[existing] = { ...items[existing], quantity: items[existing].quantity + quantity };
   } else {
     // Skeleton item — name/price/image will reconcile from the server response.
-    items.push({ productId, name: "", price: 0, quantity });
+    items.push({ productId: productId as ProductId, name: "", price: 0, quantity });
   }
   return recomputeTotals({ ...base, items });
 }

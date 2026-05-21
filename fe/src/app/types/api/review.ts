@@ -1,9 +1,11 @@
 import { z } from "zod";
 
+import { productIdSchema } from "./branded-ids";
+
 export const reviewSchema = z
   .object({
     id: z.string(),
-    productId: z.string(),
+    productId: productIdSchema,
     userId: z.string().optional(),
     userName: z.string().optional(),
     rating: z.number(),
@@ -18,7 +20,7 @@ export type Review = z.infer<typeof reviewSchema>;
 export const questionSchema = z
   .object({
     id: z.string(),
-    productId: z.string(),
+    productId: productIdSchema,
     userId: z.string().optional(),
     question: z.string(),
     answer: z.string().nullable().optional(),

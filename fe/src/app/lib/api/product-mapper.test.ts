@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ProductDetail, ProductSummary } from "../../types/api";
+import type { ProductId } from "../../types/api/branded-ids";
 import { fromServer, pct } from "./product-mapper";
 
 // ---------------------------------------------------------------------------
@@ -31,7 +32,7 @@ describe("pct", () => {
 // fromServer — ProductSummary (detail-only fields collapse to defaults)
 // ---------------------------------------------------------------------------
 describe("fromServer with ProductSummary", () => {
-  const summary: ProductSummary = { id: "p1", name: "Test Product", price: 100 };
+  const summary: ProductSummary = { id: "p1" as ProductId, name: "Test Product", price: 100 };
 
   it("collapses detail-only fields to defaults", () => {
     const result = fromServer(summary);
@@ -47,7 +48,7 @@ describe("fromServer with ProductSummary", () => {
 // ---------------------------------------------------------------------------
 describe("fromServer with ProductDetail", () => {
   const detail: ProductDetail = {
-    id: "p2",
+    id: "p2" as ProductId,
     name: "Detail Product",
     price: 200,
     description: "A detailed description",
@@ -71,7 +72,7 @@ describe("fromServer with ProductDetail", () => {
 describe("fromServer image flattening", () => {
   it("flattens object entries with .url", () => {
     const p: ProductSummary = {
-      id: "p3",
+      id: "p3" as ProductId,
       name: "P",
       images: [{ url: "https://cdn/a.jpg" }, { url: "https://cdn/b.jpg" }],
     };
@@ -80,7 +81,7 @@ describe("fromServer image flattening", () => {
 
   it("flattens plain string entries", () => {
     const p: ProductSummary = {
-      id: "p4",
+      id: "p4" as ProductId,
       name: "P",
       images: ["https://cdn/c.jpg", "https://cdn/d.jpg"],
     };
@@ -89,7 +90,7 @@ describe("fromServer image flattening", () => {
 
   it("falls back to top-level image when images array is empty", () => {
     const p: ProductSummary = {
-      id: "p5",
+      id: "p5" as ProductId,
       name: "P",
       images: [],
       image: "https://cdn/fallback.jpg",
@@ -104,7 +105,7 @@ describe("fromServer image flattening", () => {
 describe("fromServer variant price fallback", () => {
   it("takes price from variants[0].priceAmount when no top-level price", () => {
     const p: ProductSummary = {
-      id: "p6",
+      id: "p6" as ProductId,
       name: "P",
       variants: [{ priceAmount: 150 }],
     };

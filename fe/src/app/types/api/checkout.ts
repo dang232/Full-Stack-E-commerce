@@ -1,8 +1,10 @@
 import { z } from "zod";
 
+import { sellerIdSchema } from "./branded-ids";
+
 const sellerBreakdownSchema = z
   .object({
-    sellerId: z.string(),
+    sellerId: sellerIdSchema,
     sellerName: z.string().optional(),
     subtotal: z.number(),
     shippingFee: z.number().optional(),
@@ -31,7 +33,7 @@ export const paymentMethodSchema = z
 
 export const shippingOptionSchema = z
   .object({
-    sellerId: z.string().optional(),
+    sellerId: sellerIdSchema.optional(),
     code: z.string(),
     name: z.string(),
     fee: z.number(),

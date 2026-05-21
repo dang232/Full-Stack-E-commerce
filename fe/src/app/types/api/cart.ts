@@ -1,13 +1,15 @@
 import { z } from "zod";
 
+import { productIdSchema, sellerIdSchema } from "./branded-ids";
+
 export const cartItemSchema = z
   .object({
-    productId: z.string(),
+    productId: productIdSchema,
     name: z.string().optional(),
     image: z.string().optional(),
     price: z.number(),
     quantity: z.number(),
-    sellerId: z.string().optional(),
+    sellerId: sellerIdSchema.optional(),
   })
   .passthrough();
 
