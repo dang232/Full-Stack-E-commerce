@@ -8,15 +8,17 @@ VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketpla
 
 | Resource | Use it for |
 | --- | --- |
+| [HANDOFF.md](HANDOFF.md) | **Start here.** Single-page pickup doc for someone new to the codebase. |
 | [Architecture doc](.sisyphus/ARCHITECTURE.md) | Full system design, bounded contexts, API conventions |
 | [Status doc](.sisyphus/STATUS.md) | Per-service health, feature coverage, NFR audit, roadmap |
+| [Audit summary 2026-05-21](docs/AUDIT-SUMMARY-2026-05-21.md) | Consolidated security audit ledger (pt12 → pt23) — 18 findings closed across 7 services |
 | [Status reality 2026-05-14](docs/STATUS-REALITY-2026-05-14.md) | Reconciliation of older gap-analysis docs against the current tree |
 | [E2E audit 2026-05-18](docs/E2E-AUDIT-2026-05-18.md) | What `e2e-day.mjs` and Playwright cover, plus the bugs fixed during the buildout |
-| [Latest session handover](docs/SESSION-HANDOVER-2026-05-19-pt5.md) | Most recent change set (B9 live shipping rate quote + B11 messaging WebSocket E2E) |
+| [Latest session handover](docs/SESSION-HANDOVER-2026-05-21-pt26.md) | Most recent change set (modern-feature utilization arc T1–T10) |
 | [Frontend README](fe/README.md) | React + Vite SPA setup, scripts, layout |
 | [Docker Compose](docker-compose.yml) | Local infrastructure and service definitions |
 
-For a chronological view of what shipped, walk the handover series in order: `docs/SESSION-HANDOVER-2026-05-17.md` → `pt2` → `pt3` → `2026-05-18.md` → `pt2` → `pt3` → `2026-05-19-pt4.md` → `pt5`.
+For a chronological view of what shipped, walk the handover series in `docs/SESSION-HANDOVER-2026-05-{17..21}-pt{0..26}.md`. For the day-to-day pickup case, [HANDOFF.md](HANDOFF.md) is enough.
 
 ## Architecture Overview
 
