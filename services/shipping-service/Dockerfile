@@ -1,10 +1,11 @@
+# syntax=docker/dockerfile:1.7
 FROM maven:3.9.11-eclipse-temurin-25 AS builder
 WORKDIR /workspace
 COPY services/shipping-service/pom.xml .
-RUN mvn dependency:go-offline
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline
 COPY services/shipping-service/src ./src
 COPY proto /proto
-RUN mvn package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn package -DskipTests
 RUN cd target && JAR=$(ls -S *.jar 2>/dev/null | grep -vE "(sources|javadoc|original|opentelemetry-javaagent).jar$" | head -1) && mv "$JAR" app.jar
 
 FROM eclipse-temurin:25-jre-alpine AS runner
