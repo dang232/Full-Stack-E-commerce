@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 
 import {
   listNotifications,
@@ -10,21 +9,11 @@ import {
 import type { Notification } from "../types/api";
 
 import { useAuth } from "./use-auth";
+import { usePageVisible } from "./use-page-visible";
 
 const POLL_INTERVAL_MS = 30_000;
 const NOTIFICATIONS_KEY = ["notifications", "list"] as const;
 const UNREAD_KEY = ["notifications", "unread-count"] as const;
-
-/** Tracks whether the document is currently visible. Used to gate background polling. */
-function usePageVisible() {
-  const [visible, setVisible] = useState(typeof document === "undefined" ? true : !document.hidden);
-  useEffect(() => {
-    const onChange = () => setVisible(!document.hidden);
-    document.addEventListener("visibilitychange", onChange);
-    return () => document.removeEventListener("visibilitychange", onChange);
-  }, []);
-  return visible;
-}
 
 export function useNotifications() {
   const { ready, authenticated } = useAuth();
