@@ -2,6 +2,9 @@ server:
   port: 8089
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   application:
     name: review-service
   datasource:

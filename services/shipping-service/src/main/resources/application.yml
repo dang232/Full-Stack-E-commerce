@@ -2,6 +2,9 @@ server:
   port: 8093
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   config:
     import: classpath:application-grpc.yml
   application:
