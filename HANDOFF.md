@@ -25,13 +25,19 @@ Architecture details: `.sisyphus/ARCHITECTURE.md`. Per-service health: `.sisyphu
 # FE
 cd fe && npm run typecheck   # 2 pre-existing errors (PayPal + checkout)
 cd fe && npm test            # 156/156, 25 files
-cd fe && npx playwright test e2e/day-simulation.spec.ts --project=chromium  # 15/15, ~18s
+cd fe && npx playwright test e2e/day-simulation.spec.ts --project=chromium  # 15/15, ~27s
 
 # BE (representative — full set is 12 services)
 cd services/order-service   && ./mvnw -B test  # 104/104
 cd services/payment-service && ./mvnw -B test  # 75/75
 cd services/user-service    && ./mvnw -B test  # 116/116
 ```
+
+**Live-stack verification of pt26 changes** (2026-05-21):
+- order-service, payment-service, user-service rebuilt + restarted with the T1 (virtual threads) and T8 (`@HttpExchange`) commits live in their containers.
+- All three booted cleanly under the new virtual-thread executor.
+- day-simulation Playwright gate ran end-to-end against the fresh stack: **15/15 in 27s**, including the 5 IDOR negative-path tests that exercise the new `@HttpExchange` adapters under real HTTP traffic.
+- This is the real verification gate for the runtime behavior — unit tests don't exercise virtual threads or the HTTP proxy wiring.
 
 If any of these break on a fresh clone, the cause is almost always:
 - **OneDrive reparse-points** (Windows) — run `node scripts/hydrate.mjs` to re-hydrate cloud-only stubs.
