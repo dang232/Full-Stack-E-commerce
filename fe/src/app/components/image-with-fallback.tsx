@@ -29,7 +29,7 @@ export function ImageWithFallback({
   if (!src || errored) {
     return (
       <div
-        className={`flex items-center justify-center bg-gray-100 text-gray-300 ${className ?? ""}`}
+        className={`flex items-center justify-center bg-muted text-gray-300 ${className ?? ""}`}
         aria-label={alt || "image unavailable"}
       >
         {placeholder ?? <IconPhotoOff size={20} />}

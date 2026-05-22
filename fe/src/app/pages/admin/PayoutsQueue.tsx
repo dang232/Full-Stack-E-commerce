@@ -68,27 +68,27 @@ export function PayoutsQueue() {
         }}
         isSubmitting={fail.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">{t("admin.payouts.title")}</h2>
+      <h2 className="text-xl font-bold text-foreground">{t("admin.payouts.title")}</h2>
 
       {payoutsQuery.isLoading ? (
-        <p className="text-sm text-gray-400">{t("admin.payouts.loading")}</p>
+        <p className="text-sm text-muted-foreground">{t("admin.payouts.loading")}</p>
       ) : null}
       {!payoutsQuery.isLoading && payouts.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500">{t("admin.payouts.empty")}</p>
+        <div className="bg-card rounded-2xl p-8 text-center shadow-sm">
+          <p className="text-sm text-muted-foreground">{t("admin.payouts.empty")}</p>
         </div>
       ) : null}
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-50">
           {payouts.map((p) => (
             <div key={p.id} className="px-5 py-4 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-mono text-gray-400">{p.id}</p>
-                <p className="text-sm font-semibold text-gray-800">
+                <p className="text-xs font-mono text-muted-foreground">{p.id}</p>
+                <p className="text-sm font-semibold text-foreground">
                   {t("admin.payouts.sellerLabel", { id: p.sellerId })}
                 </p>
-                <p className="text-xs text-gray-500">{p.requestedAt ?? ""}</p>
+                <p className="text-xs text-muted-foreground">{p.requestedAt ?? ""}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="font-bold text-base" style={{ color: "#FF6200" }}>

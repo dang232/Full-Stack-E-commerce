@@ -31,14 +31,14 @@ export function CheckoutSuccess({ placedOrderId, selectedPaymentId, finalTotal }
           <IconCircleCheck size={48} style={{ color: "#00BFB3" }} />
         </div>
         <h1
-          className="text-3xl font-black text-gray-800 mb-3"
+          className="text-3xl font-black text-foreground mb-3"
           style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
         >
           {t("checkout.success.title")}
         </h1>
         {placedOrderId ? (
           <>
-            <p className="text-gray-500 mb-2">{t("checkout.success.orderIdLabel")}</p>
+            <p className="text-muted-foreground mb-2">{t("checkout.success.orderIdLabel")}</p>
             <div
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl mb-6 font-mono font-bold text-lg"
               style={{ background: "rgba(0,191,179,0.08)", color: "#00BFB3" }}
@@ -48,7 +48,7 @@ export function CheckoutSuccess({ placedOrderId, selectedPaymentId, finalTotal }
           </>
         ) : null}
         {selectedPaymentId === "COD" ? (
-          <p className="text-sm text-gray-500 mb-2">
+          <p className="text-sm text-muted-foreground mb-2">
             <Trans
               i18nKey="checkout.success.codNotice"
               values={{ amount: formatPrice(finalTotal) }}

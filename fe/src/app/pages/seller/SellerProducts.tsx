@@ -20,7 +20,7 @@ export function SellerProducts() {
       <SellerProductModal open={showCreate} onClose={() => setShowCreate(false)} />
       <SellerProductModal open={!!editing} product={editing} onClose={() => setEditing(null)} />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">{t("seller.products.title")}</h2>
+        <h2 className="text-xl font-bold text-foreground">{t("seller.products.title")}</h2>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-semibold text-sm"
@@ -36,8 +36,8 @@ export function SellerProducts() {
       </div>
 
       <div className="flex gap-3">
-        <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
-          <IconSearch size={16} className="text-gray-400" />
+        <div className="flex-1 flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm">
+          <IconSearch size={16} className="text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -45,16 +45,16 @@ export function SellerProducts() {
             className="flex-1 text-sm outline-none"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm text-gray-600">
+        <button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl bg-card text-sm text-muted-foreground">
           <IconFilter size={15} /> {t("seller.products.filter")}
         </button>
       </div>
 
-      {isLoading ? <p className="text-sm text-gray-400">{t("seller.products.loading")}</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">{t("seller.products.loading")}</p> : null}
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead style={{ background: "#f9fafb" }}>
+          <thead className="bg-muted">
             <tr>
               {[
                 t("seller.products.th.product"),
@@ -66,7 +66,7 @@ export function SellerProducts() {
                 <th
                   // eslint-disable-next-line react/no-array-index-key -- table headers are positional, no stable id
                   key={i}
-                  className="px-4 py-3 text-xs font-semibold text-gray-500 text-left"
+                  className="px-4 py-3 text-xs font-semibold text-muted-foreground text-left"
                 >
                   {h}
                 </th>
@@ -75,7 +75,7 @@ export function SellerProducts() {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {filtered.slice(0, 50).map((p) => (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={p.id} className="hover:bg-muted transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     {p.image ? (
@@ -86,7 +86,7 @@ export function SellerProducts() {
                         loading="lazy"
                       />
                     ) : null}
-                    <p className="text-sm font-medium text-gray-800 max-w-[280px] truncate">
+                    <p className="text-sm font-medium text-foreground max-w-[280px] truncate">
                       {p.name}
                     </p>
                   </div>
@@ -94,8 +94,8 @@ export function SellerProducts() {
                 <td className="px-4 py-3 text-sm font-bold" style={{ color: "#FF6200" }}>
                   {formatPrice(p.price)}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">{p.stock}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{p.sold.toLocaleString()}</td>
+                <td className="px-4 py-3 text-sm text-muted-foreground">{p.stock}</td>
+                <td className="px-4 py-3 text-sm text-muted-foreground">{p.sold.toLocaleString()}</td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => setEditing(p)}

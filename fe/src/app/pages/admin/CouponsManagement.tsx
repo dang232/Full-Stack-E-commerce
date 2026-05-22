@@ -56,7 +56,7 @@ export function CouponsManagement() {
         isSubmitting={createCoupon.isPending}
       />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">{t("admin.coupons.title")}</h2>
+        <h2 className="text-xl font-bold text-foreground">{t("admin.coupons.title")}</h2>
         <button
           onClick={() => setShowCreate(true)}
           disabled={createCoupon.isPending}
@@ -68,15 +68,15 @@ export function CouponsManagement() {
       </div>
 
       {couponsQuery.isLoading ? (
-        <p className="text-sm text-gray-400">{t("admin.coupons.loading")}</p>
+        <p className="text-sm text-muted-foreground">{t("admin.coupons.loading")}</p>
       ) : null}
       {couponsQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{couponsQuery.error.message}</p>
       ) : null}
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead style={{ background: "#f9fafb" }}>
+          <thead className="bg-muted">
             <tr>
               {[
                 t("admin.coupons.th.code"),
@@ -88,7 +88,7 @@ export function CouponsManagement() {
                 <th
                   // eslint-disable-next-line react/no-array-index-key -- table headers are positional, no stable id
                   key={i}
-                  className="px-4 py-3 text-xs font-semibold text-gray-500 text-left"
+                  className="px-4 py-3 text-xs font-semibold text-muted-foreground text-left"
                 >
                   {h}
                 </th>
@@ -97,10 +97,10 @@ export function CouponsManagement() {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {coupons.map((c) => (
-              <tr key={c.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-mono font-bold text-gray-800">{c.code}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{c.type}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+              <tr key={c.id} className="hover:bg-muted">
+                <td className="px-4 py-3 text-sm font-mono font-bold text-foreground">{c.code}</td>
+                <td className="px-4 py-3 text-sm text-muted-foreground">{c.type}</td>
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {c.type === "PERCENT" ? `${c.value}%` : formatPrice(c.value)}
                 </td>
                 <td className="px-4 py-3">
@@ -130,7 +130,7 @@ export function CouponsManagement() {
           </tbody>
         </table>
         {!couponsQuery.isLoading && coupons.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-gray-400 text-center">{t("admin.coupons.empty")}</p>
+          <p className="px-5 py-8 text-sm text-muted-foreground text-center">{t("admin.coupons.empty")}</p>
         ) : null}
       </div>
     </div>

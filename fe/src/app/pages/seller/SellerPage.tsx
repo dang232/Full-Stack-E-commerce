@@ -60,9 +60,9 @@ export function SellerPage() {
   const sellerName = profileQuery.data?.name ?? t("seller.shopFallback");
 
   return (
-    <div className="min-h-screen" style={{ background: "#f4f6f9" }}>
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6 bg-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-6 bg-card rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-4">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-lg"
@@ -71,8 +71,8 @@ export function SellerPage() {
               {sellerName.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-800">{sellerName}</h1>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <h1 className="text-lg font-bold text-foreground">{sellerName}</h1>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1 text-green-500 font-medium">
                   <IconCircleCheck size={13} /> {t("seller.loggedIn")}
                 </span>
@@ -88,7 +88,7 @@ export function SellerPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button className="relative p-2.5 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50">
+            <button className="relative p-2.5 rounded-xl border border-border text-muted-foreground hover:bg-muted">
               <IconBell size={18} />
             </button>
           </div>
@@ -96,7 +96,7 @@ export function SellerPage() {
 
         <div className="flex gap-6">
           <nav className="hidden md:block w-56 shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
               {NAV_ITEMS.map((item) => (
                 <button
                   key={item.id}

@@ -32,8 +32,8 @@ export function FacetList({
   if (entries.length === 0) return null;
 
   return (
-    <div className="mt-5 pt-5 border-t border-gray-100">
-      <p className="text-sm font-semibold text-gray-700 mb-2">{title}</p>
+    <div className="mt-5 pt-5 border-t border-border">
+      <p className="text-sm font-semibold text-foreground mb-2">{title}</p>
       <div className="space-y-1 max-h-48 overflow-y-auto">
         {entries.slice(0, maxVisible).map((entry) => {
           const isSelected = selected === entry.key;
@@ -56,7 +56,7 @@ export function FacetList({
                 </div>
                 <span className="truncate">{formatLabel(entry.key)}</span>
               </span>
-              <span className="text-xs text-gray-400 shrink-0 ml-2">{entry.count}</span>
+              <span className="text-xs text-muted-foreground shrink-0 ml-2">{entry.count}</span>
             </button>
           );
         })}

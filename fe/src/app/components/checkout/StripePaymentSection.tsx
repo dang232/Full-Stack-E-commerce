@@ -47,7 +47,7 @@ export function StripePaymentSection({
 
   if (!STRIPE_ENABLED) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-gray-200 p-4 text-sm text-gray-500">
+      <div className="rounded-2xl border-2 border-dashed border-border p-4 text-sm text-muted-foreground">
         Stripe is disabled. Set <code>VITE_STRIPE_ENABLED=true</code> and{" "}
         <code>VITE_STRIPE_PUBLISHABLE_KEY</code> to enable.
       </div>
@@ -58,7 +58,7 @@ export function StripePaymentSection({
   }
   if (!clientSecret || !stripePromise || !options) {
     return (
-      <div className="rounded-2xl border-2 border-gray-100 p-4 text-sm text-gray-500" data-testid="stripe-loading">
+      <div className="rounded-2xl border-2 border-border p-4 text-sm text-muted-foreground" data-testid="stripe-loading">
         Đang khởi tạo Stripe…
       </div>
     );

@@ -56,10 +56,10 @@ export function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">{t("admin.dashboard.title")}</h2>
-          <p className="text-sm text-gray-500">{t("admin.dashboard.subtitle")}</p>
+          <h2 className="text-xl font-bold text-foreground">{t("admin.dashboard.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("admin.dashboard.subtitle")}</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-600">
+        <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card text-sm text-muted-foreground">
           <IconChartBar size={15} /> {t("admin.dashboard.exportReport")}
         </button>
       </div>
@@ -98,10 +98,10 @@ export function AdminDashboard() {
         />
       </div>
 
-      <div className="bg-white rounded-2xl p-5 shadow-sm">
-        <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.revenueTitle")}</h3>
+      <div className="bg-card rounded-2xl p-5 shadow-sm">
+        <h3 className="font-bold text-foreground mb-4">{t("admin.dashboard.revenueTitle")}</h3>
         {revenueQuery.isLoading ? (
-          <p className="text-sm text-gray-400">{t("admin.dashboard.loading")}</p>
+          <p className="text-sm text-muted-foreground">{t("admin.dashboard.loading")}</p>
         ) : null}
         {revenueQuery.data && revenueQuery.data.length > 0 ? (
           <ResponsiveContainer width="100%" height={260}>
@@ -144,7 +144,7 @@ export function AdminDashboard() {
           </ResponsiveContainer>
         ) : (
           !revenueQuery.isLoading && (
-            <p className="text-sm text-gray-400 text-center py-12">
+            <p className="text-sm text-muted-foreground text-center py-12">
               {t("admin.dashboard.revenueEmpty")}
             </p>
           )
@@ -152,8 +152,8 @@ export function AdminDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.topProducts")}</h3>
+        <div className="bg-card rounded-2xl p-5 shadow-sm">
+          <h3 className="font-bold text-foreground mb-4">{t("admin.dashboard.topProducts")}</h3>
           {topProductsQuery.data && topProductsQuery.data.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={topProductsQuery.data} layout="vertical">
@@ -178,12 +178,12 @@ export function AdminDashboard() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-gray-400 text-center py-8">{t("admin.dashboard.noData")}</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t("admin.dashboard.noData")}</p>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h3 className="font-bold text-gray-800 mb-4">{t("admin.dashboard.topSellers")}</h3>
+        <div className="bg-card rounded-2xl p-5 shadow-sm">
+          <h3 className="font-bold text-foreground mb-4">{t("admin.dashboard.topSellers")}</h3>
           {topSellersQuery.data && topSellersQuery.data.length > 0 ? (
             <div className="space-y-3">
               {topSellersQuery.data.map((s, i) => (
@@ -195,7 +195,7 @@ export function AdminDashboard() {
                     {i + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-700 truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {s.shopName ?? s.sellerId}
                     </p>
                   </div>
@@ -206,7 +206,7 @@ export function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 text-center py-8">{t("admin.dashboard.noData")}</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t("admin.dashboard.noData")}</p>
           )}
         </div>
       </div>

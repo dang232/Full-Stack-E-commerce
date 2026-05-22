@@ -94,22 +94,22 @@ export function SellerOrders({
         }}
         isSubmitting={reject.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">{t("seller.orders.title")}</h2>
+      <h2 className="text-xl font-bold text-foreground">{t("seller.orders.title")}</h2>
 
-      {isLoading ? <p className="text-sm text-gray-400">{t("seller.orders.loading")}</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">{t("seller.orders.loading")}</p> : null}
       {error instanceof ApiError ? (
         <p className="text-sm text-red-500">
           {t("seller.orders.loadError", { message: error.message })}
         </p>
       ) : null}
       {!isLoading && orders.length === 0 && !error ? (
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+        <div className="bg-card rounded-2xl p-8 text-center shadow-sm">
           <IconPackage size={40} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-sm text-gray-500">{t("seller.orders.empty")}</p>
+          <p className="text-sm text-muted-foreground">{t("seller.orders.empty")}</p>
         </div>
       ) : null}
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-50">
           {orders.map((order) => {
             const status = order.status.toUpperCase();
@@ -119,12 +119,12 @@ export function SellerOrders({
               <div key={order.id} className="p-5 flex items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-mono font-bold text-gray-500">{order.id}</span>
+                    <span className="text-xs font-mono font-bold text-muted-foreground">{order.id}</span>
                     <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-600">
                       {order.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-sm text-muted-foreground mt-0.5">
                     {t("seller.orders.parentOrder", { id: order.orderId })}
                   </p>
                 </div>

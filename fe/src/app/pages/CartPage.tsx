@@ -90,7 +90,7 @@ export function CartPage() {
 
   if (!ready) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
+      <div className="max-w-7xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
         {t("cart.initSession")}
       </div>
     );
@@ -101,8 +101,8 @@ export function CartPage() {
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <IconShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
-          <h2 className="text-2xl font-bold text-gray-600 mb-3">{t("cart.loginPromptTitle")}</h2>
-          <p className="text-gray-400 mb-8">{t("cart.loginPromptSub")}</p>
+          <h2 className="text-2xl font-bold text-muted-foreground mb-3">{t("cart.loginPromptTitle")}</h2>
+          <p className="text-muted-foreground mb-8">{t("cart.loginPromptSub")}</p>
           <button
             onClick={() => login("/cart")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2"
@@ -117,7 +117,7 @@ export function CartPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
+      <div className="max-w-7xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
         {t("cart.loading")}
       </div>
     );
@@ -127,7 +127,7 @@ export function CartPage() {
     const message = error instanceof ApiError ? error.message : t("cart.loadError");
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
-        <h2 className="text-xl font-semibold text-gray-700 mb-3">{message}</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-3">{message}</h2>
         <button
           onClick={() => navigate("/")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
@@ -144,8 +144,8 @@ export function CartPage() {
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <IconShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
-          <h2 className="text-2xl font-bold text-gray-600 mb-3">{t("cart.emptyTitle")}</h2>
-          <p className="text-gray-400 mb-8">{t("cart.emptySub")}</p>
+          <h2 className="text-2xl font-bold text-muted-foreground mb-3">{t("cart.emptyTitle")}</h2>
+          <p className="text-muted-foreground mb-8">{t("cart.emptySub")}</p>
           <button
             onClick={() => navigate("/")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
@@ -176,12 +176,12 @@ export function CartPage() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 rounded-xl hover:bg-white transition-colors text-gray-500"
+          className="p-2 rounded-xl hover:bg-card transition-colors text-muted-foreground"
         >
           <IconArrowLeft size={20} />
         </button>
         <h1
-          className="text-2xl font-bold text-gray-800"
+          className="text-2xl font-bold text-foreground"
           style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
         >
           {t("cart.titleWithCount", { count: itemCount })}
@@ -197,14 +197,14 @@ export function CartPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20, height: 0 }}
-                className="bg-white rounded-2xl shadow-sm overflow-hidden"
+                className="bg-card rounded-2xl shadow-sm overflow-hidden"
               >
                 <div
-                  className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100"
+                  className="flex items-center gap-3 px-5 py-3.5 border-b border-border"
                   style={{ background: "rgba(0,191,179,0.04)" }}
                 >
-                  <span className="font-semibold text-gray-700 text-sm">{group.sellerName}</span>
-                  <span className="ml-auto text-xs text-gray-400 flex items-center gap-1">
+                  <span className="font-semibold text-foreground text-sm">{group.sellerName}</span>
+                  <span className="ml-auto text-xs text-muted-foreground flex items-center gap-1">
                     <IconTruck size={12} />
                     {totalAmount >= FREE_SHIPPING_THRESHOLD
                       ? t("cart.freeShippingTag")
@@ -222,7 +222,7 @@ export function CartPage() {
                       <button
                         type="button"
                         aria-label={`Xem ${item.name ?? "sản phẩm"}`}
-                        className="w-20 h-20 rounded-xl overflow-hidden shrink-0 cursor-pointer bg-gray-100 block p-0 border-0"
+                        className="w-20 h-20 rounded-xl overflow-hidden shrink-0 cursor-pointer bg-muted block p-0 border-0"
                         onClick={() => navigate(`/product/${item.productId}`)}
                       >
                         <ImageWithFallback
@@ -234,15 +234,15 @@ export function CartPage() {
                       <div className="flex-1 min-w-0">
                         <button
                           onClick={() => navigate(`/product/${item.productId}`)}
-                          className="font-medium text-gray-800 line-clamp-2 text-sm text-left hover:underline"
+                          className="font-medium text-foreground line-clamp-2 text-sm text-left hover:underline"
                         >
                           {item.name ?? item.productId}
                         </button>
                         <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="flex items-center border border-border rounded-lg overflow-hidden">
                             <button
                               onClick={() => onUpdate(item.productId, item.quantity - 1)}
-                              className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 text-gray-600 transition-colors"
+                              className="w-8 h-8 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
                             >
                               <IconMinus size={13} />
                             </button>
@@ -251,7 +251,7 @@ export function CartPage() {
                             </span>
                             <button
                               onClick={() => onUpdate(item.productId, item.quantity + 1)}
-                              className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 text-gray-600 transition-colors"
+                              className="w-8 h-8 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
                             >
                               <IconPlus size={13} />
                             </button>
@@ -261,7 +261,7 @@ export function CartPage() {
                               {formatPrice(item.price * item.quantity)}
                             </p>
                             {item.quantity > 1 ? (
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-muted-foreground">
                                 {formatPrice(item.price)} / sp
                               </p>
                             ) : null}
@@ -270,7 +270,7 @@ export function CartPage() {
                       </div>
                       <button
                         onClick={() => onRemove(item.productId)}
-                        className="p-2 h-fit rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                        className="p-2 h-fit rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors shrink-0"
                       >
                         <IconTrash size={16} />
                       </button>
@@ -291,10 +291,10 @@ export function CartPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="bg-card rounded-2xl shadow-sm p-5">
             <div className="flex items-center gap-2 mb-3">
               <IconTag size={18} style={{ color: "#FF6200" }} />
-              <h3 className="font-semibold text-gray-800">{t("cart.couponHeader")}</h3>
+              <h3 className="font-semibold text-foreground">{t("cart.couponHeader")}</h3>
             </div>
             <div className="flex gap-2">
               <input
@@ -302,7 +302,7 @@ export function CartPage() {
                 onChange={(e) => setCoupon(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
                 placeholder={t("cart.couponPlaceholder")}
-                className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] uppercase tracking-wider"
+                className="flex-1 px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] uppercase tracking-wider"
               />
               <button
                 onClick={handleApplyCoupon}
@@ -325,38 +325,38 @@ export function CartPage() {
                 </span>
                 <button
                   onClick={handleRemoveCoupon}
-                  className="text-gray-400 hover:text-red-400 text-xs"
+                  className="text-muted-foreground hover:text-red-400 text-xs"
                 >
                   {t("cart.couponRemove")}
                 </button>
               </div>
             ) : null}
-            <p className="text-[11px] text-gray-400 mt-3">{t("cart.couponHint")}</p>
+            <p className="text-[11px] text-muted-foreground mt-3">{t("cart.couponHint")}</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm p-5">
-            <h3 className="font-bold text-gray-800 mb-4">{t("cart.summaryTitle")}</h3>
+          <div className="bg-card rounded-2xl shadow-sm p-5">
+            <h3 className="font-bold text-foreground mb-4">{t("cart.summaryTitle")}</h3>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t("cart.subtotal", { count: itemCount })}</span>
+                <span className="text-muted-foreground">{t("cart.subtotal", { count: itemCount })}</span>
                 <span className="font-medium">{formatPrice(totalAmount)}</span>
               </div>
               {couponDiscount > 0 ? (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t("cart.voucherDiscount")}</span>
+                  <span className="text-muted-foreground">{t("cart.voucherDiscount")}</span>
                   <span className="font-medium" style={{ color: "#00BFB3" }}>
                     -{formatPrice(couponDiscount)}
                   </span>
                 </div>
               ) : null}
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t("cart.shippingFee")}</span>
+                <span className="text-muted-foreground">{t("cart.shippingFee")}</span>
                 <span className={shippingFee === 0 ? "font-medium text-green-500" : "font-medium"}>
                   {shippingFee === 0 ? t("cart.free") : formatPrice(shippingFee)}
                 </span>
               </div>
-              <div className="border-t border-gray-100 pt-3 flex justify-between">
-                <span className="font-bold text-gray-800">{t("cart.totalLabel")}</span>
+              <div className="border-t border-border pt-3 flex justify-between">
+                <span className="font-bold text-foreground">{t("cart.totalLabel")}</span>
                 <div className="text-right">
                   <span className="font-black text-xl" style={{ color: "#FF6200" }}>
                     {formatPrice(finalTotal)}
@@ -382,7 +382,7 @@ export function CartPage() {
               {["VNPay", "MoMo", "ZaloPay", "Visa"].map((method) => (
                 <div
                   key={method}
-                  className="px-2 py-1 bg-gray-100 rounded text-[10px] font-medium text-gray-500"
+                  className="px-2 py-1 bg-muted rounded text-[10px] font-medium text-muted-foreground"
                 >
                   {method}
                 </div>
@@ -390,7 +390,7 @@ export function CartPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-gray-500 justify-center">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
             <IconShield size={14} style={{ color: "#00BFB3" }} />
             <span>{t("cart.sslNotice")}</span>
           </div>

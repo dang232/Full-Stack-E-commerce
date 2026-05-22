@@ -124,8 +124,8 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
           {Array.from({ length: 4 }).map((_, i) => (
             // eslint-disable-next-line react/no-array-index-key -- decorative skeleton placeholders, no stable id
             <div key={i} className="flex gap-4">
-              <div className="w-6 h-6 rounded-full bg-gray-100" />
-              <div className="flex-1 h-4 rounded bg-gray-100" />
+              <div className="w-6 h-6 rounded-full bg-muted" />
+              <div className="flex-1 h-4 rounded bg-muted" />
             </div>
           ))}
         </div>
@@ -144,12 +144,12 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
                 {i < events.length - 1 ? <div className="w-0.5 h-8 mt-1 bg-gray-200" /> : null}
               </div>
               <div className="pb-4 flex-1">
-                <p className="text-sm font-medium text-gray-800">
+                <p className="text-sm font-medium text-foreground">
                   {ev.status ?? t("orders.tracking.stepFallback")}
                 </p>
-                {ev.location ? <p className="text-xs text-gray-500 mt-0.5">{ev.location}</p> : null}
-                {ev.note ? <p className="text-xs text-gray-500 mt-0.5">{ev.note}</p> : null}
-                {ev.at ? <p className="text-[11px] text-gray-400 mt-1">{ev.at}</p> : null}
+                {ev.location ? <p className="text-xs text-muted-foreground mt-0.5">{ev.location}</p> : null}
+                {ev.note ? <p className="text-xs text-muted-foreground mt-0.5">{ev.note}</p> : null}
+                {ev.at ? <p className="text-[11px] text-muted-foreground mt-1">{ev.at}</p> : null}
               </div>
             </div>
           ))}
@@ -179,7 +179,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
                   ) : null}
                 </div>
                 <div className="pb-4">
-                  <p className={`text-sm font-medium ${done ? "text-gray-800" : "text-gray-400"}`}>
+                  <p className={`text-sm font-medium ${done ? "text-foreground" : "text-muted-foreground"}`}>
                     {label}
                   </p>
                 </div>
@@ -195,7 +195,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
           style={{ background: "rgba(0,191,179,0.08)" }}
         >
           <IconMapPin size={15} style={{ color: "#00BFB3" }} />
-          <span className="text-gray-600">
+          <span className="text-muted-foreground">
             {t("orders.tracking.estimated")}{" "}
             <strong>
               {showRealTimeline ? tracking.data?.estimatedDelivery : order.estimatedDelivery}
@@ -209,7 +209,7 @@ function TrackingModal({ order, onClose }: { order: UIOrder; onClose: () => void
           <IconAlertCircle size={12} /> {t("orders.tracking.errorBanner")}
         </p>
       ) : !canFetch ? (
-        <p className="text-[11px] text-gray-400 mt-4 flex items-center gap-1.5">
+        <p className="text-[11px] text-muted-foreground mt-4 flex items-center gap-1.5">
           <IconAlertCircle size={12} /> {t("orders.tracking.noCodeBanner")}
         </p>
       ) : null}
@@ -256,7 +256,7 @@ function ReturnModal({
         <>
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600"
+            className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground"
           >
             {t("orders.return.cancel")}
           </button>
@@ -275,7 +275,7 @@ function ReturnModal({
         <div className="mb-4">
           <label
             htmlFor="orders-return-suborder"
-            className="block text-sm font-semibold text-gray-700 mb-2"
+            className="block text-sm font-semibold text-foreground mb-2"
           >
             {t("orders.return.selectPackage")}
           </label>
@@ -283,7 +283,7 @@ function ReturnModal({
             id="orders-return-suborder"
             value={subOrderId}
             onChange={(e) => setSubOrderId(e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] bg-white"
+            className="w-full px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] bg-card"
           >
             {subOrders.map((s) => (
               <option key={s.id} value={s.id}>
@@ -296,7 +296,7 @@ function ReturnModal({
 
       <label
         htmlFor="orders-return-reason"
-        className="block text-sm font-semibold text-gray-700 mb-2"
+        className="block text-sm font-semibold text-foreground mb-2"
       >
         {t("orders.return.reasonLabel")}
       </label>
@@ -306,7 +306,7 @@ function ReturnModal({
         onChange={(e) => setReason(e.target.value)}
         rows={4}
         placeholder={t("orders.return.reasonPlaceholder")}
-        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-white"
+        className="w-full px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-card"
       />
 
       <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
@@ -369,12 +369,12 @@ function OrderCard({
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-sm overflow-hidden"
+        className="bg-card rounded-2xl shadow-sm overflow-hidden"
       >
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-500">{t("orders.orderId")}</span>
-            <span className="text-xs font-bold text-gray-700 font-mono">{order.id}</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("orders.orderId")}</span>
+            <span className="text-xs font-bold text-foreground font-mono">{order.id}</span>
           </div>
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
@@ -387,7 +387,7 @@ function OrderCard({
 
         <div className="p-5">
           {order.items.length === 0 ? (
-            <p className="text-sm text-gray-400 italic mb-3">{t("orders.loadingItems")}</p>
+            <p className="text-sm text-muted-foreground italic mb-3">{t("orders.loadingItems")}</p>
           ) : null}
           {order.items.map((item) => (
             <div
@@ -397,12 +397,12 @@ function OrderCard({
               <ImageWithFallback
                 src={item.image ?? ""}
                 alt={item.name}
-                className="w-16 h-16 rounded-xl object-cover border border-gray-100"
+                className="w-16 h-16 rounded-xl object-cover border border-border"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 line-clamp-2">{item.name}</p>
+                <p className="text-sm font-medium text-foreground line-clamp-2">{item.name}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-gray-500">x{item.quantity}</span>
+                  <span className="text-xs text-muted-foreground">x{item.quantity}</span>
                   <span className="font-bold text-sm" style={{ color: "#FF6200" }}>
                     {formatPrice(item.price)}
                   </span>
@@ -411,13 +411,13 @@ function OrderCard({
             </div>
           ))}
 
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            <div className="text-sm text-gray-500">
+          <div className="flex items-center justify-between pt-3 border-t border-border">
+            <div className="text-sm text-muted-foreground">
               {order.date ? <span>{order.date}</span> : null}
               {order.seller ? <span> · {order.seller}</span> : null}
             </div>
             <div className="text-right">
-              <span className="text-xs text-gray-500">{t("orders.totalLabel")} </span>
+              <span className="text-xs text-muted-foreground">{t("orders.totalLabel")} </span>
               <span className="font-black" style={{ color: "#FF6200" }}>
                 {formatPrice(order.total)}
               </span>
@@ -439,7 +439,7 @@ function OrderCard({
             <>
               <button
                 onClick={() => onReorder(order.items)}
-                className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 border-gray-200 text-gray-600 hover:bg-gray-50"
+                className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 border-border text-muted-foreground hover:bg-muted"
               >
                 <IconRefresh size={14} /> {t("orders.actions.reorder")}
               </button>
@@ -479,7 +479,7 @@ function OrderCard({
               }
               void navigate(`/messages?with=${encodeURIComponent(sellerId)}`);
             }}
-            className="py-2.5 px-4 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-1 hover:bg-gray-50"
+            className="py-2.5 px-4 rounded-xl border border-border text-sm text-muted-foreground flex items-center gap-1 hover:bg-muted"
           >
             <IconMessage size={14} /> {t("orders.actions.chat")}
           </button>
@@ -549,7 +549,7 @@ export function OrdersPage() {
 
   if (!ready) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
         {t("orders.initSession")}
       </div>
     );
@@ -559,7 +559,7 @@ export function OrdersPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
         <IconPackage size={64} className="mx-auto mb-6 text-gray-200" />
-        <h2 className="text-xl font-bold text-gray-600 mb-3">{t("orders.loginPromptTitle")}</h2>
+        <h2 className="text-xl font-bold text-muted-foreground mb-3">{t("orders.loginPromptTitle")}</h2>
         <button
           onClick={() => login("/orders")}
           className="px-8 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
@@ -574,7 +574,7 @@ export function OrdersPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <h1
-        className="text-2xl font-bold text-gray-800 mb-6"
+        className="text-2xl font-bold text-foreground mb-6"
         style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
       >
         {t("orders.pageTitle")}
@@ -611,9 +611,9 @@ export function OrdersPage() {
             ))
           : null}
         {filtered.length === 0 ? (
-          <div className="py-16 text-center bg-white rounded-2xl">
+          <div className="py-16 text-center bg-card rounded-2xl">
             <IconPackage size={48} className="mx-auto mb-4 text-gray-200" />
-            <p className="text-gray-500 font-medium">{t("orders.empty")}</p>
+            <p className="text-muted-foreground font-medium">{t("orders.empty")}</p>
           </div>
         ) : null}
       </div>

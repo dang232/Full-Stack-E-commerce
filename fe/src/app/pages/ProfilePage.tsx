@@ -175,7 +175,7 @@ export function ProfilePage() {
 
   if (!ready) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
         {t("profile.initSession")}
       </div>
     );
@@ -184,7 +184,7 @@ export function ProfilePage() {
   if (!authenticated) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <h2 className="text-xl font-bold text-gray-600 mb-3">{t("profile.loginRequired")}</h2>
+        <h2 className="text-xl font-bold text-muted-foreground mb-3">{t("profile.loginRequired")}</h2>
         <button
           onClick={() => navigate("/login?next=%2Fprofile")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
@@ -207,7 +207,7 @@ export function ProfilePage() {
     <div className="max-w-5xl mx-auto px-4 py-6">
       <div className="grid md:grid-cols-[280px_1fr] gap-6">
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
+          <div className="bg-card rounded-2xl p-6 shadow-sm text-center">
             <div className="relative inline-block mb-4">
               <div
                 className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto"
@@ -222,20 +222,20 @@ export function ProfilePage() {
                 <IconCamera size={13} color="white" />
               </button>
             </div>
-            <h2 className="font-bold text-gray-800 text-lg">{displayName}</h2>
-            <p className="text-sm text-gray-500 mt-0.5">{displayEmail}</p>
+            <h2 className="font-bold text-foreground text-lg">{displayName}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">{displayEmail}</p>
             <div className="flex items-center justify-center gap-2 mt-2">
               <div className="w-2 h-2 rounded-full bg-green-400" />
               <span className="text-xs text-green-600 font-medium">{t("profile.loggedInVia")}</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
             {menuItems.map((item) => (
               <button
                 key={item.label}
                 onClick={() => navigate(item.path)}
-                className="w-full flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors text-left border-b border-gray-50 last:border-0"
+                className="w-full flex items-center gap-3 px-5 py-4 hover:bg-muted transition-colors text-left border-b border-gray-50 last:border-0"
               >
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -244,24 +244,24 @@ export function ProfilePage() {
                   <item.icon size={18} style={{ color: "#00BFB3" }} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                  <p className="text-xs text-gray-400">{item.desc}</p>
+                  <p className="text-sm font-medium text-foreground">{item.label}</p>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </div>
-                <IconChevronRight size={15} className="text-gray-400" />
+                <IconChevronRight size={15} className="text-muted-foreground" />
               </button>
             ))}
           </div>
 
           <button
             onClick={logout}
-            className="w-full py-3 rounded-2xl text-red-500 border border-red-200 flex items-center justify-center gap-2 text-sm font-medium hover:bg-red-50 transition-colors bg-white shadow-sm"
+            className="w-full py-3 rounded-2xl text-red-500 border border-red-200 flex items-center justify-center gap-2 text-sm font-medium hover:bg-red-50 transition-colors bg-card shadow-sm"
           >
             <IconLogout size={16} /> {t("profile.logout")}
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex border-b border-gray-100 overflow-x-auto">
+        <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+          <div className="flex border-b border-border overflow-x-auto">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -283,12 +283,12 @@ export function ProfilePage() {
             {activeTab === "info" ? (
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-bold text-gray-800">{t("profile.info.title")}</h3>
+                  <h3 className="font-bold text-foreground">{t("profile.info.title")}</h3>
                   {editing ? (
                     <div className="flex gap-2">
                       <button
                         onClick={cancelEditing}
-                        className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-500"
+                        className="px-4 py-2 rounded-xl text-sm font-medium border border-border text-muted-foreground"
                       >
                         {t("profile.info.cancel")}
                       </button>
@@ -337,7 +337,7 @@ export function ProfilePage() {
                     },
                   ].map((field) => (
                     <div key={field.key}>
-                      <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                      <label className="block text-sm font-medium text-muted-foreground mb-1.5">
                         {t(field.labelKey)}
                       </label>
                       {editing && field.editable ? (
@@ -347,20 +347,17 @@ export function ProfilePage() {
                           onChange={(e) =>
                             setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))
                           }
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] transition-colors"
+                          className="w-full px-4 py-3 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] transition-colors"
                         />
                       ) : (
-                        <div
-                          className="px-4 py-3 rounded-xl text-sm text-gray-800"
-                          style={{ background: "#f9fafb" }}
-                        >
+                        <div className="px-4 py-3 rounded-xl text-sm text-foreground bg-muted">
                           {formData[field.key] || (
-                            <span className="text-gray-400">{t("profile.info.notSet")}</span>
+                            <span className="text-muted-foreground">{t("profile.info.notSet")}</span>
                           )}
                         </div>
                       )}
                       {field.key === "email" ? (
-                        <p className="text-[11px] text-gray-400 mt-1">
+                        <p className="text-[11px] text-muted-foreground mt-1">
                           {t("profile.info.emailHint")}
                         </p>
                       ) : null}
@@ -373,7 +370,7 @@ export function ProfilePage() {
             {activeTab === "addresses" ? (
               <div>
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-bold text-gray-800">{t("profile.addresses.title")}</h3>
+                  <h3 className="font-bold text-foreground">{t("profile.addresses.title")}</h3>
                   <button
                     onClick={() => setShowAddForm((v) => !v)}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white"
@@ -387,7 +384,7 @@ export function ProfilePage() {
                 </div>
 
                 {showAddForm ? (
-                  <div className="border border-dashed border-gray-200 rounded-2xl p-4 mb-4 space-y-3">
+                  <div className="border border-dashed border-border rounded-2xl p-4 mb-4 space-y-3">
                     {(
                       [
                         { key: "street", labelKey: "profile.addresses.fields.street" },
@@ -400,7 +397,7 @@ export function ProfilePage() {
                       <div key={field.key}>
                         <label
                           htmlFor={`addr-${field.key}`}
-                          className="block text-xs font-medium text-gray-600 mb-1"
+                          className="block text-xs font-medium text-muted-foreground mb-1"
                         >
                           {t(field.labelKey)}
                         </label>
@@ -410,11 +407,11 @@ export function ProfilePage() {
                           onChange={(e) =>
                             setNewAddress((prev) => ({ ...prev, [field.key]: e.target.value }))
                           }
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#00BFB3]"
+                          className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-[#00BFB3]"
                         />
                       </div>
                     ))}
-                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
                       <input
                         type="checkbox"
                         checked={newAddress.isDefault ?? false}
@@ -444,7 +441,7 @@ export function ProfilePage() {
                 ) : null}
 
                 {addresses.length === 0 && !showAddForm ? (
-                  <div className="text-center py-12 text-sm text-gray-400">
+                  <div className="text-center py-12 text-sm text-muted-foreground">
                     {t("profile.addresses.empty")}
                   </div>
                 ) : null}
@@ -452,17 +449,17 @@ export function ProfilePage() {
                 <div className="space-y-3">
                   {addresses.map((addr, i) => (
                     // eslint-disable-next-line react/no-array-index-key -- address list has no stable id; index is the address position
-                    <div key={i} className="border border-gray-200 rounded-2xl p-4">
+                    <div key={i} className="border border-border rounded-2xl p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-sm text-gray-800">
+                            <span className="font-semibold text-sm text-foreground">
                               {displayName}
                             </span>
                             {addr.phone ? (
                               <>
                                 <span className="text-gray-300">|</span>
-                                <span className="text-sm text-gray-600">{addr.phone}</span>
+                                <span className="text-sm text-muted-foreground">{addr.phone}</span>
                               </>
                             ) : null}
                             {addr.isDefault ? (
@@ -475,8 +472,8 @@ export function ProfilePage() {
                             ) : null}
                           </div>
                           <div className="flex items-start gap-1.5">
-                            <IconMapPin size={13} className="mt-0.5 shrink-0 text-gray-400" />
-                            <p className="text-sm text-gray-500 leading-relaxed">
+                            <IconMapPin size={13} className="mt-0.5 shrink-0 text-muted-foreground" />
+                            <p className="text-sm text-muted-foreground leading-relaxed">
                               {formatAddressLine(addr)}
                             </p>
                           </div>
@@ -510,7 +507,7 @@ export function ProfilePage() {
 
             {activeTab === "payment" ? (
               <div>
-                <h3 className="font-bold text-gray-800 mb-3">{t("profile.payment.title")}</h3>
+                <h3 className="font-bold text-foreground mb-3">{t("profile.payment.title")}</h3>
                 <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 flex items-start gap-2">
                   <IconAlertCircle size={14} className="shrink-0 mt-0.5" />
                   <p>{t("profile.payment.comingSoonBanner")}</p>
@@ -520,8 +517,8 @@ export function ProfilePage() {
 
             {activeTab === "security" ? (
               <div>
-                <h3 className="font-bold text-gray-800 mb-3">{t("profile.security.title")}</h3>
-                <p className="text-sm text-gray-500 mb-4">{t("profile.security.subtitle")}</p>
+                <h3 className="font-bold text-foreground mb-3">{t("profile.security.title")}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{t("profile.security.subtitle")}</p>
                 <button
                   onClick={() => {
                     const env = import.meta.env as Record<string, string | undefined>;

@@ -37,11 +37,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-6 text-center">
-          <h2 className="text-lg font-bold text-gray-800 mb-2">Có lỗi xảy ra</h2>
-          <p className="text-sm text-gray-600 mb-4">{message}</p>
+        <div className="max-w-md w-full bg-card border border-border rounded-2xl shadow-sm p-6 text-center">
+          <h2 className="text-lg font-bold text-foreground mb-2">Có lỗi xảy ra</h2>
+          <p className="text-sm text-muted-foreground mb-4">{message}</p>
           {apiError?.correlationId ? (
-            <p className="text-xs text-gray-400 mb-4">
+            <p className="text-xs text-muted-foreground mb-4">
               Mã hỗ trợ: <span className="font-mono">{apiError.correlationId}</span>
             </p>
           ) : null}

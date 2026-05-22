@@ -97,23 +97,23 @@ export function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-80 sm:w-96 bg-card rounded-2xl shadow-xl border border-border overflow-hidden z-50"
           >
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-sm text-gray-800">Thông báo</h3>
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+              <h3 className="font-semibold text-sm text-foreground">Thông báo</h3>
               {unreadCount > 0 ? (
-                <span className="text-[11px] text-gray-500">{unreadCount} chưa đọc</span>
+                <span className="text-[11px] text-muted-foreground">{unreadCount} chưa đọc</span>
               ) : null}
             </div>
 
             <div className="max-h-96 overflow-y-auto">
               {isLoading ? (
-                <p className="px-4 py-6 text-sm text-gray-400 text-center">Đang tải...</p>
+                <p className="px-4 py-6 text-sm text-muted-foreground text-center">Đang tải...</p>
               ) : null}
               {!isLoading && items.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <IconBell size={32} className="mx-auto mb-3 text-gray-200" />
-                  <p className="text-sm text-gray-400">Chưa có thông báo nào</p>
+                  <p className="text-sm text-muted-foreground">Chưa có thông báo nào</p>
                 </div>
               ) : null}
               {!isLoading && items.length > 0 ? (
@@ -122,7 +122,7 @@ export function NotificationBell() {
                     <li key={n.id}>
                       <button
                         onClick={() => handleSelect(n)}
-                        className="w-full px-4 py-3 flex gap-3 text-left hover:bg-gray-50 transition-colors"
+                        className="w-full px-4 py-3 flex gap-3 text-left hover:bg-muted transition-colors"
                       >
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
@@ -136,7 +136,7 @@ export function NotificationBell() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <p
-                              className="text-sm font-medium text-gray-800 line-clamp-1"
+                              className="text-sm font-medium text-foreground line-clamp-1"
                               style={{ fontWeight: n.read === false ? 600 : 500 }}
                             >
                               {n.title ?? n.type ?? "Thông báo"}
@@ -149,10 +149,10 @@ export function NotificationBell() {
                             ) : null}
                           </div>
                           {n.body ? (
-                            <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{n.body}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>
                           ) : null}
                           {n.createdAt ? (
-                            <p className="text-[11px] text-gray-400 mt-1">
+                            <p className="text-[11px] text-muted-foreground mt-1">
                               {relativeTime(n.createdAt)}
                             </p>
                           ) : null}
@@ -164,7 +164,7 @@ export function NotificationBell() {
               ) : null}
             </div>
 
-            <div className="px-4 py-2.5 border-t border-gray-100 text-center">
+            <div className="px-4 py-2.5 border-t border-border text-center">
               <button
                 onClick={() => {
                   setOpen(false);

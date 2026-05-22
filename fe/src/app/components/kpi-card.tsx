@@ -12,7 +12,7 @@ export interface KPICardProps {
 
 export function KPICard({ icon: Icon, label, value, change, color, sub }: KPICardProps) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm">
+    <div className="bg-card rounded-2xl p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div
           className="w-11 h-11 rounded-xl flex items-center justify-center"
@@ -27,9 +27,9 @@ export function KPICard({ icon: Icon, label, value, change, color, sub }: KPICar
           </div>
         ) : null}
       </div>
-      <p className="text-2xl font-black text-gray-800">{value}</p>
-      <p className="text-sm text-gray-500 mt-0.5">{label}</p>
-      {sub ? <p className="text-xs text-gray-400 mt-0.5">{sub}</p> : null}
+      <p className="text-2xl font-black text-foreground">{value}</p>
+      <p className="text-sm text-muted-foreground mt-0.5">{label}</p>
+      {sub ? <p className="text-xs text-muted-foreground mt-0.5">{sub}</p> : null}
     </div>
   );
 }

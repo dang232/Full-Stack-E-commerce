@@ -76,7 +76,7 @@ export function SellerWallet({
         }}
         isSubmitting={requestPayoutMutation.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">{t("seller.wallet.title")}</h2>
+      <h2 className="text-xl font-bold text-foreground">{t("seller.wallet.title")}</h2>
 
       <div
         className="rounded-2xl p-6 text-white"
@@ -105,12 +105,12 @@ export function SellerWallet({
         </p>
       ) : null}
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <h3 className="px-5 py-4 font-bold text-gray-800 border-b border-gray-100">
+      <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+        <h3 className="px-5 py-4 font-bold text-foreground border-b border-border">
           {t("seller.wallet.historyTitle")}
         </h3>
         {payouts.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-gray-400 text-center">
+          <p className="px-5 py-8 text-sm text-muted-foreground text-center">
             {t("seller.wallet.historyEmpty")}
           </p>
         ) : null}
@@ -118,8 +118,8 @@ export function SellerWallet({
           {payouts.map((p) => (
             <div key={p.id} className="px-5 py-4 flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-gray-800">{formatPrice(p.amount)}</p>
-                <p className="text-xs text-gray-500">{p.requestedAt ?? "—"}</p>
+                <p className="text-sm font-semibold text-foreground">{formatPrice(p.amount)}</p>
+                <p className="text-xs text-muted-foreground">{p.requestedAt ?? "—"}</p>
               </div>
               <span
                 className="px-2.5 py-1 rounded-full text-xs font-semibold"

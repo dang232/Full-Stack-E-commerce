@@ -26,15 +26,15 @@ export function CheckoutAddressStep({
 
   return (
     <div className="space-y-4">
-      <h2 className="font-bold text-gray-800 text-lg mb-4">{t("checkout.address.header")}</h2>
+      <h2 className="font-bold text-foreground text-lg mb-4">{t("checkout.address.header")}</h2>
       {isLoading ? (
-        <p className="text-sm text-gray-400">{t("checkout.address.loading")}</p>
+        <p className="text-sm text-muted-foreground">{t("checkout.address.loading")}</p>
       ) : null}
       {!isLoading && addresses.length === 0 ? (
-        <div className="bg-white rounded-2xl p-5 text-sm text-gray-500 flex items-start gap-3">
+        <div className="bg-card rounded-2xl p-5 text-sm text-muted-foreground flex items-start gap-3">
           <IconAlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-gray-700">{t("checkout.address.noAddressesTitle")}</p>
+            <p className="font-semibold text-foreground">{t("checkout.address.noAddressesTitle")}</p>
             <p className="mt-1">{t("checkout.address.noAddressesSub")}</p>
             <button
               onClick={() => navigate("/profile")}
@@ -60,11 +60,11 @@ export function CheckoutAddressStep({
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-gray-800">{buyerName}</span>
+                <span className="font-semibold text-foreground">{buyerName}</span>
                 {addr.phone ? (
                   <>
-                    <span className="text-gray-400 text-sm">|</span>
-                    <span className="text-gray-600 text-sm">{addr.phone}</span>
+                    <span className="text-muted-foreground text-sm">|</span>
+                    <span className="text-muted-foreground text-sm">{addr.phone}</span>
                   </>
                 ) : null}
                 {addr.isDefault ? (
@@ -76,7 +76,7 @@ export function CheckoutAddressStep({
                   </span>
                 ) : null}
               </div>
-              <p className="text-sm text-gray-500">{formatAddressLine(addr)}</p>
+              <p className="text-sm text-muted-foreground">{formatAddressLine(addr)}</p>
             </div>
             <div
               className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all"
@@ -91,7 +91,7 @@ export function CheckoutAddressStep({
       ))}
       <button
         onClick={() => navigate("/profile")}
-        className="w-full py-3 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 text-sm font-medium text-gray-500 hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors bg-white"
+        className="w-full py-3 rounded-2xl border-2 border-dashed border-border flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors bg-card"
       >
         <IconPlus size={16} /> {t("checkout.address.addNew")}
       </button>

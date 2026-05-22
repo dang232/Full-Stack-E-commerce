@@ -25,7 +25,7 @@ function ProductListItem({ product }: { product: Product }) {
       role="button"
       tabIndex={0}
       aria-label={t("search.viewDetailsAria", { name: product.name })}
-      className="flex gap-4 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+      className="flex gap-4 bg-card rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
       onClick={() => navigate(`/product/${product.id}`)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -50,10 +50,10 @@ function ProductListItem({ product }: { product: Product }) {
         ) : null}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-gray-400 mb-1">
+        <p className="text-xs text-muted-foreground mb-1">
           {product.sellerName} · {product.location}
         </p>
-        <h3 className="font-medium text-gray-800 mb-2 line-clamp-2">{product.name}</h3>
+        <h3 className="font-medium text-foreground mb-2 line-clamp-2">{product.name}</h3>
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -68,10 +68,10 @@ function ProductListItem({ product }: { product: Product }) {
               />
             ))}
           </div>
-          <span className="text-xs text-gray-500">({product.reviewCount.toLocaleString()})</span>
-          <span className="text-xs text-gray-400">• {t("home.soldShort", { count: product.sold.toLocaleString() })}</span>
+          <span className="text-xs text-muted-foreground">({product.reviewCount.toLocaleString()})</span>
+          <span className="text-xs text-muted-foreground">• {t("home.soldShort", { count: product.sold.toLocaleString() })}</span>
         </div>
-        <p className="text-xs text-gray-500 line-clamp-2 mb-3">
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
           {product.description.slice(0, 100)}...
         </p>
         <div className="flex items-center gap-2 flex-wrap">
@@ -84,7 +84,7 @@ function ProductListItem({ product }: { product: Product }) {
             </span>
           ) : null}
           {product.colors?.slice(0, 3).map((c) => (
-            <span key={c} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+            <span key={c} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               {c}
             </span>
           ))}
@@ -115,7 +115,7 @@ function ProductListItem({ product }: { product: Product }) {
             {formatPrice(product.price)}
           </p>
           {product.originalPrice ? (
-            <p className="text-sm text-gray-400 line-through">
+            <p className="text-sm text-muted-foreground line-through">
               {formatPrice(product.originalPrice)}
             </p>
           ) : null}
@@ -144,7 +144,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.04, 0.5) }}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer group"
+      className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer group"
       onClick={() => navigate(`/product/${product.id}`)}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
@@ -195,14 +195,14 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
         </button>
       </div>
       <div className="p-3">
-        <p className="text-[11px] text-gray-400 truncate">{product.sellerName}</p>
-        <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mt-0.5 mb-1.5 leading-snug">
+        <p className="text-[11px] text-muted-foreground truncate">{product.sellerName}</p>
+        <h3 className="text-sm font-medium text-foreground line-clamp-2 mt-0.5 mb-1.5 leading-snug">
           {product.name}
         </h3>
         <div className="flex items-center gap-1 mb-2">
           <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
-          <span className="text-xs text-gray-700">{product.rating}</span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-foreground">{product.rating}</span>
+          <span className="text-xs text-muted-foreground">
             (
             {product.reviewCount > 999
               ? `${(product.reviewCount / 1000).toFixed(1)}k`
@@ -216,7 +216,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
               {formatPrice(product.price)}
             </p>
             {product.originalPrice ? (
-              <p className="text-[11px] text-gray-400 line-through">
+              <p className="text-[11px] text-muted-foreground line-through">
                 {formatPrice(product.originalPrice)}
               </p>
             ) : null}
@@ -381,8 +381,8 @@ export function SearchPage() {
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* IconSearch bar */}
       <form onSubmit={handleSearch} className="flex gap-3 mb-6">
-        <div className="flex-1 flex items-center bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <IconSearch size={18} className="ml-4 text-gray-400 shrink-0" />
+        <div className="flex-1 flex items-center bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+          <IconSearch size={18} className="ml-4 text-muted-foreground shrink-0" />
           <input
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
@@ -396,7 +396,7 @@ export function SearchPage() {
                 setLocalQuery("");
                 setSearchParams({});
               }}
-              className="pr-3 text-gray-400"
+              className="pr-3 text-muted-foreground"
             >
               <IconX size={16} />
             </button>
@@ -443,9 +443,9 @@ export function SearchPage() {
       <div className="flex gap-6">
         {/* Sidebar filters */}
         <aside className={`shrink-0 w-56 space-y-5 ${showFilters ? "block" : "hidden lg:block"}`}>
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <div className="bg-card rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-gray-800">{t("search.filtersTitle")}</h3>
+              <h3 className="font-bold text-foreground">{t("search.filtersTitle")}</h3>
               {activeFilterCount > 0 ? (
                 <button
                   onClick={clearFilters}
@@ -459,7 +459,7 @@ export function SearchPage() {
 
             {/* Sort */}
             <div className="mb-5">
-              <p className="text-sm font-semibold text-gray-700 mb-2">{t("search.sortHeader")}</p>
+              <p className="text-sm font-semibold text-foreground mb-2">{t("search.sortHeader")}</p>
               {[
                 { v: "popular", l: t("search.sort.popular") },
                 { v: "rating", l: t("search.sort.rating") },
@@ -488,21 +488,21 @@ export function SearchPage() {
 
             {/* Price range */}
             <div className="mb-5">
-              <p className="text-sm font-semibold text-gray-700 mb-2">{t("search.priceHeader")}</p>
+              <p className="text-sm font-semibold text-foreground mb-2">{t("search.priceHeader")}</p>
               <div className="flex gap-2">
                 <input
                   value={priceMin}
                   onChange={(e) => setPriceMin(e.target.value)}
                   placeholder={t("search.priceFrom")}
                   type="number"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-[#00BFB3]"
+                  className="flex-1 px-3 py-2 border border-border rounded-lg text-xs outline-none focus:border-[#00BFB3]"
                 />
                 <input
                   value={priceMax}
                   onChange={(e) => setPriceMax(e.target.value)}
                   placeholder={t("search.priceTo")}
                   type="number"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-[#00BFB3]"
+                  className="flex-1 px-3 py-2 border border-border rounded-lg text-xs outline-none focus:border-[#00BFB3]"
                 />
               </div>
               {[
@@ -535,7 +535,7 @@ export function SearchPage() {
 
             {/* Rating */}
             <div className="mb-5">
-              <p className="text-sm font-semibold text-gray-700 mb-2">{t("search.ratingHeader")}</p>
+              <p className="text-sm font-semibold text-foreground mb-2">{t("search.ratingHeader")}</p>
               {[4, 3, 2].map((r) => (
                 <button
                   key={r}
@@ -569,11 +569,11 @@ export function SearchPage() {
                   style={{ background: freeShipOnly ? "#00BFB3" : "#d1d5db" }}
                 >
                   <div
-                    className="w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
+                    className="w-4 h-4 rounded-full bg-card shadow transition-transform duration-200"
                     style={{ transform: freeShipOnly ? "translateX(20px)" : "none" }}
                   />
                 </div>
-                <span className="text-gray-700">{t("search.freeShipping")}</span>
+                <span className="text-foreground">{t("search.freeShipping")}</span>
               </button>
             </div>
 
@@ -605,7 +605,7 @@ export function SearchPage() {
           {/* Result header */}
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-gray-800 font-medium">
+              <p className="text-foreground font-medium">
                 {isFlash ? (
                   <span className="inline-flex items-center gap-1 mr-2 text-red-500 font-bold">
                     <IconBolt size={16} fill="currentColor" /> Flash Sale
@@ -613,7 +613,7 @@ export function SearchPage() {
                 ) : null}
                 {query ? t("search.resultsForQuery", { q: query }) : t("search.allProducts")}
               </p>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {t("search.resultCount", {
                   count: usedBackend ? search.totalElements : filtered.length,
                 })}
@@ -622,12 +622,12 @@ export function SearchPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium"
+                className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card text-sm font-medium"
               >
                 <IconAdjustmentsHorizontal size={16} />
                 {t("search.filterToggle")} {activeFilterCount > 0 ? `(${activeFilterCount})` : null}
               </button>
-              <div className="hidden sm:flex border border-gray-200 rounded-xl overflow-hidden bg-white">
+              <div className="hidden sm:flex border border-border rounded-xl overflow-hidden bg-card">
                 <button
                   onClick={() => setViewMode("grid")}
                   className="p-2.5 transition-colors"
@@ -652,7 +652,7 @@ export function SearchPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-xl bg-white text-sm outline-none"
+                className="px-3 py-2 border border-border rounded-xl bg-card text-sm outline-none"
               >
                 <option value="popular">{t("search.sort.shortPopular")}</option>
                 <option value="rating">{t("search.sort.shortRating")}</option>
@@ -734,10 +734,10 @@ export function SearchPage() {
 
           {/* Empty state */}
           {paginated.length === 0 ? (
-            <div className="py-24 text-center bg-white rounded-2xl">
+            <div className="py-24 text-center bg-card rounded-2xl">
               <IconSearch size={48} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">{t("search.emptyTitle")}</h3>
-              <p className="text-sm text-gray-400 mb-6">{t("search.emptySub")}</p>
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">{t("search.emptyTitle")}</h3>
+              <p className="text-sm text-muted-foreground mb-6">{t("search.emptySub")}</p>
               <button
                 onClick={clearFilters}
                 className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold"

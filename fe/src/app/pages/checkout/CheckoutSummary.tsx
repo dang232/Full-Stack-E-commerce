@@ -61,12 +61,12 @@ export function CheckoutSummary({
 
   return (
     <div className="lg:sticky lg:top-6 h-fit space-y-4">
-      <div className="bg-white rounded-2xl shadow-sm p-5">
-        <h3 className="font-bold text-gray-800 mb-4">{t("checkout.summary.title")}</h3>
+      <div className="bg-card rounded-2xl shadow-sm p-5">
+        <h3 className="font-bold text-foreground mb-4">{t("checkout.summary.title")}</h3>
         <div className="space-y-2 text-sm mb-4">
           {cartItems.slice(0, 3).map((item) => (
             <div key={item.productId} className="flex justify-between gap-2">
-              <span className="text-gray-600 truncate">
+              <span className="text-muted-foreground truncate">
                 {(item.name ?? item.productId).split(" ").slice(0, 4).join(" ")}... x{item.quantity}
               </span>
               <span className="font-medium shrink-0">
@@ -75,7 +75,7 @@ export function CheckoutSummary({
             </div>
           ))}
           {cartItems.length > 3 ? (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {t("checkout.summary.moreItems", { count: cartItems.length - 3 })}
             </p>
           ) : null}
@@ -84,7 +84,7 @@ export function CheckoutSummary({
           <div className="flex items-center justify-between mb-2">
             <label
               htmlFor="checkout-coupon-input"
-              className="block text-xs font-semibold text-gray-600"
+              className="block text-xs font-semibold text-muted-foreground"
             >
               {t("checkout.summary.couponLabel")}
             </label>
@@ -112,9 +112,9 @@ export function CheckoutSummary({
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden mb-3"
               >
-                <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-2 max-h-48 overflow-y-auto">
+                <div className="rounded-lg border border-border bg-muted/50 p-2 max-h-48 overflow-y-auto">
                   {couponsQuery.isLoading ? (
-                    <p className="text-xs text-gray-500 px-2 py-1">
+                    <p className="text-xs text-muted-foreground px-2 py-1">
                       {t("checkout.summary.couponLoading")}
                     </p>
                   ) : null}
@@ -126,7 +126,7 @@ export function CheckoutSummary({
                     </p>
                   ) : null}
                   {couponsQuery.data?.length === 0 ? (
-                    <p className="text-xs text-gray-500 px-2 py-2 text-center">
+                    <p className="text-xs text-muted-foreground px-2 py-2 text-center">
                       {t("checkout.summary.couponEmpty")}
                     </p>
                   ) : null}
@@ -159,7 +159,7 @@ export function CheckoutSummary({
                             <button
                               onClick={() => handlePickCoupon(coupon.code)}
                               disabled={!eligible}
-                              className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left rounded-lg bg-white border border-gray-200 hover:border-[#00BFB3] hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:shadow-none"
+                              className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left rounded-lg bg-card border border-border hover:border-[#00BFB3] hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:shadow-none"
                               type="button"
                             >
                               <div className="min-w-0">
@@ -169,7 +169,7 @@ export function CheckoutSummary({
                                 >
                                   {coupon.code}
                                 </p>
-                                <p className="text-xs text-gray-500 truncate">
+                                <p className="text-xs text-muted-foreground truncate">
                                   {label}
                                   {minLabel ? ` · ${minLabel}` : ""}
                                 </p>
@@ -209,7 +209,7 @@ export function CheckoutSummary({
                   onChange={(e) => setCouponInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
                   placeholder={t("checkout.summary.couponPlaceholder")}
-                  className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#00BFB3] bg-white transition-colors"
+                  className="flex-1 px-3 py-2 text-sm border border-border rounded-lg outline-none focus:border-[#00BFB3] bg-card transition-colors"
                 />
                 <button
                   onClick={handleApplyCoupon}
@@ -239,7 +239,7 @@ export function CheckoutSummary({
                 </div>
                 <button
                   onClick={handleRemoveCoupon}
-                  className="px-3 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+                  className="px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {t("checkout.summary.couponRemove")}
                 </button>
@@ -248,24 +248,24 @@ export function CheckoutSummary({
           </AnimatePresence>
         </div>
 
-        <div className="border-t border-gray-100 pt-3 space-y-2">
+        <div className="border-t border-border pt-3 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">{t("checkout.summary.subtotal")}</span>
+            <span className="text-muted-foreground">{t("checkout.summary.subtotal")}</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">{t("checkout.summary.shippingFee")}</span>
+            <span className="text-muted-foreground">{t("checkout.summary.shippingFee")}</span>
             <span style={{ color: shippingFee === 0 ? "#00BFB3" : "#374151" }}>
               {shippingFee === 0 ? t("checkout.summary.free") : formatPrice(shippingFee)}
             </span>
           </div>
           {discount > 0 ? (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">{t("checkout.summary.discount")}</span>
+              <span className="text-muted-foreground">{t("checkout.summary.discount")}</span>
               <span style={{ color: "#FF6200" }}>-{formatPrice(discount)}</span>
             </div>
           ) : null}
-          <div className="flex justify-between font-black text-base pt-2 border-t border-gray-100">
+          <div className="flex justify-between font-black text-base pt-2 border-t border-border">
             <span>{t("checkout.summary.total")}</span>
             <span style={{ color: "#FF6200" }}>{formatPrice(finalTotal)}</span>
           </div>
@@ -294,7 +294,7 @@ export function CheckoutSummary({
         </button>
 
         {step === "review" ? (
-          <p className="text-[11px] text-gray-400 mt-3 text-center">
+          <p className="text-[11px] text-muted-foreground mt-3 text-center">
             {t("checkout.summary.termsNotice")}
           </p>
         ) : null}

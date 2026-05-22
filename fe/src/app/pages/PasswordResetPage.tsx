@@ -60,10 +60,7 @@ export function PasswordResetPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-start justify-center p-6 lg:py-16"
-      style={{ background: "linear-gradient(135deg, #f0fffe 0%, #fff8f0 100%)" }}
-    >
+    <div className="min-h-screen flex items-start justify-center p-6 lg:py-16 bg-background">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div
@@ -72,10 +69,10 @@ export function PasswordResetPage() {
           >
             <IconMail size={24} color="#00BFB3" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             {t("passwordReset.title")}
           </h2>
-          <p className="text-sm text-gray-500">{t("passwordReset.subtitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("passwordReset.subtitle")}</p>
         </div>
 
         {submitted ? (
@@ -101,7 +98,7 @@ export function PasswordResetPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
+                className="block text-sm font-medium text-foreground mb-1.5"
               >
                 {t("passwordReset.emailLabel")}
               </label>
@@ -113,7 +110,7 @@ export function PasswordResetPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t("passwordReset.emailPlaceholder")}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
               />
             </div>
 
@@ -134,7 +131,7 @@ export function PasswordResetPage() {
               {submitting ? t("passwordReset.submitting") : t("passwordReset.submit")}
             </button>
 
-            <div className="text-center text-sm text-gray-500">
+            <div className="text-center text-sm text-muted-foreground">
               <Link to="/login" className="font-medium text-[#00BFB3] hover:underline">
                 {t("passwordReset.backToLogin")}
               </Link>

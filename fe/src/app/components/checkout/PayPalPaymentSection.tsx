@@ -23,7 +23,7 @@ export function PayPalPaymentSection({
 
   if (!PAYPAL_ENABLED || !CLIENT_ID) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-gray-200 p-4 text-sm text-gray-500">
+      <div className="rounded-2xl border-2 border-dashed border-border p-4 text-sm text-muted-foreground">
         PayPal is disabled. Set <code>VITE_PAYPAL_ENABLED=true</code> and{" "}
         <code>VITE_PAYPAL_CLIENT_ID</code> to enable.
       </div>

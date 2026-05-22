@@ -24,13 +24,13 @@ export function CheckoutShippingStep({
 
   return (
     <div>
-      <h2 className="font-bold text-gray-800 text-lg mb-4">{t("checkout.shipping.header")}</h2>
+      <h2 className="font-bold text-foreground text-lg mb-4">{t("checkout.shipping.header")}</h2>
       <div className="space-y-3">
         {shippingOptions.map((method) => (
           <button
             key={method.id}
             onClick={() => setShippingChoice(method.id)}
-            className="w-full p-4 rounded-2xl border-2 text-left transition-all bg-white"
+            className="w-full p-4 rounded-2xl border-2 text-left transition-all bg-card"
             style={{
               borderColor: selectedShippingId === method.id ? "#00BFB3" : "#e5e7eb",
               background: selectedShippingId === method.id ? "rgba(0,191,179,0.04)" : "white",
@@ -45,8 +45,8 @@ export function CheckoutShippingStep({
                   }}
                 />
                 <div>
-                  <p className="font-semibold text-sm text-gray-800">{method.name}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="font-semibold text-sm text-foreground">{method.name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {method.desc} · {t("checkout.shipping.etaPrefix", { eta: method.eta })}
                   </p>
                 </div>
@@ -66,7 +66,7 @@ export function CheckoutShippingStep({
       <div className="mt-5">
         <label
           htmlFor="checkout-note"
-          className="block text-sm font-semibold text-gray-700 mb-2"
+          className="block text-sm font-semibold text-foreground mb-2"
         >
           {t("checkout.shipping.noteLabel")}
         </label>
@@ -76,7 +76,7 @@ export function CheckoutShippingStep({
           onChange={(e) => setNote(e.target.value)}
           rows={3}
           placeholder={t("checkout.shipping.notePlaceholder")}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-white"
+          className="w-full px-4 py-3 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-card"
         />
       </div>
     </div>

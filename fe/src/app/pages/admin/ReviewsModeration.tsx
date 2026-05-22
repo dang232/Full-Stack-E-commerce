@@ -64,29 +64,29 @@ export function ReviewsModeration() {
         }}
         isSubmitting={reject.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">{t("admin.reviewsModeration.title")}</h2>
+      <h2 className="text-xl font-bold text-foreground">{t("admin.reviewsModeration.title")}</h2>
 
       {reviewsQuery.isLoading ? (
-        <p className="text-sm text-gray-400">{t("admin.reviewsModeration.loading")}</p>
+        <p className="text-sm text-muted-foreground">{t("admin.reviewsModeration.loading")}</p>
       ) : null}
       {reviewsQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{reviewsQuery.error.message}</p>
       ) : null}
       {!reviewsQuery.isLoading && reviews.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500">{t("admin.reviewsModeration.empty")}</p>
+        <div className="bg-card rounded-2xl p-8 text-center shadow-sm">
+          <p className="text-sm text-muted-foreground">{t("admin.reviewsModeration.empty")}</p>
         </div>
       ) : null}
 
       <div className="space-y-3">
         {reviews.map((r) => (
-          <div key={r.id} className="bg-white rounded-2xl p-5 shadow-sm">
+          <div key={r.id} className="bg-card rounded-2xl p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <p className="text-xs font-mono text-gray-400">
+                <p className="text-xs font-mono text-muted-foreground">
                   {t("admin.reviewsModeration.productPrefix", { id: r.productId })}
                 </p>
-                <p className="text-sm font-semibold text-gray-800">
+                <p className="text-sm font-semibold text-foreground">
                   {r.userName ?? r.userId ?? t("admin.reviewsModeration.anonGuest")}
                 </p>
               </div>
@@ -102,7 +102,7 @@ export function ReviewsModeration() {
               </div>
             </div>
             {r.comment ? (
-              <p className="text-sm text-gray-700 mb-3 bg-gray-50 p-3 rounded-xl">{r.comment}</p>
+              <p className="text-sm text-foreground mb-3 bg-muted p-3 rounded-xl">{r.comment}</p>
             ) : null}
             <div className="flex gap-2">
               <button

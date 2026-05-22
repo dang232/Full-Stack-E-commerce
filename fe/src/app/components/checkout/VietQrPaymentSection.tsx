@@ -63,21 +63,21 @@ export function VietQrPaymentSection({
   }
   if (!qr) {
     return (
-      <div className="rounded-2xl border-2 border-gray-100 p-4 text-sm text-gray-500">
+      <div className="rounded-2xl border-2 border-border p-4 text-sm text-muted-foreground">
         Đang tạo QR…
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border-2 border-gray-100 p-6 space-y-4 text-center" data-testid="vietqr-section">
+    <div className="rounded-2xl border-2 border-border p-6 space-y-4 text-center" data-testid="vietqr-section">
       <img
         src={qr.qrImageUrl}
         alt="VietQR mã thanh toán"
         className="mx-auto w-64 h-64 object-contain"
         data-testid="vietqr-image"
       />
-      <div className="text-sm text-gray-700 space-y-1">
+      <div className="text-sm text-foreground space-y-1">
         <p>
           <strong>Tài khoản:</strong> {qr.accountNo}
         </p>
@@ -88,7 +88,7 @@ export function VietQrPaymentSection({
           <strong>Nội dung CK:</strong> <code>{qr.reference}</code>
         </p>
       </div>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-muted-foreground">
         Sau khi chuyển xong, đơn hàng sẽ tự động cập nhật trong vòng 1 phút.
       </p>
     </div>

@@ -50,7 +50,7 @@ function ShipDialogBody({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground disabled:opacity-50"
           >
             {t("seller.shipDialog.cancel")}
           </button>
@@ -67,7 +67,7 @@ function ShipDialogBody({
     >
       <div className="space-y-4">
         <div>
-          <span className="block text-sm font-semibold text-gray-700 mb-2">
+          <span className="block text-sm font-semibold text-foreground mb-2">
             {t("seller.shipDialog.carrierLabel")}
           </span>
           <div className="flex flex-wrap gap-2">
@@ -92,7 +92,7 @@ function ShipDialogBody({
               value={carrier === otherLabel ? "" : carrier}
               onChange={(e) => setCarrier(e.target.value)}
               placeholder={t("seller.shipDialog.carrierOtherPlaceholder")}
-              className="mt-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#00BFB3]"
+              className="mt-2 w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-[#00BFB3]"
             />
           ) : null}
         </div>
@@ -100,7 +100,7 @@ function ShipDialogBody({
         <div>
           <label
             htmlFor="seller-tracking-number"
-            className="block text-sm font-semibold text-gray-700 mb-1.5"
+            className="block text-sm font-semibold text-foreground mb-1.5"
           >
             {t("seller.shipDialog.trackingNumberLabel")}
           </label>
@@ -109,7 +109,7 @@ function ShipDialogBody({
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
             placeholder={t("seller.shipDialog.trackingNumberPlaceholder")}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+            className="w-full px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3]"
             // eslint-disable-next-line jsx-a11y/no-autofocus -- inside a modal opened by explicit user click; focusing the first input is expected UX
             autoFocus
           />

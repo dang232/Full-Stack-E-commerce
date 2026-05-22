@@ -68,11 +68,11 @@ export function Modal({
   };
 
   const panelClass = scrollable
-    ? `bg-white rounded-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto ${SIZE_CLASS[size]}`
-    : `bg-white rounded-2xl w-full shadow-2xl ${SIZE_CLASS[size]}`;
+    ? `bg-card rounded-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto ${SIZE_CLASS[size]}`
+    : `bg-card rounded-2xl w-full shadow-2xl ${SIZE_CLASS[size]}`;
   const headerClass = scrollable
-    ? "sticky top-0 z-10 bg-white flex items-start justify-between gap-3 px-6 py-4 border-b border-gray-100"
-    : "flex items-start justify-between gap-3 px-6 py-4 border-b border-gray-100";
+    ? "sticky top-0 z-10 bg-card flex items-start justify-between gap-3 px-6 py-4 border-b border-border"
+    : "flex items-start justify-between gap-3 px-6 py-4 border-b border-border";
 
   return (
     <AnimatePresence>
@@ -96,15 +96,15 @@ export function Modal({
             {title || !hideCloseButton ? (
               <div className={headerClass}>
                 <div className="flex-1 min-w-0">
-                  {title ? <h3 className="text-lg font-bold text-gray-800">{title}</h3> : null}
-                  {subtitle ? <div className="text-xs text-gray-500 mt-0.5">{subtitle}</div> : null}
+                  {title ? <h3 className="text-lg font-bold text-foreground">{title}</h3> : null}
+                  {subtitle ? <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div> : null}
                 </div>
                 {!hideCloseButton ? (
                   <button
                     type="button"
                     onClick={onClose}
                     disabled={dismissDisabled}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center disabled:opacity-50 shrink-0"
+                    className="w-8 h-8 rounded-full bg-muted hover:bg-gray-200 flex items-center justify-center disabled:opacity-50 shrink-0"
                     aria-label="Đóng"
                   >
                     <IconX size={16} />
@@ -116,7 +116,7 @@ export function Modal({
             <div className="p-6">{children}</div>
 
             {footer ? (
-              <div className="px-6 py-4 border-t border-gray-100 flex gap-3">{footer}</div>
+              <div className="px-6 py-4 border-t border-border flex gap-3">{footer}</div>
             ) : null}
           </motion.div>
         </div>

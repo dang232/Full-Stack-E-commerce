@@ -75,34 +75,34 @@ export function DisputesQueue() {
         }}
         isSubmitting={resolve.isPending}
       />
-      <h2 className="text-xl font-bold text-gray-800">{t("admin.disputes.title")}</h2>
+      <h2 className="text-xl font-bold text-foreground">{t("admin.disputes.title")}</h2>
 
       {disputesQuery.isLoading ? (
-        <p className="text-sm text-gray-400">{t("admin.disputes.loading")}</p>
+        <p className="text-sm text-muted-foreground">{t("admin.disputes.loading")}</p>
       ) : null}
       {!disputesQuery.isLoading && disputes.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500">{t("admin.disputes.empty")}</p>
+        <div className="bg-card rounded-2xl p-8 text-center shadow-sm">
+          <p className="text-sm text-muted-foreground">{t("admin.disputes.empty")}</p>
         </div>
       ) : null}
 
       <div className="space-y-3">
         {disputes.map((d) => (
-          <div key={d.id} className="bg-white rounded-2xl p-5 shadow-sm">
+          <div key={d.id} className="bg-card rounded-2xl p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <p className="text-xs font-mono text-gray-400">{d.id}</p>
-                <p className="text-sm font-semibold text-gray-800">
+                <p className="text-xs font-mono text-muted-foreground">{d.id}</p>
+                <p className="text-sm font-semibold text-foreground">
                   {t("admin.disputes.orderLabel", { id: d.returnId })}
                 </p>
-                <p className="text-xs text-gray-500">{d.createdAt ?? ""}</p>
+                <p className="text-xs text-muted-foreground">{d.createdAt ?? ""}</p>
               </div>
               <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
                 {d.status}
               </span>
             </div>
             {d.description ? (
-              <p className="text-sm text-gray-700 mb-3 bg-gray-50 p-3 rounded-xl">
+              <p className="text-sm text-foreground mb-3 bg-muted p-3 rounded-xl">
                 {d.description}
               </p>
             ) : null}

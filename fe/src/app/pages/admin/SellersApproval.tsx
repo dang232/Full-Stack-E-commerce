@@ -34,10 +34,10 @@ export function SellersApproval() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">{t("admin.sellers.title")}</h2>
+        <h2 className="text-xl font-bold text-foreground">{t("admin.sellers.title")}</h2>
       </div>
-      <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
-        <IconSearch size={16} className="text-gray-400" />
+      <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-2.5 shadow-sm">
+        <IconSearch size={16} className="text-muted-foreground" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -47,24 +47,24 @@ export function SellersApproval() {
       </div>
 
       {sellersQuery.isLoading ? (
-        <p className="text-sm text-gray-400">{t("admin.sellers.loading")}</p>
+        <p className="text-sm text-muted-foreground">{t("admin.sellers.loading")}</p>
       ) : null}
       {sellersQuery.error instanceof ApiError ? (
         <p className="text-sm text-red-500">{sellersQuery.error.message}</p>
       ) : null}
       {!sellersQuery.isLoading && filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-gray-500">{t("admin.sellers.empty")}</p>
+        <div className="bg-card rounded-2xl p-8 text-center shadow-sm">
+          <p className="text-sm text-muted-foreground">{t("admin.sellers.empty")}</p>
         </div>
       ) : null}
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-50">
           {filtered.map((s) => (
             <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold text-gray-800">{s.shopName}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-semibold text-foreground">{s.shopName}</p>
+                <p className="text-xs text-muted-foreground">
                   {s.appliedAt ?? ""} · {s.status}
                 </p>
               </div>

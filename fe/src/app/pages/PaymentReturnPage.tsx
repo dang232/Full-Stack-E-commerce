@@ -125,12 +125,12 @@ export function PaymentReturnPage() {
             <IconClock size={36} style={{ color: "#00BFB3" }} />
           </div>
           <h1
-            className="text-2xl font-bold text-gray-800 mb-3"
+            className="text-2xl font-bold text-foreground mb-3"
             style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
           >
             Đang xác nhận thanh toán...
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Vui lòng giữ trang này mở. Hệ thống đang kiểm tra trạng thái thanh toán với{" "}
             {provider === "vnpay" ? "VNPay" : "MoMo"}.
           </p>
@@ -146,18 +146,18 @@ export function PaymentReturnPage() {
             <IconCircleCheck size={48} style={{ color: "#10B981" }} />
           </div>
           <h1
-            className="text-3xl font-black text-gray-800 mb-3"
+            className="text-3xl font-black text-foreground mb-3"
             style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
           >
             Thanh toán thành công 🎉
           </h1>
           {amount !== null ? (
-            <p className="text-sm text-gray-500 mb-2">
+            <p className="text-sm text-muted-foreground mb-2">
               Số tiền đã thanh toán: <strong>{formatPrice(amount)}</strong>
             </p>
           ) : null}
           {orderId ? (
-            <p className="text-sm text-gray-500 mb-8">
+            <p className="text-sm text-muted-foreground mb-8">
               Mã đơn hàng: <span className="font-mono font-semibold">{orderId}</span>
             </p>
           ) : null}
@@ -188,8 +188,8 @@ export function PaymentReturnPage() {
           >
             <IconAlertCircle size={40} style={{ color: "#EF4444" }} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-3">Thanh toán không thành công</h1>
-          <p className="text-sm text-gray-500 mb-6">
+          <h1 className="text-2xl font-bold text-foreground mb-3">Thanh toán không thành công</h1>
+          <p className="text-sm text-muted-foreground mb-6">
             Đơn hàng của bạn vẫn được giữ. Bạn có thể thử thanh toán lại từ trang Đơn hàng.
           </p>
           <div className="flex gap-3">
@@ -202,7 +202,7 @@ export function PaymentReturnPage() {
             </button>
             <button
               onClick={() => navigate("/")}
-              className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm"
+              className="flex-1 py-3 rounded-xl border border-border text-muted-foreground font-semibold text-sm"
             >
               Trang chủ
             </button>
@@ -218,8 +218,8 @@ export function PaymentReturnPage() {
           >
             <IconAlertCircle size={40} style={{ color: "#F59E0B" }} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-3">Không xác định được trạng thái</h1>
-          <p className="text-sm text-gray-500 mb-6">
+          <h1 className="text-2xl font-bold text-foreground mb-3">Không xác định được trạng thái</h1>
+          <p className="text-sm text-muted-foreground mb-6">
             {errorMessage || "Vui lòng kiểm tra trang đơn hàng để xem trạng thái mới nhất."}
           </p>
           <button

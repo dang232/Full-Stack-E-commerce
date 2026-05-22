@@ -214,7 +214,7 @@ export function CheckoutPage() {
 
   if (!ready) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
         {t("checkout.initSession")}
       </div>
     );
@@ -223,7 +223,7 @@ export function CheckoutPage() {
   if (!authenticated) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <h2 className="text-xl font-bold text-gray-600 mb-3">{t("checkout.loginPromptTitle")}</h2>
+        <h2 className="text-xl font-bold text-muted-foreground mb-3">{t("checkout.loginPromptTitle")}</h2>
         <button
           onClick={() => login("/checkout")}
           className="px-8 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
@@ -237,7 +237,7 @@ export function CheckoutPage() {
 
   if (cartLoading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-gray-500">
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
         {t("checkout.loadingCart")}
       </div>
     );
@@ -247,7 +247,7 @@ export function CheckoutPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
         <IconPackage size={56} className="mx-auto mb-4 text-gray-200" />
-        <h2 className="text-xl font-bold text-gray-600 mb-3">{t("checkout.emptyCartTitle")}</h2>
+        <h2 className="text-xl font-bold text-muted-foreground mb-3">{t("checkout.emptyCartTitle")}</h2>
         <button
           onClick={() => navigate("/")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
@@ -384,8 +384,8 @@ export function CheckoutPage() {
         (selectedPaymentId === "STRIPE" ||
           selectedPaymentId === "PAYPAL" ||
           selectedPaymentId === "VIETQR") ? (
-          <div className="mb-6 rounded-2xl border-2 border-gray-100 bg-white p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">
+          <div className="mb-6 rounded-2xl border-2 border-border bg-card p-6">
+            <h2 className="text-lg font-bold text-foreground mb-4">
               Hoàn tất thanh toán cho đơn {placedOrderId}
             </h2>
             {selectedPaymentId === "STRIPE" ? (
@@ -425,11 +425,11 @@ export function CheckoutPage() {
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={() => (step === "address" ? navigate("/cart") : setStep(stepOrder[stepIdx - 1]))}
-          className="p-2 rounded-xl hover:bg-white text-gray-500"
+          className="p-2 rounded-xl hover:bg-card text-muted-foreground"
         >
           <IconArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-gray-800">{t("checkout.title")}</h1>
+        <h1 className="text-xl font-bold text-foreground">{t("checkout.title")}</h1>
       </div>
 
       <div className="flex items-center justify-center mb-10">
@@ -450,7 +450,7 @@ export function CheckoutPage() {
                 </div>
                 <span
                   className={`text-xs mt-1 font-medium ${
-                    isActive ? "text-gray-800" : isDone ? "text-[#00BFB3]" : "text-gray-400"
+                    isActive ? "text-foreground" : isDone ? "text-[#00BFB3]" : "text-muted-foreground"
                   }`}
                 >
                   {t(s.labelKey)}

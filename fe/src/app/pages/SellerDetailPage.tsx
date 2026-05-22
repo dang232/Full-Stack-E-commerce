@@ -17,14 +17,14 @@ function SellerDetailSkeleton() {
           <div className="w-24 h-24 rounded-2xl bg-gray-300 border-4 border-white shrink-0" />
           <div className="flex-1 pb-2 space-y-2">
             <div className="h-6 bg-gray-200 rounded w-48" />
-            <div className="h-4 bg-gray-100 rounded w-32" />
+            <div className="h-4 bg-muted rounded w-32" />
           </div>
         </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
         {Array.from({ length: 8 }).map((_, i) => (
           // eslint-disable-next-line react/no-array-index-key -- skeleton placeholder
-          <div key={i} className="h-48 rounded-2xl bg-gray-100" />
+          <div key={i} className="h-48 rounded-2xl bg-muted" />
         ))}
       </div>
     </div>
@@ -43,7 +43,7 @@ function SellerProductCard({ product }: { product: ProductSummary }) {
     <div
       role="button"
       tabIndex={0}
-      className="group rounded-2xl overflow-hidden cursor-pointer bg-white border border-gray-100 hover:border-transparent hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300"
+      className="group rounded-2xl overflow-hidden cursor-pointer bg-card border border-border hover:border-transparent hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300"
       onClick={() => void navigate(`/product/${product.id}`)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -60,7 +60,7 @@ function SellerProductCard({ product }: { product: ProductSummary }) {
         />
       </div>
       <div className="p-3">
-        <h3 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2 mb-2 min-h-[2.5rem]">
+        <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 mb-2 min-h-[2.5rem]">
           {product.name}
         </h3>
         <div className="flex items-baseline gap-2">
@@ -68,7 +68,7 @@ function SellerProductCard({ product }: { product: ProductSummary }) {
             {product.price !== undefined ? formatPrice(product.price) : "—"}
           </span>
           {product.originalPrice ? (
-            <span className="text-xs text-gray-400 line-through">
+            <span className="text-xs text-muted-foreground line-through">
               {formatPrice(product.originalPrice)}
             </span>
           ) : null}
@@ -76,7 +76,7 @@ function SellerProductCard({ product }: { product: ProductSummary }) {
         {product.rating !== undefined ? (
           <div className="flex items-center gap-1 mt-1.5">
             <IconStar size={11} fill="#FF6200" color="#FF6200" />
-            <span className="text-xs font-semibold text-gray-700">{product.rating}</span>
+            <span className="text-xs font-semibold text-foreground">{product.rating}</span>
           </div>
         ) : null}
       </div>
@@ -127,10 +127,10 @@ export function SellerDetailPage() {
       </div>
 
       {/* Header card overlapping banner */}
-      <div className="relative -mt-12 bg-white rounded-3xl shadow-sm px-6 pt-4 pb-6 mx-2">
+      <div className="relative -mt-12 bg-card rounded-3xl shadow-sm px-6 pt-4 pb-6 mx-2">
         <div className="flex items-end gap-4">
           {/* Logo */}
-          <div className="w-24 h-24 rounded-2xl border-4 border-white shadow-md overflow-hidden shrink-0 bg-gray-100 flex items-center justify-center -mt-8">
+          <div className="w-24 h-24 rounded-2xl border-4 border-white shadow-md overflow-hidden shrink-0 bg-muted flex items-center justify-center -mt-8">
             {seller.logoUrl ? (
               <img src={seller.logoUrl} alt={seller.shopName} className="w-full h-full object-cover" />
             ) : (
@@ -147,7 +147,7 @@ export function SellerDetailPage() {
           <div className="flex-1 min-w-0 pb-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h1
-                className="text-xl font-bold text-gray-900 truncate"
+                className="text-xl font-bold text-foreground truncate"
                 style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
               >
                 {seller.shopName}
@@ -159,11 +159,11 @@ export function SellerDetailPage() {
                 {seller.tier}
               </span>
             </div>
-            <div className="flex items-center gap-4 mt-1.5 flex-wrap text-sm text-gray-500">
+            <div className="flex items-center gap-4 mt-1.5 flex-wrap text-sm text-muted-foreground">
               {seller.ratingAvg !== null && seller.ratingAvg !== undefined ? (
                 <span className="flex items-center gap-1">
                   <IconStar size={13} fill="#FF6200" color="#FF6200" />
-                  <span className="font-semibold text-gray-700">{seller.ratingAvg.toFixed(1)}</span>
+                  <span className="font-semibold text-foreground">{seller.ratingAvg.toFixed(1)}</span>
                   <span>({t("sellerDetail.ratingsLabel", { count: seller.ratingCount })})</span>
                 </span>
               ) : null}
@@ -178,21 +178,21 @@ export function SellerDetailPage() {
 
         {/* Description */}
         {seller.description ? (
-          <p className="mt-4 text-sm text-gray-600 leading-relaxed">{seller.description}</p>
+          <p className="mt-4 text-sm text-muted-foreground leading-relaxed">{seller.description}</p>
         ) : null}
       </div>
 
       {/* Products */}
       <div className="mt-8">
         <h2
-          className="text-xl font-bold text-gray-900 mb-5"
+          className="text-xl font-bold text-foreground mb-5"
           style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
         >
           {t("sellerDetail.products")}
         </h2>
 
         {products.length === 0 ? (
-          <div className="py-16 text-center text-gray-400">
+          <div className="py-16 text-center text-muted-foreground">
             <IconPackage size={48} className="mx-auto mb-3 text-gray-200" />
             <p className="text-sm">{t("sellerDetail.noProducts")}</p>
           </div>

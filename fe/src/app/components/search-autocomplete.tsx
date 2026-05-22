@@ -92,7 +92,7 @@ export function SearchAutocomplete({
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 px-4 py-2.5 text-sm bg-white text-gray-800 outline-none placeholder:text-gray-400"
+          className="flex-1 px-4 py-2.5 text-sm bg-card text-foreground outline-none placeholder:text-muted-foreground"
           role="combobox"
           aria-expanded={showDropdown}
           aria-controls={listboxId}
@@ -115,7 +115,7 @@ export function SearchAutocomplete({
         <ul
           id={listboxId}
           role="listbox"
-          className="absolute left-0 right-0 top-full mt-1 max-h-80 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-100 z-50"
+          className="absolute left-0 right-0 top-full mt-1 max-h-80 overflow-y-auto bg-card rounded-xl shadow-lg border border-border z-50"
         >
           {suggestions.map((suggestion, idx) => (
             <li
@@ -134,10 +134,10 @@ export function SearchAutocomplete({
                 }}
                 onMouseEnter={() => setActiveIndex(idx)}
                 className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${
-                  idx === activeIndex ? "bg-gray-100" : "hover:bg-gray-50"
-                } text-gray-800`}
+                  idx === activeIndex ? "bg-muted" : "hover:bg-muted"
+                } text-foreground`}
               >
-                <IconSearch size={14} className="text-gray-400" />
+                <IconSearch size={14} className="text-muted-foreground" />
                 <span className="truncate">{suggestion}</span>
               </button>
             </li>

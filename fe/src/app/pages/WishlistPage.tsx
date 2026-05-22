@@ -71,20 +71,20 @@ export function WishlistPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1
-            className="text-2xl font-bold text-gray-800"
+            className="text-2xl font-bold text-foreground"
             style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
           >
             {t("wishlist.pageTitle")}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {t("wishlist.countLabel", { count: wishlist.count })}
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="p-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
+          <button className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted">
             <IconShare size={18} />
           </button>
-          <button className="p-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
+          <button className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted">
             <IconFilter size={18} />
           </button>
         </div>
@@ -94,11 +94,11 @@ export function WishlistPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="py-24 text-center bg-white rounded-2xl"
+          className="py-24 text-center bg-card rounded-2xl"
         >
           <IconHeart size={64} className="mx-auto mb-5 text-gray-200" />
-          <h2 className="text-xl font-bold text-gray-500 mb-3">{t("wishlist.emptyTitle")}</h2>
-          <p className="text-sm text-gray-400 mb-8 max-w-xs mx-auto">{t("wishlist.emptySub")}</p>
+          <h2 className="text-xl font-bold text-muted-foreground mb-3">{t("wishlist.emptyTitle")}</h2>
+          <p className="text-sm text-muted-foreground mb-8 max-w-xs mx-auto">{t("wishlist.emptySub")}</p>
           <button
             onClick={() => navigate("/")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
@@ -123,7 +123,7 @@ export function WishlistPage() {
                 wishlist.clear();
                 toast.info(t("wishlist.cleared"));
               }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm border border-gray-200 bg-white text-gray-600 hover:border-red-300 hover:text-red-500 transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm border border-border bg-card text-muted-foreground hover:border-red-300 hover:text-red-500 transition-colors"
             >
               <IconTrash size={16} /> {t("wishlist.clearAll")}
             </button>
@@ -145,13 +145,13 @@ export function WishlistPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: i * 0.05 }}
-                    className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
+                    className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
                   >
                     <div
                       role="button"
                       tabIndex={0}
                       aria-label={t("wishlist.viewAria", { name: p.name })}
-                      className="relative overflow-hidden cursor-pointer bg-gray-100"
+                      className="relative overflow-hidden cursor-pointer bg-muted"
                       style={{ aspectRatio: "1" }}
                       onClick={() => navigate(`/product/${id}`)}
                       onKeyDown={(e) => {
@@ -180,7 +180,7 @@ export function WishlistPage() {
                           wishlist.toggle(id);
                           toast.info(t("wishlist.removed"));
                         }}
-                        className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-white"
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-card"
                       >
                         <IconHeart size={14} fill="#FF6200" className="text-[#FF6200]" />
                       </button>
@@ -188,15 +188,15 @@ export function WishlistPage() {
                     <div className="p-3">
                       <button
                         onClick={() => navigate(`/product/${id}`)}
-                        className="text-sm font-medium text-gray-800 line-clamp-2 text-left hover:underline"
+                        className="text-sm font-medium text-foreground line-clamp-2 text-left hover:underline"
                       >
                         {p.name}
                       </button>
                       {p.rating !== undefined || p.reviewCount !== undefined ? (
                         <div className="flex items-center gap-1 mt-1 mb-2">
                           <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
-                          <span className="text-xs text-gray-600">{p.rating ?? 0}</span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-muted-foreground">{p.rating ?? 0}</span>
+                          <span className="text-xs text-muted-foreground">
                             ({(p.reviewCount ?? 0).toLocaleString()})
                           </span>
                         </div>
@@ -206,7 +206,7 @@ export function WishlistPage() {
                           {formatPrice(p.price ?? 0)}
                         </span>
                         {original ? (
-                          <span className="text-xs text-gray-400 line-through">
+                          <span className="text-xs text-muted-foreground line-through">
                             {formatPrice(original)}
                           </span>
                         ) : null}
@@ -226,7 +226,7 @@ export function WishlistPage() {
           </AnimatePresence>
 
           {queries.some((q) => q.isLoading) ? (
-            <p className="text-xs text-gray-400 text-center mt-6">{t("wishlist.loadingItems")}</p>
+            <p className="text-xs text-muted-foreground text-center mt-6">{t("wishlist.loadingItems")}</p>
           ) : null}
           {queries.some((q) => q.error instanceof ApiError && q.error.status === 404) ? (
             <p className="text-xs text-amber-600 text-center mt-6">{t("wishlist.stalePrompt")}</p>

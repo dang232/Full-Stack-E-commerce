@@ -58,8 +58,8 @@ export function SellerDashboard({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">{t("seller.dashboard.title")}</h2>
-          <p className="text-sm text-gray-500">{t("seller.dashboard.subtitle")}</p>
+          <h2 className="text-xl font-bold text-foreground">{t("seller.dashboard.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("seller.dashboard.subtitle")}</p>
         </div>
       </div>
 
@@ -80,10 +80,10 @@ export function SellerDashboard({
         <KPICard icon={IconStar} label={t("seller.dashboard.kpi.rating")} value="—" color="#F59E0B" />
       </div>
 
-      <div className="bg-white rounded-2xl p-5 shadow-sm">
+      <div className="bg-card rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-bold text-gray-800">{t("seller.dashboard.revenue30dTitle")}</h3>
-          <span className="text-[11px] text-gray-400">{t("seller.dashboard.revenue30dHint")}</span>
+          <h3 className="font-bold text-foreground">{t("seller.dashboard.revenue30dTitle")}</h3>
+          <span className="text-[11px] text-muted-foreground">{t("seller.dashboard.revenue30dHint")}</span>
         </div>
         {revenueError instanceof ApiError ? (
           <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 mb-3">
@@ -91,7 +91,7 @@ export function SellerDashboard({
           </div>
         ) : null}
         {revenueLoading ? (
-          <p className="text-sm text-gray-400 py-12 text-center">
+          <p className="text-sm text-muted-foreground py-12 text-center">
             {t("seller.dashboard.revenue30dLoading")}
           </p>
         ) : hasRevenue ? (
@@ -134,16 +134,16 @@ export function SellerDashboard({
             </AreaChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-sm text-gray-400 py-12 text-center">
+          <p className="text-sm text-muted-foreground py-12 text-center">
             {t("seller.dashboard.revenue30dEmpty")}
           </p>
         )}
       </div>
 
-      <div className="bg-white rounded-2xl p-5 shadow-sm">
-        <h3 className="font-bold text-gray-800 mb-4">{t("seller.dashboard.orders30dTitle")}</h3>
+      <div className="bg-card rounded-2xl p-5 shadow-sm">
+        <h3 className="font-bold text-foreground mb-4">{t("seller.dashboard.orders30dTitle")}</h3>
         {revenueLoading ? (
-          <p className="text-sm text-gray-400 py-10 text-center">
+          <p className="text-sm text-muted-foreground py-10 text-center">
             {t("seller.dashboard.orders30dLoading")}
           </p>
         ) : hasRevenue ? (
@@ -168,7 +168,7 @@ export function SellerDashboard({
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-sm text-gray-400 py-10 text-center">
+          <p className="text-sm text-muted-foreground py-10 text-center">
             {t("seller.dashboard.orders30dEmpty")}
           </p>
         )}

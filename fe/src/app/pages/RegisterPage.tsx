@@ -91,21 +91,18 @@ export function RegisterPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col lg:flex-row"
-      style={{ background: "linear-gradient(135deg, #f0fffe 0%, #fff8f0 100%)" }}
-    >
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background">
       {/* Brand panel — same shell as LoginPage so the two pages feel like a pair. */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden lg:sticky lg:top-0 lg:max-h-screen"
         style={{ background: "linear-gradient(135deg, #00BFB3 0%, #009990 50%, #006b65 100%)" }}
       >
         <div
-          className="absolute -top-20 -left-20 w-64 h-64 rounded-full opacity-20 bg-white pointer-events-none"
+          className="absolute -top-20 -left-20 w-64 h-64 rounded-full opacity-20 bg-card pointer-events-none"
           style={{ filter: "blur(60px)" }}
         />
         <div
-          className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full opacity-20 bg-white pointer-events-none"
+          className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full opacity-20 bg-card pointer-events-none"
           style={{ filter: "blur(60px)" }}
         />
         <div className="relative z-10 text-center text-white max-w-sm">
@@ -156,7 +153,7 @@ export function RegisterPage() {
               <IconSparkles size={20} color="white" />
             </div>
             <span
-              className="font-black text-xl text-gray-800"
+              className="font-black text-xl text-foreground"
               style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
             >
               VNShop
@@ -164,14 +161,14 @@ export function RegisterPage() {
           </div>
 
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{t("register.title")}</h2>
-            <p className="text-sm text-gray-500">{t("register.subtitle")}</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">{t("register.title")}</h2>
+            <p className="text-sm text-muted-foreground">{t("register.subtitle")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="firstName" className="block text-sm font-medium text-foreground mb-1.5">
                   {t("register.form.firstNameLabel")}
                 </label>
                 <input
@@ -181,11 +178,11 @@ export function RegisterPage() {
                   required
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="lastName" className="block text-sm font-medium text-foreground mb-1.5">
                   {t("register.form.lastNameLabel")}
                 </label>
                 <input
@@ -195,13 +192,13 @@ export function RegisterPage() {
                   required
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
                 {t("register.form.emailLabel")}
               </label>
               <input
@@ -211,12 +208,12 @@ export function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
               />
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1.5">
                 {t("register.form.phoneLabel")}
               </label>
               <input
@@ -226,12 +223,12 @@ export function RegisterPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+84..."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
                 {t("register.form.passwordLabel")}
               </label>
               <div className="relative">
@@ -242,12 +239,12 @@ export function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-white"
+                  className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted-foreground hover:text-muted-foreground hover:bg-muted"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
@@ -256,7 +253,7 @@ export function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="confirm" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="confirm" className="block text-sm font-medium text-foreground mb-1.5">
                 {t("register.form.confirmLabel")}
               </label>
               <input
@@ -266,7 +263,7 @@ export function RegisterPage() {
                 required
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
               />
             </div>
 
@@ -296,7 +293,7 @@ export function RegisterPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             {t("register.haveAccount")}{" "}
             <button
               type="button"
@@ -307,7 +304,7 @@ export function RegisterPage() {
             </button>
           </p>
 
-          <p className="mt-8 text-center text-xs text-gray-400">{t("login.termsNotice")}</p>
+          <p className="mt-8 text-center text-xs text-muted-foreground">{t("login.termsNotice")}</p>
         </div>
       </div>
     </div>

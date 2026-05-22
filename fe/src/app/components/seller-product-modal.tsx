@@ -311,7 +311,7 @@ function SellerProductModalBody({
             type="button"
             onClick={handleClose}
             disabled={isBusy}
-            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground disabled:opacity-50"
           >
             Huỷ
           </button>
@@ -337,9 +337,9 @@ function SellerProductModalBody({
     >
       <div className="space-y-5">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-foreground mb-2">
             Ảnh sản phẩm{" "}
-            <span className="text-gray-400 font-normal">
+            <span className="text-muted-foreground font-normal">
               ({totalImageCount}/{MAX_IMAGES})
             </span>
           </label>
@@ -347,14 +347,14 @@ function SellerProductModalBody({
             {existingImages.map((url) => (
               <div
                 key={url}
-                className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200"
+                className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border"
               >
                 <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={() => removeExistingImage(url)}
                   disabled={isBusy}
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white disabled:opacity-50"
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-card disabled:opacity-50"
                   aria-label="Xoá ảnh"
                 >
                   <IconTrash size={12} className="text-red-500" />
@@ -364,7 +364,7 @@ function SellerProductModalBody({
             {staged.map((s) => (
               <div
                 key={s.id}
-                className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200"
+                className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border"
               >
                 <img src={s.previewUrl} alt={s.file.name} className="w-full h-full object-cover" />
                 {phase === "uploading" ? (
@@ -376,7 +376,7 @@ function SellerProductModalBody({
                   type="button"
                   onClick={() => removeStaged(s.id)}
                   disabled={isBusy}
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-white disabled:opacity-50"
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-card disabled:opacity-50"
                   aria-label="Bỏ ảnh"
                 >
                   <IconTrash size={12} className="text-red-500" />
@@ -388,7 +388,7 @@ function SellerProductModalBody({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isBusy}
-                className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors disabled:opacity-50"
+                className="aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors disabled:opacity-50"
               >
                 <IconPhoto size={20} />
                 <span className="text-[11px] font-medium">Thêm ảnh</span>
@@ -406,7 +406,7 @@ function SellerProductModalBody({
               e.target.value = "";
             }}
           />
-          <p className="text-[11px] text-gray-400 mt-2">
+          <p className="text-[11px] text-muted-foreground mt-2">
             JPG, PNG, hoặc WebP. Tối đa {MAX_IMAGE_BYTES / (1024 * 1024)}MB mỗi ảnh, {MAX_IMAGES}{" "}
             ảnh / sản phẩm. Ảnh sẽ được tải lên khi bạn nhấn Lưu.
           </p>
@@ -415,7 +415,7 @@ function SellerProductModalBody({
         <div>
           <label
             htmlFor="seller-product-name"
-            className="block text-sm font-semibold text-gray-700 mb-1.5"
+            className="block text-sm font-semibold text-foreground mb-1.5"
           >
             Tên sản phẩm
           </label>
@@ -424,7 +424,7 @@ function SellerProductModalBody({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="VD: Tai nghe Sony WH-1000XM5"
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3]"
             disabled={isBusy}
           />
         </div>
@@ -432,7 +432,7 @@ function SellerProductModalBody({
         <div>
           <label
             htmlFor="seller-product-description"
-            className="block text-sm font-semibold text-gray-700 mb-1.5"
+            className="block text-sm font-semibold text-foreground mb-1.5"
           >
             Mô tả
           </label>
@@ -442,7 +442,7 @@ function SellerProductModalBody({
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Mô tả chi tiết sản phẩm..."
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none"
+            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none"
             disabled={isBusy}
           />
         </div>
@@ -451,7 +451,7 @@ function SellerProductModalBody({
           <div>
             <label
               htmlFor="seller-product-price"
-              className="block text-sm font-semibold text-gray-700 mb-1.5"
+              className="block text-sm font-semibold text-foreground mb-1.5"
             >
               Giá bán (VND)
             </label>
@@ -461,14 +461,14 @@ function SellerProductModalBody({
               onChange={(e) => setPrice(e.target.value)}
               placeholder="990000"
               inputMode="numeric"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3]"
               disabled={isBusy}
             />
           </div>
           <div>
             <label
               htmlFor="seller-product-original-price"
-              className="block text-sm font-semibold text-gray-700 mb-1.5"
+              className="block text-sm font-semibold text-foreground mb-1.5"
             >
               Giá gốc (tuỳ chọn)
             </label>
@@ -478,7 +478,7 @@ function SellerProductModalBody({
               onChange={(e) => setOriginalPrice(e.target.value)}
               placeholder="1290000"
               inputMode="numeric"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3]"
               disabled={isBusy}
             />
           </div>
@@ -488,7 +488,7 @@ function SellerProductModalBody({
           <div>
             <label
               htmlFor="seller-product-stock"
-              className="block text-sm font-semibold text-gray-700 mb-1.5"
+              className="block text-sm font-semibold text-foreground mb-1.5"
             >
               Tồn kho
             </label>
@@ -498,14 +498,14 @@ function SellerProductModalBody({
               onChange={(e) => setStock(e.target.value)}
               placeholder="100"
               inputMode="numeric"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3]"
               disabled={isBusy}
             />
           </div>
           <div>
             <label
               htmlFor="seller-product-category"
-              className="block text-sm font-semibold text-gray-700 mb-1.5"
+              className="block text-sm font-semibold text-foreground mb-1.5"
             >
               Danh mục
             </label>
@@ -514,7 +514,7 @@ function SellerProductModalBody({
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               placeholder="electronics"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#00BFB3]"
+              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3]"
               disabled={isBusy}
             />
           </div>

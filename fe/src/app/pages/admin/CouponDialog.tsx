@@ -87,7 +87,7 @@ function CouponDialogBody({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground disabled:opacity-50"
           >
             {t("admin.coupons.dialog.cancel")}
           </button>
@@ -106,7 +106,7 @@ function CouponDialogBody({
         <div>
           <label
             htmlFor="admin-coupon-code"
-            className="block text-sm font-semibold text-gray-700 mb-1.5"
+            className="block text-sm font-semibold text-foreground mb-1.5"
           >
             {t("admin.coupons.dialog.codeLabel")}
           </label>
@@ -115,14 +115,14 @@ function CouponDialogBody({
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder={t("admin.coupons.dialog.codePlaceholder")}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono uppercase tracking-wider outline-none focus:border-[#6366F1]"
+            className="w-full px-3 py-2.5 border border-border rounded-xl text-sm font-mono uppercase tracking-wider outline-none focus:border-[#6366F1]"
             // eslint-disable-next-line jsx-a11y/no-autofocus -- inside a modal opened by explicit user click; focusing the first input is expected UX
             autoFocus
           />
         </div>
 
         <div>
-          <span className="block text-sm font-semibold text-gray-700 mb-2">
+          <span className="block text-sm font-semibold text-foreground mb-2">
             {t("admin.coupons.dialog.typeLabel")}
           </span>
           <div className="grid grid-cols-2 gap-2">
@@ -149,7 +149,7 @@ function CouponDialogBody({
         <div>
           <label
             htmlFor="admin-coupon-value"
-            className="block text-sm font-semibold text-gray-700 mb-1.5"
+            className="block text-sm font-semibold text-foreground mb-1.5"
           >
             {type === "PERCENT"
               ? t("admin.coupons.dialog.valueLabelPercent")
@@ -164,7 +164,7 @@ function CouponDialogBody({
                 ? t("admin.coupons.dialog.valuePlaceholderPercent")
                 : t("admin.coupons.dialog.valuePlaceholderFixed")
             }
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
+            className="w-full px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#6366F1]"
           />
         </div>
 
@@ -172,7 +172,7 @@ function CouponDialogBody({
           <div>
             <label
               htmlFor="admin-coupon-min-order"
-              className="block text-sm font-semibold text-gray-700 mb-1.5"
+              className="block text-sm font-semibold text-foreground mb-1.5"
             >
               {t("admin.coupons.dialog.minOrderLabel")}
             </label>
@@ -181,14 +181,14 @@ function CouponDialogBody({
               value={minOrderValue}
               onChange={(e) => setMinOrderValue(e.target.value)}
               placeholder={t("admin.coupons.dialog.minOrderPlaceholder")}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
+              className="w-full px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#6366F1]"
             />
           </div>
           {type === "PERCENT" ? (
             <div>
               <label
                 htmlFor="admin-coupon-max-discount"
-                className="block text-sm font-semibold text-gray-700 mb-1.5"
+                className="block text-sm font-semibold text-foreground mb-1.5"
               >
                 {t("admin.coupons.dialog.maxDiscountLabel")}
               </label>
@@ -197,7 +197,7 @@ function CouponDialogBody({
                 value={maxDiscount}
                 onChange={(e) => setMaxDiscount(e.target.value)}
                 placeholder={t("admin.coupons.dialog.maxDiscountPlaceholder")}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#6366F1]"
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#6366F1]"
               />
             </div>
           ) : null}
