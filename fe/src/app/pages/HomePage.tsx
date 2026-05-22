@@ -38,17 +38,17 @@ function SectionHeader({
     <div className="flex items-end justify-between mb-6">
       <div>
         <h2
-          className="text-2xl md:text-[26px] font-bold tracking-tight text-gray-900 leading-tight"
+          className="text-2xl md:text-[26px] font-bold tracking-tight text-foreground leading-tight"
           style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
         >
           {title}
         </h2>
-        {subtitle ? <p className="text-sm text-gray-500 mt-1.5">{subtitle}</p> : null}
+        {subtitle ? <p className="text-sm text-muted-foreground mt-1.5">{subtitle}</p> : null}
       </div>
       {ctaPath ? (
         <button
           onClick={() => navigate(ctaPath)}
-          className="group flex items-center gap-1.5 text-sm font-semibold transition-all shrink-0 px-3 py-1.5 rounded-full hover:bg-gray-50"
+          className="group flex items-center gap-1.5 text-sm font-semibold transition-all shrink-0 px-3 py-1.5 rounded-full hover:bg-muted"
           style={{ color }}
         >
           {cta}{" "}
@@ -71,7 +71,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.05, 0.4), duration: 0.3 }}
-      className="group rounded-2xl overflow-hidden cursor-pointer bg-white border border-gray-100 hover:border-transparent hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300"
+      className="group rounded-2xl overflow-hidden cursor-pointer bg-card border border-border hover:border-transparent hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300"
       role="link"
       tabIndex={0}
       aria-label={product.name}
@@ -158,10 +158,10 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
         </button>
       </div>
       <div className="p-4">
-        <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-1 truncate font-medium">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1 truncate font-medium">
           {product.sellerName}
         </p>
-        <h3 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2 mb-3 min-h-[2.5rem]">
+        <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 mb-3 min-h-[2.5rem]">
           {product.name}
         </h3>
         <div className="flex items-baseline gap-2 mb-2.5">
@@ -169,22 +169,22 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
             {formatPrice(product.price)}
           </span>
           {product.originalPrice ? (
-            <span className="text-xs text-gray-400 line-through">
+            <span className="text-xs text-muted-foreground line-through">
               {formatPrice(product.originalPrice)}
             </span>
           ) : null}
         </div>
-        <div className="flex items-center gap-1.5 pt-2.5 border-t border-gray-100">
+        <div className="flex items-center gap-1.5 pt-2.5 border-t border-border">
           <IconStar size={11} fill="#FF6200" color="#FF6200" />
-          <span className="text-xs font-semibold text-gray-700">{product.rating}</span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs font-semibold text-foreground">{product.rating}</span>
+          <span className="text-xs text-muted-foreground">
             (
             {product.reviewCount >= 1000
               ? `${(product.reviewCount / 1000).toFixed(1)}k`
               : product.reviewCount}
             )
           </span>
-          <span className="text-xs text-gray-400 ml-auto">
+          <span className="text-xs text-muted-foreground ml-auto">
             {t("home.soldShort", {
               count: product.sold >= 1000 ? `${(product.sold / 1000).toFixed(0)}k` : product.sold,
             })}
@@ -206,12 +206,12 @@ function ComingSoonCard({
   description: string;
 }) {
   return (
-    <div className="rounded-3xl border border-dashed border-gray-200 bg-white px-8 py-12 text-center">
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 text-gray-400">
+    <div className="rounded-3xl border border-dashed border-border bg-card px-8 py-12 text-center">
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
         {icon}
       </div>
-      <p className="text-base font-semibold text-gray-700">{title}</p>
-      <p className="mt-1 text-sm text-gray-500">{description}</p>
+      <p className="text-base font-semibold text-foreground">{title}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -506,7 +506,7 @@ function CategoriesSection() {
             <div
               // eslint-disable-next-line react/no-array-index-key -- skeleton placeholder, no stable id
               key={i}
-              className="h-24 rounded-2xl bg-gray-50 animate-pulse"
+              className="h-24 rounded-2xl bg-muted animate-pulse"
             />
           ))}
         </div>
@@ -521,9 +521,9 @@ function CategoriesSection() {
               whileHover={{ y: -4, scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate(`/search?cat=${cat.id}`)}
-              className="flex flex-col items-center gap-2.5 py-5 px-2 rounded-2xl bg-white border border-gray-100 hover:border-transparent hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.18)] transition-all cursor-pointer"
+              className="flex flex-col items-center gap-2.5 py-5 px-2 rounded-2xl bg-card border border-border hover:border-transparent hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.18)] transition-all cursor-pointer"
             >
-              <span className="text-[13px] font-semibold text-gray-800 text-center leading-tight">
+              <span className="text-[13px] font-semibold text-foreground text-center leading-tight">
                 {categoryDisplayLabel(cat)}
               </span>
             </motion.button>
@@ -544,11 +544,11 @@ function TrustBar() {
     { icon: IconHeadphones, textKey: "trust.support247", subKey: "trust.support247Sub", color: "#F59E0B" },
   ];
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden border border-border">
       {items.map((item) => (
         <div
           key={item.textKey}
-          className="flex items-center gap-3.5 p-5 bg-white hover:bg-gray-50/50 transition-colors"
+          className="flex items-center gap-3.5 p-5 bg-card hover:bg-muted/50 transition-colors"
         >
           <div
             className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
@@ -557,8 +557,8 @@ function TrustBar() {
             <item.icon size={20} style={{ color: item.color }} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900 leading-tight">{t(item.textKey)}</p>
-            <p className="text-xs text-gray-500 mt-1">{t(item.subKey)}</p>
+            <p className="text-sm font-semibold text-foreground leading-tight">{t(item.textKey)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t(item.subKey)}</p>
           </div>
         </div>
       ))}
@@ -587,7 +587,7 @@ function SellerCard({ seller }: { seller: PublicSeller }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-white border border-gray-100 hover:border-transparent hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.18)] transition-all cursor-pointer shrink-0 w-40"
+      className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-card border border-border hover:border-transparent hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.18)] transition-all cursor-pointer shrink-0 w-40"
       role="button"
       tabIndex={0}
       onClick={() => void navigate(`/sellers/${seller.id}`)}
@@ -598,7 +598,7 @@ function SellerCard({ seller }: { seller: PublicSeller }) {
         }
       }}
     >
-      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-muted flex items-center justify-center shrink-0">
         {seller.logoUrl ? (
           <img src={seller.logoUrl} alt={seller.shopName} className="w-full h-full object-cover" />
         ) : (
@@ -611,16 +611,16 @@ function SellerCard({ seller }: { seller: PublicSeller }) {
         )}
       </div>
       <div className="text-center min-w-0 w-full">
-        <p className="text-sm font-semibold text-gray-900 truncate">{seller.shopName}</p>
+        <p className="text-sm font-semibold text-foreground truncate">{seller.shopName}</p>
         {seller.ratingAvg !== null && seller.ratingAvg !== undefined ? (
           <div className="flex items-center justify-center gap-1 mt-1">
             <IconStar size={11} fill="#FF6200" color="#FF6200" />
-            <span className="text-xs font-semibold text-gray-700">
+            <span className="text-xs font-semibold text-foreground">
               {seller.ratingAvg.toFixed(1)}
             </span>
           </div>
         ) : null}
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           {seller.totalProducts} <IconPackage size={10} className="inline" />
         </p>
       </div>
@@ -662,7 +662,7 @@ function SellerShowcase() {
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
           {Array.from({ length: 4 }).map((_, i) => (
             // eslint-disable-next-line react/no-array-index-key -- skeleton placeholder
-            <div key={i} className="w-40 h-44 rounded-2xl bg-gray-100 animate-pulse shrink-0" />
+            <div key={i} className="w-40 h-44 rounded-2xl bg-muted animate-pulse shrink-0" />
           ))}
         </div>
       ) : (
@@ -672,7 +672,7 @@ function SellerShowcase() {
           ))}
           <button
             onClick={() => void navigate("/sellers")}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-dashed border-gray-200 hover:border-gray-300 transition-colors cursor-pointer shrink-0 w-40 text-gray-400 hover:text-gray-600"
+            className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border border-dashed border-border hover:border-foreground/30 transition-colors cursor-pointer shrink-0 w-40 text-muted-foreground hover:text-foreground"
           >
             <IconChevronRight size={24} />
             <span className="text-xs font-medium">{t("home.sellersSection.viewAll")}</span>
@@ -687,14 +687,14 @@ function SellerShowcase() {
 function TrendingBar() {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-dashed border-gray-200">
-      <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-gray-100">
+    <div className="flex items-center gap-3 p-4 bg-card rounded-2xl border border-dashed border-border">
+      <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-border">
         <IconTrendingUp size={16} style={{ color: "#FF6200" }} />
-        <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+        <span className="text-sm font-semibold text-foreground whitespace-nowrap">
           {t("home.trending")}
         </span>
       </div>
-      <span className="text-sm text-gray-500">{t("home.comingSoon.trending")}</span>
+      <span className="text-sm text-muted-foreground">{t("home.comingSoon.trending")}</span>
     </div>
   );
 }
@@ -731,16 +731,16 @@ function ProductsSection() {
             </span>
           </div>
           <h2
-            className="text-2xl md:text-[26px] font-bold tracking-tight text-gray-900 leading-tight"
+            className="text-2xl md:text-[26px] font-bold tracking-tight text-foreground leading-tight"
             style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
           >
             {t("home.suggestions")}
           </h2>
-          <p className="text-sm text-gray-500 mt-1.5">{t("home.suggestionsSubtitle")}</p>
+          <p className="text-sm text-muted-foreground mt-1.5">{t("home.suggestionsSubtitle")}</p>
         </div>
         <button
           onClick={() => navigate("/search")}
-          className="group flex items-center gap-1.5 text-sm font-semibold transition-all px-3 py-1.5 rounded-full hover:bg-gray-50"
+          className="group flex items-center gap-1.5 text-sm font-semibold transition-all px-3 py-1.5 rounded-full hover:bg-muted"
           style={{ color: "#00BFB3" }}
         >
           {t("home.viewAll")}{" "}
@@ -754,15 +754,15 @@ function ProductsSection() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
+            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+              activeTab === tab.id
+                ? "text-white shadow-[0_4px_12px_rgba(0,191,179,0.35)]"
+                : "bg-card text-muted-foreground border border-border"
+            }`}
             style={
               activeTab === tab.id
-                ? {
-                    background: "#00BFB3",
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(0,191,179,0.35)",
-                  }
-                : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
+                ? { background: "#00BFB3" }
+                : undefined
             }
           >
             <span className="inline-flex items-center gap-1.5">
@@ -816,7 +816,7 @@ function Bestsellers() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.07 }}
-            className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:shadow-md cursor-pointer group transition-all"
+            className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border hover:shadow-md cursor-pointer group transition-all"
             onClick={() => navigate(`/product/${p.id}`)}
           >
             <span
@@ -834,10 +834,10 @@ function Bestsellers() {
               className="w-12 h-12 rounded-lg object-cover shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-gray-800 line-clamp-2 leading-tight group-hover:text-[#00BFB3] transition-colors">
+              <p className="text-xs font-medium text-foreground line-clamp-2 leading-tight group-hover:text-[#00BFB3] transition-colors">
                 {p.name}
               </p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {t("home.soldShort", { count: p.sold.toLocaleString() })}
               </p>
             </div>
@@ -917,7 +917,7 @@ function UserWidget() {
   return (
     <div className="space-y-4">
       {/* Account card */}
-      <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+      <div className="bg-card rounded-2xl p-5 border border-border shadow-sm">
         {isLoggedIn && user ? (
           <>
             <div className="flex items-center gap-3 mb-4">
@@ -928,8 +928,8 @@ function UserWidget() {
                 {user.name.charAt(0)}
               </div>
               <div>
-                <p className="font-semibold text-sm text-gray-900">{user.name}</p>
-                <p className="text-xs text-gray-400">{user.email}</p>
+                <p className="font-semibold text-sm text-foreground">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -948,7 +948,7 @@ function UserWidget() {
                   <p className="font-bold text-base" style={{ color: item.color }}>
                     {item.value}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">{item.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.label}</p>
                 </button>
               ))}
             </div>
@@ -957,12 +957,12 @@ function UserWidget() {
           <div className="text-center py-2">
             <div
               className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-              style={{ background: "#E6FAF9" }}
+              style={{ background: "rgba(0, 191, 179, 0.12)" }}
             >
               <IconUserCircle size={32} stroke={1.75} style={{ color: "#00BFB3" }} />
             </div>
-            <p className="font-semibold text-gray-800 mb-1">{t("home.greetingTitle")}</p>
-            <p className="text-xs text-gray-500 mb-4">{t("home.greetingSubtitle")}</p>
+            <p className="font-semibold text-foreground mb-1">{t("home.greetingTitle")}</p>
+            <p className="text-xs text-muted-foreground mb-4">{t("home.greetingSubtitle")}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => navigate("/login")}
@@ -1012,7 +1012,7 @@ function UserWidget() {
 // ─── Homepage ─────────────────────────────────────────────────────────────────
 export function HomePage() {
   return (
-    <div className="min-h-screen" style={{ background: "#fafbfc" }}>
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-12 md:space-y-16">
         {/* Hero */}
         <div className="grid lg:grid-cols-[1fr_300px] gap-6">

@@ -39,8 +39,7 @@ function Navbar() {
 
   return (
     <header
-      className="sticky top-0 z-50 w-full"
-      style={{ background: isDark ? "#0f1117" : "linear-gradient(to right, #00BFB3, #009990)" }}
+      className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#00BFB3] to-[#009990] dark:from-[#0d3d3a] dark:to-[#062523]"
     >
       {/* Top bar */}
       <div className="border-b border-white/10 hidden md:block">
@@ -178,28 +177,11 @@ function Navbar() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-full mt-2 w-52 rounded-2xl shadow-2xl border overflow-hidden z-50"
-                      style={{
-                        background: isDark ? "#1a1d2b" : "#fff",
-                        borderColor: isDark ? "#2a2d3b" : "#e5e7eb",
-                      }}
+                      className="absolute right-0 top-full mt-2 w-52 rounded-2xl shadow-2xl border border-border bg-card overflow-hidden z-50"
                     >
-                      <div
-                        className="p-4 border-b"
-                        style={{ borderColor: isDark ? "#2a2d3b" : "#e5e7eb" }}
-                      >
-                        <p
-                          className="font-semibold text-sm"
-                          style={{ color: isDark ? "#fff" : "#111" }}
-                        >
-                          {user?.name}
-                        </p>
-                        <p
-                          className="text-xs mt-0.5"
-                          style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-                        >
-                          {user?.email}
-                        </p>
+                      <div className="p-4 border-b border-border">
+                        <p className="font-semibold text-sm text-foreground">{user?.name}</p>
+                        <p className="text-xs mt-0.5 text-muted-foreground">{user?.email}</p>
                       </div>
                       {[
                         { icon: IconUser, label: t("auth.myAccount"), path: "/profile" },
@@ -214,24 +196,20 @@ function Navbar() {
                             void navigate(item.path);
                             setUserMenuOpen(false);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
-                          style={{ color: isDark ? "#d1d5db" : "#374151" }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted transition-colors text-left text-foreground"
                         >
                           <item.icon size={16} style={{ color: "#00BFB3" }} />
                           {item.label}
                         </button>
                       ))}
-                      <div
-                        className="border-t"
-                        style={{ borderColor: isDark ? "#2a2d3b" : "#e5e7eb" }}
-                      >
+                      <div className="border-t border-border">
                         <button
                           onClick={() => {
                             logout();
                             setUserMenuOpen(false);
                             void navigate("/");
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-red-50 transition-colors text-left text-red-500"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-red-500/10 transition-colors text-left text-red-500"
                         >
                           <IconLogout size={16} /> {t("auth.logout")}
                         </button>
@@ -292,8 +270,7 @@ function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-white/10 overflow-hidden"
-            style={{ background: isDark ? "#0f1117" : "rgba(0,153,144,0.98)" }}
+            className="md:hidden border-t border-white/10 overflow-hidden bg-[#009990]/95 dark:bg-[#062523]/95"
           >
             <div className="p-4 space-y-1">
               <SearchAutocomplete
@@ -336,22 +313,15 @@ function Navbar() {
 
 export function Root() {
   const navigate = useNavigate();
-  const { isDark } = useVNShop();
   const { t } = useTranslation();
   return (
-    <div className="min-h-screen" style={{ background: isDark ? "#0f1117" : "#f4f6f9" }}>
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main>
         <Outlet />
       </main>
-      {/* Footer */}
-      <footer
-        className="mt-16 border-t"
-        style={{
-          background: isDark ? "#0a0c12" : "#1a1d2b",
-          borderColor: isDark ? "#2a2d3b" : "#2a2d3b",
-        }}
-      >
+      {/* Footer — intentionally dark in both themes (brand choice). */}
+      <footer className="mt-16 border-t border-[#2a2d3b] bg-[#1a1d2b] dark:bg-[#0a0c12]">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
