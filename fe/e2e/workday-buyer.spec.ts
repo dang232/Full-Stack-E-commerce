@@ -325,8 +325,8 @@ test.describe.serial("Workday — buyer (guest → register → shop → order)"
         place.ok(),
         `place order: ${place.status()} ${await place.text()}`,
       ).toBeTruthy();
-      const orderId =
-        (await place.json())?.data?.id ?? (await place.json())?.data?.orderId;
+      const placeBody = await place.json();
+      const orderId = placeBody?.data?.id ?? placeBody?.data?.orderId;
 
       // CQRS read-model lag: the order_summary projection updates via Kafka
       // after the write commits. Poll the list endpoint until our orderId
