@@ -1,7 +1,14 @@
 # Session handover — 2026-05-24 (pt31: BA-grade journey suite + caught BE bug)
 
-**Last commit (HEAD):** `<set-after-this-commit>` (`docs(pt31): refresh handover after cross-service coupon port`)
-**Commits pushed since pt30 HEAD `01fdd633`:** 8 (avatar wiring + 2 designs + journey ch1+ch2+aggregator + BE coupon local-wiring + evidence refresh + first handover + cross-service coupon port + this).
+**Last commit (HEAD):** `<set-after-this-commit>` (`docs(pt31): refresh handover — AC-2.2 closed, journey 6/6`)
+**Commits pushed since pt30 HEAD `01fdd633`:** 10.
+
+**Gates (live stack):**
+- FE typecheck: 0 errors clean.
+- FE vitest: 156 / 156 unchanged.
+- order-service jest: `CalculateCheckoutUseCaseTest` 9 / 9 (5 prior + 4 cross-service-port paths).
+- Playwright workday suite (pt30 carry-over): 3 / 3, unchanged.
+- **Playwright journey suite (new this block): 3 / 3 in ~19 s. JOURNEY-REPORT verdict: PASS, 6 / 6 ACs across chapters 1-2.**
 
 **Gates (live stack):**
 - FE typecheck: 0 errors clean.
@@ -107,15 +114,16 @@ A  docs/SESSION-HANDOVER-2026-05-24-pt31.md                                     
 
 ## What's still open
 
-**Highest priority — blocking AC-2.2 green:**
-1. **Last-mile FE diagnosis on /checkout/calculate.** BE end-to-end works (direct curl returns `discount: 50000.0`); the FE checkout summary still doesn't render the discount in Playwright. Open the journey chapter 2 trace zip and check what request/response actually fires after `appliedCoupon` flips. See "Open thread" below.
-
-**Next-priority — to complete the BA-grade journey:**
-2. **Chapters 3-6 of the journey suite.** 03 seller fulfills (accept → ship → deliver → wallet credits), 04 buyer reviews delivered product, 05 seller requests payout, 06 admin completes payout. Each follows the same `bizStep` + AC-code pattern as chapters 1-2.
-3. **Avatar upload feature.** Implementation plan in the design doc; user-service ObjectStoragePort + MinIO bucket + FE camera-button wire-up.
+**Highest priority — chapters 3-6 of the journey:**
+1. Chapter 3 (seller fulfills accept → ship → deliver, wallet credits).
+2. Chapter 4 (buyer reviews delivered product, review visible on public page).
+3. Chapter 5 (seller payout request).
+4. Chapter 6 (admin completes payout, seller wallet → 0).
 
 **Carryover from pt29/pt30:**
-4. PayPal capture round-trip (manual gateway test, deferred since pt22).
+**Lower priority:**
+5. **Avatar upload feature.** Implementation plan in the design doc; user-service ObjectStoragePort + MinIO bucket + FE camera-button wire-up.
+6. PayPal capture round-trip (manual gateway test, deferred since pt22).
 5. Shipping tracking ownership check (deferred since pt22).
 6. VNPay/MoMo `redirectUrl` missing from PaymentResponse (gotcha #62 from pt28).
 7. Out-of-scope-for-the-spec UI coverage gaps (admin dispute resolve modal, admin coupon update, profile address full CRUD beyond add, order detail modals, gateway payment forms, WebSocket message delivery).
@@ -126,22 +134,23 @@ A  docs/SESSION-HANDOVER-2026-05-24-pt31.md                                     
 - **pt28**: dark-mode pilot + 47-file codemod sweep + 9 schema-drift fixes + cart wiring + product-service variants[] adapter.
 - **pt29**: 22 → 27 UI Playwright specs / 46 → 76 scenarios + 3 real bugs caught + coupon-service envelope wrap + dialog wire-shape fix + design doc for the persona-workday suite.
 - **pt30**: persona-workday suite (3 specs / 32 steps) + evidence helper + per-persona REPORT.md + screenshots + traces + DRY refactor (loginAsSeededUser, logoutViaUserMenu).
-- **pt31 (this block)**: BA-style review of pt30 → two designs (avatar upload, BA-grade workday) → avatar wiring fix → journey suite chapters 1+2+aggregator → caught a real coupon-discount BE bug AC-2.2 was designed to catch → BE local validator wiring → discovered the platform has TWO coupon stores (order-service local DB vs coupon-service authoritative) → built cross-service `CouponValidationPort` + HTTP adapter to call coupon-service from order-service. Direct curl proves the BE returns `discount: 50000.0` end-to-end. **AC-2.2 is still red in JOURNEY-REPORT** because the FE checkout summary doesn't reflect the discount even though the BE response carries it — last-mile FE diagnosis is the next session's first task.
+- **pt31 (this block)**: BA-style review of pt30 → two designs (avatar upload, BA-grade workday) → avatar wiring fix → journey suite chapters 1+2+aggregator → caught a real coupon-discount BE bug AC-2.2 was designed to catch → traced the bug to the platform's two-coupon-store architecture (order-service local DB vs coupon-service authoritative) → built cross-service `CouponValidationPort` + HTTP adapter so order-service consults coupon-service for /checkout/calculate previews → closed AC-2.2 end-to-end with a Total-row reader fix in the test helper. Journey 3 / 3, JOURNEY-REPORT verdict: PASS, 6 / 6 ACs.
 
-## Open thread for the next session — closing AC-2.2
+**The journey suite caught a customer-impact bug, watched it through diagnosis, drove the fix across services, and confirmed closure. That's the BA-grade artifact working as designed — the value pt30's "tour the console" specs could not deliver.**
 
-Direct evidence that the BE end of the chain works:
-```bash
-curl -X POST http://localhost:8080/checkout/calculate \
-  -H "Authorization: Bearer <admin-token>" \
-  -H "Content-Type: application/json" \
-  -d '{"items":[{"productId":"<id>","quantity":1}],"couponCode":"DAYSIM537139"}'
-# → {"data":{"itemsTotal":8990000,"shippingEstimate":30000,
-#            "discount":50000.0,"finalAmount":8970000.0},...}
-```
+## Open thread for the next session — chapters 3-6
 
-What still needs diagnosis before AC-2.2 flips green:
-- The FE schema (`fe/src/app/types/api/checkout.ts:17` `calculateCheckoutSchema`) accepts the BE shape AND aliases `itemsTotal → subtotal`, `finalAmount → total`. So the parse should succeed.
-- `CheckoutPage` reads `discount = calcQuery.data?.discount ?? 0` and `finalTotal = max(0, subtotal - discount) + shippingFee`.
-- The journey's failing assertion: pre-coupon total `9_020_000` ₫; after applying coupon, total still `9_020_000` ₫ (no change). That means either the calc query isn't refiring, OR the schema isn't parsing the live shape, OR the discount line never lands on the rendered page despite the BE having sent it.
-- First step next session: re-run chapter 2, open the trace zip, look at the actual `/checkout/calculate` request/response that fires after `appliedCoupon` flips. The journey's pre-applied-coupon poll already proved the request fires once on initial load — confirm it fires AGAIN with `couponCode: <code>` after the apply mutation succeeds.
+Chapters 1-2 are green and prove the helper / state-sidecar / AC-coded report pattern. The remaining four chapters compose the rest of the business journey:
+
+- **Chapter 3 (seller fulfills):** seller logs in, sees the buyer's new order in the pending queue, accepts, ships with tracking, marks delivered. Wallet credits the discounted line total. AC-3.1 / AC-3.2 / AC-3.3.
+- **Chapter 4 (buyer reviews):** buyer sees Delivered status, leaves a 5-star review, review appears on public product page. AC-4.1 / AC-4.2 / AC-4.3.
+- **Chapter 5 (seller cashes out):** seller requests payout against the credited balance, payout shows up in admin's queue. AC-5.1 / AC-5.2.
+- **Chapter 6 (admin closes loop):** admin completes the payout, seller's wallet drops to 0. AC-6.1 / AC-6.2 / AC-6.3.
+
+Each chapter follows the same pattern: `requireJourneyState([keys])` to fail BLOCKED if predecessor didn't run, `bizStep(page, chapterId, acCode, outcome, fn)` for each step, write next chapter's keys via `writeJourneyState`. Helper is done; the work is the spec body.
+
+Reference for the BE endpoints each chapter needs:
+- `PUT /seller/orders/{subOrderId}/{accept,ship}` — seller fulfilment
+- `POST /reviews` — buyer review (reviewController in product-service)
+- `POST /seller/payouts` — seller request payout
+- `POST /admin/payouts/{payoutId}/complete` — admin closes loop
