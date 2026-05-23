@@ -59,6 +59,13 @@ public class OrderJpaRepository implements OrderRepositoryPort {
         return springDataRepository.findBySellerIdAndFulfillmentStatus(sellerId, status).stream().map(OrderJpaEntity::toDomain).toList();
     }
 
+    public List<Order> findBySellerIdAndFulfillmentStatusIn(
+            String sellerId, List<com.vnshop.orderservice.domain.FulfillmentStatus> statuses) {
+        return springDataRepository.findBySellerIdAndFulfillmentStatusIn(sellerId, statuses).stream()
+                .map(OrderJpaEntity::toDomain)
+                .toList();
+    }
+
     public long countByDateBetween(LocalDate startDate, LocalDate endDate) {
         return springDataRepository.countByCreatedAtBetween(startInstant(startDate), endInstant(endDate));
     }

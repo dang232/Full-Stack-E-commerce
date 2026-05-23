@@ -2,18 +2,18 @@
 
 **Persona:** seller
 **Verdict:** FAIL
-**Generated:** 2026-05-23T19:23:29.685Z
+**Generated:** 2026-05-23T19:30:12.056Z
 
 ## Business outcomes verified
 
 | AC | Outcome | Status |
 |---|---|---|
-| AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | PASS |
-| AC-3.2 | A seller can accept and ship the order with a tracking number | FAIL |
+| AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | FAIL |
+| AC-3.2 | A seller can accept and ship the order with a tracking number | NOT_RUN |
 
 ## Stakeholder summary
 
-1 of 2 acceptance criteria passed for the seller flow. Failed: AC-3.2 (A seller can accept and ship the order with a tracking number).
+0 of 2 acceptance criteria passed for the seller flow. Failed: AC-3.1 (A seller sees the buyer's new order in their pending queue within 30 s).
 
 ## Steps (engineer view)
 
@@ -25,22 +25,14 @@
 
 ![Seller's pending queue includes Chapter 2's order within 30 s](screenshots/02-ac-3-1-seller-s-pending-queue-includes-chapter-2-s-order-wit.png)
 
-### 03. AC-3.1 — Seller logs into the SPA and the Orders tab renders the pending row — PASS
+### 03. AC-3.1 — Seller logs into the SPA and the Orders tab renders the pending row — FAIL
 
 ![Seller logs into the SPA and the Orders tab renders the pending row](screenshots/03-ac-3-1-seller-logs-into-the-spa-and-the-orders-tab-renders-t.png)
 
-### 04. AC-3.2 — Seller clicks Accept on the row and the toast confirms the round-trip — PASS
-
-![Seller clicks Accept on the row and the toast confirms the round-trip](screenshots/04-ac-3-2-seller-clicks-accept-on-the-row-and-the-toast-confirm.png)
-
-### 05. AC-3.2 — Seller ships the accepted order with a tracking number, summary toast confirms — FAIL
-
-![Seller ships the accepted order with a tracking number, summary toast confirms](screenshots/05-ac-3-2-seller-ships-the-accepted-order-with-a-tracking-numbe.png)
-
 ```
-Ship button never replaced Accept
+seller's UI never rendered subOrderId=207 in the Orders tab
 
-Ship button never replaced Accept
+seller's UI never rendered subOrderId=207 in the Orders tab
 
 [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
 
@@ -48,7 +40,7 @@ Expected: > [32m0[39m
 Received:   [31m0[39m
 
 Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
+- Timeout 30000ms exceeded while waiting on the predicate
 ```
 
 ## Artifacts

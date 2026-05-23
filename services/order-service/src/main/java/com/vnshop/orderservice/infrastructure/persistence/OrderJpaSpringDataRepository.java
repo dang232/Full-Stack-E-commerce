@@ -30,6 +30,12 @@ public interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEnti
             @Param("status") FulfillmentStatus status
     );
 
+    @Query("select distinct subOrder.order from SubOrderJpaEntity subOrder where subOrder.sellerId = :sellerId and subOrder.fulfillmentStatus in :statuses")
+    List<OrderJpaEntity> findBySellerIdAndFulfillmentStatusIn(
+            @Param("sellerId") String sellerId,
+            @Param("statuses") List<FulfillmentStatus> statuses
+    );
+
     long countByCreatedAtBetween(Instant startInclusive, Instant endInclusive);
 
     @Query("select coalesce(sum(order.finalAmount.amount), 0) from OrderJpaEntity order where order.createdAt between :startInclusive and :endInclusive")

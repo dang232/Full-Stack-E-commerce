@@ -34,44 +34,30 @@
       "acCode": "AC-3.1",
       "outcome": "Seller logs into the SPA and the Orders tab renders the pending row",
       "slug": "03-ac-3-1-seller-logs-into-the-spa-and-the-orders-tab-renders-t.png",
-      "status": "PASS"
-    },
-    {
-      "index": 4,
-      "acCode": "AC-3.2",
-      "outcome": "Seller clicks Accept on the row and the toast confirms the round-trip",
-      "slug": "04-ac-3-2-seller-clicks-accept-on-the-row-and-the-toast-confirm.png",
-      "status": "PASS"
-    },
-    {
-      "index": 5,
-      "acCode": "AC-3.2",
-      "outcome": "Seller ships the accepted order with a tracking number, summary toast confirms",
-      "slug": "05-ac-3-2-seller-ships-the-accepted-order-with-a-tracking-numbe.png",
       "status": "FAIL",
-      "errorMessage": "Ship button never replaced Accept\n\nShip button never replaced Accept\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 20000ms exceeded while waiting on the predicate"
+      "errorMessage": "seller's UI never rendered subOrderId=207 in the Orders tab\n\nseller's UI never rendered subOrderId=207 in the Orders tab\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
     }
   ],
   "acStatuses": [
     {
       "code": "AC-3.1",
       "outcome": "A seller sees the buyer's new order in their pending queue within 30 s",
-      "status": "PASS"
+      "status": "FAIL",
+      "failingStep": {
+        "index": 3,
+        "acCode": "AC-3.1",
+        "outcome": "Seller logs into the SPA and the Orders tab renders the pending row",
+        "slug": "03-ac-3-1-seller-logs-into-the-spa-and-the-orders-tab-renders-t.png",
+        "status": "FAIL",
+        "errorMessage": "seller's UI never rendered subOrderId=207 in the Orders tab\n\nseller's UI never rendered subOrderId=207 in the Orders tab\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
+      }
     },
     {
       "code": "AC-3.2",
       "outcome": "A seller can accept and ship the order with a tracking number",
-      "status": "FAIL",
-      "failingStep": {
-        "index": 5,
-        "acCode": "AC-3.2",
-        "outcome": "Seller ships the accepted order with a tracking number, summary toast confirms",
-        "slug": "05-ac-3-2-seller-ships-the-accepted-order-with-a-tracking-numbe.png",
-        "status": "FAIL",
-        "errorMessage": "Ship button never replaced Accept\n\nShip button never replaced Accept\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 20000ms exceeded while waiting on the predicate"
-      }
+      "status": "NOT_RUN"
     }
   ],
   "verdict": "FAIL",
-  "generatedAt": "2026-05-23T19:23:29.687Z"
+  "generatedAt": "2026-05-23T19:30:12.058Z"
 }

@@ -1,14 +1,14 @@
 # VNShop Journey — End-to-End Business Outcome Report
 
-**Generated:** 2026-05-23T19:23:31.263Z
+**Generated:** 2026-05-23T19:30:13.699Z
 
 This report aggregates every chapter of the BA-grade persona journey. Each row is a single business outcome the platform must support; columns map to the chapter and persona that exercises it.
 
 ## Journey verdict: FAIL
 
-- **Acceptance criteria passed:** 7 / 8
+- **Acceptance criteria passed:** 6 / 8
 - **Chapters run:** 3 of 6
-- **Failed:** AC-3.2 (A seller can accept and ship the order with a tracking number)
+- **Failed:** AC-3.1 (A seller sees the buyer's new order in their pending queue within 30 s)
 
 ## Chapter 1 — Admin onboards the marketplace — PASS
 
@@ -36,6 +36,6 @@ Persona: seller. Detail: [`journey/03-seller-fulfills/REPORT.md`](journey/03-sel
 
 | AC | Outcome | Status |
 |---|---|---|
-| AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | PASS |
-| AC-3.2 | A seller can accept and ship the order with a tracking number | FAIL |
+| AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | FAIL |
+| AC-3.2 | A seller can accept and ship the order with a tracking number | NOT_RUN |
 
