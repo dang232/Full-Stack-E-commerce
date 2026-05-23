@@ -414,22 +414,28 @@ test.describe.serial("Chapter 2 — Buyer discovers and orders", () => {
 });
 
 /**
- * Reads the largest VND amount currently rendered on the checkout summary.
- * The "Total" row is always the largest by construction (subtotal + shipping
- * - discount). Shipping rows that read `Free / Miễn phí` don't match the
- * VND regex so they don't pollute the result.
+ * Reads the EXACT "Total" row on the checkout summary. Anchored on the
+ * localized "Total" / "Tổng" label so we don't accidentally pick up the
+ * line-item price, the subtotal, or any other VND-formatted amount on
+ * the page (those would race the actual total when the discount renders
+ * and the cart total drops below the subtotal).
+ *
+ * Returns 0 if the Total row isn't visible yet — the polling loop in the
+ * caller handles "not yet rendered" by retrying.
  */
 async function readTotalVnd(page: Page): Promise<number> {
-  const lines = await page
-    .getByText(/-?\d{1,3}(?:\.\d{3})+\s*₫/)
-    .allInnerTexts();
-  let max = 0;
-  for (const line of lines) {
-    const m = /(-?)(\d{1,3}(?:\.\d{3})+)/.exec(line);
-    if (!m) continue;
-    const sign = m[1] === "-" ? -1 : 1;
-    const v = sign * Number.parseInt(m[2].replace(/\./g, ""), 10);
-    if (Number.isFinite(v) && v > max) max = v;
-  }
-  return max;
+  // CheckoutSummary renders Total as <span>Total</span><span>amount</span>
+  // inside a flex row. Find spans whose text is exactly the localized
+  // label, then read the price from the immediately-following sibling.
+  const total = await page.evaluate(() => {
+    const spans = Array.from(document.querySelectorAll("span"));
+    const totalLabel = spans.find((s) => /^(Total|Tổng)$/i.test(s.textContent?.trim() ?? ""));
+    if (!totalLabel) return 0;
+    const sibling = totalLabel.nextElementSibling;
+    const text = sibling?.textContent ?? "";
+    const m = /(\d{1,3}(?:\.\d{3})+)/.exec(text);
+    if (!m) return 0;
+    return Number.parseInt(m[1].replace(/\./g, ""), 10);
+  });
+  return total;
 }

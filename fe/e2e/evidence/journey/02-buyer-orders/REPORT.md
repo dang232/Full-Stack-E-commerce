@@ -1,20 +1,20 @@
 # Chapter 2 — Buyer discovers and orders
 
 **Persona:** buyer
-**Verdict:** FAIL
-**Generated:** 2026-05-23T18:15:08.047Z
+**Verdict:** PASS
+**Generated:** 2026-05-23T19:09:13.843Z
 
 ## Business outcomes verified
 
 | AC | Outcome | Status |
 |---|---|---|
 | AC-2.1 | A new visitor can register and start shopping in a single browser session | PASS |
-| AC-2.2 | A coupon applied at checkout reduces the order total by exactly the published discount | FAIL |
-| AC-2.3 | A placed COD order is visible in the buyer's order history within 30 s | NOT_RUN |
+| AC-2.2 | A coupon applied at checkout reduces the order total by exactly the published discount | PASS |
+| AC-2.3 | A placed COD order is visible in the buyer's order history within 30 s | PASS |
 
 ## Stakeholder summary
 
-1 of 3 acceptance criteria passed for the buyer flow. Failed: AC-2.2 (A coupon applied at checkout reduces the order total by exactly the published discount).
+All 3 acceptance criteria verified for the buyer flow. No business-rule regressions detected this run.
 
 ## Steps (engineer view)
 
@@ -42,23 +42,17 @@
 
 ![Buyer captures the pre-coupon total shown on the checkout summary](screenshots/06-ac-2-2-buyer-captures-the-pre-coupon-total-shown-on-the-chec.png)
 
-### 07. AC-2.2 — Coupon applies and the discount line drops the total by exactly the published amount — FAIL
+### 07. AC-2.2 — Coupon applies and the discount line drops the total by exactly the published amount — PASS
 
 ![Coupon applies and the discount line drops the total by exactly the published amount](screenshots/07-ac-2-2-coupon-applies-and-the-discount-line-drops-the-total-.png)
 
-```
-checkout total never decreased after applying coupon
+### 08. AC-2.3 — Buyer places a COD order and receives a confirmation — PASS
 
-checkout total never decreased after applying coupon
+![Buyer places a COD order and receives a confirmation](screenshots/08-ac-2-3-buyer-places-a-cod-order-and-receives-a-confirmation.png)
 
-[2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+### 09. AC-2.3 — Buyer's order history shows the new order and the chapter state is persisted — PASS
 
-Expected: < [32m9020000[39m
-Received:   [31m9020000[39m
-
-Call Log:
-- Timeout 15000ms exceeded while waiting on the predicate
-```
+![Buyer's order history shows the new order and the chapter state is persisted](screenshots/09-ac-2-3-buyer-s-order-history-shows-the-new-order-and-the-cha.png)
 
 ## Artifacts
 

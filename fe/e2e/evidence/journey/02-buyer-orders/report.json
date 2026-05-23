@@ -66,8 +66,21 @@
       "acCode": "AC-2.2",
       "outcome": "Coupon applies and the discount line drops the total by exactly the published amount",
       "slug": "07-ac-2-2-coupon-applies-and-the-discount-line-drops-the-total-.png",
-      "status": "FAIL",
-      "errorMessage": "checkout total never decreased after applying coupon\n\ncheckout total never decreased after applying coupon\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m9020000\u001b[39m\nReceived:   \u001b[31m9020000\u001b[39m\n\nCall Log:\n- Timeout 15000ms exceeded while waiting on the predicate"
+      "status": "PASS"
+    },
+    {
+      "index": 8,
+      "acCode": "AC-2.3",
+      "outcome": "Buyer places a COD order and receives a confirmation",
+      "slug": "08-ac-2-3-buyer-places-a-cod-order-and-receives-a-confirmation.png",
+      "status": "PASS"
+    },
+    {
+      "index": 9,
+      "acCode": "AC-2.3",
+      "outcome": "Buyer's order history shows the new order and the chapter state is persisted",
+      "slug": "09-ac-2-3-buyer-s-order-history-shows-the-new-order-and-the-cha.png",
+      "status": "PASS"
     }
   ],
   "acStatuses": [
@@ -79,22 +92,14 @@
     {
       "code": "AC-2.2",
       "outcome": "A coupon applied at checkout reduces the order total by exactly the published discount",
-      "status": "FAIL",
-      "failingStep": {
-        "index": 7,
-        "acCode": "AC-2.2",
-        "outcome": "Coupon applies and the discount line drops the total by exactly the published amount",
-        "slug": "07-ac-2-2-coupon-applies-and-the-discount-line-drops-the-total-.png",
-        "status": "FAIL",
-        "errorMessage": "checkout total never decreased after applying coupon\n\ncheckout total never decreased after applying coupon\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m9020000\u001b[39m\nReceived:   \u001b[31m9020000\u001b[39m\n\nCall Log:\n- Timeout 15000ms exceeded while waiting on the predicate"
-      }
+      "status": "PASS"
     },
     {
       "code": "AC-2.3",
       "outcome": "A placed COD order is visible in the buyer's order history within 30 s",
-      "status": "NOT_RUN"
+      "status": "PASS"
     }
   ],
-  "verdict": "FAIL",
-  "generatedAt": "2026-05-23T18:15:08.048Z"
+  "verdict": "PASS",
+  "generatedAt": "2026-05-23T19:09:13.844Z"
 }
