@@ -104,8 +104,11 @@ public class UseCaseConfig {
     }
 
     @Bean
-    CalculateCheckoutUseCase calculateCheckoutUseCase(CartRepositoryPort cartRepositoryPort, ProductCatalogPort productCatalogPort) {
-        return new CalculateCheckoutUseCase(cartRepositoryPort, productCatalogPort);
+    CalculateCheckoutUseCase calculateCheckoutUseCase(
+            CartRepositoryPort cartRepositoryPort,
+            ProductCatalogPort productCatalogPort,
+            CouponValidator couponValidator) {
+        return new CalculateCheckoutUseCase(cartRepositoryPort, productCatalogPort, couponValidator);
     }
 
     @Bean

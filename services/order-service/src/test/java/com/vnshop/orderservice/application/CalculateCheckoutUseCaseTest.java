@@ -7,6 +7,9 @@ import com.vnshop.orderservice.application.catalog.CatalogProduct;
 import com.vnshop.orderservice.domain.Money;
 import com.vnshop.orderservice.domain.checkout.CartItemSnapshot;
 import com.vnshop.orderservice.domain.checkout.CartSnapshot;
+import com.vnshop.orderservice.domain.coupon.Coupon;
+import com.vnshop.orderservice.domain.coupon.CouponException;
+import com.vnshop.orderservice.domain.coupon.CouponValidator;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Two preview paths share a use case:
@@ -91,6 +98,82 @@ class CalculateCheckoutUseCaseTest {
         assertThatThrownBy(() -> useCase.calculate(List.<CheckoutLineItem>of()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("items");
+    }
+
+    /**
+     * Coupon-aware preview: the BE resolves the discount via CouponValidator
+     * so the FE never gets to set a discount amount. This is the path that
+     * the BA-grade journey suite's AC-2.2 exercises end-to-end.
+     */
+    @Test
+    void lineItemPathHonoursCouponCodeWhenValidatorAcceptsIt() {
+        catalog.add(new CatalogProduct(
+                "p1", "seller-A", "Product",
+                List.of(new CatalogProduct.Variant("sku1", new Money(new BigDecimal("200000"), "VND"))),
+                ""));
+
+        CouponValidator validator = mock(CouponValidator.class);
+        Coupon coupon = mock(Coupon.class);
+        when(validator.validate(eq("SAVE50"), any(Money.class), eq("user-1")))
+                .thenReturn(new CouponValidator.ValidationResult(
+                        true, coupon, new Money(new BigDecimal("50000")), null, null));
+
+        CalculateCheckoutUseCase useCaseWithCoupon =
+                new CalculateCheckoutUseCase(cart, catalog, validator);
+
+        CheckoutBreakdown breakdown = useCaseWithCoupon.calculate(
+                List.of(new CheckoutLineItem("p1", "sku1", 1)),
+                "SAVE50",
+                "user-1");
+
+        // 200000 items + 30000 shipping - 50000 discount = 180000.
+        assertThat(breakdown.itemsTotal()).isEqualByComparingTo("200000");
+        assertThat(breakdown.discount()).isEqualByComparingTo("50000");
+        assertThat(breakdown.finalAmount()).isEqualByComparingTo("180000");
+    }
+
+    @Test
+    void couponPathSilentlyReturnsZeroDiscountWhenValidatorRejects() {
+        catalog.add(new CatalogProduct(
+                "p1", "seller-A", "Product",
+                List.of(new CatalogProduct.Variant("sku1", new Money(new BigDecimal("200000"), "VND"))),
+                ""));
+
+        CouponValidator validator = mock(CouponValidator.class);
+        when(validator.validate(eq("EXPIRED"), any(Money.class), any()))
+                .thenThrow(new CouponException("COUPON_EXPIRED", "Coupon expired"));
+
+        CalculateCheckoutUseCase useCaseWithCoupon =
+                new CalculateCheckoutUseCase(cart, catalog, validator);
+
+        CheckoutBreakdown breakdown = useCaseWithCoupon.calculate(
+                List.of(new CheckoutLineItem("p1", "sku1", 1)),
+                "EXPIRED",
+                "user-1");
+
+        // Invalid coupon → preview stays interactive with zero discount; the
+        // /checkout/apply-coupon round-trip is what surfaces the reason.
+        assertThat(breakdown.discount()).isEqualByComparingTo("0");
+        assertThat(breakdown.finalAmount()).isEqualByComparingTo("230000");
+    }
+
+    @Test
+    void couponPathTreatsBlankCodeAsAbsent() {
+        catalog.add(new CatalogProduct(
+                "p1", "seller-A", "Product",
+                List.of(new CatalogProduct.Variant("sku1", new Money(new BigDecimal("200000"), "VND"))),
+                ""));
+
+        CouponValidator validator = mock(CouponValidator.class);
+        CalculateCheckoutUseCase useCaseWithCoupon =
+                new CalculateCheckoutUseCase(cart, catalog, validator);
+
+        CheckoutBreakdown breakdown = useCaseWithCoupon.calculate(
+                List.of(new CheckoutLineItem("p1", "sku1", 1)),
+                "   ",
+                "user-1");
+
+        assertThat(breakdown.discount()).isEqualByComparingTo("0");
     }
 
     private static final class FakeCartRepository implements CartRepositoryPort {

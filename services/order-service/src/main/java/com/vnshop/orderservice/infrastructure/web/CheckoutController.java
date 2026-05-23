@@ -4,6 +4,7 @@ import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
 import com.vnshop.orderservice.application.shipping.ShippingOption;
 import com.vnshop.orderservice.application.shipping.ShippingQuotePort;
 import com.vnshop.orderservice.application.shipping.ShippingQuoteRequest;
+import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,9 +51,27 @@ public class CheckoutController {
 
     @PostMapping("/calculate")
     public ApiResponse<CheckoutBreakdownResponse> calculate(@Valid @RequestBody CalculateCheckoutRequest request) {
-        CalculateCheckoutUseCase.CheckoutBreakdown breakdown = calculateCheckoutUseCase.calculate(request.toLineItems());
+        // userId pulled from the JWT — anonymous /calculate calls (no auth)
+        // resolve to null and the validator skips per-user usage checks.
+        // The wire shape's couponCode is the buyer's proposal; the BE
+        // resolves the actual discount via CouponValidator so the FE
+        // never gets to set a discount amount.
+        String userId = safeCurrentUserId();
+        CalculateCheckoutUseCase.CheckoutBreakdown breakdown =
+                calculateCheckoutUseCase.calculate(request.toLineItems(), request.couponCode(), userId);
 
         return ApiResponse.ok(CheckoutBreakdownResponse.fromApplication(breakdown));
+    }
+
+    private static String safeCurrentUserId() {
+        try {
+            return JwtPrincipalUtil.currentUserId();
+        } catch (RuntimeException ignored) {
+            // Anonymous /calculate calls (preview before login) — return null
+            // so per-user usage caps don't apply. Authoritative validation
+            // still runs on /checkout/apply-coupon at place-order time.
+            return null;
+        }
     }
 
     @GetMapping("/payment-methods")
