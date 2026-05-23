@@ -2,19 +2,45 @@ import { z } from "zod";
 
 import { productIdSchema } from "./branded-ids";
 
+// BE review-service / product-service ReviewResponse(reviewId, productId,
+// buyerId, orderId, rating, text, images, verifiedPurchase, helpfulVotes,
+// status, createdAt). FE consumers use review.id, review.userId, review.userName,
+// review.comment, review.helpful — aliased through the transform.
 export const reviewSchema = z
   .object({
-    id: z.string(),
-    productId: productIdSchema,
+    // Legacy FE-facing names
+    id: z.string().optional(),
     userId: z.string().optional(),
     userName: z.string().optional(),
-    rating: z.number(),
     comment: z.string().optional(),
-    images: z.array(z.string()).optional(),
     helpful: z.number().optional(),
+    // Live BE names
+    reviewId: z.string().optional(),
+    buyerId: z.string().optional(),
+    text: z.string().optional(),
+    helpfulVotes: z.number().optional(),
+    orderId: z.string().optional(),
+    verifiedPurchase: z.boolean().optional(),
+    status: z.string().optional(),
+    productId: productIdSchema,
+    rating: z.number(),
+    images: z.array(z.string()).optional(),
     createdAt: z.string().optional(),
   })
-  .passthrough();
+  .passthrough()
+  .transform((raw) => ({
+    id: raw.id ?? raw.reviewId ?? "",
+    productId: raw.productId,
+    userId: raw.userId ?? raw.buyerId,
+    userName: raw.userName,
+    rating: raw.rating,
+    comment: raw.comment ?? raw.text,
+    images: raw.images,
+    helpful: raw.helpful ?? raw.helpfulVotes ?? 0,
+    verifiedPurchase: raw.verifiedPurchase,
+    status: raw.status,
+    createdAt: raw.createdAt,
+  }));
 export type Review = z.infer<typeof reviewSchema>;
 
 export const questionSchema = z
