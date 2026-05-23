@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "id": "03-seller-fulfills",
+    "title": "Chapter 3 — Seller fulfills the order",
+    "persona": "seller",
+    "acceptanceCriteria": [
+      {
+        "code": "AC-3.1",
+        "outcome": "A seller sees the buyer's new order in their pending queue within 30 s"
+      },
+      {
+        "code": "AC-3.2",
+        "outcome": "A seller can accept and ship the order with a tracking number"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "index": 1,
+      "acCode": "AC-3.1",
+      "outcome": "Predecessor chapter has placed an order (state.json check)",
+      "slug": "01-ac-3-1-predecessor-chapter-has-placed-an-order-state-json-ch.png",
+      "status": "PASS"
+    },
+    {
+      "index": 2,
+      "acCode": "AC-3.1",
+      "outcome": "Seller's pending queue includes Chapter 2's order within 30 s",
+      "slug": "02-ac-3-1-seller-s-pending-queue-includes-chapter-2-s-order-wit.png",
+      "status": "PASS"
+    },
+    {
+      "index": 3,
+      "acCode": "AC-3.1",
+      "outcome": "Seller logs into the SPA and the Orders tab renders the pending row",
+      "slug": "03-ac-3-1-seller-logs-into-the-spa-and-the-orders-tab-renders-t.png",
+      "status": "PASS"
+    },
+    {
+      "index": 4,
+      "acCode": "AC-3.2",
+      "outcome": "Seller clicks Accept on the row and the toast confirms the round-trip",
+      "slug": "04-ac-3-2-seller-clicks-accept-on-the-row-and-the-toast-confirm.png",
+      "status": "PASS"
+    },
+    {
+      "index": 5,
+      "acCode": "AC-3.2",
+      "outcome": "Seller ships the accepted order with a tracking number, summary toast confirms",
+      "slug": "05-ac-3-2-seller-ships-the-accepted-order-with-a-tracking-numbe.png",
+      "status": "FAIL",
+      "errorMessage": "Ship button never replaced Accept\n\nShip button never replaced Accept\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 20000ms exceeded while waiting on the predicate"
+    }
+  ],
+  "acStatuses": [
+    {
+      "code": "AC-3.1",
+      "outcome": "A seller sees the buyer's new order in their pending queue within 30 s",
+      "status": "PASS"
+    },
+    {
+      "code": "AC-3.2",
+      "outcome": "A seller can accept and ship the order with a tracking number",
+      "status": "FAIL",
+      "failingStep": {
+        "index": 5,
+        "acCode": "AC-3.2",
+        "outcome": "Seller ships the accepted order with a tracking number, summary toast confirms",
+        "slug": "05-ac-3-2-seller-ships-the-accepted-order-with-a-tracking-numbe.png",
+        "status": "FAIL",
+        "errorMessage": "Ship button never replaced Accept\n\nShip button never replaced Accept\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 20000ms exceeded while waiting on the predicate"
+      }
+    }
+  ],
+  "verdict": "FAIL",
+  "generatedAt": "2026-05-23T19:23:29.687Z"
+}
