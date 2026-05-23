@@ -43,8 +43,8 @@
     {
       "index": 4,
       "acCode": "AC-1.3",
-      "outcome": "Admin publishes coupon JRN190273 (50,000 VND fixed discount, 30-day TTL)",
-      "slug": "04-ac-1-3-admin-publishes-coupon-jrn190273-50-000-vnd-fixed-dis.png",
+      "outcome": "Admin publishes coupon JRN609059 (50,000 VND fixed discount, 30-day TTL)",
+      "slug": "04-ac-1-3-admin-publishes-coupon-jrn609059-50-000-vnd-fixed-dis.png",
       "status": "PASS"
     },
     {
@@ -73,5 +73,5 @@
     }
   ],
   "verdict": "PASS",
-  "generatedAt": "2026-05-23T21:19:54.977Z"
+  "generatedAt": "2026-05-23T21:26:54.305Z"
 }

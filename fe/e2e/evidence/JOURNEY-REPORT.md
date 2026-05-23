@@ -1,13 +1,14 @@
 # VNShop Journey — End-to-End Business Outcome Report
 
-**Generated:** 2026-05-23T21:20:09.418Z
+**Generated:** 2026-05-23T21:27:22.061Z
 
 This report aggregates every chapter of the BA-grade persona journey. Each row is a single business outcome the platform must support; columns map to the chapter and persona that exercises it.
 
-## Journey verdict: PASS
+## Journey verdict: FAIL
 
-- **Acceptance criteria passed:** 8 / 8
-- **Chapters run:** 3 of 6
+- **Acceptance criteria passed:** 9 / 11
+- **Chapters run:** 4 of 6
+- **Failed:** AC-4.2 (Buyer can submit a 5-star written review on the ordered product)
 
 ## Chapter 1 — Admin onboards the marketplace — PASS
 
@@ -37,4 +38,14 @@ Persona: seller. Detail: [`journey/03-seller-fulfills/REPORT.md`](journey/03-sel
 |---|---|---|
 | AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | PASS |
 | AC-3.2 | A seller can accept and ship the order with a tracking number | PASS |
+
+## Chapter 4 — Buyer reviews the ordered product — FAIL
+
+Persona: buyer. Detail: [`journey/04-buyer-reviews/REPORT.md`](journey/04-buyer-reviews/REPORT.md).
+
+| AC | Outcome | Status |
+|---|---|---|
+| AC-4.1 | Buyer who placed the order can return to their /orders history and see it | PASS |
+| AC-4.2 | Buyer can submit a 5-star written review on the ordered product | FAIL |
+| AC-4.3 | Newly submitted review is visible on the public product page within 30 s | NOT_RUN |
 
