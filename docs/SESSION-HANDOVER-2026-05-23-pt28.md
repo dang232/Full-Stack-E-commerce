@@ -1,15 +1,16 @@
-# Session handover — 2026-05-23 (pt28: dark mode coverage + cart/user schema alignment)
+# Session handover — 2026-05-23 (pt28: dark mode coverage + BE-shape alignment + cart wiring)
 
-**Last commit (HEAD):** `2ed309b9` (`fix(fe): align cart and user Zod schemas with actual BE shape`)
-**Commits pushed since pt27 HEAD `c1ee4014`:** 4.
+**Last commit (HEAD):** `b9af48b4` (`fix(cart): wire PRODUCT_SERVICE_URL and read price/image from variants[]`)
+**Commits pushed since pt27 HEAD `c1ee4014`:** 7.
 
 **Gates (live stack):**
 - FE typecheck: 2 errors (pre-existing baseline — PayPalPaymentSection + CheckoutPage. Same since pt24).
 - Vitest: 156 / 156 (25 files).
-- Playwright `e2e/day-simulation.spec.ts`: **15 / 15 in 23.0s** against the rebuilt stack with all four commits live.
-- `vnshop-frontend` rebuilt and healthy at `localhost:3000`.
+- cart-service jest: 13 / 13 (added 9 ProductHttpClientAdapter specs).
+- Playwright `e2e/day-simulation.spec.ts`: **15 / 15 in 13.2s** against the rebuilt stack with all seven commits live.
+- `vnshop-frontend` and `vnshop-cart-service` rebuilt and healthy.
 
-This session closed out the dark-mode coverage gap and fixed two Zod schema mismatches that were rendering page-wide error fallbacks.
+This session closed out the dark-mode coverage gap, fixed three Zod schema mismatches (cart, user, order) that were rendering page-wide error fallbacks, and fixed the long-standing "raw UUID + 0₫" cart bug that had a docker-compose env wiring root cause.
 
 ## Commits pushed
 
@@ -19,6 +20,9 @@ This session closed out the dark-mode coverage gap and fixed two Zod schema mism
 | 2 | `0d143ba7` | refactor(fe): migrate HomePage and Root to theme tokens for dark mode |
 | 3 | `39596de3` | refactor(fe): sweep remaining pages to theme tokens (codemod + inline fixups) |
 | 4 | `2ed309b9` | fix(fe): align cart and user Zod schemas with actual BE shape |
+| 5 | `47d1fc2c` | docs(pt28): session handover for dark mode + cart/user schema fixes |
+| 6 | `ab9eda93` | fix(fe): align order Zod schema with order-service OrderResponse shape |
+| 7 | `b9af48b4` | fix(cart): wire PRODUCT_SERVICE_URL and read price/image from variants[] |
 
 ## Why each commit mattered
 
@@ -82,6 +86,18 @@ Brand colors (teal/orange/red gradients) are intentional and stay; everything el
 
 **57. Designer agent silent-bail under directed scope.** Spawned the `designer` agent with a tight HomePage + Root + theme.css scope; it output narration ("Now I have a complete picture. Let me execute all three files systematically") and then `<sandbox-stop>` with zero file writes. Resending a forcing message produced the same outcome — exit with no diff. `feedback_detect_silent_bail` already documents this; the failure mode survives explicit "EXECUTE NOW. Use Edit/Write tools" instructions. Took the work over directly. Reason it bails seems to be the agent reasoning about a multi-file plan and timing out before any tool call lands.
 
+**58. Schema-drift bugs land as page-wide error fallbacks; chase the actual BE shape, not the error string.** Three different schemas (cart, user, order) had drifted from what the corresponding services emit, each producing an "Invalid input" Zod error popup that obscured the real bug. `userProfileSchema` was the worst because email lives in Keycloak — the FE schema demanded it from `user-service` which has no idea what email is. Lesson: when a Zod parse fails, the fix is to find the actual BE DTO (`*Response.java`/`*-response.ts`) and either match the shape exactly or layer a `.transform()` that aliases the legacy fields. **Do not** loosen the schema to `.passthrough()` and call it done — that just buries the drift until a consumer crashes downstream.
+
+**59. Offline-mode fallbacks in service adapters need loud failure modes.** cart-service's `ProductHttpClientAdapter` had this branch:
+```ts
+if (!this.productServiceUrl) {
+  return { productId, productName: productId, productImage: '', unitPrice: Money.zero('VND') };
+}
+```
+That was meant for unit testing but kicked in *in production* because `PRODUCT_SERVICE_URL` was missing from `docker-compose.yml`. Result: every cart item rendered as a UUID with 0₫. The container logs showed nothing because no exception was thrown. Lesson: silent offline-mode branches in BE adapters need either (a) a `LOG.warn` on construction so it shows up in startup logs, (b) a feature flag separate from the URL so the branch only fires when explicitly enabled for tests, or (c) hard-fail at module init when the URL is unset and the env isn't `test`/`development`. Adding a comment in compose pointing at the adapter is the bare minimum.
+
+**60. order-service has no order-level status field — it must be derived from sub-orders.** `OrderResponse` only carries `paymentStatus` plus `subOrders[].fulfillmentStatus`. The FE always assumed `order.status: string` and burned every parse. Fix: a `deriveOrderStatus()` helper in the FE schema transform that maps `(subStatuses[], paymentStatus) → "pending" | "confirmed" | "shipping" | "delivered" | "cancelled" | "returned"`, called in the Zod transform so all consumers see a stable derived status without rewriting. If a future order-service ever ships a top-level `status`, it's accepted as-is and overrides the derivation.
+
 ## Files touched this block
 
 ```
@@ -108,18 +124,26 @@ M  fe/src/app/pages/checkout/{CheckoutAddressStep,CheckoutPage,
 M  fe/src/app/pages/seller/{SellerDashboard,SellerOrders,SellerPage,
                             SellerProducts,SellerReviews,SellerSettings,
                             SellerWallet,ShipDialog}.tsx
-M  fe/src/app/types/api/{cart,user}.ts                    # schema alignment
+M  fe/src/app/types/api/{cart,user,order}.ts               # schema alignment
 M  fe/src/app/hooks/use-cart.ts                           # skeleton item shape fix
+M  docker-compose.yml                                     # PRODUCT_SERVICE_URL on cart-service
+M  services/cart-service/src/cart/infrastructure/product-http-client.adapter.ts
+A  services/cart-service/src/cart/infrastructure/product-http-client.adapter.spec.ts  # 9 specs locking in BE shape
 ```
 
 ## How to resume
 
-1. **Verify HEAD.** `git log --oneline -1` should show `2ed309b9`.
+1. **Verify HEAD.** `git log --oneline -1` should show `b9af48b4`.
 2. **Smoke gates.**
    - `cd fe && npm run typecheck` → 2 baseline errors (PayPalPaymentSection + CheckoutPage).
    - `cd fe && npm test` → 156 / 156.
+   - `cd services/cart-service && npm test` → 13 / 13.
    - `cd fe && npx playwright test e2e/day-simulation.spec.ts --project=chromium` → 15 / 15.
-3. **Manual UI check.** Login as `buyer1 / buyer1`, hit `/cart` and `/profile`, toggle dark mode in the top bar. None of these should show the page-wide error fallback or unreadable text.
+3. **Manual UI check.** Login as `buyer1 / buyer1`, add 2 products to cart, hit `/cart` and `/checkout`. Cart items should now show real product names, images, and prices (not UUIDs and 0₫). Order review at `/checkout` should render without the page-wide error fallback. Toggle dark mode in the top bar — Login, Register, Cart, Profile, Checkout should all be readable.
+
+## And memory
+
+Two new feedback files were *not* written this block — the gotchas are intentionally captured in this handover instead of the persistent memory directory because they're tied to specific BE DTOs that may evolve. If `OrderResponse` or `BuyerProfileResponse` ever changes shape on the BE side, the FE schema transform is the single point to update; nothing in the persistent memory should encode the current shape. The general lessons (#58 schema drift, #59 silent offline-mode, #60 derive-don't-demand) are reusable; the specific field names are not.
 
 ## What's still imperfect
 
