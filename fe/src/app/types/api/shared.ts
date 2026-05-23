@@ -7,6 +7,9 @@ export const moneySchema = z
   })
   .passthrough();
 
+// Spring's Page<T> emits `number` for the current page index;
+// user-service PublicSellersPageResponse uses `page` instead. Accept both
+// and surface them under both keys so consumers don't need to probe at runtime.
 export const pageSchema = <T extends z.ZodType>(item: T) =>
   z
     .object({
@@ -14,17 +17,29 @@ export const pageSchema = <T extends z.ZodType>(item: T) =>
       totalElements: z.number().optional(),
       totalPages: z.number().optional(),
       number: z.number().optional(),
+      page: z.number().optional(),
       size: z.number().optional(),
       first: z.boolean().optional(),
       last: z.boolean().optional(),
     })
-    .passthrough();
+    .passthrough()
+    .transform((raw) => ({
+      content: raw.content,
+      totalElements: raw.totalElements,
+      totalPages: raw.totalPages,
+      page: raw.page ?? raw.number,
+      number: raw.number ?? raw.page,
+      size: raw.size,
+      first: raw.first,
+      last: raw.last,
+    }));
 
 export interface Page<T> {
   content: T[];
   totalElements?: number;
   totalPages?: number;
   number?: number;
+  page?: number;
   size?: number;
   first?: boolean;
   last?: boolean;
