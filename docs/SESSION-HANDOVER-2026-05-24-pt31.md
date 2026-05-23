@@ -1,14 +1,75 @@
 # Session handover — 2026-05-24 (pt31: BA-grade journey suite + caught BE bug)
 
-**Last commit (HEAD):** `<set-after-this-commit>` (`docs(pt31): refresh handover — AC-2.2 closed, journey 6/6`)
-**Commits pushed since pt30 HEAD `01fdd633`:** 10.
+**Last commit (HEAD):** `<set-after-this-commit>` (`docs(pt31): final handover — chapters 1-3 green, 3 caught bugs fixed`)
+**Commits pushed since pt30 HEAD `01fdd633`:** 14.
 
 **Gates (live stack):**
 - FE typecheck: 0 errors clean.
-- FE vitest: 156 / 156 unchanged.
-- order-service jest: `CalculateCheckoutUseCaseTest` 9 / 9 (5 prior + 4 cross-service-port paths).
+- FE vitest: 156 / 156.
+- order-service jest: `CalculateCheckoutUseCaseTest` 9 / 9 (5 prior + 4 new) plus all other affected tests green.
 - Playwright workday suite (pt30 carry-over): 3 / 3, unchanged.
-- **Playwright journey suite (new this block): 3 / 3 in ~19 s. JOURNEY-REPORT verdict: PASS, 6 / 6 ACs across chapters 1-2.**
+- **Playwright journey suite (this block): 4 / 4 in ~21 s. JOURNEY-REPORT verdict: PASS, 8 / 8 ACs across chapters 1-3.**
+
+## Bugs caught + fixed this block
+
+The journey suite caught three real customer-visible defects, each surfaced as an AC FAIL with full receipts in JOURNEY-REPORT.md, then closed end-to-end:
+
+1. **AC-2.2 — Coupon discount math broken at /checkout/calculate.**
+   Root cause: order-service's `CalculateCheckoutUseCase.java:64` hard-coded `discount = NO_DISCOUNT`, ignoring the FE's `couponCode`. Worse, the platform has TWO coupon stores (order-service local DB vs coupon-service authoritative). Fix: built a cross-service `CouponValidationPort` + HTTP adapter in order-service that calls coupon-service's `/checkout/validate-coupon`. Failure semantics: any 4xx/5xx → silent zero discount (preview stays interactive; place-order-time apply surfaces real errors).
+
+2. **AC-3.1 (initial) → AC-3.2 — Seller can't ship orders after accepting them.**
+   Root cause: `/seller/orders/pending` filtered by `PENDING_ACCEPTANCE` only, but accept transitions the row to `ACCEPTED`. The row left the queue entirely after accept and the FE's Ship button never appeared. Fix: `ListPendingOrdersUseCase` now queries an ACTIONABLE list (PENDING_ACCEPTANCE + ACCEPTED) via a new `findBySellerIdAndFulfillmentStatusIn` repo method.
+
+3. **AC-3.1 (cascading) — Seller's Orders tab crashed on legacy null ward data.**
+   Root cause: `addressSchema.ward` was `z.string().optional()` which accepts `undefined` but rejects literal `null`. Old `order_summary` rows persist with `ward: null` and the entire seller queue rendered "Invalid input" (every seller blocked from seeing any orders, not just the ones with null ward — Zod fails the whole list). Fix: `.nullable().optional()` on `ward / district / phone`. This was a true silent-killer regression that was visible in the screenshot but invisible until a journey forced it into view.
+
+The three cascading discoveries are the BA-grade journey working as designed — surface a customer-impact failure, fix the root cause, watch the next layer of consequence appear in the report. None of these would have shown up in pt30's "tour the console" specs (those use a fresh seeded buyer with valid data; legacy null fields and accumulating queue state only appear in journeys that span personas and multiple runs).
+
+## What's in the journey suite
+
+```
+fe/e2e/journey/
+├── _journey-state.ts                              # state sidecar (load/save/require)
+├── _journey-evidence.ts                           # bizStep + AC-coded REPORT.md generator
+├── 01-admin-onboards-the-marketplace.spec.ts      # AC-1.1, AC-1.2, AC-1.3 — all PASS
+├── 02-buyer-discovers-and-orders.spec.ts          # AC-2.1, AC-2.2, AC-2.3 — all PASS
+├── 03-seller-fulfills-the-order.spec.ts           # AC-3.1, AC-3.2 — all PASS
+└── 99-aggregate-journey-report.spec.ts            # writes fe/e2e/evidence/JOURNEY-REPORT.md
+```
+
+JOURNEY-REPORT.md verdict: PASS, 8 / 8 ACs across 3 chapters. 3 of 6 chapters complete.
+
+## Open thread for next session — chapters 4-6
+
+**Chapter 4 — Buyer receives and reviews (AC-4.1, AC-4.2, AC-4.3)**
+
+A scoping note from chapter 3's research: `FulfillmentStatus` enum has **no DELIVERED state** (PENDING_ACCEPTANCE, ACCEPTED, PACKED, SHIPPED, REJECTED, CANCELLED). The platform's order domain ends at SHIPPED; "delivered" lives in shipping-service's `TrackingStatus` and is presumably surfaced to buyers via tracking events, not via the order's fulfillmentStatus. AC-4.1 needs to be reframed:
+
+- Original design: "Buyer sees Delivered status when seller marks delivery."
+- Reality: There's no seller-side mark-as-delivered action. Delivery is reported by the carrier asynchronously.
+- Reframed AC-4.1: "Buyer's order page shows the tracking-derived status (Shipped → Delivered) and offers a Review CTA on the line item."
+
+The Review CTA may gate on shipping-service's tracking status reaching DELIVERED. Alternative: the OrdersPage may render Review on any SHIPPED row. Read `fe/src/app/pages/OrdersPage.tsx` to confirm before committing chapter 4's spec.
+
+**Chapter 5 — Seller cashes out (AC-5.1, AC-5.2):** wallet credit projection lag is a known issue (seller-finance-service via Kafka). The chapter polls until the balance is non-zero, then submits a payout request. Endpoints already exist (`POST /seller/payouts`).
+
+**Chapter 6 — Admin closes the loop (AC-6.1, AC-6.2, AC-6.3):** admin sees the payout, marks complete, seller's wallet drops to 0. Endpoints already exist (`POST /admin/payouts/{id}/complete`).
+
+**Lower-priority follow-ups:**
+- Avatar upload feature (design doc filed; user-service ObjectStoragePort + MinIO bucket + FE camera-button wire-up).
+- PayPal capture round-trip (manual gateway test, deferred since pt22).
+- Shipping tracking ownership check (deferred since pt22).
+- VNPay/MoMo `redirectUrl` missing from PaymentResponse (gotcha #62 from pt28).
+
+## Final session ledger (pt27 → pt31)
+
+- **pt27**: i18n duplicate-key fix + Tabler migration.
+- **pt28**: dark-mode pilot + 47-file codemod sweep + 9 schema-drift fixes + cart wiring.
+- **pt29**: 27 UI Playwright specs / 76 scenarios + 3 BE bugs caught + coupon-service envelope wrap.
+- **pt30**: persona-workday suite (3 specs / 32 steps) + AC-coded REPORT.md.
+- **pt31 (this block)**: BA-style review of pt30 → BA-grade journey suite chapters 1-3 (8/8 ACs PASS) + 3 caught customer-impact bugs all fixed end-to-end (coupon discount math, seller queue filter, schema null tolerance) + cross-service coupon validation port + avatar wiring fix + 2 design docs (avatar upload + BA-grade workday).
+
+The QA pyramid now has a fourth layer that earns its place: **business-outcome journey** with AC codes, stakeholder-facing PASS/FAIL, and a track record of catching bugs the surface specs missed. Three real defects caught + three real defects fixed, all visible to a BA reading JOURNEY-REPORT.md.
 
 **Gates (live stack):**
 - FE typecheck: 0 errors clean.
