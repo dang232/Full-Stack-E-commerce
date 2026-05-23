@@ -12,17 +12,22 @@ If a regression slips past these tests, write a new one. The pattern: seed state
 |---|---:|---|---|
 | `home-page-ui.spec.ts` | 4 | pt27 i18n + Tabler migration | Home mounts past Suspense; hero H1 has localized copy (no `home.hero.*` raw keys); section headers all render; footer Design System link has Tabler IconPalette svg |
 | `flash-sale-ui.spec.ts` | 2 | activeFlashSaleCampaignSchema + IconBolt migration | Flash sale section header renders with Tabler IconBolt; body renders one of countdown/empty/product-strip |
+| `navbar-ui.spec.ts` | 3 | global navbar across routes | Logo from /search → /; nav links navigate to /search variants; mobile drawer opens at 380px viewport |
 | `route-smoke-ui.spec.ts` | 6 | route config + cross-page schema breadth | / · /search · /login · /register · /password-reset · /design-system all mount past Suspense, no Zod 'Invalid input' leaks |
 | `auth-forms-ui.spec.ts` | 6 | Login/Register/Reset forms | Mismatched + short password rejected inline; happy-path register lands on /; bad login shows inline error; reset disabled-when-empty + happy path |
 | `i18n-switcher-ui.spec.ts` | 2 | pt27 duplicate-home key | No `home.*` raw keys ever leak; switching VI/EN changes nav copy |
+| `theme-i18n-persistence-ui.spec.ts` | 2 | localStorage + module-state durability | EN survives reload via i18nextLng cache; dark mode does NOT persist (documented behaviour) |
 | `dark-mode-ui.spec.ts` | 2 | pt28 dark mode sweep | Toggle flips `<html class="dark">` + body bg changes; dark headings have brightness > 180 |
 | `search-product-ui.spec.ts` | 3 | pt28 product schema | Search renders past Suspense; product detail H1 + Add-to-cart visible; guest add surfaces login toast |
+| `search-filters-ui.spec.ts` | 3 | search filters | Query submit updates header; sort radio activates; Clear-all only renders with active filter |
 | `cart-ui.spec.ts` | 3 | b9af48b4 + 2ed309b9 | Cart shows real names + non-zero VND prices; +/- changes total; trash empties cart |
 | `checkout-ui.spec.ts` | 3 | pt28 calculateCheckout schema | Empty-cart CTA; cart-no-address profile prompt; cart+address shows 4-step panel |
 | `orders-cancel-ui.spec.ts` | 2 | 3c094804, pt28 order schema | Item-count line (not permanent loading); Cancel click round-trips to BE + toast |
-| `profile-ui.spec.ts` | 2 | pt28 user schema | /profile loads without "Invalid input"; Addresses tab empty-state |
-| `profile-addresses-ui.spec.ts` | 2 | address mutation round-trip | Add address through real form fields → row appears; empty submit blocks with validation toast |
+| `orders-tabs-ui.spec.ts` | 2 | order status derive + tab filter | All/Pending tabs both show pending order; Delivered tab shows empty state |
+| `wishlist-toggle-ui.spec.ts` | 2 | wishlist heart toggle round-trip | First click adds + toast; second click removes + toast (after first dismisses) |
 | `wishlist-ui.spec.ts` | 2 | pt28 wishlist schema | Guest redirects to /login; buyer with wished product sees it |
+| `profile-ui.spec.ts` | 2 | pt28 user schema | /profile loads without "Invalid input"; Addresses tab empty-state |
+| `profile-addresses-ui.spec.ts` | 4 | address mutation round-trips | Add through form → row appears; empty submit blocks; set-default flips badge; trash removes row |
 | `messages-notifications-ui.spec.ts` | 3 | pt28 messages + bell | Guest /messages → /login; authed thread-list mounts; bell click opens panel |
 | `payment-return-ui.spec.ts` | 2 | gateway redirect handling | VNPay/MoMo /payment/return without orderId shows error state, no global crash |
 | `sellers-public-ui.spec.ts` | 3 | publicSellerSchema | Home seller showcase header renders; /sellers/{id} mounts; bogus id surfaces BE 404, no Zod leak |
@@ -31,11 +36,11 @@ If a regression slips past these tests, write a new one. The pattern: seed state
 | `seller-dashboard-ui.spec.ts` | 2 | pt28 seller-analytics | 4 KPI cards render; Revenue + Orders 30-day section headers parse |
 | `seller-products-ui.spec.ts` | 1 | seller products list | Products tab table chrome renders (heading + Add CTA + 4 columns) |
 | `admin-ui.spec.ts` | 5 | pt28 admin schemas + coupon envelope | Dashboard, Sellers, Coupons, Disputes, Payouts tabs all parse |
-| `admin-coupon-crud-ui.spec.ts` | 2 | 2670ee19 (coupon wire-shape fix) | Empty code blocks with inline toast; FIXED coupon submit round-trips + row appears in table |
+| `admin-coupon-crud-ui.spec.ts` | 3 | 2670ee19 (coupon wire-shape fix) | Empty code blocks with toast; FIXED submit round-trips + row appears; deactivate flips badge to Paused |
 
-**Total UI scenarios: 61** across 22 spec files.
+**Total UI scenarios: 76** across 27 spec files.
 
-Last green run: **61 / 61 in 1.1 min** against the live stack.
+Last green run: **76 / 76 in 1.6 min** against the live stack.
 
 Run them all:
 ```bash
