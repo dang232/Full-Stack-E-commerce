@@ -90,13 +90,17 @@ function deriveOrderStatus(
 
 export const orderSchema = z
   .object({
-    id: orderIdSchema,
+    // GET /orders/{id} returns OrderResponse with `id`. GET /orders returns
+    // a Page<OrderListItemResponse> with `orderId` instead. Accept both.
+    id: orderIdSchema.optional(),
+    orderId: z.string().optional(),
     orderNumber: z.string().optional(),
     buyerId: z.string().optional(),
-    // FE-side derived status; BE has no equivalent. Kept optional for future use.
-    status: z
-      .enum(["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"])
-      .optional(),
+    sellerId: z.string().optional(),
+    // Input status accepts ANY string — consumers run it through
+    // parseOrderStatus() to narrow to the UI union. The output of this
+    // transform IS one of the UI values though (see deriveOrderStatus).
+    status: z.string().optional(),
     paymentStatus: z.enum(PAYMENT_STATUS_VALUES).optional(),
     paymentMethod: z.enum(PAYMENT_METHOD_VALUES).optional(),
     // FE-legacy bare-number fields. BE returns Money objects under different names.
@@ -107,35 +111,57 @@ export const orderSchema = z
     discount: moneyToNumber.optional(),
     total: moneyToNumber.optional(),
     finalAmount: moneyToNumber.optional(),
+    totalAmount: moneyToNumber.optional(),
+    itemCount: z.number().optional(),
     address: addressSchema.optional(),
     shippingAddress: addressSchema.optional(),
     subOrders: z.array(subOrderSchema).optional(),
     createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
     estimatedDelivery: z.string().nullable().optional(),
   })
   .passthrough()
   .transform((raw) => {
     const subOrders = raw.subOrders ?? [];
-    const derivedStatus =
-      raw.status ??
-      deriveOrderStatus(
-        subOrders.map((s) => s.status),
-        raw.paymentStatus,
-      );
+    // For the list endpoint, status is a raw BE string we normalize via the
+    // same derivation function with a single-element subStatus array. For the
+    // detail endpoint it derives from sub-orders. Either way the output is
+    // one of the UI status values.
+    const rawStatus = raw.status as string | undefined;
+    const isUiStatus = (
+      ["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"] as const
+    ).includes(rawStatus as never);
+    const derivedStatus = isUiStatus
+      ? (rawStatus as ReturnType<typeof deriveOrderStatus>)
+      : rawStatus
+        ? deriveOrderStatus(
+            // single-element subStatus from the list endpoint's flat status
+            ([rawStatus] as readonly string[]).filter((s): s is (typeof FULFILLMENT_STATUS_VALUES)[number] =>
+              (FULFILLMENT_STATUS_VALUES as readonly string[]).includes(s),
+            ),
+            raw.paymentStatus,
+          )
+        : deriveOrderStatus(
+            subOrders.map((s) => s.status),
+            raw.paymentStatus,
+          );
     return {
-      id: raw.id,
+      id: (raw.id ?? raw.orderId ?? "") as ReturnType<typeof orderIdSchema.parse>,
       orderNumber: raw.orderNumber,
       buyerId: raw.buyerId,
+      sellerId: raw.sellerId,
       status: derivedStatus,
       paymentStatus: raw.paymentStatus,
       paymentMethod: raw.paymentMethod,
       subtotal: raw.subtotal ?? raw.itemsTotal ?? 0,
       shippingFee: raw.shippingFee ?? raw.shippingTotal ?? 0,
       discount: raw.discount ?? 0,
-      total: raw.total ?? raw.finalAmount ?? 0,
+      total: raw.total ?? raw.finalAmount ?? raw.totalAmount ?? 0,
+      itemCount: raw.itemCount,
       address: raw.address ?? raw.shippingAddress,
       subOrders,
       createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
       estimatedDelivery: raw.estimatedDelivery,
       // Top-level convenience aliases for OrdersPage tracking widget.
       trackingCode: subOrders.find((s) => s.trackingCode)?.trackingCode ?? null,
