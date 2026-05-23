@@ -1,6 +1,6 @@
 # UI Playwright QA Coverage
 
-**Last updated:** 2026-05-23 (HEAD `19df581a`)
+**Last updated:** 2026-05-23 (HEAD `2670ee19`)
 
 This index lists every UI-driven Playwright spec in `fe/e2e/`. Specs here drive the actual SPA through the browser — clicking buttons, sampling computed styles, asserting visible copy. They are NOT API-only integration tests dressed up as E2E (those are also useful, see `day-simulation.spec.ts`, but they don't catch UI regressions).
 
@@ -12,6 +12,7 @@ If a regression slips past these tests, write a new one. The pattern: seed state
 |---|---:|---|---|
 | `home-page-ui.spec.ts` | 4 | pt27 i18n + Tabler migration | Home mounts past Suspense; hero H1 has localized copy (no `home.hero.*` raw keys); section headers all render; footer Design System link has Tabler IconPalette svg |
 | `flash-sale-ui.spec.ts` | 2 | activeFlashSaleCampaignSchema + IconBolt migration | Flash sale section header renders with Tabler IconBolt; body renders one of countdown/empty/product-strip |
+| `route-smoke-ui.spec.ts` | 6 | route config + cross-page schema breadth | / · /search · /login · /register · /password-reset · /design-system all mount past Suspense, no Zod 'Invalid input' leaks |
 | `auth-forms-ui.spec.ts` | 6 | Login/Register/Reset forms | Mismatched + short password rejected inline; happy-path register lands on /; bad login shows inline error; reset disabled-when-empty + happy path |
 | `i18n-switcher-ui.spec.ts` | 2 | pt27 duplicate-home key | No `home.*` raw keys ever leak; switching VI/EN changes nav copy |
 | `dark-mode-ui.spec.ts` | 2 | pt28 dark mode sweep | Toggle flips `<html class="dark">` + body bg changes; dark headings have brightness > 180 |
@@ -24,20 +25,24 @@ If a regression slips past these tests, write a new one. The pattern: seed state
 | `wishlist-ui.spec.ts` | 2 | pt28 wishlist schema | Guest redirects to /login; buyer with wished product sees it |
 | `messages-notifications-ui.spec.ts` | 3 | pt28 messages + bell | Guest /messages → /login; authed thread-list mounts; bell click opens panel |
 | `payment-return-ui.spec.ts` | 2 | gateway redirect handling | VNPay/MoMo /payment/return without orderId shows error state, no global crash |
+| `sellers-public-ui.spec.ts` | 3 | publicSellerSchema | Home seller showcase header renders; /sellers/{id} mounts; bogus id surfaces BE 404, no Zod leak |
 | `seller-orders-ui.spec.ts` | 2 | 0a3c0f8a | /seller mounts; Orders tab queue parses (nested→flat adapter works) |
 | `seller-wallet-ui.spec.ts` | 2 | pt28 wallet + payout schemas | Wallet tab renders balance + history; Withdraw correctly disabled at 0 |
 | `seller-dashboard-ui.spec.ts` | 2 | pt28 seller-analytics | 4 KPI cards render; Revenue + Orders 30-day section headers parse |
 | `seller-products-ui.spec.ts` | 1 | seller products list | Products tab table chrome renders (heading + Add CTA + 4 columns) |
 | `admin-ui.spec.ts` | 5 | pt28 admin schemas + coupon envelope | Dashboard, Sellers, Coupons, Disputes, Payouts tabs all parse |
+| `admin-coupon-crud-ui.spec.ts` | 2 | 2670ee19 (coupon wire-shape fix) | Empty code blocks with inline toast; FIXED coupon submit round-trips + row appears in table |
 
-**Total UI scenarios: 50** across 19 spec files.
+**Total UI scenarios: 61** across 22 spec files.
 
-Last green run: **all green in ~80s** against the live stack.
+Last green run: **61 / 61 in 1.1 min** against the live stack.
 
-Run them all (≈75 seconds against the live stack):
+Run them all:
 ```bash
 cd fe && npx playwright test \
   e2e/home-page-ui.spec.ts \
+  e2e/flash-sale-ui.spec.ts \
+  e2e/route-smoke-ui.spec.ts \
   e2e/auth-forms-ui.spec.ts \
   e2e/i18n-switcher-ui.spec.ts \
   e2e/dark-mode-ui.spec.ts \
@@ -46,17 +51,42 @@ cd fe && npx playwright test \
   e2e/checkout-ui.spec.ts \
   e2e/orders-cancel-ui.spec.ts \
   e2e/profile-ui.spec.ts \
+  e2e/profile-addresses-ui.spec.ts \
   e2e/wishlist-ui.spec.ts \
   e2e/messages-notifications-ui.spec.ts \
   e2e/payment-return-ui.spec.ts \
+  e2e/sellers-public-ui.spec.ts \
   e2e/seller-orders-ui.spec.ts \
   e2e/seller-wallet-ui.spec.ts \
   e2e/seller-dashboard-ui.spec.ts \
   e2e/seller-products-ui.spec.ts \
   e2e/admin-ui.spec.ts \
+  e2e/admin-coupon-crud-ui.spec.ts \
   --project=chromium --reporter=line
 ```
-Last green run: **46 / 46 in 1.2 min** against the live stack.
+
+## Bugs caught while writing these specs
+
+The QA pass found and fixed real defects. Documenting them here so the next time
+someone wonders "what does it really test," they can see the receipts:
+
+- **`3c094804`** — Pending orders showed permanent "Loading product details..." copy.
+  Caught while writing `orders-cancel-ui.spec.ts`; fixed by surfacing the list
+  endpoint's `itemCount` instead of the missing `items[]`.
+- **`b9af48b4`** + cart-service env wiring — Cart rendered raw productId UUIDs at
+  0₫ because cart-service's offline-mode adapter branch fired in production
+  (missing `PRODUCT_SERVICE_URL` env var). Caught visually pre-spec; the
+  `cart-ui.spec.ts` "non-zero VND price" assertion locks it in.
+- **`c235b289`** — Admin /admin/coupons GET returned a bare array, FE envelope
+  interceptor rejected it as "Invalid input." Caught while writing the
+  `admin-ui.spec.ts` Coupons-tab scenario; fixed by wrapping every
+  CouponController endpoint in `ApiResponse.ok(...)` to match the platform-wide
+  envelope.
+- **`2670ee19`** — Admin couponDialog submit failed because (a) it never sent
+  `maxUses`/`validUntil` (BE primitives, Jackson rejected null) and (b) it sent
+  `"PERCENT"` while BE enum is `PERCENTAGE`. Both caught by writing
+  `admin-coupon-crud-ui.spec.ts` and watching the create button silently fail.
+  Fixed the FE wire mapper at the endpoint adapter layer.
 
 ## Conventions
 
@@ -77,13 +107,14 @@ Last green run: **46 / 46 in 1.2 min** against the live stack.
 These have FE schemas but no UI spec yet — write one when you next touch the surface:
 
 - Design system page (intentional — it IS the token fixture, not a target for regression tests)
-- Flash sale strip interactions on home (currently exercised via section-header check only)
-- Order detail page (only list cancel is covered)
-- Profile address-management modal (add/remove/set-default flows)
+- Order detail page tracking modal + return-request modal (only list cancel is covered)
+- Profile address remove + set-default actions (add is covered)
 - Seller settings tab (currently a "coming soon" banner; nothing to test)
 - Seller reviews tab (also "coming soon")
 - Admin dispute resolve modal
-- Coupon CRUD modal (admin)
+- Admin coupon update + deactivate (create is covered)
+- Stripe / PayPal / VietQR payment forms (mocked sandbox flows)
+- WebSocket message delivery in /messages (presence + new-thread events)
 
 ## Anti-pattern: API-only "UI tests"
 
