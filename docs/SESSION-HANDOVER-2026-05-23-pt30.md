@@ -1,14 +1,14 @@
 # Session handover — 2026-05-23 (pt30: persona-workday Playwright suite)
 
-**Last commit (HEAD):** `204be409` (`docs(qa): commit persona-workday evidence (3 personas, 32 step shots)`)
-**Commits pushed since pt29 HEAD `a1a5f987`:** 3 (the design doc, the suite, and the evidence).
+**Last commit (HEAD):** `12d7a3b9` (`refactor(fe-e2e): extract loginAsSeededUser + logoutViaUserMenu helpers`)
+**Commits pushed since pt29 HEAD `a1a5f987`:** 6 (design doc, suite, evidence, handover, QA-pass dedupe, DRY refactor).
 
 **Gates (live stack):**
-- FE typecheck: 0 errors (clean — `tsc --noEmit` passes against the new specs).
+- FE typecheck: 0 errors (clean — `tsc --noEmit` passes against the new specs and helpers).
 - Vitest / coupon-service jest / cart-service jest: unchanged from pt29 (not re-run this block; no source code modified).
 - Playwright `e2e/day-simulation.spec.ts`: unchanged (15 / 15 from pt29).
-- **Playwright UI surface suite:** unchanged (76 / 76 in 1.6 min from pt29).
-- **Playwright workday suite (new this block): 3 / 3 in ~50 s** end-to-end against the live stack.
+- **Playwright UI surface suite (re-run this block): 76 / 76 in 2.5 min** against the live stack.
+- **Playwright workday suite: 3 / 3 in ~50 s** end-to-end against the live stack (re-run after the DRY refactor; same numbers).
 
 This block delivered the persona-workday Playwright suite designed in pt29's last commit (`c9951efb`). Three new specs chain the existing single-surface specs into end-to-end persona journeys, each driving the actual SPA from login through every relevant screen and back to logout, producing a self-contained evidence folder per persona under `fe/e2e/evidence/<persona>/`.
 
@@ -22,7 +22,7 @@ This block delivered the persona-workday Playwright suite designed in pt29's las
 
 Plus the helper:
 
-- `fe/e2e/_workday-evidence.ts` — wraps `test.step()` with numbered fullPage screenshots, drives Playwright tracing manually, copies `video.webm` from `testInfo.outputDir`, and generates a per-persona `REPORT.md`.
+- `fe/e2e/_workday-evidence.ts` — wraps `test.step()` with numbered fullPage screenshots, drives Playwright tracing manually, copies `video.webm` from `testInfo.outputDir`, generates a per-persona `REPORT.md`, and exposes `loginAsSeededUser(page, username)` + `logoutViaUserMenu(page)` so the three specs read as journey shape rather than click choreography.
 
 Run all three:
 ```bash
@@ -71,15 +71,20 @@ A  fe/e2e/evidence/seller/{REPORT.md, screenshots/, trace.zip} # 8 step shots
 A  fe/e2e/evidence/admin/{REPORT.md, screenshots/, trace.zip}  # 9 step shots
 M  .gitignore                                                  # ignore video.webm under evidence/
 M  docs/UI-QA-COVERAGE.md                                      # add workday section + run command
+M  fe/e2e/workday-buyer.spec.ts                                # QA-pass dedupe `place.json()` consume
+M  fe/e2e/workday-{buyer,seller,admin}.spec.ts                 # DRY: pull login + logout into helpers
+M  fe/e2e/_workday-evidence.ts                                 # add loginAsSeededUser + logoutViaUserMenu
 ```
+
+Commits since pt29: `c9951efb` design, `6aae566a` suite, `204be409` evidence, `90c5799a` handover, `a934c128` QA-pass dedupe, `12d7a3b9` DRY refactor.
 
 ## How to resume
 
-1. **Verify HEAD.** `git log --oneline -1` should show `204be409`.
+1. **Verify HEAD.** `git log --oneline -1` should show `12d7a3b9`.
 2. **Smoke gates.**
    - `cd fe && npx tsc --noEmit` → 0 errors.
-   - The UI surface suite (27 specs / 76 scenarios) → see pt29 handover for the run-all command.
-   - The workday suite (3 specs / 32 steps) → run-all command in `docs/UI-QA-COVERAGE.md`.
+   - The UI surface suite (27 specs / 76 scenarios) → 76 / 76 in 2.5 min using the run-all command in pt29.
+   - The workday suite (3 specs / 32 steps) → 3 / 3 in ~50 s using the run-all command in `docs/UI-QA-COVERAGE.md`.
 3. **Inspect a workday run.** `start fe/e2e/evidence/buyer/REPORT.md` for the per-step shots; `npx playwright show-trace fe/e2e/evidence/buyer/trace.zip` for the dom-snapshot timeline.
 
 ## What's still open
@@ -96,6 +101,6 @@ Same as pt29:
 - **pt27**: i18n duplicate-key fix + lucide → Tabler migration (39 files / 50 icons).
 - **pt28**: dark-mode pilot + 47-file codemod sweep + 9 schema-drift fixes + cart wiring + product-service variants[] adapter.
 - **pt29**: 22 → 27 UI Playwright specs / 46 → 76 scenarios + 3 real bugs caught + coupon-service envelope wrap + dialog wire-shape fix + design doc for the persona-workday suite.
-- **pt30 (this block)**: persona-workday suite (3 specs / 32 steps) + evidence helper + per-persona REPORT.md + screenshots + traces. Live-stack run: 3 / 3 in ~50 s.
+- **pt30 (this block)**: persona-workday suite (3 specs / 32 steps) + evidence helper + per-persona REPORT.md + screenshots + traces. QA pass deduplicated a double `place.json()` consume on the buyer spec and lifted login + logout into helpers (`loginAsSeededUser`, `logoutViaUserMenu`) so each spec reads as journey shape rather than click choreography. Live-stack runs: workday 3 / 3 in ~50 s, surface 76 / 76 in 2.5 min.
 
 The QA pyramid is now: BE jest/maven (unit) → cart-service jest (integration) → UI surface specs (76 scenarios across 27 files) → persona workday journeys (32 steps across 3 personas with auditable evidence). Each layer catches a different class of regression and they don't duplicate each other's work.
