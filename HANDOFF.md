@@ -1,7 +1,7 @@
 # Handoff
 
-**Last updated:** 2026-05-21 (HEAD `c06dbbcb`)
-**Read this first if you're picking up this codebase.** It replaces the need to walk all 27 SESSION-HANDOVER files for the common pickup case.
+**Last updated:** 2026-05-23 (HEAD `7f986b5a`)
+**Read this first if you're picking up this codebase.** It replaces the need to walk all 29 SESSION-HANDOVER files for the common pickup case.
 
 ---
 
@@ -45,11 +45,11 @@ If any of these break on a fresh clone, the cause is almost always:
 
 ---
 
-## What shipped recently (pt12 → pt26 arc)
+## What shipped recently (pt12 → pt28 arc)
 
-**18 authorization findings closed** + **3 cleanliness items** + **17 modern-feature commits** + **42 unit tests for branch coverage** + **15 day-simulation regression gates**.
+**18 authorization findings closed** + **3 cleanliness items** + **17 modern-feature commits** + **42 unit tests for branch coverage** + **15 day-simulation regression gates** + **i18n duplicate-key fix** + **lucide → Tabler icon migration (39 files)** + **dark-mode coverage sweep (47 files via codemod + theme tokens)** + **9 BE-vs-FE schema drift fixes (cart, user, order list+detail, checkout, review, seller-finance, admin, page)** + **cart-service env wiring + product-service variants[] adapter (9 unit tests)**.
 
-Two thematic waves:
+Three thematic waves:
 
 ### Wave 1 — Security audit (pt12 → pt23)
 End-to-end audit of every controller in 13 services against three anti-patterns:
@@ -88,16 +88,30 @@ Closed in 10 task commits (T1–T10):
 
 Per-task review found 1 Critical (ProductPage migration mid-bail) + 1 Important (`enabled` vestige regression) + 6 Minor; all fixed.
 
+### Wave 3 — i18n / icons / dark mode / BE-shape alignment (pt27 → pt28)
+The largest UX correctness pass since pt12.
+
+| Block | What | Win |
+|---|---|---|
+| pt27 i18n | Duplicate top-level `home` key in `vi.json`/`en.json` was wiping the entire `home.*` namespace at parse time | Hero, greeting, signIn, tabs all render localized strings instead of raw keys |
+| pt27 icons | 39 files / ~50 unique icons migrated from `lucide-react@0.487` to `@tabler/icons-react@3.34` via `fe/scripts/migrate-icons.mjs` codemod; emojis on tabs/banners/login replaced with proper Tabler icons | Cohesive visual language; `lucide-react` removed from package.json |
+| pt28 theme | `theme.css` token contract documented; dark palette gets 3-step elevation (`--background` `#0b0e14` < `--card` `#151924` < `--surface-elevated` `#1d2230`) | Cards no longer invisible against body in dark mode |
+| pt28 dark sweep | `fe/scripts/migrate-dark-tokens.mjs` codemod rewrote 47 files / 678 swaps; HomePage, Root, LoginPage, RegisterPage, PasswordResetPage, AdminPage, SellerPage, etc. all use `bg-card` / `text-foreground` / `text-muted-foreground` / `border-border` | Dark mode is actually dark across every page |
+| pt28 schemas | 9 Zod schemas aligned with actual BE DTOs via `transform()` aliasing — cart, user, order (list + detail), checkout calc, shipping options, review, wallet, payout, admin sellers/disputes/payouts/coupons, dashboard summary, page (Spring `number` vs user-service `page`) | Page-wide error fallbacks fixed on `/cart`, `/profile`, `/orders`, `/checkout`, admin/seller dashboards |
+| pt28 cart wiring | Added `PRODUCT_SERVICE_URL` to cart-service compose entry + rewrote `ProductHttpClientAdapter` to read price from `variants[0].priceAmount` and image from sortOrder-sorted `images[]` | Cart items show real names + prices instead of UUIDs and 0₫. 9 new unit tests lock it in |
+| pt28 seller orders | `/seller/orders/pending` returns `List<OrderResponse>`, FE flattens at the endpoint adapter into the `PendingSubOrder[]` shape SellerOrders expects | Seller pending queue renders again |
+
 ---
 
 ## What's still open
 
-Two items, both deferred with written rationale:
+Three items, the first two deferred with written rationale, the third surfaced during the pt28 schema audit:
 
 1. **PayPal capture round-trip.** Last unproven payment path. Manual browser test, must run while logged in as the buyer who owns the payment. Cannot be automated within this session.
 2. **Shipping tracking ownership check.** `GET /shipping/tracking/{code}` lets any authenticated user read any tracking code. Deferred in pt22 because: (a) tracking codes are carrier-opaque, not enumerable; (b) fix needs cross-service architecture work (shipping has no orderId/buyerId mapping); (c) GHN/GHTK/USPS/FedEx all expose tracking by code alone — pinning ours would be stricter than industry.
+3. **VNPay/MoMo redirectUrl is missing from `PaymentResponse`.** FE does `window.location.href = init.redirectUrl` after `POST /payment/vnpay/create`, but the BE response only carries `paymentId / orderId / buyerId / amount / method / status / transactionRef / createdAt` — no `redirectUrl`. So checkout currently redirects to `undefined`. Needs product-side direction: BE generates the gateway redirect server-side, or FE constructs it from sandbox config? See pt28 gotcha #62.
 
-Don't reverse those deferrals without new product-side direction.
+Don't reverse #1 or #2 without new product-side direction.
 
 ---
 
@@ -112,6 +126,7 @@ The `~/.claude/projects/.../memory/` directory persists context across sessions.
 - **`feedback_split_long_agent_runs`** — long Opus sub-agent runs hit Cloudflare 524s; split into smaller parallel Sonnet agents.
 - **`feedback_onedrive_reparse_point_gotcha`** — OneDrive cloud-stubs silently break Playwright discovery and Docker builds. Detect via PowerShell `Mode -a---l`, hydrate via `node scripts/hydrate.mjs`.
 - **`feedback_virtual_thread_pinning_synchronized`** — when virtual threads are on, `synchronized` + blocking I/O pins the carrier thread. Use `ReentrantLock` instead.
+- **`feedback_git_checkout_scope_creep`** — `git checkout -- <dir>` discards every unstaged change under that path, not just the codemod's. `git status -- <dir>` first or use selective stash. (pt27 — got bitten twice in one session)
 
 In-handover gotchas (numbered #40–53 across pt15–pt26): see the per-block files for full text. Highlights:
 
@@ -121,6 +136,17 @@ In-handover gotchas (numbered #40–53 across pt15–pt26): see the per-block fi
 - **#49** — Spring's JSON binding silently drops unknown wire fields. The audit signal isn't "the BE rejects the field" — it's "the BE doesn't *use* the field."
 - **#51** — self-review is theater. Always dispatch an independent code-reviewer subagent for post-agent quality passes; the same agent that wrote the code carries the same blind spots into review.
 - **#52** — `useSuspenseQuery` cannot be conditionally enabled, but `*Options` factories shared with plain `useQuery` callers still need `enabled: !!id`. The Suspense path passes a defined id from URL params, so the gate is a no-op there; the non-Suspense callers need it.
+- **#54** — `git checkout -- <dir>` discards every unstaged change under that dir, not just the codemod's. (memory above + pt27 doc)
+- **#55** — codemod-only sweeps miss inline `style={{ background: ... }}`. After a Tailwind-only codemod, immediately grep for them and audit. (pt28)
+- **#56** — schema test fixtures must be derived from BE responses, not hand-rolled to match FE expectations. Stale fixtures hide drift. (pt28)
+- **#58** — Zod parse failures want a `transform()` aliasing both shapes, NOT a `.passthrough()` shortcut. The latter buries drift until a downstream consumer crashes. (pt28)
+- **#59** — silent offline-mode branches in BE adapters need loud failure modes. cart-service's missing `PRODUCT_SERVICE_URL` produced UUID-named 0₫ items in production with zero log noise. (pt28)
+- **#60** — order-service has no order-level `status` field; FE must derive it from `subOrders[].fulfillmentStatus + paymentStatus`. (pt28)
+- **#61** — drift clusters. After fixing one schema, audit ALL of them. The pt28 audit turned up 8 more after `cart`. (pt28)
+- **#62** — VNPay/MoMo `PaymentResponse` has no `redirectUrl` field. Missing BE functionality, not schema drift. (pt28)
+- **#63** — `/orders` list and `/orders/{id}` are different shapes; the same Zod schema can absorb both via a transform that handles three status cases (already-UI / raw-enum / derive-from-sub-orders). (pt28)
+- **#64** — `/seller/orders/pending` returns nested orders; flatten at the endpoint adapter to keep the page contract stable. (pt28)
+- **#65** — Spring `Page<T>` uses `number` for page index; user-service `PublicSellersPageResponse` uses `page`. Accept both. (pt28)
 
 ---
 
