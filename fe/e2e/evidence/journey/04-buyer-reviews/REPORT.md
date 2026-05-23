@@ -2,7 +2,7 @@
 
 **Persona:** buyer
 **Verdict:** FAIL
-**Generated:** 2026-05-23T21:27:20.596Z
+**Generated:** 2026-05-23T21:31:16.577Z
 
 ## Business outcomes verified
 
@@ -37,14 +37,14 @@
 ```
 [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
 
-Locator: locator('textarea').filter({ hasNot: locator('[disabled]') }).first()
+Locator: getByText(/Review submitted|Đã gửi đánh giá|Review posted/i).first()
 Expected: visible
-Timeout: 10000ms
+Timeout: 15000ms
 Error: element(s) not found
 
 Call log:
-[2m  - Expect "toBeVisible" with timeout 10000ms[22m
-[2m  - waiting for locator('textarea').filter({ hasNot: locator('[disabled]') }).first()[22m
+[2m  - Expect "toBeVisible" with timeout 15000ms[22m
+[2m  - waiting for getByText(/Review submitted|Đã gửi đánh giá|Review posted/i).first()[22m
 
 ```
 

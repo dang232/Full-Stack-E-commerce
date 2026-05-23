@@ -46,7 +46,7 @@
       "outcome": "Buyer fills the review form and submits — success toast confirms",
       "slug": "04-ac-4-2-buyer-fills-the-review-form-and-submits-success-toast.png",
       "status": "FAIL",
-      "errorMessage": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('textarea').filter({ hasNot: locator('[disabled]') }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('textarea').filter({ hasNot: locator('[disabled]') }).first()\u001b[22m\n"
+      "errorMessage": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Review submitted|Đã gửi đánh giá|Review posted/i).first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Review submitted|Đã gửi đánh giá|Review posted/i).first()\u001b[22m\n"
     }
   ],
   "acStatuses": [
@@ -65,7 +65,7 @@
         "outcome": "Buyer fills the review form and submits — success toast confirms",
         "slug": "04-ac-4-2-buyer-fills-the-review-form-and-submits-success-toast.png",
         "status": "FAIL",
-        "errorMessage": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('textarea').filter({ hasNot: locator('[disabled]') }).first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('textarea').filter({ hasNot: locator('[disabled]') }).first()\u001b[22m\n"
+        "errorMessage": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Review submitted|Đã gửi đánh giá|Review posted/i).first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Review submitted|Đã gửi đánh giá|Review posted/i).first()\u001b[22m\n"
       }
     },
     {
@@ -75,5 +75,5 @@
     }
   ],
   "verdict": "FAIL",
-  "generatedAt": "2026-05-23T21:27:20.597Z"
+  "generatedAt": "2026-05-23T21:31:16.579Z"
 }

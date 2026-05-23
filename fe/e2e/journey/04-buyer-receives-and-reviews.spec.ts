@@ -167,8 +167,11 @@ test.describe.serial("Chapter 4 — Buyer reviews the ordered product", () => {
           // textarea is in the rendered tree (the page tabs between
           // Description / Reviews / Q&A; the textarea lives under
           // Reviews).
+          // ProductPage's tabs render "Reviews ({count})" / "Đánh giá ({count})"
+          // — the parenthesised count anchors away from generic "Reviews"
+          // navigation labels elsewhere on the page (seller hub, etc.).
           const reviewsTab = page
-            .getByRole("button", { name: /Reviews|Đánh giá/i })
+            .getByRole("button", { name: /^(Reviews|Đánh giá)\s*\(\d+\)$/i })
             .first();
           await expect(reviewsTab).toBeVisible({ timeout: 10_000 });
           await reviewsTab.click();
@@ -222,10 +225,10 @@ test.describe.serial("Chapter 4 — Buyer reviews the ordered product", () => {
           await expect(page.getByRole("heading", { level: 1 })).toBeVisible({
             timeout: 20_000,
           });
-          const reviewsTab = page
-            .getByRole("button", { name: /Reviews|Đánh giá/i })
-            .first();
-          await reviewsTab.click();
+          await page
+            .getByRole("button", { name: /^(Reviews|Đánh giá)\s*\(\d+\)$/i })
+            .first()
+            .click();
 
           // Match a unique substring of the review body (the timestamp).
           // The review may be in a list item or a card; the unique
