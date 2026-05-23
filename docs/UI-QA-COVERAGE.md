@@ -1,6 +1,6 @@
 # UI Playwright QA Coverage
 
-**Last updated:** 2026-05-23 (HEAD `ad4e0313`)
+**Last updated:** 2026-05-23 (HEAD `19df581a`)
 
 This index lists every UI-driven Playwright spec in `fe/e2e/`. Specs here drive the actual SPA through the browser — clicking buttons, sampling computed styles, asserting visible copy. They are NOT API-only integration tests dressed up as E2E (those are also useful, see `day-simulation.spec.ts`, but they don't catch UI regressions).
 
@@ -11,6 +11,7 @@ If a regression slips past these tests, write a new one. The pattern: seed state
 | Spec | Scenarios | Locks in | What it proves through the browser |
 |---|---:|---|---|
 | `home-page-ui.spec.ts` | 4 | pt27 i18n + Tabler migration | Home mounts past Suspense; hero H1 has localized copy (no `home.hero.*` raw keys); section headers all render; footer Design System link has Tabler IconPalette svg |
+| `flash-sale-ui.spec.ts` | 2 | activeFlashSaleCampaignSchema + IconBolt migration | Flash sale section header renders with Tabler IconBolt; body renders one of countdown/empty/product-strip |
 | `auth-forms-ui.spec.ts` | 6 | Login/Register/Reset forms | Mismatched + short password rejected inline; happy-path register lands on /; bad login shows inline error; reset disabled-when-empty + happy path |
 | `i18n-switcher-ui.spec.ts` | 2 | pt27 duplicate-home key | No `home.*` raw keys ever leak; switching VI/EN changes nav copy |
 | `dark-mode-ui.spec.ts` | 2 | pt28 dark mode sweep | Toggle flips `<html class="dark">` + body bg changes; dark headings have brightness > 180 |
@@ -19,6 +20,7 @@ If a regression slips past these tests, write a new one. The pattern: seed state
 | `checkout-ui.spec.ts` | 3 | pt28 calculateCheckout schema | Empty-cart CTA; cart-no-address profile prompt; cart+address shows 4-step panel |
 | `orders-cancel-ui.spec.ts` | 2 | 3c094804, pt28 order schema | Item-count line (not permanent loading); Cancel click round-trips to BE + toast |
 | `profile-ui.spec.ts` | 2 | pt28 user schema | /profile loads without "Invalid input"; Addresses tab empty-state |
+| `profile-addresses-ui.spec.ts` | 2 | address mutation round-trip | Add address through real form fields → row appears; empty submit blocks with validation toast |
 | `wishlist-ui.spec.ts` | 2 | pt28 wishlist schema | Guest redirects to /login; buyer with wished product sees it |
 | `messages-notifications-ui.spec.ts` | 3 | pt28 messages + bell | Guest /messages → /login; authed thread-list mounts; bell click opens panel |
 | `payment-return-ui.spec.ts` | 2 | gateway redirect handling | VNPay/MoMo /payment/return without orderId shows error state, no global crash |
@@ -28,7 +30,9 @@ If a regression slips past these tests, write a new one. The pattern: seed state
 | `seller-products-ui.spec.ts` | 1 | seller products list | Products tab table chrome renders (heading + Add CTA + 4 columns) |
 | `admin-ui.spec.ts` | 5 | pt28 admin schemas + coupon envelope | Dashboard, Sellers, Coupons, Disputes, Payouts tabs all parse |
 
-**Total UI scenarios: 46.**
+**Total UI scenarios: 50** across 19 spec files.
+
+Last green run: **all green in ~80s** against the live stack.
 
 Run them all (≈75 seconds against the live stack):
 ```bash
