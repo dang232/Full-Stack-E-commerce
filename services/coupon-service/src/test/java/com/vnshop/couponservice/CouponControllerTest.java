@@ -61,8 +61,9 @@ class CouponControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCouponRequest("SAVE10"))))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.code").value("SAVE10"))
-                .andExpect(jsonPath("$.type").value("PERCENTAGE"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.code").value("SAVE10"))
+                .andExpect(jsonPath("$.data.type").value("PERCENTAGE"))
                 .andReturn();
 
         assertThat(result.getResponse().getContentAsString()).contains("\"code\":\"SAVE10\"");
@@ -78,7 +79,8 @@ class CouponControllerTest {
 
         mockMvc.perform(get("/coupons"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.code=='LIST10')]").exists());
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[?(@.code=='LIST10')]").exists());
     }
 
     @Test
@@ -93,9 +95,9 @@ class CouponControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 Map.of("code", "VALID10", "orderAmount", BigDecimal.valueOf(200)))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.valid").value(true))
-                .andExpect(jsonPath("$.discount").value(20.0))
-                .andExpect(jsonPath("$.message").value("Coupon is valid"));
+                .andExpect(jsonPath("$.data.valid").value(true))
+                .andExpect(jsonPath("$.data.discount").value(20.0))
+                .andExpect(jsonPath("$.data.message").value("Coupon is valid"));
     }
 
     @Test
@@ -111,8 +113,8 @@ class CouponControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 Map.of("code", "EXPIRED10", "orderAmount", BigDecimal.valueOf(200)))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.valid").value(false))
-                .andExpect(jsonPath("$.message").value("Coupon is expired"));
+                .andExpect(jsonPath("$.data.valid").value(false))
+                .andExpect(jsonPath("$.data.message").value("Coupon is expired"));
     }
 
     @Test
@@ -127,8 +129,8 @@ class CouponControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 Map.of("code", "MIN10", "orderAmount", BigDecimal.valueOf(50)))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.valid").value(false))
-                .andExpect(jsonPath("$.message").value("Order amount is below minimum"));
+                .andExpect(jsonPath("$.data.valid").value(false))
+                .andExpect(jsonPath("$.data.message").value("Order amount is below minimum"));
     }
 
     /**
@@ -148,9 +150,9 @@ class CouponControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 Map.of("code", "APPLY-OK", "orderAmount", BigDecimal.valueOf(200)))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value("APPLY-OK"))
-                .andExpect(jsonPath("$.discount").value(20.0))
-                .andExpect(jsonPath("$.finalTotal").value(180.0));
+                .andExpect(jsonPath("$.data.code").value("APPLY-OK"))
+                .andExpect(jsonPath("$.data.discount").value(20.0))
+                .andExpect(jsonPath("$.data.finalTotal").value(180.0));
 
         CouponJpaEntity stored = couponRepository.findByCode("APPLY-OK").orElseThrow();
         assertThat(stored.getCurrentUses()).isEqualTo(1);

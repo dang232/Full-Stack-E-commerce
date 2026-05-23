@@ -49,40 +49,42 @@ public class CouponController {
 
     @PostMapping({"/coupons", "/admin/coupons"})
     @ResponseStatus(HttpStatus.CREATED)
-    public CouponResponse createCoupon(@RequestBody CreateCouponRequest request) {
-        return CouponResponse.from(issueCouponUseCase.issue(toCommand(request)));
+    public ApiResponse<CouponResponse> createCoupon(@RequestBody CreateCouponRequest request) {
+        return ApiResponse.ok(CouponResponse.from(issueCouponUseCase.issue(toCommand(request))));
     }
 
     @GetMapping("/coupons")
-    public List<CouponResponse> listActiveCoupons() {
-        return listCouponsUseCase.active().stream().map(CouponResponse::from).toList();
+    public ApiResponse<List<CouponResponse>> listActiveCoupons() {
+        return ApiResponse.ok(
+                listCouponsUseCase.active().stream().map(CouponResponse::from).toList());
     }
 
     @GetMapping("/admin/coupons")
-    public List<CouponResponse> listCoupons() {
-        return listCouponsUseCase.all().stream().map(CouponResponse::from).toList();
+    public ApiResponse<List<CouponResponse>> listCoupons() {
+        return ApiResponse.ok(
+                listCouponsUseCase.all().stream().map(CouponResponse::from).toList());
     }
 
     @PutMapping("/admin/coupons/{id}")
-    public CouponResponse updateCoupon(@PathVariable Long id, @RequestBody CreateCouponRequest request) {
-        return CouponResponse.from(updateCouponUseCase.update(id, toCommand(request)));
+    public ApiResponse<CouponResponse> updateCoupon(@PathVariable Long id, @RequestBody CreateCouponRequest request) {
+        return ApiResponse.ok(CouponResponse.from(updateCouponUseCase.update(id, toCommand(request))));
     }
 
     @PostMapping("/admin/coupons/{id}/deactivate")
-    public CouponResponse deactivateCoupon(@PathVariable Long id) {
-        return CouponResponse.from(deactivateCouponUseCase.deactivate(id));
+    public ApiResponse<CouponResponse> deactivateCoupon(@PathVariable Long id) {
+        return ApiResponse.ok(CouponResponse.from(deactivateCouponUseCase.deactivate(id)));
     }
 
     @PostMapping({"/coupons/validate", "/checkout/validate-coupon"})
-    public ValidateCouponResponse validateCoupon(@RequestBody ValidateCouponRequest request) {
-        return ValidateCouponResponse.from(
-                validateCouponUseCase.validate(request.code(), request.effectiveOrderAmount()));
+    public ApiResponse<ValidateCouponResponse> validateCoupon(@RequestBody ValidateCouponRequest request) {
+        return ApiResponse.ok(ValidateCouponResponse.from(
+                validateCouponUseCase.validate(request.code(), request.effectiveOrderAmount())));
     }
 
     @PostMapping("/checkout/apply-coupon")
-    public ApplyCouponResponse applyCoupon(@RequestBody ApplyCouponRequest request) {
-        return ApplyCouponResponse.from(
-                applyCouponUseCase.apply(request.code(), request.effectiveOrderAmount()));
+    public ApiResponse<ApplyCouponResponse> applyCoupon(@RequestBody ApplyCouponRequest request) {
+        return ApiResponse.ok(ApplyCouponResponse.from(
+                applyCouponUseCase.apply(request.code(), request.effectiveOrderAmount())));
     }
 
     private static CouponTermsCommand toCommand(CreateCouponRequest request) {
