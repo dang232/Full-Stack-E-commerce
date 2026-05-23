@@ -1,6 +1,6 @@
 # UI Playwright QA Coverage
 
-**Last updated:** 2026-05-23 (HEAD `2670ee19`)
+**Last updated:** 2026-05-23 (HEAD `c9951efb` + persona-workday)
 
 This index lists every UI-driven Playwright spec in `fe/e2e/`. Specs here drive the actual SPA through the browser — clicking buttons, sampling computed styles, asserting visible copy. They are NOT API-only integration tests dressed up as E2E (those are also useful, see `day-simulation.spec.ts`, but they don't catch UI regressions).
 
@@ -38,9 +38,9 @@ If a regression slips past these tests, write a new one. The pattern: seed state
 | `admin-ui.spec.ts` | 5 | pt28 admin schemas + coupon envelope | Dashboard, Sellers, Coupons, Disputes, Payouts tabs all parse |
 | `admin-coupon-crud-ui.spec.ts` | 3 | 2670ee19 (coupon wire-shape fix) | Empty code blocks with toast; FIXED submit round-trips + row appears; deactivate flips badge to Paused |
 
-**Total UI scenarios: 76** across 27 spec files.
+**Total UI scenarios: 76** across 27 spec files, plus 3 persona-workday journeys (32 steps total).
 
-Last green run: **76 / 76 in 1.6 min** against the live stack.
+Last green run: **76 / 76 in 1.6 min** for the surface suite, **3 / 3 in 51 s** for the workday suite, against the live stack.
 
 Run them all:
 ```bash
@@ -69,6 +69,39 @@ cd fe && npx playwright test \
   e2e/admin-coupon-crud-ui.spec.ts \
   --project=chromium --reporter=line
 ```
+
+## Persona workday journeys
+
+Three additional Playwright specs chain the surface specs above into
+end-to-end persona journeys. Each runs as a single `test.describe.serial`
+that drives the SPA from login through every relevant screen and back to
+logout, producing a self-contained evidence folder under
+`fe/e2e/evidence/<persona>/` (screenshots + REPORT.md + trace.zip
+committed; video.webm gitignored).
+
+| Spec | Steps | Persona setup | What it proves end-to-end |
+|---|---:|---|---|
+| `workday-buyer.spec.ts` | 15 | Registers fresh `e2e_workday_<ts>@vnshop.local` each run | i18n EN→VI · dark-mode · search → product → guest add → register → authed add → cart qty mutation → wishlist toggle → address add → checkout 4-step → COD order → cancel via UI → logout |
+| `workday-seller.spec.ts` | 8 | Logs in as seeded `seller1 / test` | Login → /seller mounts → 4 KPI cards → Revenue + Orders 30-day → Products tab chrome → Orders queue parses → Wallet balance + history → public `/sellers/{id}` → logout |
+| `workday-admin.spec.ts` | 9 | Logs in as seeded `admin1 / test` | Login → /admin → Sellers approval queue → Coupons tab → Create FIXED coupon round-trip → Deactivate → Disputes tab → Payouts tab → logout |
+
+Workday specs catch a different class of regression than single-surface
+specs: state continuity (cart → checkout → orders), navigation chains
+(login → role-redirect → tab → mutation), and cross-feature interactions
+(theme persistence, language carrying through checkout) only fail when
+steps run in sequence.
+
+Run all three:
+```bash
+cd fe && npx playwright test \
+  e2e/workday-buyer.spec.ts \
+  e2e/workday-seller.spec.ts \
+  e2e/workday-admin.spec.ts \
+  --project=chromium --reporter=line
+```
+
+Last green run: **3 / 3 in 51 s** end-to-end. Inspect artifacts:
+`fe/e2e/evidence/<persona>/REPORT.md`, `npx playwright show-trace fe/e2e/evidence/<persona>/trace.zip`.
 
 ## Bugs caught while writing these specs
 

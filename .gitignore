@@ -16,6 +16,9 @@
 /fe/playwright-report
 /fe/*.tsbuildinfo
 /fe/**/*.tsbuildinfo
+# Persona-workday evidence: video.webm regenerates each run and is too large
+# to commit; screenshots + REPORT.md + trace.zip ARE committed.
+/fe/e2e/evidence/**/*.webm
 .claude/settings.local.json
 /services/*/coverage
 /services/*/target
@@ -25,3 +28,4 @@
 /services/messaging-service/dist
 /.claude
 .mcp.json
+/.opencode
