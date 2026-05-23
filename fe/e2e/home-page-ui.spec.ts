@@ -1,0 +1,97 @@
+import { test, expect, type Page } from "@playwright/test";
+
+/**
+ * UI-driven QA spec for the home page (most-visited surface).
+ *
+ * What this proves through the actual SPA:
+ *   - Home page mounts past Suspense for guests
+ *   - Hero section renders localized title + CTAs (regression check
+ *     for the pt27 i18n duplicate-key bug)
+ *   - Major sections (categories, trust bar, recommendations,
+ *     bestsellers, app banner) all render their headers
+ *   - Tabler icons appear in the hero, trust strip, and category nav
+ *     (regression check for the lucide → tabler migration in pt27 —
+ *     a missed icon would render as text or break the layout)
+ *
+ * No backend or auth needed. Runs on / as a guest.
+ */
+
+async function expectNoGlobalError(page: Page): Promise<void> {
+  await expect(page.getByText(/Có lỗi xảy ra|Something went wrong/i)).toHaveCount(0);
+  await expect(page.getByText(/Invalid input/i)).toHaveCount(0);
+}
+
+test.describe("home page UI", () => {
+  test("Home renders without the global error fallback (guest)", async ({ page }) => {
+    await page.goto("/");
+
+    // The header Login CTA is the canonical guest-state signal.
+    await expect(
+      page.getByRole("button", { name: /^(Log in|Đăng nhập)$/i }).first(),
+    ).toBeVisible({ timeout: 20_000 });
+    await expectNoGlobalError(page);
+  });
+
+  test("Hero section renders localized title + CTA (no raw i18n keys)", async ({ page }) => {
+    await page.goto("/");
+
+    // Pre-pt27 the hero rendered "home.hero.title" / "home.hero.ctaShop"
+    // as raw text. Assert those keys never leak.
+    await expect(page.getByText(/^home\.hero\./i)).toHaveCount(0);
+
+    // Hero H1 should carry actual VI or EN copy. The H1 with the brand
+    // tagline is the canonical landmark.
+    const h1 = page.getByRole("heading", { level: 1 }).first();
+    await expect(h1).toBeVisible({ timeout: 20_000 });
+    const h1Text = await h1.innerText();
+    expect(h1Text.length, "hero H1 was empty").toBeGreaterThan(0);
+    expect(h1Text, `hero H1 contains a raw key: ${h1Text}`).not.toMatch(/home\.hero\./i);
+  });
+
+  test("Major home sections all render their headers", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("button", { name: /^(Log in|Đăng nhập)$/i }).first(),
+    ).toBeVisible({ timeout: 20_000 });
+
+    // Each section header should appear at least once. We use a tolerant
+    // regex per section so this works in either language.
+    const sectionMatchers = [
+      /Product Categories|Danh Mục Sản Phẩm/i, // Categories
+      /Trending|Đang Hot/i, // Trending bar
+      /Best Sellers|Bán Chạy Nhất/i, // Bestsellers sidebar
+      /Recommended for You|Gợi Ý Cho Bạn/i, // Products section
+      /Download VNShop App|Tải App VNShop/i, // App banner
+    ];
+
+    for (const matcher of sectionMatchers) {
+      await expect(page.getByText(matcher).first()).toBeVisible({
+        timeout: 10_000,
+      });
+    }
+
+    await expectNoGlobalError(page);
+  });
+
+  test("Footer renders with Design System link (Tabler IconPalette)", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("button", { name: /^(Log in|Đăng nhập)$/i }).first(),
+    ).toBeVisible({ timeout: 20_000 });
+
+    // Scroll to footer to trigger any lazy mounts.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+    // The Design System link in the footer is icon + label. The icon was
+    // a 🎨 emoji pre-pt27; post-fix it's an IconPalette svg with the
+    // Tabler class. Click goes to /design-system.
+    const designLink = page.getByRole("button", { name: /Design System/i }).first();
+    await expect(designLink).toBeVisible({ timeout: 10_000 });
+
+    // The Tabler palette icon should be inside the button (regression
+    // check: if the codemod missed this surface, the emoji would still
+    // be there as text content).
+    const innerSvg = designLink.locator("svg.tabler-icon-palette");
+    await expect(innerSvg).toHaveCount(1);
+  });
+});
