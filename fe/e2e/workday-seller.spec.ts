@@ -3,6 +3,8 @@ import {
   copyArtifacts,
   expectNoGlobalError,
   finalizeReport,
+  loginAsSeededUser,
+  logoutViaUserMenu,
   rememberOutputDir,
   resetPersona,
   startTrace,
@@ -58,21 +60,7 @@ test.describe.serial("Workday — seller (login → console tour → logout)", (
     let sellerId = "";
 
     await step(page, "seller", "Login as seller1 via /login form", async () => {
-      await page.goto("/login");
-      await expect(
-        page.getByText(/Sign in to VNShop|Đăng nhập VNShop/i).first(),
-      ).toBeVisible({ timeout: 20_000 });
-      await page.locator("#identifier").fill("seller1");
-      await page.locator("#password").fill("test");
-      await page
-        .getByRole("button", { name: /^(Sign in|Đăng nhập)$/i })
-        .click();
-      await expect
-        .poll(() => new URL(page.url()).pathname, {
-          timeout: 30_000,
-          message: "login did not navigate to /",
-        })
-        .toBe("/");
+      await loginAsSeededUser(page, "seller1");
     });
 
     await step(page, "seller", "/seller dashboard mounts with four KPI cards", async () => {
@@ -198,22 +186,7 @@ test.describe.serial("Workday — seller (login → console tour → logout)", (
     });
 
     await step(page, "seller", "Logout returns to home with Login CTA", async () => {
-      // Header user-menu trigger is an unlabeled button containing the user's
-      // truncated name span + a chevron-down icon. Anchor on the chevron's
-      // Tabler class so we don't depend on the localized name.
-      const menuTrigger = page
-        .locator("header button:has(svg.tabler-icon-chevron-down)")
-        .first();
-      await expect(menuTrigger).toBeVisible({ timeout: 10_000 });
-      await menuTrigger.click();
-      // The menu's logout entry carries IconLogout + the localized label.
-      await page
-        .locator("button:has(svg.tabler-icon-logout)")
-        .first()
-        .click();
-      await expect(
-        page.getByRole("button", { name: /^(Log in|Đăng nhập)$/i }).first(),
-      ).toBeVisible({ timeout: 15_000 });
+      await logoutViaUserMenu(page);
     });
     } finally {
       await stopTrace("seller", page);

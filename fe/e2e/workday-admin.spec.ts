@@ -3,6 +3,8 @@ import {
   copyArtifacts,
   expectNoGlobalError,
   finalizeReport,
+  loginAsSeededUser,
+  logoutViaUserMenu,
   rememberOutputDir,
   resetPersona,
   startTrace,
@@ -56,21 +58,7 @@ test.describe.serial("Workday — admin (login → console + coupon CRUD → log
     const couponCode = `WORKDAY${Date.now() % 1_000_000}`;
 
     await step(page, "admin", "Login as admin1 via /login form", async () => {
-      await page.goto("/login");
-      await expect(
-        page.getByText(/Sign in to VNShop|Đăng nhập VNShop/i).first(),
-      ).toBeVisible({ timeout: 20_000 });
-      await page.locator("#identifier").fill("admin1");
-      await page.locator("#password").fill("test");
-      await page
-        .getByRole("button", { name: /^(Sign in|Đăng nhập)$/i })
-        .click();
-      await expect
-        .poll(() => new URL(page.url()).pathname, {
-          timeout: 30_000,
-          message: "login did not navigate to /",
-        })
-        .toBe("/");
+      await loginAsSeededUser(page, "admin1");
     });
 
     await step(page, "admin", "/admin dashboard mounts as default tab", async () => {
@@ -202,18 +190,7 @@ test.describe.serial("Workday — admin (login → console + coupon CRUD → log
     });
 
     await step(page, "admin", "Logout returns to home with Login CTA", async () => {
-      const menuTrigger = page
-        .locator("header button:has(svg.tabler-icon-chevron-down)")
-        .first();
-      await expect(menuTrigger).toBeVisible({ timeout: 10_000 });
-      await menuTrigger.click();
-      await page
-        .locator("button:has(svg.tabler-icon-logout)")
-        .first()
-        .click();
-      await expect(
-        page.getByRole("button", { name: /^(Log in|Đăng nhập)$/i }).first(),
-      ).toBeVisible({ timeout: 15_000 });
+      await logoutViaUserMenu(page);
     });
     } finally {
       await stopTrace("admin", page);

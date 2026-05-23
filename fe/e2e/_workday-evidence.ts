@@ -222,3 +222,51 @@ export async function expectNoGlobalError(page: Page): Promise<void> {
   await expect(page.getByText(/Có lỗi xảy ra|Something went wrong/i)).toHaveCount(0);
   await expect(page.getByText(/Invalid input/i)).toHaveCount(0);
 }
+
+/**
+ * Drive the /login form for one of the seeded realm users (`seller1`,
+ * `admin1`, etc., all with password `test`). Polls until the SPA finishes
+ * its redirect to /. Used by the seller and admin workday specs; the
+ * buyer workday registers fresh and uses /register instead.
+ */
+export async function loginAsSeededUser(
+  page: Page,
+  username: string,
+  password = "test",
+): Promise<void> {
+  await page.goto("/login");
+  await expect(
+    page.getByText(/Sign in to VNShop|Đăng nhập VNShop/i).first(),
+  ).toBeVisible({ timeout: 20_000 });
+  await page.locator("#identifier").fill(username);
+  await page.locator("#password").fill(password);
+  await page
+    .getByRole("button", { name: /^(Sign in|Đăng nhập)$/i })
+    .click();
+  await expect
+    .poll(() => new URL(page.url()).pathname, {
+      timeout: 30_000,
+      message: `login as ${username} did not navigate to /`,
+    })
+    .toBe("/");
+}
+
+/**
+ * Open the header user-menu and click logout. Anchors on Tabler icon
+ * class names (chevron-down for the trigger, logout for the menu entry)
+ * so we don't depend on localized labels.
+ */
+export async function logoutViaUserMenu(page: Page): Promise<void> {
+  const menuTrigger = page
+    .locator("header button:has(svg.tabler-icon-chevron-down)")
+    .first();
+  await expect(menuTrigger).toBeVisible({ timeout: 10_000 });
+  await menuTrigger.click();
+  await page
+    .locator("button:has(svg.tabler-icon-logout)")
+    .first()
+    .click();
+  await expect(
+    page.getByRole("button", { name: /^(Log in|Đăng nhập)$/i }).first(),
+  ).toBeVisible({ timeout: 15_000 });
+}

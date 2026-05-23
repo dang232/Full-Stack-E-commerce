@@ -3,6 +3,7 @@ import {
   copyArtifacts,
   expectNoGlobalError,
   finalizeReport,
+  logoutViaUserMenu,
   rememberOutputDir,
   resetPersona,
   startTrace,
@@ -366,18 +367,7 @@ test.describe.serial("Workday — buyer (guest → register → shop → order)"
     });
 
     await step(page, "buyer", "Logout returns to home with the Login CTA", async () => {
-      const menuTrigger = page
-        .locator("header button:has(svg.tabler-icon-chevron-down)")
-        .first();
-      await expect(menuTrigger).toBeVisible({ timeout: 10_000 });
-      await menuTrigger.click();
-      await page
-        .locator("button:has(svg.tabler-icon-logout)")
-        .first()
-        .click();
-      await expect(
-        page.getByRole("button", { name: /^(Log in|Đăng nhập)$/i }).first(),
-      ).toBeVisible({ timeout: 15_000 });
+      await logoutViaUserMenu(page);
     });
     } finally {
       await stopTrace("buyer", page);
