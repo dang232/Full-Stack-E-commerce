@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
+import { useProfile } from "../hooks/use-profile";
 import { useWishlist } from "../hooks/use-wishlist";
 import type { Product } from "../types/ui";
 
@@ -50,6 +51,9 @@ export function VNShopProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const wishlistStore = useWishlist();
   const cart = useCart();
+  // /users/me carries the buyer's avatarUrl (uploaded via the profile camera
+  // button -> object storage). Gate on auth so guests don't fire 401s.
+  const profileQuery = useProfile({ enabled: auth.ready && auth.authenticated });
   const [isDark, setIsDark] = useState(false);
 
   const cartCount = cart.itemCount;
@@ -104,21 +108,25 @@ export function VNShopProvider({ children }: { children: ReactNode }) {
   const user = useMemo<User | null>(() => {
     if (!auth.authenticated) return null;
     const profile = auth.profile;
+    const buyerProfile = profileQuery.data;
     const fullName =
-      profile?.firstName || profile?.lastName
+      buyerProfile?.name ??
+      (profile?.firstName || profile?.lastName
         ? [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim()
-        : (profile?.username ?? profile?.email ?? "Người dùng");
+        : (profile?.username ?? profile?.email ?? "Người dùng"));
     return {
       id: auth.subject ?? profile?.id ?? "",
       name: fullName,
       email: profile?.email ?? "",
-      // Phone now lives on the BuyerProfile in user-service, not on the JWT.
-      // Pages that need it (Profile, Checkout) fetch /users/me directly.
-      phone: "",
-      avatar: "",
+      phone: buyerProfile?.phone ?? "",
+      // BE returns avatarUrl on BuyerProfileResponse; the userProfileSchema
+      // transform aliases it to `avatar`. Falls back to "" so the avatar
+      // button still renders the initial-letter placeholder for users who
+      // never uploaded one.
+      avatar: buyerProfile?.avatar ?? "",
       role: pickRole(auth.roles),
     };
-  }, [auth.authenticated, auth.profile, auth.roles, auth.subject]);
+  }, [auth.authenticated, auth.profile, auth.roles, auth.subject, profileQuery.data]);
 
   const value = useMemo<VNShopContextType>(
     () => ({
