@@ -1,16 +1,16 @@
-# Session handover — 2026-05-23 (pt28: dark mode coverage + BE-shape alignment + cart wiring)
+# Session handover — 2026-05-23 (pt28: dark mode + BE-shape alignment + cart wiring + schema audit sweep)
 
-**Last commit (HEAD):** `b9af48b4` (`fix(cart): wire PRODUCT_SERVICE_URL and read price/image from variants[]`)
-**Commits pushed since pt27 HEAD `c1ee4014`:** 7.
+**Last commit (HEAD):** `017556a4` (`fix(fe): align admin schemas with BE DTOs (sellers, disputes, payouts, coupons)`)
+**Commits pushed since pt27 HEAD `c1ee4014`:** 10.
 
 **Gates (live stack):**
 - FE typecheck: 2 errors (pre-existing baseline — PayPalPaymentSection + CheckoutPage. Same since pt24).
 - Vitest: 156 / 156 (25 files).
 - cart-service jest: 13 / 13 (added 9 ProductHttpClientAdapter specs).
-- Playwright `e2e/day-simulation.spec.ts`: **15 / 15 in 13.2s** against the rebuilt stack with all seven commits live.
+- Playwright `e2e/day-simulation.spec.ts`: **15 / 15 in 16.9s** against the rebuilt stack with all ten commits live.
 - `vnshop-frontend` and `vnshop-cart-service` rebuilt and healthy.
 
-This session closed out the dark-mode coverage gap, fixed three Zod schema mismatches (cart, user, order) that were rendering page-wide error fallbacks, and fixed the long-standing "raw UUID + 0₫" cart bug that had a docker-compose env wiring root cause.
+This session closed out the dark-mode coverage gap, fixed seven Zod schema mismatches across cart/user/order/checkout/review/seller-finance/admin that were rendering page-wide error fallbacks against real BE data, fixed the long-standing "raw UUID + 0₫" cart bug (docker-compose env wiring + product-service variants[] price/image extraction), and ran a read-only audit across all 21 FE schema files to catch drift before users hit it.
 
 ## Commits pushed
 
@@ -23,6 +23,9 @@ This session closed out the dark-mode coverage gap, fixed three Zod schema misma
 | 5 | `47d1fc2c` | docs(pt28): session handover for dark mode + cart/user schema fixes |
 | 6 | `ab9eda93` | fix(fe): align order Zod schema with order-service OrderResponse shape |
 | 7 | `b9af48b4` | fix(cart): wire PRODUCT_SERVICE_URL and read price/image from variants[] |
+| 8 | `35ed317d` | docs(pt28): expand handover with order schema + cart wiring fixes |
+| 9 | `f8cd1c21` | fix(fe): align checkout, review, and seller-finance schemas with BE |
+| 10 | `017556a4` | fix(fe): align admin schemas with BE DTOs (sellers, disputes, payouts, coupons) |
 
 ## Why each commit mattered
 
@@ -97,6 +100,10 @@ if (!this.productServiceUrl) {
 That was meant for unit testing but kicked in *in production* because `PRODUCT_SERVICE_URL` was missing from `docker-compose.yml`. Result: every cart item rendered as a UUID with 0₫. The container logs showed nothing because no exception was thrown. Lesson: silent offline-mode branches in BE adapters need either (a) a `LOG.warn` on construction so it shows up in startup logs, (b) a feature flag separate from the URL so the branch only fires when explicitly enabled for tests, or (c) hard-fail at module init when the URL is unset and the env isn't `test`/`development`. Adding a comment in compose pointing at the adapter is the bare minimum.
 
 **60. order-service has no order-level status field — it must be derived from sub-orders.** `OrderResponse` only carries `paymentStatus` plus `subOrders[].fulfillmentStatus`. The FE always assumed `order.status: string` and burned every parse. Fix: a `deriveOrderStatus()` helper in the FE schema transform that maps `(subStatuses[], paymentStatus) → "pending" | "confirmed" | "shipping" | "delivered" | "cancelled" | "returned"`, called in the Zod transform so all consumers see a stable derived status without rewriting. If a future order-service ever ships a top-level `status`, it's accepted as-is and overrides the derivation.
+
+**61. After fixing one schema, audit ALL of them — drift clusters.** `cart` led us to `user`, which led to `order`, which led to `checkout`/`review`/`seller-finance`/`admin`. Every Java DTO that wraps `BigDecimal`/`Long`/uses `*Id` field naming is a candidate. Dispatched an explore agent to read all 21 FE schemas vs their BE DTOs in one pass; turned up 4 more HIGH-risk drifts (checkout breakdown, shipping options, review, wallet) and 4 admin-surface drifts. Verified each agent finding by reading the BE source before patching — agents reliably describe BE shapes correctly when they cite specific record fields. Worth doing a similar audit any time a BE service evolves its DTOs without coordinated FE updates.
+
+**62. VNPay/MoMo create endpoints have no redirectUrl — that's missing BE functionality, not schema drift.** FE does `window.location.href = init.redirectUrl` after `POST /payment/vnpay/create` but the BE's `PaymentResponse` carries `paymentId, orderId, buyerId, amount, method, status, transactionRef, createdAt` with no `redirectUrl`. So checkout currently redirects to `undefined`. This needs product-side direction: should the BE generate the gateway redirect URL server-side and return it, or does the FE construct it from the gateway sandbox config? Out of scope for the schema-alignment work; flagging here so the next session knows it's the next checkout-flow blocker.
 
 ## Files touched this block
 
