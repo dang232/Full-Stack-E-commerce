@@ -4,6 +4,19 @@ import { toast } from "sonner";
 
 import { Modal } from "../../components/ui/modal";
 
+interface CouponDialogBody {
+  code: string;
+  type: "PERCENT" | "FIXED";
+  value: number;
+  minOrderValue?: number;
+  maxDiscount?: number;
+  /** BE CreateCouponRequest requires this — primitive int, must be > 0. */
+  maxUses: number;
+  /** BE CreateCouponRequest requires this — Instant, ISO-8601 string. */
+  validUntil: string;
+  active: boolean;
+}
+
 export function CouponDialog({
   open,
   onClose,
@@ -12,34 +25,20 @@ export function CouponDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onSubmit: (body: {
-    code: string;
-    type: "PERCENT" | "FIXED";
-    value: number;
-    minOrderValue?: number;
-    maxDiscount?: number;
-    active: boolean;
-  }) => void;
+  onSubmit: (body: CouponDialogBody) => void;
   isSubmitting: boolean;
 }) {
   if (!open) return null;
-  return <CouponDialogBody onClose={onClose} onSubmit={onSubmit} isSubmitting={isSubmitting} />;
+  return <CouponDialogBodyView onClose={onClose} onSubmit={onSubmit} isSubmitting={isSubmitting} />;
 }
 
-function CouponDialogBody({
+function CouponDialogBodyView({
   onClose,
   onSubmit,
   isSubmitting,
 }: {
   onClose: () => void;
-  onSubmit: (body: {
-    code: string;
-    type: "PERCENT" | "FIXED";
-    value: number;
-    minOrderValue?: number;
-    maxDiscount?: number;
-    active: boolean;
-  }) => void;
+  onSubmit: (body: CouponDialogBody) => void;
   isSubmitting: boolean;
 }) {
   const { t } = useTranslation();
@@ -72,6 +71,15 @@ function CouponDialogBody({
         ? Number(minOrderValue.replace(/\D/g, "")) || undefined
         : undefined,
       maxDiscount: maxDiscount ? Number(maxDiscount.replace(/\D/g, "")) || undefined : undefined,
+      // BE CreateCouponRequest requires maxUses (primitive int) and
+      // validUntil (Instant). The dialog doesn't surface either field
+      // today; pre-fix this caused a 400 because Jackson couldn't
+      // deserialize null into a primitive int. Send sensible defaults
+      // until the dialog grows those inputs:
+      //   - maxUses: 1000 (effectively unbounded for typical promos)
+      //   - validUntil: 30 days from now
+      maxUses: 1000,
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       active: true,
     });
   };

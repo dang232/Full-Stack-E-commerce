@@ -33,6 +33,12 @@ export interface CouponWriteBody {
   value: number;
   minOrderValue?: number;
   maxDiscount?: number;
+  /** BE CreateCouponRequest requires this as a primitive int. Send a
+   *  positive integer; the dialog defaults to 1000 if no field surfaces
+   *  it to the admin. */
+  maxUses: number;
+  /** BE CreateCouponRequest requires this as an Instant. ISO-8601 string. */
+  validUntil: string;
   startsAt?: string;
   endsAt?: string;
   active?: boolean;
