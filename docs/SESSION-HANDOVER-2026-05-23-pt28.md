@@ -1,7 +1,7 @@
 # Session handover — 2026-05-23 (pt28: dark mode + BE-shape alignment + cart wiring + schema audit sweep)
 
-**Last commit (HEAD):** `017556a4` (`fix(fe): align admin schemas with BE DTOs (sellers, disputes, payouts, coupons)`)
-**Commits pushed since pt27 HEAD `c1ee4014`:** 10.
+**Last commit (HEAD):** `5b62048f` (`fix(fe): pageSchema accepts both Spring number and user-service page`)
+**Commits pushed since pt27 HEAD `c1ee4014`:** 14.
 
 **Gates (live stack):**
 - FE typecheck: 2 errors (pre-existing baseline — PayPalPaymentSection + CheckoutPage. Same since pt24).
@@ -26,6 +26,10 @@ This session closed out the dark-mode coverage gap, fixed seven Zod schema misma
 | 8 | `35ed317d` | docs(pt28): expand handover with order schema + cart wiring fixes |
 | 9 | `f8cd1c21` | fix(fe): align checkout, review, and seller-finance schemas with BE |
 | 10 | `017556a4` | fix(fe): align admin schemas with BE DTOs (sellers, disputes, payouts, coupons) |
+| 11 | `62310377` | docs(pt28): finalize handover with schema audit sweep + checkout/admin fixes |
+| 12 | `6fa83c13` | fix(fe-order): accept the flat OrderListItemResponse shape on /orders list |
+| 13 | `0a3c0f8a` | fix(fe-orders): flatten seller pending-orders into PendingSubOrder rows |
+| 14 | `5b62048f` | fix(fe): pageSchema accepts both Spring `number` and user-service `page` |
 
 ## Why each commit mattered
 
@@ -104,6 +108,16 @@ That was meant for unit testing but kicked in *in production* because `PRODUCT_S
 **61. After fixing one schema, audit ALL of them — drift clusters.** `cart` led us to `user`, which led to `order`, which led to `checkout`/`review`/`seller-finance`/`admin`. Every Java DTO that wraps `BigDecimal`/`Long`/uses `*Id` field naming is a candidate. Dispatched an explore agent to read all 21 FE schemas vs their BE DTOs in one pass; turned up 4 more HIGH-risk drifts (checkout breakdown, shipping options, review, wallet) and 4 admin-surface drifts. Verified each agent finding by reading the BE source before patching — agents reliably describe BE shapes correctly when they cite specific record fields. Worth doing a similar audit any time a BE service evolves its DTOs without coordinated FE updates.
 
 **62. VNPay/MoMo create endpoints have no redirectUrl — that's missing BE functionality, not schema drift.** FE does `window.location.href = init.redirectUrl` after `POST /payment/vnpay/create` but the BE's `PaymentResponse` carries `paymentId, orderId, buyerId, amount, method, status, transactionRef, createdAt` with no `redirectUrl`. So checkout currently redirects to `undefined`. This needs product-side direction: should the BE generate the gateway redirect URL server-side and return it, or does the FE construct it from the gateway sandbox config? Out of scope for the schema-alignment work; flagging here so the next session knows it's the next checkout-flow blocker.
+
+**63. /orders list and /orders/{id} are different shapes — same schema can't fit both.** GET /orders returns `Page<OrderListItemResponse>` (flat: `orderId`, `status: String`, `totalAmount: BigDecimal`, `itemCount`). GET /orders/{id} returns `OrderResponse` (nested: `id`, `subOrders[]`, `finalAmount: Money`, no top-level status). The orderSchema absorbs both via the same transform, but the status logic has to handle three cases:
+  1. Already a UI value (FE optimistic-updates pass `"pending"` directly)
+  2. Raw FulfillmentStatus enum string (the list endpoint emits this — `"PENDING_ACCEPTANCE"`)
+  3. No status (the detail endpoint — derive from `subOrders[].fulfillmentStatus + paymentStatus`)
+   The transform output is always one of the six UI status values so STATUS_CONFIG indexing on OrdersPage continues working.
+
+**64. /seller/orders/pending returns `List<OrderResponse>`, not `List<PendingSubOrder>`.** The seller-orders queue page renders one row per sub-order (each gets its own accept/reject/ship buttons) but the BE returns full nested orders. Fix: do the flattening inside the endpoint adapter (`fe/.../endpoints/orders.ts`), keep the page contract as `PendingSubOrder[]`. The `firstSubOrder()` helper for the mutations is acceptable because the page invalidates the list after each mutation and re-renders from fresh server state — no need to track which sub-order the seller actually clicked for the optimistic-update path.
+
+**65. Spring Page<T> uses `number` for the index; user-service `PublicSellersPageResponse` uses `page`.** Two different paged-response shapes from the same backend stack. Schema accepts both via `.optional()` and the transform surfaces the index under both keys, so consumers can read `.page` or `.number` without runtime probing. Also added `page?` to the `Page<T>` TS interface.
 
 ## Files touched this block
 
