@@ -62,9 +62,11 @@ function guestItemsToCart(items: GuestCartItem[]): Cart {
   return {
     items: items.map((it) => ({
       productId: it.productId as ProductId,
-      name: "",
+      name: undefined,
+      image: undefined,
       price: 0,
       quantity: it.quantity,
+      sellerId: undefined,
     })),
     itemCount: items.reduce((n, i) => n + i.quantity, 0),
     totalAmount: 0,
@@ -80,7 +82,14 @@ function optimisticAdd(cart: Cart | undefined, productId: string, quantity: numb
     items[existing] = { ...items[existing], quantity: items[existing].quantity + quantity };
   } else {
     // Skeleton item — name/price/image will reconcile from the server response.
-    items.push({ productId: productId as ProductId, name: "", price: 0, quantity });
+    items.push({
+      productId: productId as ProductId,
+      name: undefined,
+      image: undefined,
+      price: 0,
+      quantity,
+      sellerId: undefined,
+    });
   }
   return recomputeTotals({ ...base, items });
 }
