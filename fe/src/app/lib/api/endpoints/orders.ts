@@ -5,6 +5,7 @@ import {
   pageSchema,
   pendingSubOrderSchema,
   returnSchema,
+  type Order,
   type PendingSubOrder,
   type Return,
 } from "../../../types/api";
@@ -67,14 +68,58 @@ export const sellerRejectReturn = (returnId: string, body: { reason: string }) =
 export const sellerCompleteReturn = (returnId: string) =>
   api.post(`/returns/${encodeURIComponent(returnId)}/complete`, returnSchema);
 
-export const sellerPendingOrders = () =>
-  api.get("/seller/orders/pending", z.array(pendingSubOrderSchema));
+// /seller/orders/pending returns List<OrderResponse> (the full nested shape),
+// not a flat sub-order list. Flatten each Order's subOrders[] into one
+// PendingSubOrder per row so the seller UI can accept/reject/ship at
+// sub-order granularity. Mutations also return OrderResponse and we surface
+// the first sub-order from the parent — the page invalidates the list
+// afterward and re-renders from fresh server state.
+function flattenToPendingSubOrders(orders: Order[]): PendingSubOrder[] {
+  return orders.flatMap((o) =>
+    (o.subOrders ?? []).map((s) => ({
+      id: s.id,
+      orderId: o.id,
+      status: s.status,
+      items: s.items,
+      createdAt: o.createdAt,
+    })),
+  );
+}
 
-export const sellerAcceptOrder = (subOrderId: string) =>
-  api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/accept`, pendingSubOrderSchema);
-export const sellerRejectOrder = (subOrderId: string, body: { reason: string }) =>
-  api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/reject`, pendingSubOrderSchema, body);
-export const sellerShipOrder = (
+function firstSubOrder(order: Order): PendingSubOrder {
+  const s = order.subOrders?.[0];
+  return {
+    id: s?.id ?? "",
+    orderId: order.id,
+    status: s?.status ?? "PENDING_ACCEPTANCE",
+    items: s?.items,
+    createdAt: order.createdAt,
+  };
+}
+
+export const sellerPendingOrders = async (): Promise<PendingSubOrder[]> => {
+  const orders = await api.get("/seller/orders/pending", z.array(orderSchema));
+  return flattenToPendingSubOrders(orders);
+};
+
+export const sellerAcceptOrder = async (subOrderId: string): Promise<PendingSubOrder> =>
+  firstSubOrder(
+    await api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/accept`, orderSchema),
+  );
+export const sellerRejectOrder = async (
+  subOrderId: string,
+  body: { reason: string },
+): Promise<PendingSubOrder> =>
+  firstSubOrder(
+    await api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/reject`, orderSchema, body),
+  );
+export const sellerShipOrder = async (
   subOrderId: string,
   body: { carrier: string; trackingNumber: string },
-) => api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/ship`, pendingSubOrderSchema, body);
+): Promise<PendingSubOrder> =>
+  firstSubOrder(
+    await api.put(`/seller/orders/${encodeURIComponent(subOrderId)}/ship`, orderSchema, body),
+  );
+
+// Re-export so existing consumers can keep importing pendingSubOrderSchema.
+export { pendingSubOrderSchema };
