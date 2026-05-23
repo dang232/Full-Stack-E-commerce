@@ -17,9 +17,12 @@ export const reviewSchema = z
     // Live BE names
     reviewId: z.string().optional(),
     buyerId: z.string().optional(),
-    text: z.string().optional(),
+    text: z.string().nullable().optional(),
     helpfulVotes: z.number().optional(),
-    orderId: z.string().optional(),
+    // BE persists orderId as nullable since V4 (review-from-product-page
+    // flow doesn't always have an orderId to attribute the review to).
+    // Schema has to accept literal null in addition to undefined.
+    orderId: z.string().nullable().optional(),
     verifiedPurchase: z.boolean().optional(),
     status: z.string().optional(),
     productId: productIdSchema,

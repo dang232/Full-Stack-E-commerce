@@ -36,7 +36,7 @@ public class ReviewJpaEntity extends BaseJpaEntity {
     @Column(name = "buyer_id", nullable = false)
     private String buyerId;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id")
     private String orderId;
 
     @Column(name = "rating", nullable = false)
