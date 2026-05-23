@@ -499,6 +499,10 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      # Without this, ProductHttpClientAdapter falls through to its
+      # offline-mode branch and every cart item shows the raw UUID as the
+      # product name with 0₫. See product-http-client.adapter.ts.
+      PRODUCT_SERVICE_URL: http://product-service:8082
 
   search-service:
     profiles: ["apps"]
