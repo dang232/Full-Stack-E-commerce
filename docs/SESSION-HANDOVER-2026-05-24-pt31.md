@@ -1,14 +1,69 @@
 # Session handover — 2026-05-24 (pt31: BA-grade journey suite + caught BE bug)
 
-**Last commit (HEAD):** `<set-after-this-commit>` (`docs(pt31): final handover — chapters 1-3 green, 3 caught bugs fixed`)
-**Commits pushed since pt30 HEAD `01fdd633`:** 14.
+**Last commit (HEAD):** `<set-after-this-commit>` (`docs(pt31): chapters 1-4 GREEN, 5 caught bugs fixed`)
+**Commits pushed since pt30 HEAD `01fdd633`:** 21.
 
 **Gates (live stack):**
 - FE typecheck: 0 errors clean.
 - FE vitest: 156 / 156.
-- order-service jest: `CalculateCheckoutUseCaseTest` 9 / 9 (5 prior + 4 new) plus all other affected tests green.
+- order-service jest: `CalculateCheckoutUseCaseTest` 9 / 9 + all affected tests green.
 - Playwright workday suite (pt30 carry-over): 3 / 3, unchanged.
-- **Playwright journey suite (this block): 4 / 4 in ~21 s. JOURNEY-REPORT verdict: PASS, 8 / 8 ACs across chapters 1-3.**
+- **Playwright journey suite (this block): 5 / 5 in ~26 s. JOURNEY-REPORT verdict: PASS, 11 / 11 ACs across 4 chapters.**
+
+## Bugs caught + fixed this block
+
+The journey suite caught **five** real customer-impact defects, each surfaced as an AC FAIL with full receipts in JOURNEY-REPORT.md, then closed end-to-end:
+
+1. **AC-2.2 — Coupon discount math broken at /checkout/calculate.** Two-store architecture (order-service local DB vs coupon-service authoritative); `CalculateCheckoutUseCase` ignored the FE's `couponCode` and the local validator wouldn't have found the admin-published coupon anyway. Fix: cross-service `CouponValidationPort` + HTTP adapter to coupon-service.
+
+2. **AC-3.1 (initial) → AC-3.2 — Seller can't ship orders after accepting them.** `/seller/orders/pending` filtered by PENDING_ACCEPTANCE only; the row left the queue after Accept and the FE Ship button never rendered. Fix: query an ACTIONABLE list (PENDING_ACCEPTANCE + ACCEPTED).
+
+3. **AC-3.1 (cascading) — Seller's Orders tab crashed on legacy null ward data.** `addressSchema.ward` was `z.string().optional()` which accepts undefined but rejects literal null; legacy `order_summary` rows persist `ward: null` and the entire seller queue rendered "Invalid input". Fix: `.nullable().optional()`.
+
+4. **AC-4.2 — Buyer review submit broken across 4 layers.**
+   - Layer 1 controller: orderId String, javadoc says optional ✓
+   - Layer 2 domain: `requireNonBlank(orderId)` threw IAE → fixed to null-normalisation
+   - Layer 3 JPA entity: `@Column(nullable = false)` → fixed to nullable
+   - Layer 4 DB schema: `order_id NOT NULL` → V4 Flyway migration drops the constraint
+   Result: NO buyer could post a review through the SPA before this fix, regardless of which entry point they used.
+
+5. **AC-4.3 — reviewSchema same null-vs-undefined gotcha as #3.** `orderId: z.string().optional()` rejected the BE's literal null. Cascading effect: every existing review with null orderId would have crashed any FE consumer. Fix: `.nullable().optional()`.
+
+Each was a real production-impact defect that would have shipped undetected by pt30's "tour the console" specs. Cumulative: the journey suite has now caught + tracked + driven the closure of 5 customer-facing bugs in a single session.
+
+## What's in the journey suite
+
+```
+fe/e2e/journey/
+├── _journey-state.ts                              # state sidecar
+├── _journey-evidence.ts                           # bizStep + AC reports
+├── 01-admin-onboards-the-marketplace.spec.ts      # AC-1.{1,2,3} PASS
+├── 02-buyer-discovers-and-orders.spec.ts          # AC-2.{1,2,3} PASS
+├── 03-seller-fulfills-the-order.spec.ts           # AC-3.{1,2}   PASS
+├── 04-buyer-receives-and-reviews.spec.ts          # AC-4.{1,2,3} PASS
+└── 99-aggregate-journey-report.spec.ts            # writes JOURNEY-REPORT.md
+```
+
+JOURNEY-REPORT verdict: **PASS, 11 / 11 ACs across 4 chapters.** 4 of 6 chapters complete.
+
+## Open thread for next session — chapters 5-6
+
+**Chapter 5 — Seller cashes out (AC-5.1, AC-5.2)** is blocked by a real architectural finding:
+
+The seller's wallet is empty after chapter 3 fulfils the order. Diagnosis (run during pt31): seller-finance-service's `OrderCreatedFinanceListener` consumes `order.created` and `order.paid` Kafka topics. The journey's COD orders may not be firing those events at all (COD has no payment step), or are firing them with a payload shape the listener can't decode. This is BE diagnosis territory — until wallet credits land, chapter 5's "request payout" has nothing to request.
+
+Three possible paths:
+- (a) Fix the Kafka event flow so COD orders trigger `order.created` cleanly with sellerId/orderAmount in the payload.
+- (b) Add an admin-credit endpoint (pt13's audit removed `POST /sellers/me/finance/credits` because any seller could credit themselves; an ADMIN-only variant under `/admin/finance/credits` would be safe and would let the journey seed balance deterministically).
+- (c) Reframe AC-5.1 as "seller can request a payout when their wallet has earnings" without requiring chapter 5 to drive the credit — chapter would seed via API and just exercise the request flow.
+
+**Chapter 6 — Admin closes the loop (AC-6.1, AC-6.2, AC-6.3)** depends on chapter 5 to produce a pending payout for the admin to complete.
+
+**Lower-priority follow-ups** (carryover):
+- Avatar upload feature (design doc in `docs/superpowers/specs/2026-05-24-avatar-upload-object-storage-design.md`).
+- PayPal capture round-trip.
+- Shipping tracking ownership check.
+- VNPay/MoMo `redirectUrl` missing from PaymentResponse.
 
 ## Bugs caught + fixed this block
 
