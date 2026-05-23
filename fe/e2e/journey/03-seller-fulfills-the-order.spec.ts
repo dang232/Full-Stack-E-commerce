@@ -171,16 +171,20 @@ test.describe.serial("Chapter 3 — Seller fulfills the order", () => {
             .first()
             .click();
 
-          // Queue header OR a row containing our subOrderId — both prove
-          // the parse landed; the row presence matters for AC-3.2's click.
+          // The Orders tab adapter renders the parent orderId (UUID
+          // prefix) in monospace text per row. Find Chapter 2's parent
+          // by its first 8 hex chars — that's enough disambiguation
+          // even when the queue accumulates rows across runs.
+          const state = await requireJourneyState(["orderId"]);
+          const orderIdPrefix = state.orderId.slice(0, 8);
           await expect
             .poll(
               async () =>
-                page.getByText(String(resolvedSubOrderId), { exact: false }).count(),
+                page.getByText(orderIdPrefix, { exact: false }).count(),
               {
                 timeout: 30_000,
                 message:
-                  `seller's UI never rendered subOrderId=${resolvedSubOrderId} in the Orders tab`,
+                  `seller's UI never rendered orderId prefix ${orderIdPrefix} in the Orders tab`,
               },
             )
             .toBeGreaterThan(0);
@@ -194,11 +198,13 @@ test.describe.serial("Chapter 3 — Seller fulfills the order", () => {
         "AC-3.2",
         "Seller clicks Accept on the row and the toast confirms the round-trip",
         async () => {
-          // The pending row carries the subOrderId in monospace text. Find
-          // its row container and click Accept inside it. .divide-y > div
-          // is the same selector pattern admin sellers tab uses.
+          // Find the row by parent orderId prefix (unique across the
+          // queue) and click Accept inside it. .divide-y > div is the
+          // SellerOrders row container.
+          const state = await requireJourneyState(["orderId"]);
+          const orderIdPrefix = state.orderId.slice(0, 8);
           const row = page
-            .locator(".divide-y > div", { hasText: String(resolvedSubOrderId) })
+            .locator(".divide-y > div", { hasText: orderIdPrefix })
             .first();
           await expect(row).toBeVisible({ timeout: 10_000 });
           await row
@@ -224,11 +230,13 @@ test.describe.serial("Chapter 3 — Seller fulfills the order", () => {
         "Seller ships the accepted order with a tracking number, summary toast confirms",
         async () => {
           const trackingNumber = `JRN-${Date.now()}`;
+          const state = await requireJourneyState(["orderId"]);
+          const orderIdPrefix = state.orderId.slice(0, 8);
 
           // After accept, the row's button switches from Accept to Ship.
-          // React Query invalidates after the mutation, but the seller's
-          // queue is long enough that the specific row's re-render can
-          // race the poll. Reload the tab once to force a clean fetch.
+          // React Query invalidates after the mutation; reload the tab
+          // once to force a clean fetch and avoid the long-list re-render
+          // race.
           await page.reload();
           await page
             .getByRole("button", { name: /^(Orders|Đơn hàng)$/ })
@@ -236,7 +244,7 @@ test.describe.serial("Chapter 3 — Seller fulfills the order", () => {
             .click();
 
           const row = page
-            .locator(".divide-y > div", { hasText: String(resolvedSubOrderId) })
+            .locator(".divide-y > div", { hasText: orderIdPrefix })
             .first();
           await expect
             .poll(

@@ -2,7 +2,7 @@
 
 **Persona:** seller
 **Verdict:** FAIL
-**Generated:** 2026-05-23T19:30:12.056Z
+**Generated:** 2026-05-23T19:35:59.455Z
 
 ## Business outcomes verified
 
@@ -30,9 +30,9 @@
 ![Seller logs into the SPA and the Orders tab renders the pending row](screenshots/03-ac-3-1-seller-logs-into-the-spa-and-the-orders-tab-renders-t.png)
 
 ```
-seller's UI never rendered subOrderId=207 in the Orders tab
+seller's UI never rendered orderId prefix 22bbc7f3 in the Orders tab
 
-seller's UI never rendered subOrderId=207 in the Orders tab
+seller's UI never rendered orderId prefix 22bbc7f3 in the Orders tab
 
 [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
 

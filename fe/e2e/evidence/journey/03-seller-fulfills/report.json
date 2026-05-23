@@ -35,7 +35,7 @@
       "outcome": "Seller logs into the SPA and the Orders tab renders the pending row",
       "slug": "03-ac-3-1-seller-logs-into-the-spa-and-the-orders-tab-renders-t.png",
       "status": "FAIL",
-      "errorMessage": "seller's UI never rendered subOrderId=207 in the Orders tab\n\nseller's UI never rendered subOrderId=207 in the Orders tab\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
+      "errorMessage": "seller's UI never rendered orderId prefix 22bbc7f3 in the Orders tab\n\nseller's UI never rendered orderId prefix 22bbc7f3 in the Orders tab\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
     }
   ],
   "acStatuses": [
@@ -49,7 +49,7 @@
         "outcome": "Seller logs into the SPA and the Orders tab renders the pending row",
         "slug": "03-ac-3-1-seller-logs-into-the-spa-and-the-orders-tab-renders-t.png",
         "status": "FAIL",
-        "errorMessage": "seller's UI never rendered subOrderId=207 in the Orders tab\n\nseller's UI never rendered subOrderId=207 in the Orders tab\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
+        "errorMessage": "seller's UI never rendered orderId prefix 22bbc7f3 in the Orders tab\n\nseller's UI never rendered orderId prefix 22bbc7f3 in the Orders tab\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
       }
     },
     {
@@ -59,5 +59,5 @@
     }
   ],
   "verdict": "FAIL",
-  "generatedAt": "2026-05-23T19:30:12.058Z"
+  "generatedAt": "2026-05-23T19:35:59.456Z"
 }
