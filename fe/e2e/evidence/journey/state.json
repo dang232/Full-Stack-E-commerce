@@ -1,14 +1,15 @@
 {
-  "approvedSellerKeycloakId": "27ee96ca-2217-4139-9c8d-907fabade581",
-  "approvedSellerEmail": "e2e_journey_seller_1779564911631@vnshop.local",
+  "approvedSellerKeycloakId": "5929fa43-82f6-4a24-877a-bad950594cf2",
+  "approvedSellerEmail": "e2e_journey_seller_1779571189879@vnshop.local",
   "approvedSellerPassword": "Test1234!",
-  "couponCode": "JRN912123",
+  "couponCode": "JRN190273",
   "couponDiscountVnd": 50000,
-  "buyerEmail": "e2e_journey_buyer_1779564917427@vnshop.local",
+  "buyerEmail": "e2e_journey_buyer_1779571195110@vnshop.local",
   "buyerPassword": "Test1234!",
   "productId": "2b0a8522-4310-4665-9874-bf37a5481667",
   "productName": "Tai nghe Sony WH-1000XM5",
   "productUnitPriceVnd": 8990000,
-  "orderId": "22bbc7f3-9eff-4aab-990b-36a3233b467a",
-  "orderTotalVnd": 8970000
+  "orderId": "c6f2d92d-513e-429b-b8f2-5e0dbe1b109a",
+  "orderTotalVnd": 8970000,
+  "subOrderId": 213
 }

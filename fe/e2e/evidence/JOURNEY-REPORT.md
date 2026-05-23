@@ -1,14 +1,13 @@
 # VNShop Journey — End-to-End Business Outcome Report
 
-**Generated:** 2026-05-23T19:36:01.195Z
+**Generated:** 2026-05-23T21:20:09.418Z
 
 This report aggregates every chapter of the BA-grade persona journey. Each row is a single business outcome the platform must support; columns map to the chapter and persona that exercises it.
 
-## Journey verdict: FAIL
+## Journey verdict: PASS
 
-- **Acceptance criteria passed:** 6 / 8
+- **Acceptance criteria passed:** 8 / 8
 - **Chapters run:** 3 of 6
-- **Failed:** AC-3.1 (A seller sees the buyer's new order in their pending queue within 30 s)
 
 ## Chapter 1 — Admin onboards the marketplace — PASS
 
@@ -30,12 +29,12 @@ Persona: buyer. Detail: [`journey/02-buyer-orders/REPORT.md`](journey/02-buyer-o
 | AC-2.2 | A coupon applied at checkout reduces the order total by exactly the published discount | PASS |
 | AC-2.3 | A placed COD order is visible in the buyer's order history within 30 s | PASS |
 
-## Chapter 3 — Seller fulfills the order — FAIL
+## Chapter 3 — Seller fulfills the order — PASS
 
 Persona: seller. Detail: [`journey/03-seller-fulfills/REPORT.md`](journey/03-seller-fulfills/REPORT.md).
 
 | AC | Outcome | Status |
 |---|---|---|
-| AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | FAIL |
-| AC-3.2 | A seller can accept and ship the order with a tracking number | NOT_RUN |
+| AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | PASS |
+| AC-3.2 | A seller can accept and ship the order with a tracking number | PASS |
 

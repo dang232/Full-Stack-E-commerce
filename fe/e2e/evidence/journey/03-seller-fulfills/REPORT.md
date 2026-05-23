@@ -1,19 +1,19 @@
 # Chapter 3 — Seller fulfills the order
 
 **Persona:** seller
-**Verdict:** FAIL
-**Generated:** 2026-05-23T19:35:59.455Z
+**Verdict:** PASS
+**Generated:** 2026-05-23T21:20:08.475Z
 
 ## Business outcomes verified
 
 | AC | Outcome | Status |
 |---|---|---|
-| AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | FAIL |
-| AC-3.2 | A seller can accept and ship the order with a tracking number | NOT_RUN |
+| AC-3.1 | A seller sees the buyer's new order in their pending queue within 30 s | PASS |
+| AC-3.2 | A seller can accept and ship the order with a tracking number | PASS |
 
 ## Stakeholder summary
 
-0 of 2 acceptance criteria passed for the seller flow. Failed: AC-3.1 (A seller sees the buyer's new order in their pending queue within 30 s).
+All 2 acceptance criteria verified for the seller flow. No business-rule regressions detected this run.
 
 ## Steps (engineer view)
 
@@ -25,23 +25,21 @@
 
 ![Seller's pending queue includes Chapter 2's order within 30 s](screenshots/02-ac-3-1-seller-s-pending-queue-includes-chapter-2-s-order-wit.png)
 
-### 03. AC-3.1 — Seller logs into the SPA and the Orders tab renders the pending row — FAIL
+### 03. AC-3.1 — Seller logs into the SPA and the Orders tab renders the pending row — PASS
 
 ![Seller logs into the SPA and the Orders tab renders the pending row](screenshots/03-ac-3-1-seller-logs-into-the-spa-and-the-orders-tab-renders-t.png)
 
-```
-seller's UI never rendered orderId prefix 22bbc7f3 in the Orders tab
+### 04. AC-3.2 — Seller clicks Accept on the row and the toast confirms the round-trip — PASS
 
-seller's UI never rendered orderId prefix 22bbc7f3 in the Orders tab
+![Seller clicks Accept on the row and the toast confirms the round-trip](screenshots/04-ac-3-2-seller-clicks-accept-on-the-row-and-the-toast-confirm.png)
 
-[2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
+### 05. AC-3.2 — Seller ships the accepted order with a tracking number, summary toast confirms — PASS
 
-Expected: > [32m0[39m
-Received:   [31m0[39m
+![Seller ships the accepted order with a tracking number, summary toast confirms](screenshots/05-ac-3-2-seller-ships-the-accepted-order-with-a-tracking-numbe.png)
 
-Call Log:
-- Timeout 30000ms exceeded while waiting on the predicate
-```
+### 06. AC-3.2 — Seller logs out and the journey state is persisted for the next chapter — PASS
+
+![Seller logs out and the journey state is persisted for the next chapter](screenshots/06-ac-3-2-seller-logs-out-and-the-journey-state-is-persisted-fo.png)
 
 ## Artifacts
 

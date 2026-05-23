@@ -48,14 +48,20 @@ export interface Page<T> {
 export const addressSchema = z
   .object({
     street: z.string(),
-    ward: z.string().optional(),
-    district: z.string().optional(),
+    // BE order-service persists addresses with nullable ward/district when
+    // the buyer left them blank at checkout. The FE form still collects
+    // them, but old rows in order_summary carry literal `null` — accept
+    // both `null` and `undefined` so the seller's Orders tab doesn't
+    // crash on legacy data. Caught by AC-3.1 of the BA-grade journey
+    // suite (chapter 3) when the queue accumulated old rows.
+    ward: z.string().nullable().optional(),
+    district: z.string().nullable().optional(),
     city: z.string(),
     isDefault: z.boolean().optional(),
     // Kept FE-side only — the form still collects phone for UX, but the
     // user-service Address record drops it on POST and doesn't return it
     // on GET. Treat as optional/best-effort until the BE shape grows.
-    phone: z.string().optional(),
+    phone: z.string().nullable().optional(),
   })
   .passthrough();
 export type Address = z.infer<typeof addressSchema>;

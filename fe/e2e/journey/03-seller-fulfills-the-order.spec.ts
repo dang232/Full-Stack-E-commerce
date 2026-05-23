@@ -259,23 +259,23 @@ test.describe.serial("Chapter 3 — Seller fulfills the order", () => {
             .first()
             .click();
 
-          // ShipDialog opens. Fill carrier + trackingNumber inputs by id
-          // (the dialog uses stable ids on its inputs).
-          const carrierInput = page.locator("input[id*='carrier' i], input[name*='carrier' i]").first();
-          await expect(carrierInput).toBeVisible({ timeout: 10_000 });
-          await carrierInput.fill("GHN");
-
-          const trackingInput = page
-            .locator("input[id*='tracking' i], input[name*='tracking' i]")
+          // ShipDialog opens. Carrier is a button-picker (preset chips +
+          // an Other input only when "Other" is chosen); we click the GHN
+          // chip rather than typing into a text input. Tracking number is
+          // a stable text input by id.
+          const ghnChip = page
+            .getByRole("button", { name: /^GHN$/i })
             .first();
-          await expect(trackingInput).toBeVisible({ timeout: 10_000 });
-          await trackingInput.fill(trackingNumber);
+          await expect(ghnChip).toBeVisible({ timeout: 10_000 });
+          await ghnChip.click();
 
-          // Submit the dialog. ShipDialog's submit label is the localized
-          // "Ship" string.
+          await page.locator("#seller-tracking-number").fill(trackingNumber);
+
+          // Dialog footer's primary CTA. ShipDialog's submit label is
+          // i18n.seller.shipDialog.submit — EN "Hand off", VI "Bàn giao".
           await page
-            .getByRole("button", { name: /^(Ship|Giao hàng|Submit|Lưu)/i })
-            .last()
+            .getByRole("button", { name: /^(Hand off|Bàn giao)/i })
+            .first()
             .click();
 
           await expect(
