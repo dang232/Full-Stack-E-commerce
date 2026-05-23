@@ -76,6 +76,7 @@ function fromServer(o: ServerOrder): UIOrder {
     date: o.createdAt ?? "",
     status: parseOrderStatus(o.status),
     items,
+    itemCount: o.itemCount,
     total: o.total,
     shipping: o.shippingFee ?? 0,
     discount: o.discount ?? 0,
@@ -387,7 +388,14 @@ function OrderCard({
 
         <div className="p-5">
           {order.items.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic mb-3">{t("orders.loadingItems")}</p>
+            order.itemCount && order.itemCount > 0 ? (
+              <p className="text-sm text-muted-foreground italic mb-3">
+                {t("orders.itemCountSummary", {
+                  count: order.itemCount,
+                  defaultValue: `${order.itemCount} sản phẩm`,
+                })}
+              </p>
+            ) : null
           ) : null}
           {order.items.map((item) => (
             <div

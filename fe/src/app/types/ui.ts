@@ -49,6 +49,11 @@ export interface UIOrder {
     price: number;
     variant?: string;
   }[];
+  /** Item count from the list-endpoint projection. Use this when `items` is
+   * empty (list view doesn't carry the line items, only the detail endpoint
+   * does) so the UI can render "X products" instead of a permanent loading
+   * spinner. */
+  itemCount?: number;
   total: number;
   shipping: number;
   discount: number;
