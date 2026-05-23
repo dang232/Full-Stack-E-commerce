@@ -110,4 +110,51 @@ test.describe("admin coupon CRUD UI", () => {
 
     await expectNoGlobalError(page);
   });
+
+  test("Deactivating an active coupon flips its status badge to Paused", async ({ page }) => {
+    await loginAsAdmin(page.request);
+    await gotoCouponsTab(page);
+
+    // Create a coupon first (mirrors the previous test's setup so this can
+    // run in isolation without relying on previously seeded data).
+    const code = `UIDEACT${Date.now() % 1_000_000}`;
+    await page.getByRole("button", { name: /Create coupon|\+ Tạo coupon|Tạo coupon/i }).first().click();
+    await page.locator("#admin-coupon-code").fill(code.toLowerCase());
+    await page.getByRole("button", { name: /^(Fixed amount \(₫\)|Số tiền cố định)/i }).click();
+    await page.locator("#admin-coupon-value").fill("25000");
+    await page.getByRole("button", { name: /^(Create coupon|Tạo coupon)$/i }).last().click();
+    await expect(
+      page.getByText(/Coupon created|Đã tạo coupon/i).first(),
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(code, { exact: false }).first()).toBeVisible({
+      timeout: 10_000,
+    });
+
+    // The new row is active. Click its Deactivate button — scoped to the
+    // table row so we don't catch a different row's button.
+    const row = page.locator("tr", { hasText: code }).first();
+    await expect(row).toBeVisible({ timeout: 10_000 });
+    await row.getByRole("button", { name: /^(Deactivate|Vô hiệu hoá)$/i }).click();
+
+    // Success toast confirms the BE round-trip.
+    await expect(
+      page.getByText(/Coupon deactivated|Đã vô hiệu hoá coupon/i).first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    // The status badge inside the row flips to Paused / Tạm dừng. Re-locate
+    // the row by code (the previous handle may be stale after invalidation).
+    await expect.poll(
+      () =>
+        page
+          .locator("tr", { hasText: code })
+          .filter({ hasText: /Paused|Tạm dừng/i })
+          .count(),
+      {
+        timeout: 15_000,
+        message: "deactivated coupon never showed the Paused badge",
+      },
+    ).toBeGreaterThan(0);
+
+    await expectNoGlobalError(page);
+  });
 });
