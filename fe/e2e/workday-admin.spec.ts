@@ -71,7 +71,7 @@ test.describe.serial("Workday — admin (login → console + coupon CRUD → log
 
     await step(page, "admin", "Sellers approval queue renders", async () => {
       const sellersTab = page
-        .getByRole("button", { name: /^(Approve Sellers|Duyệt Seller)$/i })
+        .getByRole("button", { name: /^(Approve Sellers|Duyệt Seller)/i })
         .first();
       await expect(sellersTab).toBeVisible({ timeout: 10_000 });
       await sellersTab.click();
@@ -87,7 +87,7 @@ test.describe.serial("Workday — admin (login → console + coupon CRUD → log
 
     await step(page, "admin", "Open Coupons tab", async () => {
       const couponsTab = page
-        .getByRole("button", { name: /^(Coupons|Coupon)$/i })
+        .getByRole("button", { name: /^(Coupons|Coupon)/i })
         .first();
       await expect(couponsTab).toBeVisible({ timeout: 10_000 });
       await couponsTab.click();

@@ -1,13 +1,13 @@
 # VNShop Journey — End-to-End Business Outcome Report
 
-**Generated:** 2026-05-23T21:53:15.762Z
+**Generated:** 2026-05-24T08:16:16.483Z
 
 This report aggregates every chapter of the BA-grade persona journey. Each row is a single business outcome the platform must support; columns map to the chapter and persona that exercises it.
 
 ## Journey verdict: PASS
 
-- **Acceptance criteria passed:** 11 / 11
-- **Chapters run:** 4 of 6
+- **Acceptance criteria passed:** 16 / 16
+- **Chapters run:** 6 of 6
 
 ## Chapter 1 — Admin onboards the marketplace — PASS
 
@@ -47,4 +47,23 @@ Persona: buyer. Detail: [`journey/04-buyer-reviews/REPORT.md`](journey/04-buyer-
 | AC-4.1 | Buyer who placed the order can return to their /orders history and see it | PASS |
 | AC-4.2 | Buyer can submit a 5-star written review on the ordered product | PASS |
 | AC-4.3 | Newly submitted review is visible on the public product page within 30 s | PASS |
+
+## Chapter 5 — Seller cashes out — PASS
+
+Persona: seller. Detail: [`journey/05-seller-cashes-out/REPORT.md`](journey/05-seller-cashes-out/REPORT.md).
+
+| AC | Outcome | Status |
+|---|---|---|
+| AC-5.1 | Seller with positive wallet balance can submit a payout request | PASS |
+| AC-5.2 | Submitted payout immediately appears in admin's pending payout queue | PASS |
+
+## Chapter 6 — Admin closes the loop — PASS
+
+Persona: admin. Detail: [`journey/06-admin-closes-loop/REPORT.md`](journey/06-admin-closes-loop/REPORT.md).
+
+| AC | Outcome | Status |
+|---|---|---|
+| AC-6.1 | Admin's payout queue surfaces the seller's pending payout with the right amount | PASS |
+| AC-6.2 | Admin can mark the payout complete and the payout leaves the pending queue | PASS |
+| AC-6.3 | Seller's wallet pendingBalance drops by exactly the payout amount once the projection settles | PASS |
 
