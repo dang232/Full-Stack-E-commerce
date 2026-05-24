@@ -586,6 +586,11 @@
         "submit": "Confirm",
         "reasonLabel": "Reason",
         "reasonPlaceholder": "Wrong account number, bank rejected..."
+      },
+      "completeDialog": {
+        "title": "Complete this payout?",
+        "subtitle": "{{amount}} will be marked as paid to seller {{sellerId}}…. This action cannot be undone.",
+        "submit": "Yes, mark complete"
       }
     }
   },

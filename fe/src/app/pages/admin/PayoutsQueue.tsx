@@ -16,6 +16,7 @@ export function PayoutsQueue() {
   const qc = useQueryClient();
   const { t } = useTranslation();
   const [failFor, setFailFor] = useState<string | null>(null);
+  const [completeFor, setCompleteFor] = useState<string | null>(null);
   const payoutsQuery = useQuery({
     queryKey: ["admin", "payouts", "pending"],
     queryFn: adminPendingPayouts,
@@ -27,6 +28,7 @@ export function PayoutsQueue() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
       toast.success(t("admin.payouts.completeOk"));
+      setCompleteFor(null);
     },
     onError: (err) =>
       toast.error(err instanceof ApiError ? err.message : t("admin.payouts.updateErr")),
@@ -44,9 +46,30 @@ export function PayoutsQueue() {
   });
 
   const payouts = payoutsQuery.data ?? [];
+  const completeTarget = completeFor ? payouts.find((p) => p.id === completeFor) ?? null : null;
 
   return (
     <div className="space-y-5">
+      <FormDialog
+        open={!!completeTarget}
+        title={t("admin.payouts.completeDialog.title")}
+        description={
+          completeTarget
+            ? t("admin.payouts.completeDialog.subtitle", {
+                amount: formatPrice(completeTarget.amount),
+                sellerId: completeTarget.sellerId.slice(0, 8),
+              })
+            : undefined
+        }
+        submitLabel={t("admin.payouts.completeDialog.submit")}
+        submitColor="#10B981"
+        fields={[]}
+        onClose={() => setCompleteFor(null)}
+        onSubmit={() => {
+          if (completeTarget) complete.mutate(completeTarget.id);
+        }}
+        isSubmitting={complete.isPending}
+      />
       <FormDialog
         open={!!failFor}
         title={t("admin.payouts.failDialog.title")}
@@ -95,7 +118,7 @@ export function PayoutsQueue() {
                   {formatPrice(p.amount)}
                 </span>
                 <button
-                  onClick={() => complete.mutate(p.id)}
+                  onClick={() => setCompleteFor(p.id)}
                   disabled={complete.isPending}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                   style={{ background: "#10B981" }}

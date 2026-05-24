@@ -586,6 +586,11 @@
         "submit": "Xác nhận",
         "reasonLabel": "Lý do",
         "reasonPlaceholder": "Sai số tài khoản, ngân hàng từ chối..."
+      },
+      "completeDialog": {
+        "title": "Hoàn tất yêu cầu rút tiền này?",
+        "subtitle": "{{amount}} sẽ được đánh dấu đã chi trả cho seller {{sellerId}}…. Hành động này không thể hoàn tác.",
+        "submit": "Xác nhận hoàn tất"
       }
     }
   },

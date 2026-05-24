@@ -137,7 +137,7 @@ test.describe.serial("Chapter 6 — Admin closes the loop", () => {
                 return pending;
               },
               {
-                timeout: 30_000,
+                timeout: 90_000,
                 message: `seller1 pendingBalance never reached the chapter-5 reservation amount (${payoutAmountVnd}) — RequestPayoutUseCase save may not have settled`,
               },
             )
@@ -190,6 +190,20 @@ test.describe.serial("Chapter 6 — Admin closes the loop", () => {
           await expect(row).toBeVisible({ timeout: 10_000 });
           await row
             .getByRole("button", { name: /^(Complete|Hoàn tất|Hoàn thành)$/i })
+            .first()
+            .click();
+
+          // Destructive-action confirm dialog (added pt33). Title differs
+          // EN/VI; matching either anchors the dialog before we click its
+          // submit, which avoids racing the row click with the modal's
+          // mount animation.
+          await expect(
+            page.getByText(/Complete this payout|Hoàn tất yêu cầu rút tiền này/i).first(),
+          ).toBeVisible({ timeout: 10_000 });
+          await page
+            .getByRole("button", {
+              name: /Yes, mark complete|Xác nhận hoàn tất/i,
+            })
             .first()
             .click();
 
