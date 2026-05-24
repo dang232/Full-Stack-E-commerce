@@ -494,7 +494,28 @@
       "empty": "Không có seller nào chờ duyệt",
       "approve": "Duyệt",
       "approveOk": "Đã duyệt seller",
-      "approveErr": "Không thể duyệt seller"
+      "approveErr": "Không thể duyệt seller",
+      "viewApplication": "Xem hồ sơ",
+      "rowApplied": "Nộp đơn {{relativeTime}}",
+      "rowBank": "Ngân hàng: {{bank}} · Tài khoản đuôi {{tail}}",
+      "rowBankUnknown": "Ngân hàng: chưa cung cấp",
+      "rowTier": "Hạng: {{tier}}",
+      "rowTierUnknown": "Hạng: STANDARD",
+      "applicationDialog": {
+        "title": "Hồ sơ đăng ký seller",
+        "subtitle": "{{shopName}}",
+        "shopName": "Tên shop",
+        "status": "Trạng thái",
+        "appliedAt": "Thời gian nộp",
+        "bankName": "Ngân hàng",
+        "bankAccount": "Số tài khoản",
+        "tier": "Hạng hoa hồng",
+        "vacationMode": "Chế độ nghỉ",
+        "vacationOn": "Bật",
+        "vacationOff": "Tắt",
+        "approve": "Duyệt seller",
+        "close": "Đóng"
+      }
     },
     "reviewsModeration": {
       "title": "Kiểm duyệt đánh giá",

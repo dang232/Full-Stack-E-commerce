@@ -494,7 +494,28 @@
       "empty": "No sellers awaiting approval",
       "approve": "Approve",
       "approveOk": "Seller approved",
-      "approveErr": "Couldn't approve seller"
+      "approveErr": "Couldn't approve seller",
+      "viewApplication": "View application",
+      "rowApplied": "Applied {{relativeTime}}",
+      "rowBank": "Bank: {{bank}} · Account ending {{tail}}",
+      "rowBankUnknown": "Bank: not provided",
+      "rowTier": "Tier: {{tier}}",
+      "rowTierUnknown": "Tier: STANDARD",
+      "applicationDialog": {
+        "title": "Seller application",
+        "subtitle": "{{shopName}}",
+        "shopName": "Shop name",
+        "status": "Status",
+        "appliedAt": "Applied",
+        "bankName": "Bank",
+        "bankAccount": "Bank account",
+        "tier": "Commission tier",
+        "vacationMode": "Vacation mode",
+        "vacationOn": "On",
+        "vacationOff": "Off",
+        "approve": "Approve seller",
+        "close": "Close"
+      }
     },
     "reviewsModeration": {
       "title": "Review moderation",

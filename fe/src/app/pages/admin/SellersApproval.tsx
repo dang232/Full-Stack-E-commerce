@@ -1,4 +1,4 @@
-import { IconCircleCheck, IconSearch } from "@tabler/icons-react";
+import { IconCircleCheck, IconEye, IconSearch } from "@tabler/icons-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,11 +6,15 @@ import { toast } from "sonner";
 
 import { ApiError } from "../../lib/api";
 import { adminApproveSeller, adminListSellers } from "../../lib/api/endpoints/admin";
+import { formatRelativeTime } from "../../lib/format";
+
+import { SellerApplicationDetail } from "./SellerApplicationDetail";
 
 export function SellersApproval() {
   const qc = useQueryClient();
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
+  const [detailFor, setDetailFor] = useState<string | null>(null);
   const sellersQuery = useQuery({
     queryKey: ["admin", "sellers"],
     queryFn: adminListSellers,
@@ -22,6 +26,7 @@ export function SellersApproval() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "sellers"] });
       toast.success(t("admin.sellers.approveOk"));
+      setDetailFor(null);
     },
     onError: (err) =>
       toast.error(err instanceof ApiError ? err.message : t("admin.sellers.approveErr")),
@@ -31,8 +36,18 @@ export function SellersApproval() {
     s.shopName.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const detailSeller = detailFor
+    ? (sellersQuery.data ?? []).find((s) => s.id === detailFor) ?? null
+    : null;
+
   return (
     <div className="space-y-5">
+      <SellerApplicationDetail
+        seller={detailSeller}
+        onClose={() => setDetailFor(null)}
+        onApprove={(id) => approve.mutate(id)}
+        isApproving={approve.isPending}
+      />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-foreground">{t("admin.sellers.title")}</h2>
       </div>
@@ -60,24 +75,61 @@ export function SellersApproval() {
 
       <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-50">
-          {filtered.map((s) => (
-            <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-foreground">{s.shopName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {s.appliedAt ?? ""} · {s.status}
-                </p>
+          {filtered.map((s) => {
+            const tail = s.bankAccount ? s.bankAccount.slice(-4) : null;
+            const bankLine =
+              s.bankName && tail
+                ? t("admin.sellers.rowBank", { bank: s.bankName, tail })
+                : t("admin.sellers.rowBankUnknown");
+            const tierLine = s.tier
+              ? t("admin.sellers.rowTier", { tier: s.tier })
+              : t("admin.sellers.rowTierUnknown");
+            const appliedLine = s.appliedAt
+              ? t("admin.sellers.rowApplied", { relativeTime: formatRelativeTime(s.appliedAt) })
+              : null;
+            return (
+              <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-foreground truncate">{s.shopName}</p>
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                      style={{
+                        background: s.approved ? "#ECFDF5" : "#FEF3C7",
+                        color: s.approved ? "#10B981" : "#F59E0B",
+                      }}
+                    >
+                      {s.status}
+                    </span>
+                    {appliedLine ? (
+                      <span className="text-[11px] text-muted-foreground">· {appliedLine}</span>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {bankLine} · {tierLine}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setDetailFor(s.id)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted"
+                  >
+                    <IconEye size={13} /> {t("admin.sellers.viewApplication")}
+                  </button>
+                  {!s.approved ? (
+                    <button
+                      onClick={() => approve.mutate(s.id)}
+                      disabled={approve.isPending}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                      style={{ background: "#00BFB3" }}
+                    >
+                      <IconCircleCheck size={13} /> {t("admin.sellers.approve")}
+                    </button>
+                  ) : null}
+                </div>
               </div>
-              <button
-                onClick={() => approve.mutate(s.id)}
-                disabled={approve.isPending}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                style={{ background: "#00BFB3" }}
-              >
-                <IconCircleCheck size={13} /> {t("admin.sellers.approve")}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
