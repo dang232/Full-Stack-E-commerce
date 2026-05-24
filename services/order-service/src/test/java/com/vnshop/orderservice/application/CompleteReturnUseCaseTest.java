@@ -90,9 +90,12 @@ class CompleteReturnUseCaseTest {
 
     @Test
     void completeRejectsUnknownReturnWithoutRefund() {
+        // Pt40 audit: status-code parity with ownership-rejection
+        // (gotcha #106). Both branches now raise OAD with the same
+        // constant message.
         assertThatThrownBy(() -> useCase.complete(UUID.randomUUID(), SELLER_OWNER))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("return not found");
+                .isInstanceOf(OrderAccessDeniedException.class)
+                .hasMessage("not authorized to act on this return");
         assertThat(refunds.calls).isEmpty();
     }
 

@@ -87,9 +87,11 @@ class ApproveReturnUseCaseTest {
 
     @Test
     void approveRejectsUnknownReturn() {
+        // Pt40 audit: status-code parity with ownership-rejection.
+        // Both branches now raise OAD with the same constant message.
         assertThatThrownBy(() -> useCase.approve(UUID.randomUUID(), SELLER_OWNER))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("return not found");
+                .isInstanceOf(OrderAccessDeniedException.class)
+                .hasMessage("not authorized to act on this return");
     }
 
     @Test

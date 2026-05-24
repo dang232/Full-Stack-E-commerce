@@ -35,8 +35,9 @@ public class RejectOrderUseCase {
 
     private Order findOrder(UUID orderId) {
         Objects.requireNonNull(orderId, "orderId is required");
+        // Pt40 audit: same fold as Ship/Accept (gotcha #106).
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to reject this order"));
     }
 
     private SubOrder findSellerSubOrder(Order order, String sellerId) {

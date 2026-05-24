@@ -27,8 +27,11 @@ public class AcceptOrderUseCase {
 
     private Order findOrder(UUID orderId) {
         Objects.requireNonNull(orderId, "orderId is required");
+        // Pt40 audit: same fold as Ship/Reject. Status-code parity with
+        // the ownership-rejection branch closes the existence-probe
+        // oracle on order UUIDs (gotcha #106).
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to accept this order"));
     }
 
     private SubOrder findSellerSubOrder(Order order, String sellerId) {

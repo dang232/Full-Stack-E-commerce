@@ -61,10 +61,12 @@ class AcceptOrderUseCaseTest {
     }
 
     @Test
-    void acceptThrowsForUnknownOrder() {
+    void acceptThrowsAccessDeniedForUnknownOrder() {
+        // Pt40 audit: status-code parity with ownership-rejection
+        // (same constant message + same exception type).
         assertThatThrownBy(() -> useCase.accept(UUID.randomUUID(), "seller-1"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("order not found");
+                .isInstanceOf(OrderAccessDeniedException.class)
+                .hasMessage("not authorized to accept this order");
     }
 
     private static Order orderWithPendingSubOrder(UUID orderId, String sellerId) {

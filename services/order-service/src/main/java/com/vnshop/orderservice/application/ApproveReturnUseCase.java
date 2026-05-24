@@ -24,8 +24,12 @@ public class ApproveReturnUseCase {
      * any other seller's returns by guessing the returnId UUID.
      */
     public Return approve(UUID returnId, String sellerId) {
+        // Pt40 audit: prior code raised IAE/400 for unknown returnId and
+        // OAD/403 for "exists, not yours." Probe-channel via status code
+        // (gotcha #106). Both branches now raise OAD with the constant
+        // message used by ReturnAuthorization for the ownership branch.
         Return orderReturn = returnRepository.findById(returnId)
-                .orElseThrow(() -> new IllegalArgumentException("return not found: " + returnId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to act on this return"));
         ReturnAuthorization.requireSellerOwnsReturn(orderRepository, orderReturn, sellerId);
         orderReturn.approve();
         return returnRepository.save(orderReturn);

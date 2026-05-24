@@ -79,12 +79,14 @@ class ShipOrderUseCaseTest {
     }
 
     @Test
-    void shipThrowsForUnknownOrder() {
+    void shipThrowsAccessDeniedForUnknownOrder() {
+        // Pt40 audit: was IAE/400 + leaked orderId. Status-code parity
+        // with the ownership-rejection branch closes the probe oracle.
         assertThatThrownBy(() ->
                         useCase.ship(new ShipOrderCommand(
                                 UUID.randomUUID(), "seller-1", CARRIER, TRACKING)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("order not found");
+                .isInstanceOf(OrderAccessDeniedException.class)
+                .hasMessage("not authorized to ship this order");
     }
 
     @Test

@@ -21,8 +21,9 @@ public class RejectReturnUseCase {
      * may reject. See {@link ApproveReturnUseCase} for the same gate.
      */
     public Return reject(UUID returnId, String sellerId) {
+        // Pt40 audit: see ApproveReturnUseCase. Same fold.
         Return orderReturn = returnRepository.findById(returnId)
-                .orElseThrow(() -> new IllegalArgumentException("return not found: " + returnId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to act on this return"));
         ReturnAuthorization.requireSellerOwnsReturn(orderRepository, orderReturn, sellerId);
         orderReturn.reject();
         return returnRepository.save(orderReturn);
