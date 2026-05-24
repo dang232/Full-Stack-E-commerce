@@ -190,7 +190,9 @@
       "loading": "Đang tải đánh giá...",
       "anonGuest": "Khách hàng",
       "helpful": "Hữu ích ({{count}})",
-      "empty": "Chưa có đánh giá nào. Hãy là người đầu tiên!"
+      "empty": "Chưa có đánh giá nào. Hãy là người đầu tiên!",
+      "beFirstTitle": "Hãy là người đầu tiên đánh giá sản phẩm này",
+      "beFirstSubtitle": "Chia sẻ trải nghiệm để giúp những người mua khác."
     },
     "qa": {
       "askTitle": "Đặt câu hỏi",

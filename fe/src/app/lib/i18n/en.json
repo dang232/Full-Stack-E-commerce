@@ -190,7 +190,9 @@
       "loading": "Loading reviews...",
       "anonGuest": "Customer",
       "helpful": "Helpful ({{count}})",
-      "empty": "No reviews yet. Be the first!"
+      "empty": "No reviews yet. Be the first!",
+      "beFirstTitle": "Be the first to review this product",
+      "beFirstSubtitle": "Share your experience to help other shoppers."
     },
     "qa": {
       "askTitle": "Ask a question",

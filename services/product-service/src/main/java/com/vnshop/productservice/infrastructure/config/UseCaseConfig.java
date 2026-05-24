@@ -20,6 +20,7 @@ import com.vnshop.productservice.domain.port.out.ObjectMetadataRepositoryPort;
 import com.vnshop.productservice.domain.port.out.ObjectStoragePort;
 import com.vnshop.productservice.domain.port.out.ProductEventPublisherPort;
 import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
+import com.vnshop.productservice.domain.review.port.out.BuyerProfileLookupPort;
 import com.vnshop.productservice.domain.review.port.out.ReviewRepositoryPort;
 import com.vnshop.productservice.domain.storage.ObjectStorageClass;
 import java.util.Set;
@@ -73,8 +74,9 @@ public class UseCaseConfig {
     }
 
     @Bean
-    GetProductReviewsUseCase getProductReviewsUseCase(ReviewRepositoryPort reviewRepositoryPort) {
-        return new GetProductReviewsUseCase(reviewRepositoryPort);
+    GetProductReviewsUseCase getProductReviewsUseCase(ReviewRepositoryPort reviewRepositoryPort,
+            BuyerProfileLookupPort buyerProfileLookupPort) {
+        return new GetProductReviewsUseCase(reviewRepositoryPort, buyerProfileLookupPort);
     }
 
     @Bean

@@ -40,7 +40,7 @@ public class ReviewController {
 
     @GetMapping("/product/{productId}")
     public ApiResponse<List<ReviewResponse>> byProduct(@PathVariable String productId) {
-        return ApiResponse.ok(getProductReviewsUseCase.get(productId).stream().map(ReviewResponse::fromDomain).toList());
+        return ApiResponse.ok(getProductReviewsUseCase.get(productId).stream().map(ReviewResponse::fromEnriched).toList());
     }
 
     @GetMapping("/seller/{sellerId}/summary")

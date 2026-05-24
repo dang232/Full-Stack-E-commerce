@@ -3,6 +3,7 @@ package com.vnshop.userservice.infrastructure.config;
 import com.vnshop.userservice.application.ApproveSellerUseCase;
 import com.vnshop.userservice.application.AuthSessionUseCase;
 import com.vnshop.userservice.application.GetPublicSellerUseCase;
+import com.vnshop.userservice.application.ListBuyerPublicProfilesUseCase;
 import com.vnshop.userservice.application.ListPendingSellersUseCase;
 import com.vnshop.userservice.application.ListPublicSellersUseCase;
 import com.vnshop.userservice.application.ManageAddressUseCase;
@@ -54,6 +55,11 @@ public class UseCaseConfig {
     @Bean
     ViewBuyerProfileUseCase viewBuyerProfileUseCase(UserRepositoryPort userRepositoryPort) {
         return new ViewBuyerProfileUseCase(userRepositoryPort);
+    }
+
+    @Bean
+    ListBuyerPublicProfilesUseCase listBuyerPublicProfilesUseCase(UserRepositoryPort userRepositoryPort) {
+        return new ListBuyerPublicProfilesUseCase(userRepositoryPort);
     }
 
     @Bean

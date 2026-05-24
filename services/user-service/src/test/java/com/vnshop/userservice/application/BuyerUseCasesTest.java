@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,5 +87,30 @@ class BuyerUseCasesTest {
 
         assertThat(result.keycloakId()).isEqualTo("kc-2");
         verify(userRepositoryPort).saveBuyer(any());
+    }
+
+    // --- ListBuyerPublicProfilesUseCase ---
+
+    @Test
+    void listPublicProfiles_emptyInput_returnsEmptyWithoutHittingRepo() {
+        ListBuyerPublicProfilesUseCase useCase = new ListBuyerPublicProfilesUseCase(userRepositoryPort);
+
+        assertThat(useCase.list(null)).isEmpty();
+        assertThat(useCase.list(List.of())).isEmpty();
+        // No verify(repo) — null input must short-circuit before the repo call.
+    }
+
+    @Test
+    void listPublicProfiles_happyPath_returnsRepoResultUnchanged() {
+        BuyerProfile a = buyer("kc-A");
+        BuyerProfile b = buyer("kc-B");
+        when(userRepositoryPort.findBuyersByKeycloakIds(List.of("kc-A", "kc-B")))
+                .thenReturn(List.of(a, b));
+
+        ListBuyerPublicProfilesUseCase useCase = new ListBuyerPublicProfilesUseCase(userRepositoryPort);
+        List<BuyerProfile> result = useCase.list(List.of("kc-A", "kc-B"));
+
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(BuyerProfile::keycloakId).containsExactly("kc-A", "kc-B");
     }
 }

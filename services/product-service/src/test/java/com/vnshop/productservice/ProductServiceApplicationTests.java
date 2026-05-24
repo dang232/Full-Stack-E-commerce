@@ -4,6 +4,7 @@ import com.vnshop.productservice.domain.ProductEvent;
 import com.vnshop.productservice.domain.port.out.ObjectMetadataRepositoryPort;
 import com.vnshop.productservice.domain.port.out.ObjectStoragePort;
 import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
+import com.vnshop.productservice.domain.review.port.out.BuyerProfileLookupPort;
 import com.vnshop.productservice.domain.review.port.out.ReviewRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +30,12 @@ class ProductServiceApplicationTests {
 
 	@MockitoBean
 	private ReviewRepositoryPort reviewRepositoryPort;
+
+	// The real adapter wires up an HTTP client + ObjectMapper, neither of
+	// which we need (or have) in the slimmed test context. Mocking the
+	// port keeps the bean-graph happy without booting Jackson autoconfig.
+	@MockitoBean
+	private BuyerProfileLookupPort buyerProfileLookupPort;
 
 	@Test
 	void contextLoads() {

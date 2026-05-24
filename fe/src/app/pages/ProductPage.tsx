@@ -564,37 +564,61 @@ export function ProductPage() {
 
           {activeTab === "reviews" ? (
             <div className="space-y-6">
-              {/* Rating Summary */}
-              <div className="flex items-center gap-8 p-4 rounded-2xl bg-muted">
-                <div className="text-center">
-                  <p className="text-5xl font-black" style={{ color: "#FF6200" }}>
-                    {product.rating}
-                  </p>
-                  <StarRating value={product.rating} />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t("product.reviewsCount", { count: product.reviewCount })}
-                  </p>
-                </div>
-                <div className="flex-1 space-y-1.5">
-                  {[5, 4, 3, 2, 1].map((star) => {
-                    const pct =
-                      star === 5 ? 68 : star === 4 ? 22 : star === 3 ? 7 : star === 2 ? 2 : 1;
-                    return (
-                      <div key={star} className="flex items-center gap-2">
-                        <span className="text-xs w-4 text-muted-foreground">{star}</span>
-                        <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
-                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${pct}%`, background: "#F59E0B" }}
-                          />
+              {/* Rating Summary — only when at least one review exists.
+                  Previously this rendered hardcoded percentages
+                  (68/22/7/2/1), creating a fake histogram on products
+                  with zero reviews. Now we hide it entirely when empty
+                  and derive real per-star percentages otherwise. */}
+              {liveReviewsQuery.data && liveReviewsQuery.data.length > 0 ? (
+                <div className="flex items-center gap-8 p-4 rounded-2xl bg-muted">
+                  <div className="text-center">
+                    <p className="text-5xl font-black" style={{ color: "#FF6200" }}>
+                      {product.rating}
+                    </p>
+                    <StarRating value={product.rating} />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t("product.reviewsCount", { count: product.reviewCount })}
+                    </p>
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const total = liveReviewsQuery.data?.length ?? 0;
+                      const count =
+                        liveReviewsQuery.data?.filter((r) => Math.round(r.rating) === star).length ?? 0;
+                      const pct = total === 0 ? 0 : Math.round((count / total) * 100);
+                      return (
+                        <div key={star} className="flex items-center gap-2">
+                          <span className="text-xs w-4 text-muted-foreground">{star}</span>
+                          <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
+                          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full"
+                              style={{ width: `${pct}%`, background: "#F59E0B" }}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground w-6">{pct}%</span>
                         </div>
-                        <span className="text-xs text-muted-foreground w-6">{pct}%</span>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              ) : null}
+
+              {/* Empty-state card — leads the tab when no reviews exist
+                  so the form below it is the obvious next action. */}
+              {!liveReviewsQuery.isLoading &&
+              liveReviewsQuery.data &&
+              liveReviewsQuery.data.length === 0 ? (
+                <div className="py-6 text-center rounded-2xl border border-dashed border-border">
+                  <IconMessage size={36} className="mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm font-semibold text-foreground">
+                    {t("product.reviews.beFirstTitle")}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("product.reviews.beFirstSubtitle")}
+                  </p>
+                </div>
+              ) : null}
 
               {/* Write review */}
               {authenticated ? (
@@ -654,11 +678,11 @@ export function ProductPage() {
                     <div key={review.id} className="border-b border-border pb-5">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-muted-foreground">
-                          {(review.userName ?? review.userId ?? "?").charAt(0).toUpperCase()}
+                          {(review.userName ?? "?").charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <p className="font-medium text-sm text-foreground">
-                            {review.userName ?? review.userId ?? t("product.reviews.anonGuest")}
+                            {review.userName ?? t("product.reviews.anonGuest")}
                           </p>
                           <div className="flex items-center gap-2">
                             <StarRating value={review.rating} size={13} />
@@ -696,7 +720,7 @@ export function ProductPage() {
                       </button>
                     </div>
                   ))
-                : !liveReviewsQuery.isLoading && (
+                : !liveReviewsQuery.isLoading && liveReviewsQuery.data === undefined && (
                     <div className="py-8 text-center">
                       <IconMessage size={40} className="mx-auto mb-3 text-gray-300" />
                       <p className="text-muted-foreground">{t("product.reviews.empty")}</p>

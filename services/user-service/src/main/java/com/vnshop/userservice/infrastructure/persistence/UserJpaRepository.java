@@ -38,6 +38,25 @@ public class UserJpaRepository implements UserRepositoryPort {
     }
 
     @Override
+    public List<BuyerProfile> findBuyersByKeycloakIds(List<String> keycloakIds) {
+        if (keycloakIds == null || keycloakIds.isEmpty()) {
+            return List.of();
+        }
+        // No `left join fetch` for addresses — public-profile callers only
+        // care about name + avatarUrl, and pulling addresses for batches of
+        // potentially-hundreds of buyers would cartesian-explode the result.
+        return entityManager.createQuery(
+                        "select buyer from BuyerProfileJpaEntity buyer where buyer.keycloakId in :keycloakIds",
+                        BuyerProfileJpaEntity.class
+                )
+                .setParameter("keycloakIds", keycloakIds)
+                .getResultList()
+                .stream()
+                .map(BuyerProfileJpaEntity::toDomain)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public SellerProfile saveSeller(SellerProfile sellerProfile) {
         SellerProfileJpaEntity entity = SellerProfileJpaEntity.fromDomain(sellerProfile);

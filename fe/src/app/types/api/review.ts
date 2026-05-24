@@ -3,15 +3,17 @@ import { z } from "zod";
 import { productIdSchema } from "./branded-ids";
 
 // BE review-service / product-service ReviewResponse(reviewId, productId,
-// buyerId, orderId, rating, text, images, verifiedPurchase, helpfulVotes,
-// status, createdAt). FE consumers use review.id, review.userId, review.userName,
+// buyerId, userName, userAvatarUrl, orderId, rating, text, images,
+// verifiedPurchase, helpfulVotes, status, createdAt). FE consumers use
+// review.id, review.userId, review.userName, review.userAvatarUrl,
 // review.comment, review.helpful — aliased through the transform.
 export const reviewSchema = z
   .object({
     // Legacy FE-facing names
     id: z.string().optional(),
     userId: z.string().optional(),
-    userName: z.string().optional(),
+    userName: z.string().nullable().optional(),
+    userAvatarUrl: z.string().nullable().optional(),
     comment: z.string().optional(),
     helpful: z.number().optional(),
     // Live BE names
@@ -35,7 +37,13 @@ export const reviewSchema = z
     id: raw.id ?? raw.reviewId ?? "",
     productId: raw.productId,
     userId: raw.userId ?? raw.buyerId,
-    userName: raw.userName,
+    // userName + userAvatarUrl come from the cross-service lookup
+    // (product-service → user-service /users/public-profiles). Either
+    // can be null when the buyer has no display name set or when the
+    // lookup degrades; consumers MUST fall back to an anonymous label
+    // rather than the userId UUID.
+    userName: raw.userName ?? null,
+    userAvatarUrl: raw.userAvatarUrl ?? null,
     rating: raw.rating,
     comment: raw.comment ?? raw.text,
     images: raw.images,

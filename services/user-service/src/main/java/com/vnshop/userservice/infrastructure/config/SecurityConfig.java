@@ -24,6 +24,12 @@ public class SecurityConfig {
                         // Bank details only flow through /sellers/me + /sellers/register, both
                         // of which fall through to .anyRequest().authenticated() below.
                         .requestMatchers(HttpMethod.GET, "/sellers", "/sellers/{id}").permitAll()
+                        // Batch buyer public-profile lookup. Other services
+                        // (e.g. product-service rendering reviewer names on
+                        // the Reviews tab) call this with no JWT — the
+                        // response only carries display name + avatar, the
+                        // same surface that already shows publicly elsewhere.
+                        .requestMatchers(HttpMethod.GET, "/users/public-profiles").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
