@@ -484,7 +484,8 @@
       "reviews": "Moderation",
       "coupons": "Coupons",
       "disputes": "Disputes",
-      "payouts": "Payouts"
+      "payouts": "Payouts",
+      "ariaLabelWithBadge": "{{label}}, {{count}} pending"
     },
     "dashboard": {
       "title": "Admin Dashboard",

@@ -484,7 +484,8 @@
       "reviews": "Kiểm duyệt",
       "coupons": "Coupon",
       "disputes": "Khiếu nại",
-      "payouts": "Rút tiền"
+      "payouts": "Rút tiền",
+      "ariaLabelWithBadge": "{{label}}, còn {{count}} chờ xử lý"
     },
     "dashboard": {
       "title": "Admin Dashboard",

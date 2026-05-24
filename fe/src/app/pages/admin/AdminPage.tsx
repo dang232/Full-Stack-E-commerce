@@ -86,6 +86,14 @@ export function AdminPage() {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
+                    aria-label={
+                      badge > 0
+                        ? t("admin.nav.ariaLabelWithBadge", {
+                            label: t(item.labelKey),
+                            count: badge,
+                          })
+                        : t(item.labelKey)
+                    }
                     className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-all text-left border-b border-gray-50 last:border-0"
                     style={{
                       background: activeTab === item.id ? "rgba(99,102,241,0.08)" : "transparent",
@@ -94,10 +102,11 @@ export function AdminPage() {
                         activeTab === item.id ? "3px solid #6366F1" : "3px solid transparent",
                     }}
                   >
-                    <item.icon size={18} />
+                    <item.icon size={18} aria-hidden="true" />
                     <span className="flex-1">{t(item.labelKey)}</span>
                     {badge > 0 ? (
                       <span
+                        aria-hidden="true"
                         className="px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white"
                         style={{ background: "#FF6200" }}
                       >
