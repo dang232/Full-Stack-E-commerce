@@ -80,6 +80,11 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.25.70</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.postgresql</groupId>
@@ -199,6 +204,7 @@
 								<exclude>com/vnshop/userservice/infrastructure/web/**</exclude>
 								<exclude>com/vnshop/userservice/infrastructure/config/**</exclude>
 								<exclude>com/vnshop/userservice/infrastructure/integration/**</exclude>
+								<exclude>com/vnshop/userservice/infrastructure/storage/**</exclude>
 							</excludes>
 							<rules>
 								<rule>

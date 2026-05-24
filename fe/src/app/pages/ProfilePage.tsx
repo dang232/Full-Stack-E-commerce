@@ -1,12 +1,13 @@
 import { IconUser, IconMapPin, IconBell, IconShield, IconCreditCard, IconPackage, IconHeart, IconStar, IconCamera, IconEdit, IconPlus, IconTrash, IconChevronRight, IconLogout, IconAlertCircle, IconDeviceFloppy } from "@tabler/icons-react";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "../hooks/use-auth";
 import { profileOptions } from "../hooks/use-profile";
+import { avatarUploadErrorMessage, useAvatarUpload } from "../hooks/use-avatar-upload";
 import { ApiError } from "../lib/api";
 import {
   updateProfile,
@@ -49,6 +50,26 @@ export function ProfilePage() {
 
   const profile = profileQuery.data;
   const addresses: Address[] = profile?.addresses ?? [];
+
+  // Avatar upload — hidden file input + camera button. The hook handles
+  // sha256, presigned PUT, and activate; we just translate result to toast.
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const avatarUpload = useAvatarUpload({
+    onSuccess: () => {
+      toast.success(t("profile.avatar.uploadOk"));
+    },
+    onError: (err) => {
+      toast.error(avatarUploadErrorMessage(err, t));
+    },
+  });
+  const onAvatarFilePick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // Reset input so picking the same file twice still triggers onChange.
+    event.target.value = "";
+    if (!file) return;
+    avatarUpload.mutate(file);
+  };
+  const avatarUrl = profile?.avatar;
 
   // Server-derived defaults for the info tab. We never mirror these into local
   // state; instead the form re-mounts with `key` whenever the user enters edit
@@ -209,14 +230,38 @@ export function ProfilePage() {
         <div className="space-y-4">
           <div className="bg-card rounded-2xl p-6 shadow-sm text-center">
             <div className="relative inline-block mb-4">
-              <div
-                className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto"
-                style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
-              >
-                {displayName.charAt(0).toUpperCase()}
-              </div>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={displayName}
+                  className="w-20 h-20 rounded-2xl object-cover mx-auto"
+                />
+              ) : (
+                <div
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto"
+                  style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+                >
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={onAvatarFilePick}
+                aria-label={t("profile.avatar.uploadCta")}
+              />
               <button
-                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow"
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarUpload.isPending}
+                aria-label={
+                  avatarUpload.isPending
+                    ? t("profile.avatar.uploading")
+                    : t("profile.avatar.uploadCta")
+                }
+                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow disabled:opacity-50"
                 style={{ background: "#00BFB3" }}
               >
                 <IconCamera size={13} color="white" />

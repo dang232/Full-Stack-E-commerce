@@ -784,6 +784,19 @@
     "logout": "Đăng xuất",
     "initSession": "Đang khởi tạo phiên đăng nhập...",
     "loginRequired": "Vui lòng đăng nhập",
+    "avatar": {
+      "uploadCta": "Tải ảnh đại diện",
+      "uploading": "Đang tải lên…",
+      "uploadOk": "Đã cập nhật ảnh đại diện",
+      "errors": {
+        "tooLarge": "Ảnh đại diện phải nhỏ hơn 2 MB",
+        "empty": "Chọn ảnh không trống",
+        "wrongType": "Dùng ảnh JPG, PNG hoặc WebP",
+        "wrongExtension": "Phần mở rộng phải là .jpg, .jpeg, .png hoặc .webp",
+        "uploadFailed": "Tải lên thất bại, thử lại",
+        "generic": "Không thể lưu ảnh đại diện"
+      }
+    },
     "tabs": {
       "info": "Thông tin tài khoản",
       "addresses": "Địa chỉ",

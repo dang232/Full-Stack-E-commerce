@@ -301,9 +301,10 @@ services:
       - -c
       - |
         mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-vnshop} ${MINIO_ROOT_PASSWORD:-vnshop123} &&
-        mc mb --ignore-existing local/vnshop-products local/vnshop-reviews local/vnshop-invoices &&
+        mc mb --ignore-existing local/vnshop-products local/vnshop-reviews local/vnshop-invoices local/vnshop-avatars &&
         mc anonymous set download local/vnshop-products &&
         mc anonymous set download local/vnshop-reviews &&
+        mc anonymous set download local/vnshop-avatars &&
         echo "minio buckets ready"
 
   jaeger:
@@ -415,6 +416,18 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      # Avatar object storage (MinIO; flip PROFILE=R2 + endpoint/keys when R2
+      # creds land). publicEndpoint is what the browser PUTs against; the BE
+      # uses the docker-network endpoint for headObject/deleteObject.
+      VNSHOP_USER_STORAGE_ENABLED: "true"
+      VNSHOP_USER_STORAGE_PROFILE: MINIO
+      VNSHOP_USER_STORAGE_ENDPOINT: http://minio:9000
+      VNSHOP_USER_STORAGE_PUBLIC_ENDPOINT: http://localhost:9000
+      VNSHOP_USER_STORAGE_BUCKET: vnshop-avatars
+      VNSHOP_USER_STORAGE_REGION: auto
+      VNSHOP_USER_STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER:-vnshop}
+      VNSHOP_USER_STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-vnshop123}
+      VNSHOP_USER_STORAGE_PATH_STYLE_ACCESS: "true"
 
   product-service:
     profiles: ["apps"]

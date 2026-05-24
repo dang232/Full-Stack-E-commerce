@@ -13,6 +13,8 @@ import com.vnshop.userservice.application.UpsertBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewSellerProfileUseCase;
 import com.vnshop.userservice.application.WishlistUseCase;
+import com.vnshop.userservice.application.avatar.AvatarUploadService;
+import com.vnshop.userservice.domain.port.out.ObjectStoragePort;
 import com.vnshop.userservice.domain.port.out.SellerStatsPort;
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
 import com.vnshop.userservice.domain.port.out.WishlistRepositoryPort;
@@ -85,5 +87,12 @@ public class UseCaseConfig {
     @Bean
     AuthSessionUseCase authSessionUseCase(KeycloakTokenClient tokenClient) {
         return new AuthSessionUseCase(tokenClient);
+    }
+
+    @Bean
+    AvatarUploadService avatarUploadService(UserRepositoryPort userRepositoryPort,
+                                            ObjectStoragePort objectStoragePort,
+                                            RegisterBuyerUseCase registerBuyerUseCase) {
+        return new AvatarUploadService(userRepositoryPort, objectStoragePort, registerBuyerUseCase);
     }
 }

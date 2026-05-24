@@ -784,6 +784,19 @@
     "logout": "Log out",
     "initSession": "Initialising your session...",
     "loginRequired": "Please sign in",
+    "avatar": {
+      "uploadCta": "Upload avatar",
+      "uploading": "Uploading…",
+      "uploadOk": "Avatar updated",
+      "errors": {
+        "tooLarge": "Avatar must be under 2 MB",
+        "empty": "Pick a non-empty image",
+        "wrongType": "Use a JPG, PNG, or WebP image",
+        "wrongExtension": "File extension must be .jpg, .jpeg, .png, or .webp",
+        "uploadFailed": "Upload failed, try again",
+        "generic": "Could not save avatar"
+      }
+    },
     "tabs": {
       "info": "Account info",
       "addresses": "Addresses",

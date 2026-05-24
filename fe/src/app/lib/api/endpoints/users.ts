@@ -1,4 +1,9 @@
-import { sellerRegisterResponseSchema, userProfileSchema, type Address } from "../../../types/api";
+import {
+  avatarUploadResponseSchema,
+  sellerRegisterResponseSchema,
+  userProfileSchema,
+  type Address,
+} from "../../../types/api";
 import { api } from "../client";
 
 export const myProfile = () => api.get("/users/me", userProfileSchema);
@@ -19,6 +24,25 @@ export const setDefaultAddress = (index: number) =>
   api.put(`/users/me/addresses/${index}/default`, userProfileSchema);
 export const removeAddress = (index: number) =>
   api.delete(`/users/me/addresses/${index}`, userProfileSchema);
+
+// Avatar upload: two-phase. /upload signs a PUT URL the browser uses to
+// stream the file directly to MinIO; /activate verifies the upload landed
+// and stamps the canonical URL on the buyer's profile.
+export interface AvatarUploadBody {
+  filename: string;
+  contentType: string;
+  contentLength: number;
+  sha256Hex: string;
+}
+export interface AvatarActivateBody {
+  objectKey: string;
+  contentLength: number;
+  sha256Hex: string;
+}
+export const avatarUpload = (body: AvatarUploadBody) =>
+  api.post("/users/me/avatar/upload", avatarUploadResponseSchema, body);
+export const avatarActivate = (body: AvatarActivateBody) =>
+  api.post("/users/me/avatar/activate", userProfileSchema, body);
 
 // Seller onboarding
 export const registerSeller = (body: { shopName: string; description?: string; phone: string }) =>

@@ -366,6 +366,49 @@ test.describe.serial("Workday — buyer (guest → register → shop → order)"
       ).toBeVisible({ timeout: 15_000 });
     });
 
+    await step(page, "buyer", "Upload an avatar via the profile camera button", async () => {
+      // Navigate back to /profile from /orders so the camera button is in
+      // the DOM. The hidden file input is the canonical handle — clicking
+      // the camera button opens a real OS file picker, which Playwright
+      // can't drive. setInputFiles bypasses the picker, which mirrors the
+      // user's intent (pick a file) without touching the OS layer.
+      await page.goto("/profile");
+      const fileInput = page.locator('input[type="file"][accept*="image"]').first();
+      await expect(fileInput).toBeAttached({ timeout: 10_000 });
+
+      // 1x1 transparent PNG — the smallest legal PNG. Real bytes (with the
+      // PNG signature) so Content-Type sniffing on the BE side can't tell
+      // it apart from a "real" upload.
+      const pngBytes = Buffer.from(
+        "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63600000000005000115b13ac20000000049454e44ae426082",
+        "hex",
+      );
+      await fileInput.setInputFiles({
+        name: "avatar.png",
+        mimeType: "image/png",
+        buffer: pngBytes,
+      });
+
+      // Success toast lands when /activate completes — same i18n key both
+      // languages (we set lang to VI earlier in the workday so the VI
+      // string is what should render).
+      await expect(
+        page.getByText(/Avatar updated|Đã cập nhật ảnh đại diện/i).first(),
+      ).toBeVisible({ timeout: 30_000 });
+
+      // The avatar image element must now point at the vnshop-avatars bucket
+      // (canonical public URL pattern from S3ObjectStorageAdapter#publicUrl).
+      // The camera button replaces the gradient-letter placeholder with an
+      // <img> when avatarUrl is non-empty.
+      const avatar = page.locator('img[alt][class*="rounded-2xl"]').first();
+      await expect(avatar).toBeVisible({ timeout: 10_000 });
+      const src = await avatar.getAttribute("src");
+      expect(src, "avatar img src must point at the vnshop-avatars bucket").toMatch(
+        /\/vnshop-avatars\/avatars\//,
+      );
+      await expectNoGlobalError(page);
+    });
+
     await step(page, "buyer", "Logout returns to home with the Login CTA", async () => {
       await logoutViaUserMenu(page);
     });

@@ -4,6 +4,11 @@ import com.vnshop.userservice.application.ManageAddressUseCase;
 import com.vnshop.userservice.application.UpsertBuyerProfileCommand;
 import com.vnshop.userservice.application.UpsertBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewBuyerProfileUseCase;
+import com.vnshop.userservice.application.avatar.AvatarActivationRequest;
+import com.vnshop.userservice.application.avatar.AvatarActivationResponse;
+import com.vnshop.userservice.application.avatar.AvatarUploadRequest;
+import com.vnshop.userservice.application.avatar.AvatarUploadResponse;
+import com.vnshop.userservice.application.avatar.AvatarUploadService;
 import com.vnshop.userservice.infrastructure.config.JwtPrincipalUtil;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,11 +25,16 @@ public class UserController {
     private final ViewBuyerProfileUseCase viewBuyerProfileUseCase;
     private final UpsertBuyerProfileUseCase upsertBuyerProfileUseCase;
     private final ManageAddressUseCase manageAddressUseCase;
+    private final AvatarUploadService avatarUploadService;
 
-    public UserController(ViewBuyerProfileUseCase viewBuyerProfileUseCase, UpsertBuyerProfileUseCase upsertBuyerProfileUseCase, ManageAddressUseCase manageAddressUseCase) {
+    public UserController(ViewBuyerProfileUseCase viewBuyerProfileUseCase,
+                          UpsertBuyerProfileUseCase upsertBuyerProfileUseCase,
+                          ManageAddressUseCase manageAddressUseCase,
+                          AvatarUploadService avatarUploadService) {
         this.viewBuyerProfileUseCase = viewBuyerProfileUseCase;
         this.upsertBuyerProfileUseCase = upsertBuyerProfileUseCase;
         this.manageAddressUseCase = manageAddressUseCase;
+        this.avatarUploadService = avatarUploadService;
     }
 
     @GetMapping("/me")
@@ -35,6 +45,18 @@ public class UserController {
     @PutMapping("/me")
     public ApiResponse<BuyerProfileResponse> upsertMyProfile(@RequestBody BuyerProfileRequest request) {
         return ApiResponse.ok(BuyerProfileResponse.fromDomain(upsertBuyerProfileUseCase.upsert(new UpsertBuyerProfileCommand(JwtPrincipalUtil.currentUserId(), request.name(), request.phone(), request.avatarUrl()))));
+    }
+
+    @PostMapping("/me/avatar/upload")
+    public ApiResponse<AvatarUploadHttpResponse> createAvatarUpload(@RequestBody AvatarUploadRequest request) {
+        AvatarUploadResponse response = avatarUploadService.createUpload(JwtPrincipalUtil.currentUserId(), request);
+        return ApiResponse.ok(AvatarUploadHttpResponse.fromDomain(response));
+    }
+
+    @PostMapping("/me/avatar/activate")
+    public ApiResponse<BuyerProfileResponse> activateAvatar(@RequestBody AvatarActivationRequest request) {
+        AvatarActivationResponse response = avatarUploadService.activate(JwtPrincipalUtil.currentUserId(), request);
+        return ApiResponse.ok(BuyerProfileResponse.fromDomain(response.profile()));
     }
 
     @PostMapping("/me/addresses")

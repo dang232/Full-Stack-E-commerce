@@ -33,5 +33,17 @@ export const userProfileSchema = z
   }));
 export type UserProfile = z.infer<typeof userProfileSchema>;
 
+/** BE response for `POST /users/me/avatar/upload` — the presigned PUT URL
+ *  the browser uploads against, plus the canonical objectKey to echo back
+ *  to /activate. */
+export const avatarUploadResponseSchema = z
+  .object({
+    objectKey: z.string(),
+    uploadUrl: z.string(),
+    expiresInSeconds: z.number(),
+  })
+  .passthrough();
+export type AvatarUploadInit = z.infer<typeof avatarUploadResponseSchema>;
+
 /** Response shape for `POST /sellers/register`. */
 export const sellerRegisterResponseSchema = z.object({ status: z.string() }).passthrough();
