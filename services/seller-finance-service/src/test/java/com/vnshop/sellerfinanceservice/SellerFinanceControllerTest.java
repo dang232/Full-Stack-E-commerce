@@ -109,6 +109,58 @@ class SellerFinanceControllerTest {
         assertThat(data.get("status").asText()).isEqualTo("PENDING");
     }
 
+    @Test
+    void completePayoutCapturesAuditFields() throws Exception {
+        UUID payoutId = UUID.randomUUID();
+        Payout pending = new Payout(payoutId, SELLER_ID, new BigDecimal("125.50"), PayoutStatus.PENDING, Instant.parse("2026-05-14T00:00:00Z"));
+        SellerWallet wallet = new SellerWallet(SELLER_ID, BigDecimal.ZERO, new BigDecimal("125.50"), new BigDecimal("125.50"), null);
+        when(payoutRepositoryPort.findById(payoutId)).thenReturn(Optional.of(pending));
+        when(sellerWalletRepositoryPort.findBySellerId(SELLER_ID)).thenReturn(Optional.of(wallet));
+        // The use case mutates `pending` in place and saves it; echo the
+        // mutated instance back so the controller serializes the audit
+        // fields the use case just stamped on.
+        when(payoutRepositoryPort.save(any(Payout.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        HttpRequest request = authorizedRequest("/admin/finance/payouts/" + payoutId + "/complete")
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode body = objectMapper.readTree(response.body());
+        JsonNode data = body.get("data");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(data.get("status").asText()).isEqualTo("COMPLETED");
+        assertThat(data.get("completedBy").asText()).isEqualTo(SELLER_ID);
+        assertThat(data.get("completedAt").asText()).isNotBlank();
+    }
+
+    @Test
+    void completedPayoutsListReturnsAuditFields() throws Exception {
+        UUID payoutId = UUID.randomUUID();
+        Instant completedAt = Instant.parse("2026-05-24T08:30:00Z");
+        Payout completed = new Payout(
+                payoutId,
+                SELLER_ID,
+                new BigDecimal("125.50"),
+                PayoutStatus.COMPLETED,
+                Instant.parse("2026-05-14T00:00:00Z"),
+                "admin-42",
+                completedAt);
+        when(payoutRepositoryPort.findCompleted()).thenReturn(List.of(completed));
+
+        HttpRequest request = authorizedRequest("/admin/finance/payouts/completed").GET().build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode body = objectMapper.readTree(response.body());
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode row = body.get("data").get(0);
+        assertThat(row.get("payoutId").asText()).isEqualTo(payoutId.toString());
+        assertThat(row.get("status").asText()).isEqualTo("COMPLETED");
+        assertThat(row.get("completedBy").asText()).isEqualTo("admin-42");
+        assertThat(row.get("completedAt").asText()).isEqualTo(completedAt.toString());
+    }
+
     private HttpRequest.Builder authorizedRequest(String path) {
         return HttpRequest.newBuilder(url(path))
                 .header("Authorization", "Bearer token");

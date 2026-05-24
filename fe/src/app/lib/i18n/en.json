@@ -618,6 +618,7 @@
       "title": "Payout requests",
       "loading": "Loading...",
       "empty": "No payout requests",
+      "emptyCompleted": "No completed payouts yet",
       "searchEmpty": "No payouts match the search.",
       "searchPlaceholder": "Search by seller id or payout id...",
       "sortByAmount": "Sort by amount",
@@ -628,6 +629,12 @@
       "completeOk": "Marked as completed",
       "failOk": "Marked as failed",
       "updateErr": "Couldn't update",
+      "tab": {
+        "pending": "Pending",
+        "completed": "Completed"
+      },
+      "completedBy": "Completed by {{id}}",
+      "completedByUnknown": "Completed (admin not recorded)",
       "failDialog": {
         "title": "Mark payout as failed",
         "subtitle": "Request: {{id}}",

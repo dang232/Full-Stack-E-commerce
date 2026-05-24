@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,6 +35,11 @@ public class PayoutJpaEntity extends BaseJpaEntity {
     @Column(name = "status", nullable = false)
     private PayoutStatus status;
 
+    @Column(name = "completed_by")
+    private String completedBy;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
 
     protected PayoutJpaEntity() {
     }
@@ -44,10 +50,12 @@ public class PayoutJpaEntity extends BaseJpaEntity {
         entity.sellerId = payout.sellerId();
         entity.amount = payout.amount();
         entity.status = payout.status();
+        entity.completedBy = payout.completedBy();
+        entity.completedAt = payout.completedAt();
         return entity;
     }
 
     Payout toDomain() {
-        return new Payout(payoutId, sellerId, amount, status, getCreatedAt());
+        return new Payout(payoutId, sellerId, amount, status, getCreatedAt(), completedBy, completedAt);
     }
 }

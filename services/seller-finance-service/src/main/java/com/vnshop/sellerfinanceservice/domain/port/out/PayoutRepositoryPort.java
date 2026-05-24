@@ -14,5 +14,7 @@ public interface PayoutRepositoryPort {
 
     List<Payout> findByStatus(PayoutStatus status);
 
+    List<Payout> findCompleted();
+
     List<Payout> findBySellerId(String sellerId);
 }

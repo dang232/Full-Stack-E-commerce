@@ -111,9 +111,9 @@ export const disputeSchema = z
   }));
 export type Dispute = z.infer<typeof disputeSchema>;
 
-// BE order-service finance.PayoutResponse(payoutId, sellerId, amount, status,
-// createdAt). Same shape as seller-finance PayoutResponse — legacy callers
-// expect id + requestedAt.
+// BE seller-finance-service PayoutResponse(payoutId, sellerId, amount, status,
+// createdAt, completedBy, createdAt). Same shape as the order-service finance
+// projection. Legacy callers expect id + requestedAt; keep accepting both.
 export const adminPayoutSchema = z
   .object({
     // Legacy
@@ -125,6 +125,11 @@ export const adminPayoutSchema = z
     sellerId: sellerIdSchema,
     amount: z.number(),
     status: z.string(),
+    // Audit trail (pt35) — populated only on COMPLETED rows. Both nullable
+    // because PENDING/FAILED rows have nothing to record, and historical
+    // COMPLETED rows that predate the V5 migration have no captured admin.
+    completedBy: z.string().nullable().optional(),
+    completedAt: z.string().nullable().optional(),
   })
   .passthrough()
   .transform((raw) => ({
@@ -133,6 +138,8 @@ export const adminPayoutSchema = z
     amount: raw.amount,
     status: raw.status,
     requestedAt: raw.requestedAt ?? raw.createdAt,
+    completedBy: raw.completedBy ?? undefined,
+    completedAt: raw.completedAt ?? undefined,
   }));
 export type AdminPayout = z.infer<typeof adminPayoutSchema>;
 

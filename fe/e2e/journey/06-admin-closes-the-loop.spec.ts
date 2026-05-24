@@ -30,6 +30,10 @@ import { requireJourneyState } from "./_journey-state";
  *          moved the amount from availableBalance into pendingBalance at
  *          request time; the admin's Complete drains pendingBalance to 0,
  *          which is the canonical "money has left the platform" signal.)
+ *   AC-6.4 Completed-payout audit trail: the row resurfaces under the
+ *          Completed tab with the admin who completed it captured, and
+ *          the BE /admin/finance/payouts/completed endpoint returns the
+ *          same audit fields (completedBy, completedAt) populated.
  *
  * Requires Chapter 5 to have submitted a payout (state.payoutId,
  * state.payoutAmountVnd) against seller1's wallet credit.
@@ -63,6 +67,11 @@ test.describe.serial("Chapter 6 — Admin closes the loop", () => {
           code: "AC-6.3",
           outcome:
             "Seller's wallet pendingBalance drops by exactly the payout amount once the projection settles",
+        },
+        {
+          code: "AC-6.4",
+          outcome:
+            "Completed-payout audit trail surfaces who completed the payout and when, on the Completed tab and the BE /completed endpoint",
         },
       ],
     });
@@ -277,6 +286,72 @@ test.describe.serial("Chapter 6 — Admin closes the loop", () => {
               },
             )
             .toBe(expectedAfter);
+        },
+      );
+
+      await bizStep(
+        page,
+        "06-admin-closes-loop",
+        "AC-6.4",
+        "Completed tab surfaces the audit row, and the BE /completed endpoint returns the captured admin",
+        async () => {
+          // FE: switch to the Completed tab on PayoutsQueue. The pending
+          // tab is the default; tab buttons are role="tab" with the
+          // aria-selected toggle the FE renders. Wait for the row to
+          // appear under the new tab so we know the FE rendered the
+          // audit-fields path.
+          await page
+            .getByRole("tab", { name: /^(Completed|Đã hoàn tất)$/i })
+            .first()
+            .click();
+          const completedRow = page
+            .locator(".divide-y > div", { hasText: payoutId })
+            .first();
+          await expect(completedRow).toBeVisible({ timeout: 15_000 });
+          // The "Completed by ..." label is what proves the audit trail
+          // landed in the FE. The exact admin id is whatever the auth
+          // service stamps as the JWT sub for admin1, so we just assert
+          // the localized prefix is rendered.
+          await expect(
+            completedRow.getByText(/Completed by|Hoàn tất bởi/i).first(),
+          ).toBeVisible({ timeout: 5_000 });
+
+          // BE: the /completed endpoint must echo the same row with
+          // completedBy + completedAt populated. This is the source-of-
+          // truth check — the FE label could in theory render even if
+          // the BE didn't persist the audit fields (a future regression).
+          const adminLogin = await page.request.post(`${apiURL}/auth/login`, {
+            data: { username: "admin1", password: "test" },
+          });
+          const adminToken = (await adminLogin.json())?.data?.accessToken;
+          const completedResp = await page.request.get(
+            `${apiURL}/admin/finance/payouts/completed`,
+            { headers: { Authorization: `Bearer ${adminToken}` } },
+          );
+          expect(
+            completedResp.ok(),
+            `GET /completed: ${completedResp.status()}`,
+          ).toBeTruthy();
+          const completedList: Array<{
+            payoutId?: string;
+            status?: string;
+            completedBy?: string | null;
+            completedAt?: string | null;
+          }> = (await completedResp.json())?.data ?? [];
+          const auditRow = completedList.find((p) => p.payoutId === payoutId);
+          expect(auditRow, `payout ${payoutId} not in /completed`).toBeTruthy();
+          expect(auditRow?.status).toBe("COMPLETED");
+          expect(
+            typeof auditRow?.completedBy === "string" &&
+              (auditRow?.completedBy ?? "").length > 0,
+            "completedBy should be a non-empty string",
+          ).toBeTruthy();
+          expect(
+            typeof auditRow?.completedAt === "string" &&
+              (auditRow?.completedAt ?? "").length > 0,
+            "completedAt should be a non-empty ISO timestamp",
+          ).toBeTruthy();
+          await expectNoGlobalError(page);
         },
       );
 

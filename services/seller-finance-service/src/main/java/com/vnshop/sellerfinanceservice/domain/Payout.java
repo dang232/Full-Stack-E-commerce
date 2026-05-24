@@ -11,8 +11,15 @@ public class Payout {
     private final BigDecimal amount;
     private PayoutStatus status;
     private final Instant createdAt;
+    private String completedBy;
+    private Instant completedAt;
 
     public Payout(UUID payoutId, String sellerId, BigDecimal amount, PayoutStatus status, Instant createdAt) {
+        this(payoutId, sellerId, amount, status, createdAt, null, null);
+    }
+
+    public Payout(UUID payoutId, String sellerId, BigDecimal amount, PayoutStatus status, Instant createdAt,
+                  String completedBy, Instant completedAt) {
         Objects.requireNonNull(payoutId, "payoutId is required");
         requireNonBlank(sellerId, "sellerId");
         Objects.requireNonNull(amount, "amount is required");
@@ -24,6 +31,8 @@ public class Payout {
         this.amount = amount;
         this.status = Objects.requireNonNull(status, "status is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+        this.completedBy = completedBy;
+        this.completedAt = completedAt;
     }
 
     public static Payout pending(String sellerId, BigDecimal amount, Instant createdAt) {
@@ -50,8 +59,20 @@ public class Payout {
         return createdAt;
     }
 
-    public void complete() {
-        status = PayoutStatus.COMPLETED;
+    public String completedBy() {
+        return completedBy;
+    }
+
+    public Instant completedAt() {
+        return completedAt;
+    }
+
+    public void complete(String completedBy, Instant completedAt) {
+        requireNonBlank(completedBy, "completedBy");
+        Objects.requireNonNull(completedAt, "completedAt is required");
+        this.status = PayoutStatus.COMPLETED;
+        this.completedBy = completedBy;
+        this.completedAt = completedAt;
     }
 
     public void fail() {

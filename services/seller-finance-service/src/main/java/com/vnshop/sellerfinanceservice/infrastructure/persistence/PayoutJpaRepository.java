@@ -33,6 +33,13 @@ public class PayoutJpaRepository implements PayoutRepositoryPort {
     }
 
     @Override
+    public List<Payout> findCompleted() {
+        return repository.findByStatusOrderByCompletedAtDesc(PayoutStatus.COMPLETED).stream()
+                .map(PayoutJpaEntity::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Payout> findBySellerId(String sellerId) {
         return repository.findBySellerId(sellerId).stream().map(PayoutJpaEntity::toDomain).toList();
     }

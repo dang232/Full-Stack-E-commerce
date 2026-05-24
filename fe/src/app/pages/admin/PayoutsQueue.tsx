@@ -8,22 +8,37 @@ import { FormDialog } from "../../components/form-dialog";
 import { ApiError } from "../../lib/api";
 import {
   adminCompletePayout,
+  adminCompletedPayouts,
   adminFailPayout,
   adminPendingPayouts,
 } from "../../lib/api/endpoints/admin";
 import { formatDate, formatPrice } from "../../lib/format";
 import { groupByDate } from "../../lib/group-by-date";
+import type { AdminPayout } from "../../types/api";
+
+type Tab = "pending" | "completed";
 
 export function PayoutsQueue() {
   const qc = useQueryClient();
   const { t, i18n } = useTranslation();
+  const [tab, setTab] = useState<Tab>("pending");
   const [failFor, setFailFor] = useState<string | null>(null);
   const [completeFor, setCompleteFor] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
-  const payoutsQuery = useQuery({
+
+  const pendingQuery = useQuery({
     queryKey: ["admin", "payouts", "pending"],
     queryFn: adminPendingPayouts,
+    retry: false,
+  });
+  // Completed list is only fetched while its tab is active. The pending
+  // tab is the hot path; loading the completed history on every dashboard
+  // visit would burn a request the admin doesn't always need.
+  const completedQuery = useQuery({
+    queryKey: ["admin", "payouts", "completed"],
+    queryFn: adminCompletedPayouts,
+    enabled: tab === "completed",
     retry: false,
   });
 
@@ -57,36 +72,49 @@ export function PayoutsQueue() {
       toast.error(err instanceof ApiError ? err.message : t("admin.payouts.updateErr")),
   });
 
-  const payouts = payoutsQuery.data ?? [];
-  const completeTarget = completeFor ? payouts.find((p) => p.id === completeFor) ?? null : null;
+  const activeQuery = tab === "pending" ? pendingQuery : completedQuery;
+  const activeList = activeQuery.data ?? [];
+  const completeTarget =
+    completeFor && tab === "pending"
+      ? pendingQuery.data?.find((p) => p.id === completeFor) ?? null
+      : null;
+
+  // Completed rows sort on completedAt (when the payout actually settled),
+  // pending rows on requestedAt (when the seller filed the request).
+  const dateField = (p: AdminPayout) =>
+    tab === "completed" ? p.completedAt ?? p.requestedAt : p.requestedAt;
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (term.length === 0) return payouts;
-    return payouts.filter(
+    if (term.length === 0) return activeList;
+    return activeList.filter(
       (p) =>
         p.sellerId.toLowerCase().includes(term) ||
         p.id.toLowerCase().includes(term),
     );
-  }, [payouts, search]);
+  }, [activeList, search]);
 
   const sorted = useMemo(() => {
     if (sortBy === "amount") {
       return [...filtered].sort((a, b) => b.amount - a.amount);
     }
     return [...filtered].sort((a, b) => {
-      const ta = a.requestedAt ? Date.parse(a.requestedAt) : 0;
-      const tb = b.requestedAt ? Date.parse(b.requestedAt) : 0;
+      const ta = dateField(a) ? Date.parse(dateField(a)!) : 0;
+      const tb = dateField(b) ? Date.parse(dateField(b)!) : 0;
       return tb - ta;
     });
-  }, [filtered, sortBy]);
+  }, [filtered, sortBy, tab]);
 
   // Date sections only when sorted by date — under amount sort the
   // grouping would split the comparison the user is trying to make.
   const sections = useMemo(
-    () => (sortBy === "date" ? groupByDate(sorted, (p) => p.requestedAt, i18n.language) : null),
-    [sorted, sortBy, i18n.language],
+    () => (sortBy === "date" ? groupByDate(sorted, dateField, i18n.language) : null),
+    [sorted, sortBy, tab, i18n.language],
   );
+
+  const isEmptyForTab =
+    !activeQuery.isLoading && activeList.length === 0;
+  const emptyKey = tab === "pending" ? "admin.payouts.empty" : "admin.payouts.emptyCompleted";
 
   return (
     <div className="space-y-5">
@@ -133,6 +161,27 @@ export function PayoutsQueue() {
       />
       <h2 className="text-xl font-bold text-foreground">{t("admin.payouts.title")}</h2>
 
+      <div role="tablist" className="flex items-center gap-2">
+        {(["pending", "completed"] as const).map((value) => (
+          <button
+            key={value}
+            role="tab"
+            aria-selected={tab === value}
+            onClick={() => {
+              setTab(value);
+              setSearch("");
+            }}
+            className={
+              tab === value
+                ? "px-3 py-1.5 rounded-xl text-xs font-semibold bg-foreground text-background"
+                : "px-3 py-1.5 rounded-xl text-xs font-semibold border border-border bg-card text-muted-foreground hover:bg-muted"
+            }
+          >
+            {t(`admin.payouts.tab.${value}`)}
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-1.5 shadow-sm flex-1">
           <IconSearch size={14} className="text-muted-foreground" />
@@ -152,15 +201,15 @@ export function PayoutsQueue() {
         </button>
       </div>
 
-      {payoutsQuery.isLoading ? (
+      {activeQuery.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.payouts.loading")}</p>
       ) : null}
-      {!payoutsQuery.isLoading && payouts.length === 0 ? (
+      {isEmptyForTab ? (
         <div className="bg-card rounded-2xl p-8 text-center shadow-sm">
-          <p className="text-sm text-muted-foreground">{t("admin.payouts.empty")}</p>
+          <p className="text-sm text-muted-foreground">{t(emptyKey)}</p>
         </div>
       ) : null}
-      {!payoutsQuery.isLoading && payouts.length > 0 && filtered.length === 0 ? (
+      {!activeQuery.isLoading && activeList.length > 0 && filtered.length === 0 ? (
         <div className="bg-card rounded-2xl p-6 text-center shadow-sm">
           <p className="text-sm text-muted-foreground">{t("admin.payouts.searchEmpty")}</p>
         </div>
@@ -175,28 +224,36 @@ export function PayoutsQueue() {
                     <div className="px-5 py-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground bg-muted/40">
                       {t(section.labelKey, section.labelArgs)}
                     </div>
-                    {section.items.map((p) => (
-                      <PayoutRow
-                        key={p.id}
-                        p={p}
-                        onComplete={() => setCompleteFor(p.id)}
-                        onFail={() => setFailFor(p.id)}
-                        completePending={complete.isPending}
-                        failPending={fail.isPending}
-                      />
-                    ))}
+                    {section.items.map((p) =>
+                      tab === "pending" ? (
+                        <PendingPayoutRow
+                          key={p.id}
+                          p={p}
+                          onComplete={() => setCompleteFor(p.id)}
+                          onFail={() => setFailFor(p.id)}
+                          completePending={complete.isPending}
+                          failPending={fail.isPending}
+                        />
+                      ) : (
+                        <CompletedPayoutRow key={p.id} p={p} />
+                      ),
+                    )}
                   </div>
                 ))
-              : sorted.map((p) => (
-                  <PayoutRow
-                    key={p.id}
-                    p={p}
-                    onComplete={() => setCompleteFor(p.id)}
-                    onFail={() => setFailFor(p.id)}
-                    completePending={complete.isPending}
-                    failPending={fail.isPending}
-                  />
-                ))}
+              : sorted.map((p) =>
+                  tab === "pending" ? (
+                    <PendingPayoutRow
+                      key={p.id}
+                      p={p}
+                      onComplete={() => setCompleteFor(p.id)}
+                      onFail={() => setFailFor(p.id)}
+                      completePending={complete.isPending}
+                      failPending={fail.isPending}
+                    />
+                  ) : (
+                    <CompletedPayoutRow key={p.id} p={p} />
+                  ),
+                )}
           </div>
         </div>
       ) : null}
@@ -204,14 +261,14 @@ export function PayoutsQueue() {
   );
 }
 
-function PayoutRow({
+function PendingPayoutRow({
   p,
   onComplete,
   onFail,
   completePending,
   failPending,
 }: {
-  p: { id: string; sellerId: string; amount: number; requestedAt?: string };
+  p: AdminPayout;
   onComplete: () => void;
   onFail: () => void;
   completePending: boolean;
@@ -248,6 +305,35 @@ function PayoutRow({
         >
           {t("admin.payouts.fail")}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function CompletedPayoutRow({ p }: { p: AdminPayout }) {
+  const { t } = useTranslation();
+  // Older COMPLETED rows that predate the V5 migration have no captured
+  // admin id. Render the unknown-admin variant rather than an empty span
+  // so an admin reviewing history can tell missing data from a fresh row.
+  const completedLabel = p.completedBy
+    ? t("admin.payouts.completedBy", { id: p.completedBy })
+    : t("admin.payouts.completedByUnknown");
+  return (
+    <div className="px-5 py-4 flex items-center justify-between gap-4">
+      <div>
+        <p className="text-xs font-mono text-muted-foreground">{p.id}</p>
+        <p className="text-sm font-semibold text-foreground">
+          {t("admin.payouts.sellerLabel", { id: p.sellerId })}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {p.completedAt ? formatDate(p.completedAt) : p.requestedAt ? formatDate(p.requestedAt) : ""}
+        </p>
+        <p className="text-xs text-emerald-600 font-medium mt-0.5">{completedLabel}</p>
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
+        <span className="font-bold text-base text-muted-foreground line-through">
+          {formatPrice(p.amount)}
+        </span>
       </div>
     </div>
   );

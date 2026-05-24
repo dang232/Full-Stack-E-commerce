@@ -60,6 +60,8 @@ export const adminResolveDispute = (
 
 export const adminPendingPayouts = () =>
   api.get("/admin/finance/payouts/pending", z.array(adminPayoutSchema));
+export const adminCompletedPayouts = () =>
+  api.get("/admin/finance/payouts/completed", z.array(adminPayoutSchema));
 export const adminCompletePayout = (id: string) =>
   api.post(`/admin/finance/payouts/${encodeURIComponent(id)}/complete`, adminPayoutSchema);
 export const adminFailPayout = (id: string, body: { reason: string }) =>

@@ -9,5 +9,7 @@ import java.util.UUID;
 public interface PayoutSpringDataRepository extends JpaRepository<PayoutJpaEntity, UUID> {
     List<PayoutJpaEntity> findByStatus(PayoutStatus status);
 
+    List<PayoutJpaEntity> findByStatusOrderByCompletedAtDesc(PayoutStatus status);
+
     List<PayoutJpaEntity> findBySellerId(String sellerId);
 }

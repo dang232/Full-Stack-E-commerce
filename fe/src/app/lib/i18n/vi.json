@@ -618,6 +618,7 @@
       "title": "Yêu cầu rút tiền",
       "loading": "Đang tải...",
       "empty": "Không có yêu cầu rút tiền nào",
+      "emptyCompleted": "Chưa có yêu cầu nào hoàn tất",
       "searchEmpty": "Không có yêu cầu rút tiền nào khớp.",
       "searchPlaceholder": "Tìm theo mã seller hoặc mã yêu cầu...",
       "sortByAmount": "Sắp xếp theo số tiền",
@@ -628,6 +629,12 @@
       "completeOk": "Đã đánh dấu hoàn thành",
       "failOk": "Đã đánh dấu thất bại",
       "updateErr": "Không thể cập nhật",
+      "tab": {
+        "pending": "Đang chờ",
+        "completed": "Đã hoàn tất"
+      },
+      "completedBy": "Hoàn tất bởi {{id}}",
+      "completedByUnknown": "Đã hoàn tất (không ghi nhận admin)",
       "failDialog": {
         "title": "Đánh dấu yêu cầu rút tiền thất bại",
         "subtitle": "Yêu cầu: {{id}}",

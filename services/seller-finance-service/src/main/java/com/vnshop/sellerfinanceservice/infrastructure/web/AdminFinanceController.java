@@ -1,6 +1,7 @@
 package com.vnshop.sellerfinanceservice.infrastructure.web;
 
 import com.vnshop.sellerfinanceservice.application.ProcessPayoutUseCase;
+import com.vnshop.sellerfinanceservice.infrastructure.config.JwtPrincipalUtil;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,9 +24,15 @@ public class AdminFinanceController {
         return ApiResponse.ok(processPayoutUseCase.pending().stream().map(PayoutResponse::fromDomain).toList());
     }
 
+    @GetMapping("/payouts/completed")
+    public ApiResponse<List<PayoutResponse>> completedPayouts() {
+        return ApiResponse.ok(processPayoutUseCase.completed().stream().map(PayoutResponse::fromDomain).toList());
+    }
+
     @PostMapping("/payouts/{payoutId}/complete")
     public ApiResponse<PayoutResponse> complete(@PathVariable String payoutId) {
-        return ApiResponse.ok(PayoutResponse.fromDomain(processPayoutUseCase.complete(payoutId)));
+        String adminId = JwtPrincipalUtil.currentUserId();
+        return ApiResponse.ok(PayoutResponse.fromDomain(processPayoutUseCase.complete(payoutId, adminId)));
     }
 
     @PostMapping("/payouts/{payoutId}/fail")

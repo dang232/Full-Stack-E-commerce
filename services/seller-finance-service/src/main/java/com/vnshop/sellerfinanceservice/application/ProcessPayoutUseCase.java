@@ -20,14 +20,15 @@ public class ProcessPayoutUseCase {
         this.payoutRepository = Objects.requireNonNull(payoutRepository, "payoutRepository is required");
     }
 
-    public Payout complete(String payoutId) {
+    public Payout complete(String payoutId, String completedBy) {
         Payout payout = findPayout(payoutId);
         if (payout.status() != PayoutStatus.PENDING) {
             throw new IllegalStateException("payout is not pending");
         }
         SellerWallet wallet = walletRepository.findBySellerId(payout.sellerId()).orElseThrow(() -> new IllegalArgumentException("wallet not found"));
-        wallet.completePayout(payout.amount(), Instant.now());
-        payout.complete();
+        Instant now = Instant.now();
+        wallet.completePayout(payout.amount(), now);
+        payout.complete(completedBy, now);
         walletRepository.save(wallet);
         return payoutRepository.save(payout);
     }
@@ -46,6 +47,10 @@ public class ProcessPayoutUseCase {
 
     public List<Payout> pending() {
         return payoutRepository.findByStatus(PayoutStatus.PENDING);
+    }
+
+    public List<Payout> completed() {
+        return payoutRepository.findCompleted();
     }
 
     private Payout findPayout(String payoutId) {
