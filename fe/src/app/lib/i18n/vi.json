@@ -286,6 +286,13 @@
     "sellerLabel": "Kênh Người Bán",
     "backToStorefront": "Về trang chủ"
   },
+  "groupByDate": {
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "thisWeek": "Tuần này",
+    "month": "{{month}}",
+    "undated": "Khác"
+  },
   "footer": {
     "tagline": "Nền tảng mua sắm trực tuyến hàng đầu Việt Nam. Uy tín - Nhanh chóng - Tiết kiệm.",
     "customerSupport": "Hỗ trợ khách hàng",
@@ -610,6 +617,10 @@
       "title": "Yêu cầu rút tiền",
       "loading": "Đang tải...",
       "empty": "Không có yêu cầu rút tiền nào",
+      "searchEmpty": "Không có yêu cầu rút tiền nào khớp.",
+      "searchPlaceholder": "Tìm theo mã seller hoặc mã yêu cầu...",
+      "sortByAmount": "Sắp xếp theo số tiền",
+      "sortByDate": "Sắp xếp theo ngày",
       "sellerLabel": "Seller: {{id}}",
       "complete": "Hoàn thành",
       "fail": "Thất bại",
@@ -680,6 +691,16 @@
       "loading": "Đang tải đơn hàng...",
       "loadError": "Không tải được đơn hàng: {{message}}",
       "empty": "Không có đơn hàng nào cần xử lý",
+      "filterEmpty": "Không có đơn nào khớp với bộ lọc.",
+      "searchPlaceholder": "Tìm theo mã đơn...",
+      "tabs": {
+        "all": "Tất cả",
+        "pending": "Chờ duyệt",
+        "accepted": "Đã nhận",
+        "packed": "Đã đóng gói",
+        "shipped": "Đã giao",
+        "cancelled": "Đã huỷ"
+      },
       "parentOrder": "Mã đơn cha: {{id}}",
       "accept": "Xác nhận",
       "reject": "Từ chối",
@@ -721,6 +742,12 @@
       "loadError": "Không tải được ví: {{message}}",
       "historyTitle": "Lịch sử rút tiền",
       "historyEmpty": "Chưa có yêu cầu rút tiền nào",
+      "historyFilter": {
+        "all": "Tất cả",
+        "completed": "Hoàn tất",
+        "pending": "Đang xử lý",
+        "failed": "Thất bại"
+      },
       "payoutDialog": {
         "title": "Yêu cầu rút tiền",
         "balanceHint": "Số dư hiện có: {{balance}}",

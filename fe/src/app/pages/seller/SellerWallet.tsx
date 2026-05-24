@@ -1,12 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { FormDialog } from "../../components/form-dialog";
+import { StatusPill } from "../../components/status-pill";
 import { ApiError } from "../../lib/api";
 import { requestPayout, type Payout } from "../../lib/api/endpoints/seller-finance";
-import { formatPrice } from "../../lib/format";
+import { formatDate, formatPrice } from "../../lib/format";
+import { groupByDate } from "../../lib/group-by-date";
 
 export function SellerWallet({
   balance,
@@ -20,8 +22,9 @@ export function SellerWallet({
   error: unknown;
 }) {
   const qc = useQueryClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [showPayoutDialog, setShowPayoutDialog] = useState(false);
+  const [filter, setFilter] = useState<"all" | "completed" | "pending" | "failed">("all");
   const requestPayoutMutation = useMutation({
     mutationFn: (body: { amount: number; bankAccount: string }) => requestPayout(body),
     onSuccess: () => {
@@ -33,6 +36,17 @@ export function SellerWallet({
     onError: (err) =>
       toast.error(err instanceof ApiError ? err.message : t("seller.wallet.payoutErr")),
   });
+
+  const filteredPayouts = useMemo(() => {
+    if (filter === "all") return payouts;
+    const target = filter.toUpperCase();
+    return payouts.filter((p) => p.status.toUpperCase().includes(target));
+  }, [payouts, filter]);
+
+  const sections = useMemo(
+    () => groupByDate(filteredPayouts, (p) => p.requestedAt, i18n.language),
+    [filteredPayouts, i18n.language],
+  );
 
   return (
     <div className="space-y-5">
@@ -106,30 +120,54 @@ export function SellerWallet({
       ) : null}
 
       <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
-        <h3 className="px-5 py-4 font-bold text-foreground border-b border-border">
-          {t("seller.wallet.historyTitle")}
-        </h3>
-        {payouts.length === 0 ? (
+        <div className="px-5 py-4 flex items-center justify-between gap-3 border-b border-border">
+          <h3 className="font-bold text-foreground">
+            {t("seller.wallet.historyTitle")}
+          </h3>
+          <div className="flex items-center gap-1.5">
+            {(["all", "completed", "pending", "failed"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors"
+                style={{
+                  background: filter === f ? "rgba(0,191,179,0.12)" : "transparent",
+                  color: filter === f ? "#00BFB3" : "#6b7280",
+                  border: filter === f ? "1px solid #00BFB3" : "1px solid transparent",
+                }}
+              >
+                {t(`seller.wallet.historyFilter.${f}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+        {filteredPayouts.length === 0 ? (
           <p className="px-5 py-8 text-sm text-muted-foreground text-center">
             {t("seller.wallet.historyEmpty")}
           </p>
         ) : null}
         <div className="divide-y divide-gray-50">
-          {payouts.map((p) => (
-            <div key={p.id} className="px-5 py-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-foreground">{formatPrice(p.amount)}</p>
-                <p className="text-xs text-muted-foreground">{p.requestedAt ?? "—"}</p>
+          {sections.map((section) => (
+            <div key={section.key}>
+              <div className="px-5 py-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground bg-muted/40">
+                {t(section.labelKey, section.labelArgs)}
               </div>
-              <span
-                className="px-2.5 py-1 rounded-full text-xs font-semibold"
-                style={{
-                  background: p.status.toUpperCase() === "COMPLETED" ? "#ECFDF5" : "#FEF3C7",
-                  color: p.status.toUpperCase() === "COMPLETED" ? "#10B981" : "#F59E0B",
-                }}
-              >
-                {p.status}
-              </span>
+              {section.items.map((p) => (
+                <div
+                  key={p.id}
+                  className="px-5 py-4 flex items-center justify-between border-t border-gray-50 first:border-t-0"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {formatPrice(p.amount)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.requestedAt ? formatDate(p.requestedAt) : "—"}
+                    </p>
+                  </div>
+                  <StatusPill status={p.status} />
+                </div>
+              ))}
             </div>
           ))}
         </div>

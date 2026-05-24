@@ -286,6 +286,13 @@
     "sellerLabel": "Seller Hub",
     "backToStorefront": "Back to storefront"
   },
+  "groupByDate": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This week",
+    "month": "{{month}}",
+    "undated": "Other"
+  },
   "footer": {
     "tagline": "Vietnam's leading online shopping platform — trusted, fast, affordable.",
     "customerSupport": "Customer Support",
@@ -610,6 +617,10 @@
       "title": "Payout requests",
       "loading": "Loading...",
       "empty": "No payout requests",
+      "searchEmpty": "No payouts match the search.",
+      "searchPlaceholder": "Search by seller id or payout id...",
+      "sortByAmount": "Sort by amount",
+      "sortByDate": "Sort by date",
       "sellerLabel": "Seller: {{id}}",
       "complete": "Complete",
       "fail": "Fail",
@@ -680,6 +691,16 @@
       "loading": "Loading orders...",
       "loadError": "Couldn't load orders: {{message}}",
       "empty": "No orders to handle",
+      "filterEmpty": "No orders match the current filter.",
+      "searchPlaceholder": "Search by order id...",
+      "tabs": {
+        "all": "All",
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "packed": "Packed",
+        "shipped": "Shipped",
+        "cancelled": "Cancelled"
+      },
       "parentOrder": "Parent order: {{id}}",
       "accept": "Accept",
       "reject": "Reject",
@@ -721,6 +742,12 @@
       "loadError": "Couldn't load wallet: {{message}}",
       "historyTitle": "Withdrawal history",
       "historyEmpty": "No withdrawal requests yet",
+      "historyFilter": {
+        "all": "All",
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
       "payoutDialog": {
         "title": "Withdrawal request",
         "balanceHint": "Available balance: {{balance}}",

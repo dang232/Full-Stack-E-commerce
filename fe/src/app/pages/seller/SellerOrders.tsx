@@ -1,10 +1,11 @@
-import { IconCircleCheck, IconPackage, IconTruck } from "@tabler/icons-react";
+import { IconCircleCheck, IconPackage, IconSearch, IconTruck } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { FormDialog } from "../../components/form-dialog";
+import { StatusPill } from "../../components/status-pill";
 import { ApiError } from "../../lib/api";
 import {
   sellerAcceptOrder,
@@ -14,6 +15,17 @@ import {
 } from "../../lib/api/endpoints/orders";
 
 import { ShipDialog } from "./ShipDialog";
+
+const STATUS_TABS = [
+  { id: "all", match: () => true },
+  { id: "pending", match: (s: string) => s.toUpperCase().includes("PENDING") || s.toUpperCase().includes("ACCEPT") && !s.toUpperCase().includes("ACCEPTED") },
+  { id: "accepted", match: (s: string) => s.toUpperCase().includes("ACCEPTED") },
+  { id: "packed", match: (s: string) => s.toUpperCase().includes("PACKED") || s.toUpperCase().includes("PACK") && !s.toUpperCase().includes("ACCEPTED") },
+  { id: "shipped", match: (s: string) => s.toUpperCase().includes("SHIPPED") },
+  { id: "cancelled", match: (s: string) => s.toUpperCase().includes("CANCEL") || s.toUpperCase().includes("REJECT") },
+] as const;
+
+type TabId = (typeof STATUS_TABS)[number]["id"];
 
 export function SellerOrders({
   orders,
@@ -28,6 +40,8 @@ export function SellerOrders({
   const { t } = useTranslation();
   const [shipFor, setShipFor] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabId>("all");
+  const [search, setSearch] = useState("");
 
   const accept = useMutation({
     mutationFn: (subOrderId: string) => sellerAcceptOrder(subOrderId),
@@ -63,6 +77,19 @@ export function SellerOrders({
       toast.error(err instanceof ApiError ? err.message : t("seller.orders.shipErr")),
   });
 
+  const filtered = useMemo(() => {
+    const tabMatcher = STATUS_TABS.find((s) => s.id === tab)?.match ?? (() => true);
+    const term = search.trim().toLowerCase();
+    return orders.filter((o) => {
+      if (!tabMatcher(o.status)) return false;
+      if (term.length === 0) return true;
+      return (
+        o.id.toLowerCase().includes(term) ||
+        String(o.orderId).toLowerCase().includes(term)
+      );
+    });
+  }, [orders, tab, search]);
+
   return (
     <div className="space-y-5">
       <ShipDialog
@@ -96,6 +123,34 @@ export function SellerOrders({
       />
       <h2 className="text-xl font-bold text-foreground">{t("seller.orders.title")}</h2>
 
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+          {STATUS_TABS.map(({ id }) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+              style={{
+                background: tab === id ? "rgba(0,191,179,0.12)" : "transparent",
+                color: tab === id ? "#00BFB3" : "#6b7280",
+                border: tab === id ? "1px solid #00BFB3" : "1px solid #e5e7eb",
+              }}
+            >
+              {t(`seller.orders.tabs.${id}`)}
+            </button>
+          ))}
+        </div>
+        <div className="sm:ml-auto flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-1.5 shadow-sm w-full sm:w-72">
+          <IconSearch size={14} className="text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("seller.orders.searchPlaceholder")}
+            className="flex-1 text-sm outline-none bg-transparent"
+          />
+        </div>
+      </div>
+
       {isLoading ? <p className="text-sm text-muted-foreground">{t("seller.orders.loading")}</p> : null}
       {error instanceof ApiError ? (
         <p className="text-sm text-red-500">
@@ -109,9 +164,15 @@ export function SellerOrders({
         </div>
       ) : null}
 
-      <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+      {!isLoading && orders.length > 0 && filtered.length === 0 ? (
+        <div className="bg-card rounded-2xl p-6 text-center shadow-sm">
+          <p className="text-sm text-muted-foreground">{t("seller.orders.filterEmpty")}</p>
+        </div>
+      ) : null}
+
+      {filtered.length > 0 ? (
         <div className="divide-y divide-gray-50">
-          {orders.map((order) => {
+          {filtered.map((order) => {
             const status = order.status.toUpperCase();
             const isPending = status.includes("PENDING") || status.includes("ACCEPT");
             const isAccepted = status.includes("ACCEPTED") || status.includes("PACK");
@@ -120,9 +181,7 @@ export function SellerOrders({
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-mono font-bold text-muted-foreground">{order.id}</span>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-600">
-                      {order.status}
-                    </span>
+                    <StatusPill status={order.status} />
                   </div>
                   <p className="text-sm text-muted-foreground mt-0.5">
                     {t("seller.orders.parentOrder", { id: order.orderId })}
@@ -164,6 +223,7 @@ export function SellerOrders({
           })}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }
