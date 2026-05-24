@@ -95,15 +95,36 @@ class ApproveReturnUseCaseTest {
     @Test
     void approveRejectsReturnPointingAtMissingOrder() {
         // Edge case: a Return row exists but the Order referenced by orderId
-        // is gone. ReturnAuthorization should fail with IllegalArgumentException
-        // ("order not found") rather than a NullPointerException — surface a
-        // specific bad-state error over a generic crash.
+        // is gone. Pt38 audit folded this into OrderAccessDenied with the
+        // same constant message used for "wrong seller" — a malicious caller
+        // probing returnIds shouldn't be able to distinguish "this exists
+        // but you don't own it" from "the underlying order was deleted."
         UUID returnId = UUID.randomUUID();
         returns.save(new Return(returnId, UUID.randomUUID().toString(), 100L, "buyer-1", "broken"));
 
         assertThatThrownBy(() -> useCase.approve(returnId, SELLER_OWNER))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("order not found");
+                .isInstanceOf(OrderAccessDeniedException.class)
+                .hasMessage("not authorized to act on this return");
+    }
+
+    @Test
+    void approveAccessDeniedMessageDoesNotLeakRequestedSellerOrReturnId() {
+        // Pt38 pin: prior message was
+        // "seller " + sellerId + " does not own return " + returnId — both
+        // values were echoed back, turning every 403 into a probe oracle
+        // for "does seller X own return Y." Constant-message check ensures
+        // a future "helpful" tweak can't reintroduce the leak.
+        UUID orderId = UUID.randomUUID();
+        UUID returnId = UUID.randomUUID();
+        Long subOrderId = 100L;
+        orders.save(orderWith(orderId, subOrderId, SELLER_OWNER));
+        returns.save(new Return(returnId, orderId.toString(), subOrderId, "buyer-1", "broken"));
+        String attackerSellerId = "guess-target-seller-xyz";
+
+        assertThatThrownBy(() -> useCase.approve(returnId, attackerSellerId))
+                .hasMessage("not authorized to act on this return")
+                .hasMessageNotContaining(attackerSellerId)
+                .hasMessageNotContaining(returnId.toString());
     }
 
     private static Order orderWith(UUID orderId, Long subOrderId, String sellerId) {

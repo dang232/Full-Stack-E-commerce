@@ -44,7 +44,11 @@ public class RejectOrderUseCase {
         return order.subOrders().stream()
                 .filter(subOrder -> subOrder.sellerId().equals(sellerId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found for seller: " + sellerId));
+                // Pt38 audit (extends pt37): the prior IllegalArgumentException
+                // mapped to 400 (wrong status) and embedded the requested
+                // sellerId in the message (oracle). Constant-message OAD
+                // makes every probe response identical.
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to reject this order"));
     }
 
     private static void requireNonBlank(String value, String fieldName) {

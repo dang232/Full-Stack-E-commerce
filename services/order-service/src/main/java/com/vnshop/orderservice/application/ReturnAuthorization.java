@@ -27,14 +27,19 @@ final class ReturnAuthorization {
             throw new IllegalArgumentException("sellerId is required");
         }
         Order order = orderRepository.findById(UUID.fromString(orderReturn.orderId()))
-                .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderReturn.orderId()));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to act on this return"));
         SubOrder subOrder = order.subOrders().stream()
                 .filter(candidate -> orderReturn.subOrderId().equals(candidate.id()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found: " + orderReturn.subOrderId()));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to act on this return"));
         if (!sellerId.equals(subOrder.sellerId())) {
-            throw new OrderAccessDeniedException(
-                    "seller " + sellerId + " does not own return " + orderReturn.returnId());
+            // Pt38 audit (extends pt37): prior message embedded both the
+            // sellerId AND the returnId, turning every 403 into a probe
+            // oracle for "does seller X own return Y." The exception type
+            // was already correct (OAD → 403); only the message needed
+            // tightening. Generic constant string keeps the response body
+            // identical regardless of which seller probes which return.
+            throw new OrderAccessDeniedException("not authorized to act on this return");
         }
     }
 }
