@@ -34,8 +34,16 @@ export function PayoutsQueue() {
       toast.success(t("admin.payouts.completeOk"));
       setCompleteFor(null);
     },
-    onError: (err) =>
-      toast.error(err instanceof ApiError ? err.message : t("admin.payouts.updateErr")),
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : t("admin.payouts.updateErr"));
+      // Close the dialog on error too. The BE may have actually succeeded
+      // (the response Zod parse can fail even on a 200) — leaving the
+      // modal open after a failed-on-FE-but-succeeded-on-BE round-trip
+      // strands an admin under an opaque overlay (pt33 race). Re-fetch
+      // payouts so the row state reflects whatever the BE thinks.
+      void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
+      setCompleteFor(null);
+    },
   });
 
   const fail = useMutation({

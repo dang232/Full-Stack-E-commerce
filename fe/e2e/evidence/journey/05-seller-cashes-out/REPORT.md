@@ -2,7 +2,7 @@
 
 **Persona:** seller
 **Verdict:** PASS
-**Generated:** 2026-05-24T08:16:11.121Z
+**Generated:** 2026-05-24T15:14:02.711Z
 
 ## Business outcomes verified
 
@@ -29,9 +29,9 @@ All 2 acceptance criteria verified for the seller flow. No business-rule regress
 
 ![Seller logs into the SPA and the Wallet tab shows the same balance](screenshots/03-ac-5-1-seller-logs-into-the-spa-and-the-wallet-tab-shows-the.png)
 
-### 04. AC-5.1 — Seller submits a payout request for the full balance (24273000 ₫) — PASS
+### 04. AC-5.1 — Seller submits a payout request for the full balance (8091000 ₫) — PASS
 
-![Seller submits a payout request for the full balance (24273000 ₫)](screenshots/04-ac-5-1-seller-submits-a-payout-request-for-the-full-balance-.png)
+![Seller submits a payout request for the full balance (8091000 ₫)](screenshots/04-ac-5-1-seller-submits-a-payout-request-for-the-full-balance-.png)
 
 ### 05. AC-5.2 — Submitted payout appears in admin's pending payout queue — PASS
 

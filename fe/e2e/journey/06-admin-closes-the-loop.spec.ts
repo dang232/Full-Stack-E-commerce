@@ -193,24 +193,29 @@ test.describe.serial("Chapter 6 — Admin closes the loop", () => {
             .first()
             .click();
 
-          // Destructive-action confirm dialog (added pt33). Title differs
-          // EN/VI; matching either anchors the dialog before we click its
-          // submit, which avoids racing the row click with the modal's
-          // mount animation.
-          await expect(
-            page.getByText(/Complete this payout|Hoàn tất yêu cầu rút tiền này/i).first(),
-          ).toBeVisible({ timeout: 10_000 });
+          // Destructive-action confirm dialog (added pt33). Wait for it
+          // to mount, click its submit, then wait for it to UNMOUNT —
+          // the unmount is the FE's own canonical "mutation succeeded"
+          // signal (PayoutsQueue's onSuccess sets completeFor=null).
+          // Without waiting for unmount, the modal overlay still
+          // intercepts pointer events when chapter 6's logout step
+          // tries to open the user menu.
+          const dialogTitle = page
+            .getByText(/Complete this payout|Hoàn tất yêu cầu rút tiền này/i)
+            .first();
+          await expect(dialogTitle).toBeVisible({ timeout: 10_000 });
           await page
             .getByRole("button", {
               name: /Yes, mark complete|Xác nhận hoàn tất/i,
             })
             .first()
             .click();
+          await expect(dialogTitle).toHaveCount(0, { timeout: 30_000 });
 
-          // Canonical BA-grade assertion: the payout has left the BE's
-          // pending queue. The FE row removal + toast is a derived effect
-          // that can lag the API response under load — assert the source
-          // of truth first, then confirm the SPA caught up.
+          // BA-grade backstop assertion: the BE pending queue no longer
+          // contains the payout. The dialog unmount above is the FE
+          // signal; this is the source-of-truth signal that what the
+          // platform's contract guarantees actually happened.
           const adminLogin = await page.request.post(`${apiURL}/auth/login`, {
             data: { username: "admin1", password: "test" },
           });
@@ -231,7 +236,7 @@ test.describe.serial("Chapter 6 — Admin closes the loop", () => {
                 ).length;
               },
               {
-                timeout: 30_000,
+                timeout: 15_000,
                 message: `payout ${payoutId} never left the BE pending queue after admin clicked Complete`,
               },
             )

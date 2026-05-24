@@ -171,58 +171,59 @@ export function SellerOrders({
       ) : null}
 
       {filtered.length > 0 ? (
-        <div className="divide-y divide-gray-50">
-          {filtered.map((order) => {
-            const status = order.status.toUpperCase();
-            const isPending = status.includes("PENDING") || status.includes("ACCEPT");
-            const isAccepted = status.includes("ACCEPTED") || status.includes("PACK");
-            return (
-              <div key={order.id} className="p-5 flex items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-mono font-bold text-muted-foreground">{order.id}</span>
-                    <StatusPill status={order.status} />
+        <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
+          <div className="divide-y divide-gray-50">
+            {filtered.map((order) => {
+              const status = order.status.toUpperCase();
+              const isPending = status.includes("PENDING") || status.includes("ACCEPT");
+              const isAccepted = status.includes("ACCEPTED") || status.includes("PACK");
+              return (
+                <div key={order.id} className="p-5 flex items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-mono font-bold text-muted-foreground">{order.id}</span>
+                      <StatusPill status={order.status} />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {t("seller.orders.parentOrder", { id: order.orderId })}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {t("seller.orders.parentOrder", { id: order.orderId })}
-                  </p>
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  {isPending ? (
-                    <>
+                  <div className="flex gap-2 shrink-0">
+                    {isPending ? (
+                      <>
+                        <button
+                          onClick={() => accept.mutate(order.id)}
+                          disabled={accept.isPending}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                          style={{ background: "#00BFB3" }}
+                        >
+                          <IconCircleCheck size={13} /> {t("seller.orders.accept")}
+                        </button>
+                        <button
+                          onClick={() => setRejectFor(order.id)}
+                          disabled={reject.isPending}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 disabled:opacity-50"
+                        >
+                          {t("seller.orders.reject")}
+                        </button>
+                      </>
+                    ) : null}
+                    {isAccepted ? (
                       <button
-                        onClick={() => accept.mutate(order.id)}
-                        disabled={accept.isPending}
+                        onClick={() => setShipFor(order.id)}
+                        disabled={ship.isPending}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                        style={{ background: "#00BFB3" }}
+                        style={{ background: "#FF6200" }}
                       >
-                        <IconCircleCheck size={13} /> {t("seller.orders.accept")}
+                        <IconTruck size={13} /> {t("seller.orders.ship")}
                       </button>
-                      <button
-                        onClick={() => setRejectFor(order.id)}
-                        disabled={reject.isPending}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 disabled:opacity-50"
-                      >
-                        {t("seller.orders.reject")}
-                      </button>
-                    </>
-                  ) : null}
-                  {isAccepted ? (
-                    <button
-                      onClick={() => setShipFor(order.id)}
-                      disabled={ship.isPending}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                      style={{ background: "#FF6200" }}
-                    >
-                      <IconTruck size={13} /> {t("seller.orders.ship")}
-                    </button>
-                  ) : null}
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
       ) : null}
     </div>
   );
