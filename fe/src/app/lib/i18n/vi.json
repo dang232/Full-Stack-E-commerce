@@ -271,6 +271,11 @@
       "empty": "Chưa có shop nào để hiển thị."
     }
   },
+  "consoleChrome": {
+    "adminLabel": "Admin Console",
+    "sellerLabel": "Kênh Người Bán",
+    "backToStorefront": "Về trang chủ"
+  },
   "footer": {
     "tagline": "Nền tảng mua sắm trực tuyến hàng đầu Việt Nam. Uy tín - Nhanh chóng - Tiết kiệm.",
     "customerSupport": "Hỗ trợ khách hàng",

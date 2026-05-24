@@ -271,6 +271,11 @@
       "empty": "No shops to display yet."
     }
   },
+  "consoleChrome": {
+    "adminLabel": "Admin Console",
+    "sellerLabel": "Seller Hub",
+    "backToStorefront": "Back to storefront"
+  },
   "footer": {
     "tagline": "Vietnam's leading online shopping platform — trusted, fast, affordable.",
     "customerSupport": "Customer Support",

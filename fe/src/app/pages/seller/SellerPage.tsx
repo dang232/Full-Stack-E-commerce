@@ -1,4 +1,4 @@
-import { IconBell, IconCircleCheck, IconLayoutDashboard, IconPackage, IconSettings, IconShoppingBag, IconStar, IconWallet } from "@tabler/icons-react";
+import { IconCircleCheck, IconLayoutDashboard, IconPackage, IconSettings, IconShoppingBag, IconStar, IconWallet } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
@@ -86,11 +86,6 @@ export function SellerPage() {
                 ) : null}
               </div>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <button className="relative p-2.5 rounded-xl border border-border text-muted-foreground hover:bg-muted">
-              <IconBell size={18} />
-            </button>
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate, useLocation } from "react-router";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
+import { ConsoleChrome } from "../components/console-chrome";
 import { LanguageSwitcher } from "../components/language-switcher";
 import { NotificationBell } from "../components/notification-bell";
 import { SearchAutocomplete } from "../components/search-autocomplete";
@@ -313,15 +314,44 @@ function Navbar() {
 
 export function Root() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
+
+  // Back-office routes get a thin console chrome instead of the
+  // storefront Navbar (search, categories, wishlist, cart) — those
+  // controls are useless inside /admin and /seller and were creating
+  // visual confusion for back-office users (pt32 walkthrough finding).
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const isSellerRoute = location.pathname.startsWith("/seller");
+  const isConsoleRoute = isAdminRoute || isSellerRoute;
+
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      {isConsoleRoute ? (
+        <ConsoleChrome persona={isAdminRoute ? "admin" : "seller"} />
+      ) : (
+        <Navbar />
+      )}
       <main>
         <Outlet />
       </main>
-      {/* Footer — intentionally dark in both themes (brand choice). */}
-      <footer className="mt-16 border-t border-[#2a2d3b] bg-[#1a1d2b] dark:bg-[#0a0c12]">
+      {/* Storefront marketing footer — VNPay/MoMo/payments columns —
+          is irrelevant on back-office pages. Replace with a one-line
+          strip on /admin and /seller. */}
+      {isConsoleRoute ? (
+        <footer className="mt-12 border-t border-border bg-card">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between text-xs text-muted-foreground">
+            <span>{t("footer.copyright")}</span>
+            <button
+              onClick={() => navigate("/")}
+              className="hover:text-foreground transition-colors"
+            >
+              {t("consoleChrome.backToStorefront")} →
+            </button>
+          </div>
+        </footer>
+      ) : (
+        <footer className="mt-16 border-t border-[#2a2d3b] bg-[#1a1d2b] dark:bg-[#0a0c12]">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
@@ -409,6 +439,7 @@ export function Root() {
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 }

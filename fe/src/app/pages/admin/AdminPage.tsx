@@ -68,21 +68,6 @@ export function AdminPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6 bg-card rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
-            >
-              <IconLayoutDashboard size={22} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">{t("admin.console")}</h1>
-              <p className="text-sm text-muted-foreground">{t("admin.consoleSub")}</p>
-            </div>
-          </div>
-        </div>
-
         <div className="flex gap-6">
           <nav className="hidden md:block w-56 shrink-0">
             <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
