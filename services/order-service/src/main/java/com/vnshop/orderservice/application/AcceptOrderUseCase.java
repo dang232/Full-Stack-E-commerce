@@ -36,7 +36,11 @@ public class AcceptOrderUseCase {
         return order.subOrders().stream()
                 .filter(subOrder -> subOrder.sellerId().equals(sellerId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found for seller: " + sellerId));
+                // Pt37 audit: same fix as ShipOrderUseCase. 403 (not 400)
+                // and a generic message so the response can't be used to
+                // probe whether a given sellerId has a sub-order on
+                // someone else's order.
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to accept this order"));
     }
 
     private static void requireNonBlank(String value, String fieldName) {
