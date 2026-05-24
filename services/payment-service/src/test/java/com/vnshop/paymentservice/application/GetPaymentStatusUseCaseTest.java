@@ -48,12 +48,33 @@ class GetPaymentStatusUseCaseTest {
     }
 
     @Test
-    void getByOrderIdForBuyerThrowsForUnknownOrder() {
-        // Surfaces as IllegalArgumentException (400 in the controller advice).
-        // 400 vs 403 is fine — the order doesn't exist for anyone.
-        assertThatThrownBy(() -> useCase.getByOrderIdForBuyer("missing", "buyer-1"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("payment not found");
+    void getByOrderIdForBuyerCollapsesUnknownOrderIntoSameMessageAsWrongBuyer() {
+        // Pt39 audit: pre-fix, "order doesn't exist" raised IAE/400 while
+        // "exists but not yours" raised OAD/403 with a body that embedded
+        // both buyerId and orderId. A malicious caller could distinguish
+        // the two cases just from status code, AND extract owner inference
+        // from the message body. Collapsed into a single OAD with a
+        // constant message so the response is identical regardless of
+        // which condition tripped.
+        repository.save(payment("order-1", "buyer-1"));
+
+        assertThatThrownBy(() -> useCase.getByOrderIdForBuyer("missing-order", "buyer-1"))
+                .isInstanceOf(OrderAccessDeniedException.class)
+                .hasMessage("not authorized to read this payment");
+
+        assertThatThrownBy(() -> useCase.getByOrderIdForBuyer("order-1", "buyer-2"))
+                .isInstanceOf(OrderAccessDeniedException.class)
+                .hasMessage("not authorized to read this payment");
+    }
+
+    @Test
+    void getByOrderIdForBuyerDoesNotLeakBuyerIdOrOrderIdInMessage() {
+        repository.save(payment("order-1", "buyer-1"));
+
+        assertThatThrownBy(() ->
+                        useCase.getByOrderIdForBuyer("order-1", "guess-target-buyer-xyz"))
+                .hasMessageNotContaining("guess-target-buyer-xyz")
+                .hasMessageNotContaining("order-1");
     }
 
     @Test

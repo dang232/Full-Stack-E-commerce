@@ -182,22 +182,23 @@ public class PaymentController {
         PayPalGateway gateway = payPalGateway.orElseThrow(() ->
                 new IllegalStateException("PayPal is not enabled — set payment.paypal.enabled=true"));
         java.util.UUID id = java.util.UUID.fromString(paymentId);
-        Payment existing = paymentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("payment not found: " + paymentId));
-        if (existing.method() != com.vnshop.paymentservice.domain.PaymentMethod.PAYPAL) {
-            throw new IllegalArgumentException("payment is not PayPal: " + paymentId);
-        }
-        // Pt13 follow-up: defense-in-depth on /paypal/capture. The original
-        // design assumed only the legitimate FE had both paymentId and
-        // paypalOrderId, but either could leak via logs / error reports. A
-        // malicious authenticated buyer who guessed both could race-capture
-        // someone else's PENDING payment (no monetary gain — capture sends
-        // the legitimate buyer's funds to the legitimate buyer's order — but
-        // could confuse order state). Buyer mismatch -> 403.
+        // Pt39 audit (extends pt37/pt38): the prior code raised three
+        // distinct error bodies — IAE("payment not found"), IAE("payment is
+        // not PayPal"), OAD("buyer X does not own payment Y") — letting a
+        // malicious caller distinguish "doesn't exist" from "exists but wrong
+        // method" from "exists, right method, not yours". All three are
+        // "you can't act on this," so collapse into one OAD with a constant
+        // message. Auth check still happens after the lookup (need the
+        // payment row to know the buyer), but the response body is now
+        // identical regardless of which branch tripped.
         String caller = JwtPrincipalUtil.currentUserId();
-        if (!existing.buyerId().equals(caller)) {
+        Payment existing = paymentRepository.findById(id)
+                .orElseThrow(() -> new com.vnshop.paymentservice.application.OrderAccessDeniedException(
+                        "not authorized to capture this payment"));
+        if (existing.method() != com.vnshop.paymentservice.domain.PaymentMethod.PAYPAL
+                || !existing.buyerId().equals(caller)) {
             throw new com.vnshop.paymentservice.application.OrderAccessDeniedException(
-                    "buyer " + caller + " does not own payment " + paymentId);
+                    "not authorized to capture this payment");
         }
         PayPalGateway.PayPalCapture capture = gateway.capture(paypalOrderId);
         PaymentPromotionService.PromotionResult result = promotionService.promote(

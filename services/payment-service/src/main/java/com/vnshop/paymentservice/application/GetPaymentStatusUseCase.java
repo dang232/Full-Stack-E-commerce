@@ -28,12 +28,16 @@ public class GetPaymentStatusUseCase {
      * HTTP read. Verifies the authenticated buyer owns the underlying payment
      * before returning it. Closes an IDOR where any authenticated buyer could
      * read any other buyer's payment status by guessing the orderId UUID.
+     *
+     * <p>Pt39: lookup miss + ownership-check failure both raise
+     * OrderAccessDeniedException with the same constant message, so a probe
+     * can't distinguish "this orderId doesn't exist" from "exists, not yours."
      */
     public Payment getByOrderIdForBuyer(String orderId, String buyerId) {
-        Payment payment = getByOrderId(orderId);
+        Payment payment = paymentRepositoryPort.findByOrderId(orderId)
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to read this payment"));
         if (!payment.buyerId().equals(buyerId)) {
-            throw new OrderAccessDeniedException(
-                    "buyer " + buyerId + " does not own payment for order " + orderId);
+            throw new OrderAccessDeniedException("not authorized to read this payment");
         }
         return payment;
     }

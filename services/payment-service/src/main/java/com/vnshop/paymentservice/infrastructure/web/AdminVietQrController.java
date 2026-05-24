@@ -46,10 +46,16 @@ public class AdminVietQrController {
             @RequestBody(required = false) VietQrConfirmRequest request
     ) {
         UUID id = UUID.fromString(paymentId);
+        // Pt39 audit: gateway already enforces ROLE_ADMIN so the leak risk
+        // here is much lower than the buyer-facing endpoints, but the prior
+        // code embedded the requested paymentId in three distinct error
+        // messages — making the response a probe oracle even for a
+        // compromised admin account. Constant messages keep the response
+        // identical regardless of which branch tripped.
         Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("payment not found: " + paymentId));
+                .orElseThrow(() -> new IllegalArgumentException("payment not found"));
         if (payment.method() != PaymentMethod.VIETQR) {
-            throw new IllegalArgumentException("payment is not VietQR: " + paymentId);
+            throw new IllegalArgumentException("payment not found");
         }
         String txnRef = request != null && request.bankReference() != null && !request.bankReference().isBlank()
                 ? request.bankReference()
@@ -57,7 +63,7 @@ public class AdminVietQrController {
         PaymentPromotionService.PromotionResult result = promotionService.promote(
                 PaymentPromotionService.PromotionCommand.manual(id, "VIETQR", txnRef));
         if (result.outcome() == PaymentPromotionService.PromotionResult.Outcome.PAYMENT_NOT_FOUND) {
-            throw new IllegalArgumentException("payment not found: " + paymentId);
+            throw new IllegalArgumentException("payment not found");
         }
         return ApiResponse.ok(PaymentResponse.fromDomain(result.payment()));
     }
