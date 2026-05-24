@@ -119,6 +119,8 @@
     "comingSoon": "Coming soon",
     "loadingWait": "Please wait a moment",
     "expired": "Flash sale ended — Check back soon for new deals",
+    "emptyTitle": "No flash sale running right now",
+    "emptyBody": "Flash sales drop weekly. Browse the catalog while you wait — best-priced items refresh daily.",
     "soldPct": "{{pct}}% sold",
     "stockLeft": "{{n}} slots left",
     "loadError": "error"
@@ -268,7 +270,15 @@
       "title": "Featured Shops",
       "subtitle": "Verified sellers on VNShop",
       "viewAll": "View all",
-      "empty": "No shops to display yet."
+      "empty": "No shops to display yet.",
+      "emptyTitle": "More shops joining VNShop weekly",
+      "emptyBody": "Browse the full catalog while we onboard new verified sellers.",
+      "emptyCta": "Browse catalog"
+    },
+    "bestsellersEmpty": {
+      "title": "Best sellers refresh weekly",
+      "body": "Once products land in the catalog, the top movers show up here.",
+      "cta": "Browse catalog"
     }
   },
   "consoleChrome": {

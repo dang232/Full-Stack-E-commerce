@@ -13,6 +13,7 @@ import { useFlashSaleWithProducts, type FlashSaleItem } from "../hooks/use-flash
 import { useProducts } from "../hooks/use-products";
 import { listSellers } from "../lib/api/endpoints/sellers";
 import { formatPrice } from "../lib/format";
+import { initialAvatarColor, initialFromName } from "../lib/initial-avatar";
 import type { PublicSeller } from "../types/api";
 import type { Product } from "../types/ui";
 
@@ -476,12 +477,12 @@ function FlashSaleEmpty({ isLoading }: { isLoading: boolean }) {
   const { t } = useTranslation();
   return (
     <div className="flex items-center justify-center py-10 text-center">
-      <div>
+      <div className="max-w-sm">
         <p className="text-white font-bold text-base mb-1">
-          {isLoading ? t("flashSale.loading") : t("flashSale.comingSoon")}
+          {isLoading ? t("flashSale.loading") : t("flashSale.emptyTitle")}
         </p>
-        <p className="text-white/60 text-xs">
-          {isLoading ? t("flashSale.loadingWait") : t("flashSale.expired")}
+        <p className="text-white/70 text-xs leading-relaxed">
+          {isLoading ? t("flashSale.loadingWait") : t("flashSale.emptyBody")}
         </p>
       </div>
     </div>
@@ -581,7 +582,8 @@ function PromoBanners() {
 // ─── Seller Showcase ──────────────────────────────────────────────────────────
 function SellerCard({ seller }: { seller: PublicSeller }) {
   const navigate = useNavigate();
-  const initial = seller.shopName.charAt(0).toUpperCase();
+  const initial = initialFromName(seller.shopName);
+  const initialBg = initialAvatarColor(seller.id || seller.shopName);
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -604,7 +606,7 @@ function SellerCard({ seller }: { seller: PublicSeller }) {
         ) : (
           <span
             className="text-2xl font-black text-white w-full h-full flex items-center justify-center"
-            style={{ background: "#00BFB3" }}
+            style={{ background: initialBg }}
           >
             {initial}
           </span>
@@ -642,11 +644,30 @@ function SellerShowcase() {
 
   if (isError || (!isLoading && sellers.length === 0)) {
     return (
-      <ComingSoonCard
-        icon={<IconAward size={20} />}
-        title={t("home.sellersSection.title")}
-        description={t("home.sellersSection.empty")}
-      />
+      <section>
+        <SectionHeader
+          title={t("home.sellersSection.title")}
+          subtitle={t("home.sellersSection.subtitle")}
+        />
+        <div className="rounded-3xl border border-dashed border-border bg-card px-8 py-10 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <IconAward size={20} />
+          </div>
+          <p className="text-base font-semibold text-foreground">
+            {t("home.sellersSection.emptyTitle")}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("home.sellersSection.emptyBody")}
+          </p>
+          <button
+            onClick={() => navigate("/search")}
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+            style={{ background: "#00BFB3" }}
+          >
+            {t("home.sellersSection.emptyCta")} <IconChevronRight size={14} />
+          </button>
+        </div>
+      </section>
     );
   }
 
@@ -806,6 +827,31 @@ function Bestsellers() {
   const { t } = useTranslation();
   const { data: catalog = [] as Product[] } = useProducts();
   const items = useMemo(() => [...catalog].sort((a, b) => b.sold - a.sold).slice(0, 5), [catalog]);
+  if (items.length === 0) {
+    return (
+      <section>
+        <SectionHeader title={t("home.bestsellers")} accent="orange" />
+        <div className="rounded-2xl border border-dashed border-border bg-card px-5 py-6 text-center">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+            <IconTrendingUp size={18} />
+          </div>
+          <p className="text-sm font-semibold text-foreground">
+            {t("home.bestsellersEmpty.title")}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t("home.bestsellersEmpty.body")}
+          </p>
+          <button
+            onClick={() => navigate("/search")}
+            className="mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+            style={{ background: "#FF6200" }}
+          >
+            {t("home.bestsellersEmpty.cta")} <IconChevronRight size={12} />
+          </button>
+        </div>
+      </section>
+    );
+  }
   return (
     <section>
       <SectionHeader title={t("home.bestsellers")} accent="orange" />

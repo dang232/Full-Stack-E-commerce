@@ -119,6 +119,8 @@
     "comingSoon": "Sắp ra mắt",
     "loadingWait": "Vui lòng chờ trong giây lát",
     "expired": "Hết flash sale — Quay lại sớm để săn deal mới",
+    "emptyTitle": "Chưa có flash sale đang diễn ra",
+    "emptyBody": "Flash sale ra mắt mỗi tuần. Trong lúc chờ, hãy ghé danh mục — sản phẩm giá tốt được làm mới hằng ngày.",
     "soldPct": "Đã bán {{pct}}%",
     "stockLeft": "Còn {{n}} suất",
     "loadError": "lỗi"
@@ -268,7 +270,15 @@
       "title": "Shop Nổi Bật",
       "subtitle": "Người bán được xác minh trên VNShop",
       "viewAll": "Xem tất cả",
-      "empty": "Chưa có shop nào để hiển thị."
+      "empty": "Chưa có shop nào để hiển thị.",
+      "emptyTitle": "Thêm shop tham gia VNShop mỗi tuần",
+      "emptyBody": "Trong lúc chờ shop mới được duyệt, hãy ghé danh mục để khám phá sản phẩm.",
+      "emptyCta": "Xem danh mục"
+    },
+    "bestsellersEmpty": {
+      "title": "Best seller được làm mới mỗi tuần",
+      "body": "Khi sản phẩm có lượt mua, top bán chạy sẽ hiển thị tại đây.",
+      "cta": "Xem danh mục"
     }
   },
   "consoleChrome": {
