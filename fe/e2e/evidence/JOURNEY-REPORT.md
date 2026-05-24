@@ -1,6 +1,6 @@
 # VNShop Journey — End-to-End Business Outcome Report
 
-**Generated:** 2026-05-24T15:14:09.656Z
+**Generated:** 2026-05-24T15:28:45.543Z
 
 This report aggregates every chapter of the BA-grade persona journey. Each row is a single business outcome the platform must support; columns map to the chapter and persona that exercises it.
 

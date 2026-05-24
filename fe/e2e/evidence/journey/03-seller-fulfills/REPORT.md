@@ -2,7 +2,7 @@
 
 **Persona:** seller
 **Verdict:** PASS
-**Generated:** 2026-05-24T15:13:52.742Z
+**Generated:** 2026-05-24T15:28:23.562Z
 
 ## Business outcomes verified
 

@@ -59,7 +59,11 @@ A  docs/SESSION-HANDOVER-2026-05-24-pt34.md                                # thi
 
 ## Open thread for the next session
 
-**Highest priority — the underlying Zod parse error in `adminPayoutSchema`.** The current onError-resets-dialog fix is the right resilience pattern, but it masks whatever shape mismatch is causing the parse to fail on a successful response. Worth tracing once: log the raw response body when the parse trips, find the field, fix the schema. Until then, admins get a "Couldn't update" toast on what was actually a successful payout.
+**Reframed — the "Zod parse error" is probably a phantom.** Pt34's commit message theorised that the BE mutation succeeded but the FE Zod parse tripped, falling through to onError. After staring at the schemas (BE `PayoutResponse(payoutId, sellerId, amount, status, createdAt)` vs FE `adminPayoutSchema` accepting both legacy `id`+`requestedAt` AND live `payoutId`+`createdAt`), the shapes align. No obvious mismatch.
+
+A more honest read of the symptom: the dialog stayed open with **neither** a green toast (onSuccess) nor a red one (onError). That's not a parse failure — that's the mutation still in-flight when the test moved on. The fix that actually closed the gap was the spec re-ordering to **wait for dialog unmount before asserting BE state**, not the `onError` reset (which was sound defensive coding but probably never fired).
+
+The `onError` reset stays — stranding an admin under an opaque overlay on any failure mode is the wrong default. But "trace the underlying Zod parse error" is likely chasing something that isn't broken. Closing this thread.
 
 **Medium — payout audit trail** (carryover from pt33): no `completedBy` / `completedAt` on the payout row yet. Adding these would let the queue show "Completed by admin1, 2 hours ago" once the payout flips to COMPLETED.
 
