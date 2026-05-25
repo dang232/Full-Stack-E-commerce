@@ -16,7 +16,7 @@ spring:
     schemas: review_svc
     default-schema: review_svc
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   security:
     oauth2:
       resourceserver:
