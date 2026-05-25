@@ -1,12 +1,12 @@
 # VNShop Journey — End-to-End Business Outcome Report
 
-**Generated:** 2026-05-24T15:28:45.543Z
+**Generated:** 2026-05-25T06:01:51.608Z
 
 This report aggregates every chapter of the BA-grade persona journey. Each row is a single business outcome the platform must support; columns map to the chapter and persona that exercises it.
 
 ## Journey verdict: PASS
 
-- **Acceptance criteria passed:** 16 / 16
+- **Acceptance criteria passed:** 17 / 17
 - **Chapters run:** 6 of 6
 
 ## Chapter 1 — Admin onboards the marketplace — PASS
@@ -66,4 +66,5 @@ Persona: admin. Detail: [`journey/06-admin-closes-loop/REPORT.md`](journey/06-ad
 | AC-6.1 | Admin's payout queue surfaces the seller's pending payout with the right amount | PASS |
 | AC-6.2 | Admin can mark the payout complete and the payout leaves the pending queue | PASS |
 | AC-6.3 | Seller's wallet pendingBalance drops by exactly the payout amount once the projection settles | PASS |
+| AC-6.4 | Completed-payout audit trail surfaces who completed the payout and when, on the Completed tab and the BE /completed endpoint | PASS |
 

@@ -15,6 +15,10 @@
       {
         "code": "AC-6.3",
         "outcome": "Seller's wallet pendingBalance drops by exactly the payout amount once the projection settles"
+      },
+      {
+        "code": "AC-6.4",
+        "outcome": "Completed-payout audit trail surfaces who completed the payout and when, on the Completed tab and the BE /completed endpoint"
       }
     ]
   },
@@ -56,9 +60,16 @@
     },
     {
       "index": 6,
+      "acCode": "AC-6.4",
+      "outcome": "Completed tab surfaces the audit row, and the BE /completed endpoint returns the captured admin",
+      "slug": "06-ac-6-4-completed-tab-surfaces-the-audit-row-and-the-be-compl.png",
+      "status": "PASS"
+    },
+    {
+      "index": 7,
       "acCode": "AC-6.3",
       "outcome": "Admin logs out — journey complete; chapter 6 leaves no new state",
-      "slug": "06-ac-6-3-admin-logs-out-journey-complete-chapter-6-leaves-no-n.png",
+      "slug": "07-ac-6-3-admin-logs-out-journey-complete-chapter-6-leaves-no-n.png",
       "status": "PASS"
     }
   ],
@@ -77,8 +88,13 @@
       "code": "AC-6.3",
       "outcome": "Seller's wallet pendingBalance drops by exactly the payout amount once the projection settles",
       "status": "PASS"
+    },
+    {
+      "code": "AC-6.4",
+      "outcome": "Completed-payout audit trail surfaces who completed the payout and when, on the Completed tab and the BE /completed endpoint",
+      "status": "PASS"
     }
   ],
   "verdict": "PASS",
-  "generatedAt": "2026-05-24T15:28:43.155Z"
+  "generatedAt": "2026-05-25T06:01:50.501Z"
 }

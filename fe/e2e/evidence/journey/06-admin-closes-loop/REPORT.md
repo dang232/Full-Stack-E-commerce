@@ -2,7 +2,7 @@
 
 **Persona:** admin
 **Verdict:** PASS
-**Generated:** 2026-05-24T15:28:43.152Z
+**Generated:** 2026-05-25T06:01:50.501Z
 
 ## Business outcomes verified
 
@@ -11,10 +11,11 @@
 | AC-6.1 | Admin's payout queue surfaces the seller's pending payout with the right amount | PASS |
 | AC-6.2 | Admin can mark the payout complete and the payout leaves the pending queue | PASS |
 | AC-6.3 | Seller's wallet pendingBalance drops by exactly the payout amount once the projection settles | PASS |
+| AC-6.4 | Completed-payout audit trail surfaces who completed the payout and when, on the Completed tab and the BE /completed endpoint | PASS |
 
 ## Stakeholder summary
 
-All 3 acceptance criteria verified for the admin flow. No business-rule regressions detected this run.
+All 4 acceptance criteria verified for the admin flow. No business-rule regressions detected this run.
 
 ## Steps (engineer view)
 
@@ -38,9 +39,13 @@ All 3 acceptance criteria verified for the admin flow. No business-rule regressi
 
 ![Seller's pendingBalance drops by exactly the payout amount](screenshots/05-ac-6-3-seller-s-pendingbalance-drops-by-exactly-the-payout-a.png)
 
-### 06. AC-6.3 — Admin logs out — journey complete; chapter 6 leaves no new state — PASS
+### 06. AC-6.4 — Completed tab surfaces the audit row, and the BE /completed endpoint returns the captured admin — PASS
 
-![Admin logs out — journey complete; chapter 6 leaves no new state](screenshots/06-ac-6-3-admin-logs-out-journey-complete-chapter-6-leaves-no-n.png)
+![Completed tab surfaces the audit row, and the BE /completed endpoint returns the captured admin](screenshots/06-ac-6-4-completed-tab-surfaces-the-audit-row-and-the-be-compl.png)
+
+### 07. AC-6.3 — Admin logs out — journey complete; chapter 6 leaves no new state — PASS
+
+![Admin logs out — journey complete; chapter 6 leaves no new state](screenshots/07-ac-6-3-admin-logs-out-journey-complete-chapter-6-leaves-no-n.png)
 
 ## Artifacts
 
