@@ -73,14 +73,23 @@ Seven blocks, fifteen gotchas, every grep-able anti-pattern across the seven ser
 
 ## Open thread for the next session
 
-**Carryover from pt32-pt34 (only two left):**
-- **PayPal capture round-trip** — wire the FE Smart Buttons → BE capture → order-status flip → refund hook. Largest of the carryover threads.
-- **VNPay/MoMo `redirectUrl` from PaymentResponse** — surface the field cleanly so the FE drives the gateway redirect.
-- **R2 swap for avatar storage** — gated on R2 credentials.
+**Resume protocol:** at the start of pt42, run the smoke gates below, then surface this list and ask the user to pick. Don't auto-start any thread without confirmation — the threads vary a lot in size (PayPal capture is multi-day, the others are single blocks).
 
-**New from this block (lower priority):**
-- **Search-index integration coverage gap.** The journey suite never asserts "product X published in chapter 1 appears in search results." Search-service was disconnected from kafka the whole time and the suite couldn't see it. Add an AC that drives the search endpoint with the chapter-1-published product after a settle-poll on kafka lag.
-- **Producer-side kafka health probe.** Audit gotcha #109 implies we'd benefit from a healthcheck or actuator probe that surfaces "I have published N events since boot, M acknowledged" so producer-side disconnects show up before they break a downstream feature.
+**Carryover from pt32-pt34:**
+
+1. **PayPal capture round-trip.** Wire the FE PayPal Smart Buttons → BE `/paypal/capture` → order-status flip → refund hook end-to-end. The biggest remaining feature; touches payment-service, FE checkout, possibly order-service for the status flip. Multi-file, user-visible value. Largest of the carryover threads.
+
+2. **VNPay/MoMo `redirectUrl` from PaymentResponse.** Surface the field cleanly on PaymentResponse so the FE drives the gateway redirect via a typed field instead of envelope-shape guessing. Smaller scope, payment-service + FE checkout.
+
+3. **R2 swap for avatar storage.** Gated on R2 credentials landing. When they arrive, flip `VNSHOP_USER_STORAGE_PROFILE=R2` + endpoint/keys + verify `publicUrl()` against R2's URL pattern (custom domain vs public bucket vs presigned-GET). One open question on path-style vs virtual-host noted in pt36 handover.
+
+**New from pt41:**
+
+4. **Search-index integration coverage gap.** The journey suite never asserts "product X published in chapter 1 appears in search results." Search-service was disconnected from kafka the whole pt40 window and the suite couldn't see it. Add a journey AC that drives the search endpoint with the chapter-1-published product after a settle-poll on kafka lag. Small block; raises journey coverage. Would have caught pt41's break before the YAML audit found it.
+
+5. **Producer-side kafka health probe.** Audit gotcha #109 — producer-side disconnects are silent. A healthcheck or actuator probe that surfaces "published N events, M acknowledged since boot" would close that observability gap. Closes pt41's open thread #109. Worth pairing with #4 above.
+
+**Recommended pick:** if the user has no preference, suggest **#4 (search-index coverage gap)** as the natural follow-on — it directly closes the gap pt41 surfaced, is single-block in size, and raises the journey suite's ability to catch the next infrastructure silent-breakage. PayPal capture is the highest-value but also the highest-cost; defer until the user explicitly opts in.
 
 ## How to resume
 
