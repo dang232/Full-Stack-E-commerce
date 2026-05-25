@@ -52,6 +52,7 @@ public class PayoutJpaEntity extends BaseJpaEntity {
         entity.status = payout.status();
         entity.completedBy = payout.completedBy();
         entity.completedAt = payout.completedAt();
+        entity.setCreatedAt(payout.createdAt());
         return entity;
     }
 
