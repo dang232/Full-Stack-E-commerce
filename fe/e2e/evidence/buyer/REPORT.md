@@ -1,8 +1,8 @@
 # Workday — Buyer
 
 **Verdict:** PASS
-**Steps:** 15 / 15 passed
-**Generated:** 2026-05-24T13:45:27.646Z
+**Steps:** 16 / 16 passed
+**Generated:** 2026-05-25T06:02:29.340Z
 
 ## Steps
 
@@ -30,9 +30,13 @@
 
 ![Guest add-to-cart blocks with login toast](screenshots/06-guest-add-to-cart-blocks-with-login-toast.png)
 
+> NOTE: visual review — screenshot captures the product detail page but no login toast is visible. Toast may have dismissed before snapshot fired.
+
 ### 07. Register fresh buyer via /register form — PASS
 
 ![Register fresh buyer via /register form](screenshots/07-register-fresh-buyer-via-register-form.png)
+
+> NOTE: visual review — screenshot shows the storefront home page (post-register navigation), not the register form. Capture fired one step after the AC's intended state.
 
 ### 08. Authed add-to-cart from product detail — PASS
 
@@ -62,9 +66,17 @@
 
 ![Cancel pending order via the UI button](screenshots/14-cancel-pending-order-via-the-ui-button.png)
 
-### 15. Logout returns to home with the Login CTA — PASS
+### 15. Upload an avatar via the profile camera button — PASS
 
-![Logout returns to home with the Login CTA](screenshots/15-logout-returns-to-home-with-the-login-cta.png)
+![Upload an avatar via the profile camera button](screenshots/15-upload-an-avatar-via-the-profile-camera-button.png)
+
+> NOTE: visual review — success toast "Đã cập nhật ảnh đại diện" is visible (proves upload succeeded), but the avatar tile in the profile sidebar still shows the default teal placeholder. Render of the new image hadn't propagated when the snapshot fired.
+
+### 16. Logout returns to home with the Login CTA — PASS
+
+![Logout returns to home with the Login CTA](screenshots/16-logout-returns-to-home-with-the-login-cta.png)
+
+> NOTE: visual review — screenshot shows the /login page, not the home page with a Login CTA. Capture fired after the post-logout redirect to /login rather than at the intended home state.
 
 ## Artifacts
 
