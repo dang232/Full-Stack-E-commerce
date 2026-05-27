@@ -2,6 +2,8 @@ package com.vnshop.productservice.infrastructure.persistence;
 
 import com.vnshop.productservice.domain.Product;
 import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -22,11 +24,13 @@ public class ProductJpaRepository implements ProductRepositoryPort {
     }
 
     @Override
+    @CacheEvict(value = "product", key = "#product.productId()")
     public Product save(Product product) {
         return springDataRepository.save(ProductJpaEntity.fromDomain(product)).toDomain();
     }
 
     @Override
+    @Cacheable(value = "product", key = "#productId", sync = true, unless = "#result == null || !#result.isPresent()")
     public Optional<Product> findById(UUID productId) {
         return springDataRepository.findById(productId).map(ProductJpaEntity::toDomain);
     }
