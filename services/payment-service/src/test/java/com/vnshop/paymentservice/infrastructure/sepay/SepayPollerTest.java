@@ -206,5 +206,14 @@ class SepayPollerTest {
         public PaymentCallbackOutboxRecord save(PaymentCallbackOutboxRecord record) {
             return record;
         }
+
+        @Override
+        public List<PaymentCallbackOutboxRecord> findUnpublished(int limit) {
+            return List.of();
+        }
+
+        @Override
+        public void markPublished(Long id) {
+        }
     }
 }

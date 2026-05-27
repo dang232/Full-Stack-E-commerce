@@ -81,4 +81,14 @@ public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
     PaymentCallbackOutboxRecord toRecord() {
         return new PaymentCallbackOutboxRecord(id, provider, paymentId, orderId, transactionRef, status, amount, currency, callbackId, callbackEventId, payloadHash, getCreatedAt(), publishedAt);
     }
+
+    boolean isPublished() {
+        return publishedAt != null;
+    }
+
+    void markPublished(Instant at) {
+        if (this.publishedAt == null) {
+            this.publishedAt = at;
+        }
+    }
 }

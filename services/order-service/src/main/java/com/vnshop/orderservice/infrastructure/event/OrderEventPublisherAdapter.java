@@ -34,6 +34,11 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
         publish("ORDER_UPDATED", order);
     }
 
+    @Override
+    public void publishOrderPaid(Order order) {
+        publish("ORDER_PAID", order);
+    }
+
     private void publish(String eventType, Order order) {
         OrderEvent event = OrderEvent.fromDomain(eventType, order);
         String payload = toJson(event);

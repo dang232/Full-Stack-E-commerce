@@ -11,6 +11,9 @@ import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
 import com.vnshop.paymentservice.infrastructure.config.JwtPrincipalUtil;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoCallbackService;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoIpnRequest;
+import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackAttempt;
+import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackHasher;
+import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackLogStore;
 import com.vnshop.paymentservice.infrastructure.gateway.VietQrService;
 import com.vnshop.paymentservice.infrastructure.gateway.VnpayCallbackService;
 import com.vnshop.paymentservice.infrastructure.paypal.PayPalGateway;
@@ -25,8 +28,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/payment")
@@ -42,6 +47,7 @@ public class PaymentController {
     private final Optional<PayPalGateway> payPalGateway;
     private final PaymentPromotionService promotionService;
     private final PaymentRepositoryPort paymentRepository;
+    private final PaymentCallbackLogStore callbackLogStore;
 
     public PaymentController(
             ProcessPaymentUseCase processPaymentUseCase,
@@ -52,7 +58,8 @@ public class PaymentController {
             Optional<StripeGateway> stripeGateway,
             Optional<PayPalGateway> payPalGateway,
             PaymentPromotionService promotionService,
-            PaymentRepositoryPort paymentRepository) {
+            PaymentRepositoryPort paymentRepository,
+            PaymentCallbackLogStore callbackLogStore) {
         this.processPaymentUseCase = processPaymentUseCase;
         this.getPaymentStatusUseCase = getPaymentStatusUseCase;
         this.vnpayCallbackService = vnpayCallbackService;
@@ -62,6 +69,7 @@ public class PaymentController {
         this.payPalGateway = payPalGateway;
         this.promotionService = promotionService;
         this.paymentRepository = paymentRepository;
+        this.callbackLogStore = callbackLogStore;
     }
 
     @PostMapping("/cod/confirm")
@@ -200,13 +208,42 @@ public class PaymentController {
             throw new com.vnshop.paymentservice.application.OrderAccessDeniedException(
                     "not authorized to capture this payment");
         }
+        // Dedup keyed off paypalOrderId via PaymentCallbackLogStore — matches
+        // the Stripe webhook pattern. A double-tap from the FE (refresh,
+        // retry, network blip) finds the prior PROCESSED attempt and skips
+        // the capture API call entirely; the current payment row is returned
+        // unchanged. PaymentPromotionService still short-circuits ALREADY_COMPLETED
+        // on its own, so this is a defensive layer that prevents the second
+        // PayPal API call and the cosmetic duplicate outbox row.
+        String dedupPayloadHash = PaymentCallbackHasher.sha256(paypalOrderId);
+        var duplicate = callbackLogStore.findProcessed("PAYPAL", paypalOrderId, dedupPayloadHash, "").orElse(null);
+        if (duplicate != null) {
+            callbackLogStore.save(payPalAttempt(paypalOrderId, dedupPayloadHash, duplicate.processingStatus(), true));
+            return ApiResponse.ok(PaymentResponse.fromDomain(existing));
+        }
         PayPalGateway.PayPalCapture capture = gateway.capture(paypalOrderId);
+        PaymentCallbackAttempt savedAttempt = callbackLogStore.save(
+                payPalAttempt(paypalOrderId, dedupPayloadHash, "PROCESSED", false));
         PaymentPromotionService.PromotionResult result = promotionService.promote(
                 PaymentPromotionService.PromotionCommand.fromCallback(
                         id, "PAYPAL", capture.captureId(),
-                        java.util.UUID.randomUUID(), capture.captureId(),
-                        com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackHasher.sha256(capture.captureId())));
+                        savedAttempt.callbackId(), capture.captureId(), dedupPayloadHash));
         return ApiResponse.ok(PaymentResponse.fromDomain(result.payment()));
+    }
+
+    private PaymentCallbackAttempt payPalAttempt(String paypalOrderId, String payloadHash,
+                                                  String processingStatus, boolean duplicateReplay) {
+        return new PaymentCallbackAttempt(
+                UUID.randomUUID(),
+                "PAYPAL",
+                paypalOrderId,
+                payloadHash,
+                "",
+                "",
+                paypalOrderId,
+                Instant.now(),
+                processingStatus,
+                duplicateReplay);
     }
 
     @GetMapping("/status/{orderId}")

@@ -6,4 +6,6 @@ public interface OrderEventPublisherPort {
     void publishOrderCreated(Order order);
 
     void publishOrderUpdated(Order order);
+
+    void publishOrderPaid(Order order);
 }

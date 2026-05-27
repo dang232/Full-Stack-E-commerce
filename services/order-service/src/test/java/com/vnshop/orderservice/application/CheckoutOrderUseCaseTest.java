@@ -211,5 +211,6 @@ class CheckoutOrderUseCaseTest {
     private static final class RecordingOrderEvents implements OrderEventPublisherPort {
         @Override public void publishOrderCreated(Order order) {}
         @Override public void publishOrderUpdated(Order order) {}
+        @Override public void publishOrderPaid(Order order) {}
     }
 }

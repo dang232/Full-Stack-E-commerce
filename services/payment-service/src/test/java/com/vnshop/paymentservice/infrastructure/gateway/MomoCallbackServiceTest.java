@@ -219,6 +219,15 @@ class MomoCallbackServiceTest {
             savedRecords.add(record);
             return record;
         }
+
+        @Override
+        public List<PaymentCallbackOutboxRecord> findUnpublished(int limit) {
+            return List.of();
+        }
+
+        @Override
+        public void markPublished(Long id) {
+        }
     }
 
     private static final class CapturingLedgerRepository implements LedgerRepositoryPort {

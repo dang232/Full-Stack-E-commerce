@@ -19,6 +19,15 @@ spring:
     default-schema: payment_svc
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # JsonSerializer (Spring) is what every other producer in the platform
+      # uses; matches the format order-service / seller-finance-service expect
+      # on consume. add.type.headers=false matches order-service so consumers
+      # bind to a value class without needing a __TypeId__ header.
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
   security:
     oauth2:
       resourceserver:

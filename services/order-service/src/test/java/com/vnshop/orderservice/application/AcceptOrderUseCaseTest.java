@@ -83,5 +83,6 @@ class AcceptOrderUseCaseTest {
         final List<Order> updates = new ArrayList<>();
         @Override public void publishOrderCreated(Order order) {}
         @Override public void publishOrderUpdated(Order order) { updates.add(order); }
+        @Override public void publishOrderPaid(Order order) {}
     }
 }

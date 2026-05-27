@@ -124,5 +124,6 @@ class ShipOrderUseCaseTest {
         final List<Order> updates = new ArrayList<>();
         @Override public void publishOrderCreated(Order order) { created.add(order); }
         @Override public void publishOrderUpdated(Order order) { updates.add(order); }
+        @Override public void publishOrderPaid(Order order) {}
     }
 }

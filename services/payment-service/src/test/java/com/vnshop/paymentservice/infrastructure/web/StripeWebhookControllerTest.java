@@ -222,6 +222,15 @@ class StripeWebhookControllerTest {
             savedRecords.add(record);
             return record;
         }
+
+        @Override
+        public List<PaymentCallbackOutboxRecord> findUnpublished(int limit) {
+            return List.of();
+        }
+
+        @Override
+        public void markPublished(Long id) {
+        }
     }
 
     private static final class CapturingLogStore implements PaymentCallbackLogStore {
