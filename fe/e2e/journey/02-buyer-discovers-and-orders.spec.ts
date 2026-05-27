@@ -79,6 +79,11 @@ test.describe.serial("Chapter 2 — Buyer discovers and orders", () => {
           code: "AC-2.3",
           outcome: "A placed COD order is visible in the buyer's order history within 30 s",
         },
+        {
+          code: "AC-2.4",
+          outcome:
+            "A product the buyer can browse via /products is also discoverable via /search within 30 s — proves the kafka product-event → search-index projection is live",
+        },
       ],
     });
   });
@@ -200,6 +205,49 @@ test.describe.serial("Chapter 2 — Buyer discovers and orders", () => {
           await expect(page.getByText(/vào giỏ hàng/i).first()).toBeVisible({
             timeout: 15_000,
           });
+        },
+      );
+
+      await bizStep(
+        page,
+        "02-buyer-orders",
+        "AC-2.4",
+        "Product is discoverable via /search within 30 s of being browsable on /products",
+        async () => {
+          // Why this AC exists: pt41's kafka env-override audit found that
+          // search-service had been disconnected from Kafka the entire pt40
+          // window — the journey suite couldn't see it because no chapter
+          // ever asserted "this product appears in search results." The
+          // search-index is fed by product-events: a stale projection means
+          // SearchPage shows nothing while ProductsPage shows the catalog.
+          //
+          // The 30 s budget covers the kafka-consumer lag on a cold stack
+          // (consumer group rebalance + first-poll latency). Steady-state
+          // lag is sub-second on a warm stack, so this rarely needs the
+          // full window in CI.
+          //
+          // The query uses an exact-name match because the catalog endpoint
+          // returned that exact product. If the search projection is alive
+          // it must contain at least the product the catalog already does.
+          await expect
+            .poll(
+              async () => {
+                const r = await page.request.get(
+                  `${apiURL}/search?q=${encodeURIComponent(productName)}&size=20`,
+                );
+                if (!r.ok()) return [];
+                const body = await r.json();
+                const ids: string[] =
+                  body?.data?.content?.map((p: { id: string }) => p.id) ?? [];
+                return ids;
+              },
+              {
+                timeout: 30_000,
+                intervals: [500, 1_000, 2_000, 5_000],
+                message: `expected /search?q=${productName} to surface productId=${productId} within 30 s — search-index projection may be stale or kafka consumer disconnected`,
+              },
+            )
+            .toContain(productId);
         },
       );
 
