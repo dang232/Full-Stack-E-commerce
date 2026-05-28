@@ -28,6 +28,14 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: false
+    consumer:
+      # PayPalRefundListener consumes payment.refund_requested as raw JSON and
+      # parses with ObjectMapper, matching the order-service @KafkaListener
+      # pattern. Explicit StringDeserializer here so a future producer that
+      # forgets add.type.headers=false doesn't trip a class-not-found
+      # deserialization error inside the consumer thread.
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
   security:
     oauth2:
       resourceserver:

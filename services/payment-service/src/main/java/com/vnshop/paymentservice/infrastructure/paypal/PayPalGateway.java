@@ -21,13 +21,16 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Thin REST wrapper for PayPal's v2 Checkout API. Two operations:
+ * Thin REST wrapper for PayPal's v2 Checkout API. Three operations:
  *
  * <ul>
  *   <li>{@link #createOrder} — POSTs {@code /v2/checkout/orders}, returns the
  *       order id the FE Smart Buttons need.</li>
  *   <li>{@link #capture} — POSTs {@code /v2/checkout/orders/{id}/capture} and
  *       returns the capture id for ledger reconciliation.</li>
+ *   <li>{@link #refund} — POSTs {@code /v2/payments/captures/{id}/refund} so
+ *       the saga compensation path on a return-completed event can issue the
+ *       money-back call.</li>
  * </ul>
  *
  * <p>OAuth: PayPal's REST API uses client_credentials. We mint a bearer per
@@ -125,6 +128,48 @@ public class PayPalGateway {
         }
     }
 
+    /**
+     * Refund a previously-captured payment. Sandbox returns the refund record
+     * synchronously; no webhook is required. Idempotent on PayPal's side via
+     * the {@code PayPal-Request-Id} header — supplying the same id twice
+     * returns the same refund record without issuing money twice.
+     *
+     * @param captureId  the capture id PayPal returned from {@link #capture}
+     * @param usdAmount  amount to refund in USD; converted upstream from VND
+     * @param requestId  caller-supplied idempotency key (we use the returnId
+     *                   from the saga so retries collapse on PayPal's side)
+     */
+    public PayPalRefund refund(String captureId, BigDecimal usdAmount, String requestId) {
+        Objects.requireNonNull(captureId, "captureId is required");
+        Objects.requireNonNull(usdAmount, "usdAmount is required");
+        Objects.requireNonNull(requestId, "requestId is required");
+
+        Map<String, Object> body = Map.of(
+                "amount", Map.of(
+                        "currency_code", "USD",
+                        "value", usdAmount.setScale(2, RoundingMode.HALF_UP).toPlainString()));
+        try {
+            Map<?, ?> response = restClient.post()
+                    .uri("/v2/payments/captures/{id}/refund", captureId)
+                    .header(HttpHeaders.AUTHORIZATION, bearer())
+                    .header("PayPal-Request-Id", requestId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(Map.class);
+            if (response == null) {
+                throw new IllegalStateException("PayPal refund returned empty body");
+            }
+            String refundId = response.get("id") != null ? response.get("id").toString() : "UNKNOWN";
+            String status = response.get("status") != null ? response.get("status").toString() : "UNKNOWN";
+            return new PayPalRefund(refundId, captureId, status);
+        } catch (RestClientResponseException ex) {
+            log.warn("paypal-refund-failed captureId={} status={} body={}",
+                    captureId, ex.getStatusCode(), ex.getResponseBodyAsString());
+            throw new IllegalStateException("PayPal refund failed: " + ex.getStatusCode(), ex);
+        }
+    }
+
     private String bearer() {
         String credentials = Base64.getEncoder().encodeToString(
                 (properties.clientId() + ":" + properties.clientSecret())
@@ -185,5 +230,11 @@ public class PayPalGateway {
             }
             return String.valueOf(response.get("id") == null ? "UNKNOWN" : response.get("id"));
         }
+    }
+
+    public record PayPalRefund(
+            String refundId,
+            String captureId,
+            String status) {
     }
 }

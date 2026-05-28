@@ -145,6 +145,52 @@ class PayPalGatewayTest {
         assertThat(capture.status()).isEqualTo("COMPLETED");
     }
 
+    @Test
+    void refundPostsCaptureRefundWithUsdAmountAndRequestIdHeader() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        PayPalProperties props = sandboxProps();
+        PayPalGateway gateway = new PayPalGateway(props, fixedFxRate(), builder);
+
+        server.expect(requestTo(props.baseUrl() + "/v1/oauth2/token"))
+                .andRespond(withSuccess("{\"access_token\":\"AT-5\",\"token_type\":\"Bearer\"}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(props.baseUrl() + "/v2/payments/captures/CAPTURE-1/refund"))
+                .andExpect(method(POST))
+                .andExpect(header("Authorization", "Bearer AT-5"))
+                .andExpect(header("PayPal-Request-Id", "RETURN-42"))
+                .andExpect(jsonPath("$.amount.currency_code").value("USD"))
+                .andExpect(jsonPath("$.amount.value").value("4.00"))
+                .andRespond(withSuccess(
+                        "{\"id\":\"REFUND-1\",\"status\":\"COMPLETED\"}",
+                        MediaType.APPLICATION_JSON));
+
+        PayPalGateway.PayPalRefund refund = gateway.refund("CAPTURE-1", new BigDecimal("4.00"), "RETURN-42");
+
+        assertThat(refund.refundId()).isEqualTo("REFUND-1");
+        assertThat(refund.captureId()).isEqualTo("CAPTURE-1");
+        assertThat(refund.status()).isEqualTo("COMPLETED");
+        server.verify();
+    }
+
+    @Test
+    void refundSurfacesUpstream4xxAsIllegalState() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        PayPalProperties props = sandboxProps();
+        PayPalGateway gateway = new PayPalGateway(props, fixedFxRate(), builder);
+
+        server.expect(requestTo(props.baseUrl() + "/v1/oauth2/token"))
+                .andRespond(withSuccess("{\"access_token\":\"AT-6\"}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(props.baseUrl() + "/v2/payments/captures/CAPTURE-2/refund"))
+                .andRespond(withBadRequest()
+                        .body("{\"name\":\"INVALID_REQUEST\"}")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> gateway.refund("CAPTURE-2", new BigDecimal("4.00"), "RETURN-43"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("PayPal refund failed");
+    }
+
     private static PayPalProperties sandboxProps() {
         return new PayPalProperties(true, "client-1", "secret-1", "sandbox");
     }
