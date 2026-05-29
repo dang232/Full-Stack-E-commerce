@@ -14,11 +14,11 @@ VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketpla
 | [Audit summary 2026-05-21](docs/AUDIT-SUMMARY-2026-05-21.md) | Consolidated security audit ledger (pt12 → pt23) — 18 findings closed across 7 services |
 | [Status reality 2026-05-14](docs/STATUS-REALITY-2026-05-14.md) | Reconciliation of older gap-analysis docs against the current tree |
 | [E2E audit 2026-05-18](docs/E2E-AUDIT-2026-05-18.md) | What `e2e-day.mjs` and Playwright cover, plus the bugs fixed during the buildout |
-| [Latest session handover](docs/SESSION-HANDOVER-2026-05-21-pt26.md) | Most recent change set (modern-feature utilization arc T1–T10) |
+| [Latest session handover](docs/SESSION-HANDOVER-2026-05-29-pt44.md) | Most recent change set (production-hardening: commission tier, idempotency, health probes, FX fields) |
 | [Frontend README](fe/README.md) | React + Vite SPA setup, scripts, layout |
 | [Docker Compose](docker-compose.yml) | Local infrastructure and service definitions |
 
-For a chronological view of what shipped, walk the handover series in `docs/SESSION-HANDOVER-2026-05-{17..21}-pt{0..26}.md`. For the day-to-day pickup case, [HANDOFF.md](HANDOFF.md) is enough.
+For a chronological view of what shipped, walk the handover series in `docs/SESSION-HANDOVER-2026-05-{17..29}-pt{0..44}.md`. For the day-to-day pickup case, [HANDOFF.md](HANDOFF.md) is enough.
 
 ## Architecture Overview
 
@@ -88,30 +88,43 @@ Two end-to-end gates run green at the current HEAD:
 | `node infra/scripts/e2e-day.mjs` | **55/55 PASS** | Single-day flow: register → login (buyer/seller/admin) → catalog → public sellers → seller fulfilment → cart → wishlist → checkout (live shipping rate quote) → order → coupon validate + apply → admin seller approval → saga compensation (cancel + return + refund) → messaging WebSocket handshake → reviews + Q&A → recommendations → admin dashboards → user profile |
 | `cd fe && npx playwright test` | **19/19 PASS** | Real browser against dockerised FE: smoke, buyer happy path, authenticated routes, role guards, search, public sellers, guest cart |
 
-Plus per-service unit tests: user-service 107/107, product-service 25/25, FE vitest 143/143.
+Per-service unit tests at HEAD (2026-05-29):
 
-### Recent shipped (2026-05-18 → 2026-05-19)
+| Service | Tests |
+| --- | --- |
+| order-service | 135/135 |
+| payment-service | 89/89 |
+| product-service | 33/33 |
+| seller-finance-service | 17/17 |
+| FE vitest | 165/165 |
+| FE typecheck | 0 errors |
 
-- **Messaging WebSocket E2E coverage** (B11). Three handshake scenarios on `/ws/messaging` (valid token → hello frame, missing token → close, garbage token → close). Surfaced + fixed a missing-Kafka-topic crash that had silently kept messaging-service down.
-- **Live shipping rate quote** (B9). New `POST /shipping/rate-quotes` on shipping-service returns multi-carrier options (GHN STANDARD + GHTK EXPRESS via the stub). order-service `/checkout/shipping-options` now pulls live rates with graceful degradation to the legacy STANDARD-only fallback.
-- **httpOnly cookie auth.** Refresh token left localStorage; lives in the `vnshop_rt` cookie issued by user-service `/auth/login` (httpOnly, SameSite=Lax, Path=/auth, configurable Secure). Access token is JS-memory-only. user-service hosts a thin /auth proxy with login/refresh/logout; KC realm config unchanged.
-- **Saga compensation E2E** drives cancel-before-fulfilment + return + refund through the saga + outbox + projection cycle. Surfaced + fixed a long-dormant V18 audit-columns bug on the returns table.
-- **Cart guest mode + merge-on-login.** Anonymous users get a localStorage cart at `vnshop:guest-cart`; one-shot replay on first authenticated render mirrors the wishlist pattern.
-- **Coupon validate + apply E2E** (B3) and **admin seller approval E2E** (S2) both closed deferred items.
-- **Public sellers** wired end-to-end with batched stats endpoints + Caffeine caching + Resilience4j circuit breaker + retry on user-service.
-- **Pagination headers**: `GET /sellers` emits `X-Total-Count` + RFC 5988 `Link` (rel=prev/next).
-- **Bean validation** on `RegisterSellerRequest` (`@NotBlank`, `@Size`, `@Pattern` on bankAccount).
+### Recent shipped (2026-05-23 → 2026-05-29)
 
-### Deferred / not yet wired (next-leverage)
+- **PayPal refund saga closed end-to-end** (pt42–pt43). All five steps of `PAYPAL-CAPTURE-PLAN.md` committed: `PaymentCallbackOutboxRelay` + `PaymentCompletedListener` + capture-endpoint dedup + `PayPalGateway.refund()` + `PayPalRefundListener` + `PaymentRefundedEvent` consumers on order-service and seller-finance-service.
+- **Commission tier propagation** (pt44). `commissionTier` flows through the entire refund chain: order-service → payment-service → seller-finance-service. Defaults to STANDARD for backward compat; ready for per-seller tiers.
+- **Finance listener idempotency** (pt44). `processed_refund` table + `@Transactional` debit-and-insert guards against Kafka redelivery double-debit.
+- **Kafka producer health probe** (pt44). `KafkaProducerHealthIndicator` on order, payment, product services. Surfaces broker connectivity in `/actuator/health`.
+- **FX fields on Payment domain** (pt44). V9 migration columns (`external_amount`, `external_currency`, `fx_rate`, `fx_rate_at`) now populated during PayPal order creation and exposed on `PaymentResponse`.
+- **`@Cacheable` on product-by-id and coupon-by-code** (pt42). Redis-backed cache for hot-path reads.
+- **Search discoverability** (pt42). Published products are discoverable via `/search` — journey AC-2.4 closed.
+- **VNPay/MoMo redirectUrl typed field** (pt42). `PaymentResponse` surfaces the gateway redirect URL for PENDING payments.
 
-From `docs/SESSION-HANDOVER-2026-05-19-pt5.md`:
+### What's left / deferred
 
-- ~~VNPAY / MOMO IPN end-to-end~~ — re-scoped. VNPay deferred until business registration (sandbox locked behind merchant onboarding); MoMo moved to Phase 2 with status-polling instead of IPN. VietQR + COD ship as Phase 1. See [docs/PAYMENT-ROADMAP.md](docs/PAYMENT-ROADMAP.md).
-- Notifications inbox (no inbox endpoint or FE bell yet; Kafka consumer exists).
-- Real GHN/GHTK adapter for shipping rate quote (B9 shipped the stub + pluggable port; live adapter needs API key wiring).
-- Native password reset / 2FA (currently bounce out to Keycloak's account console).
-- Email verification flow (currently `emailVerified: true` set on register).
-- Hero/promo/trending CMS for HomePage (stubs in place via `<ComingSoonCard>`).
+| # | Item | Status | Blocker |
+|---|------|--------|---------|
+| 1 | R2 swap for avatar storage | Ready (checklist in `docs/R2-SWAP-CHECKLIST.md`) | R2 credentials |
+| 2 | PayPal sandbox manual smoke | All code committed + unit-tested | `PAYPAL_CLIENT_ID`/`SECRET` |
+| 3 | Per-seller commission tier on SubOrder | Design ready, hardcoded to STANDARD | Business decision |
+| 4 | FX fields on `PaymentCompletedEvent` | Nice-to-have for analytics | None |
+| 5 | Kafka health probe for consumer-only services | Low priority | None |
+| 6 | VNPay / MoMo payment methods | Phase 3 | Business registration (MST + GPKD) |
+| 7 | Notifications inbox (FE bell) | Kafka consumer exists | FE work |
+| 8 | Real GHN/GHTK shipping adapter | Port exists, stub in place | API key |
+| 9 | Native password reset / 2FA | Bounces to Keycloak account console | Design decision |
+| 10 | Email verification flow | Currently auto-verified on register | Design decision |
+| 11 | Hero/promo/trending CMS for HomePage | Stubs via `<ComingSoonCard>` | Content strategy |
 
 ### Service ownership at HEAD
 
@@ -166,11 +179,13 @@ flowchart TB
 | Frontend | React 18.3, Vite 6.3, TanStack Query 5, react-router 7, i18next 26, zod 4, Tailwind v4 |
 | Identity | Keycloak 26.6 (`vnshop` realm), OIDC / OAuth2, JWT, ROPC for native login |
 | Data stores | PostgreSQL 17.9 (per-service), Redis 8.6, Elasticsearch 9.4.0, MinIO (S3-compatible) |
-| Messaging | Kafka (`confluentinc/cp-kafka:8.2.0`) |
-| Observability | Jaeger (OTLP traces), Prometheus + Alertmanager |
-| Resilience | Resilience4j circuit breaker + retry, Caffeine cache (user-service stats adapter) |
-| Quality | JaCoCo (Java), vitest + Playwright (FE), Jest (NestJS) |
-| Runtime | Docker, Docker Compose |
+| Messaging | Kafka (`confluentinc/cp-kafka:8.2.0`), outbox pattern, saga orchestration |
+| Payments | COD, VietQR, SePay (live); Stripe, PayPal (sandbox-ready); VNPay, MoMo (deferred) |
+| Inter-service | gRPC (order↔payment↔shipping↔inventory), Kafka events, REST with Resilience4j |
+| Observability | Jaeger (OTLP traces), Prometheus + Alertmanager, Kafka producer health probes |
+| Resilience | Resilience4j circuit breaker + retry, Caffeine + Redis cache, idempotent consumers |
+| Quality | JaCoCo (Java), vitest + Playwright (FE), Jest (NestJS), 90% coverage target |
+| Runtime | Docker, Docker Compose, virtual threads (Java 25) |
 
 ## Quick Start
 
@@ -292,7 +307,7 @@ docker compose --profile apps down
 | coupon-service | 8088 | Spring Boot | legacy | Coupon validate/apply (superseded by order-service in app profile) |
 | seller-finance-service | 8090 | Spring Boot | apps | Seller wallet, payouts, transactions |
 | order-service | 8091 | Spring Boot | apps | Orders, sub-orders, checkout, coupons (in-process), saga orchestration, outbox, finance projections |
-| payment-service | 8092 | Spring Boot | apps | Payment intents, COD + VietQR + SePay live, Stripe + PayPal sandbox-ready, VNPay deferred (see [PAYMENT-ROADMAP.md](docs/PAYMENT-ROADMAP.md)) |
+| payment-service | 8092 | Spring Boot | apps | Payment intents, COD + VietQR + SePay live, Stripe + PayPal sandbox-ready (full refund saga), VNPay/MoMo deferred (see [PAYMENT-ROADMAP.md](docs/PAYMENT-ROADMAP.md)) |
 | shipping-service | 8093 | Spring Boot | apps | Shipment creation, carrier integration, tracking |
 | recommendations-service | 8094 | Spring Boot | apps | Frequently-bought-together via co-purchase aggregator |
 | messaging-service | 8095 | NestJS | apps | Buyer-seller direct messaging (REST + WebSocket fan-out) |
@@ -344,15 +359,23 @@ When adding behavior, start in the domain model, expose it through an applicatio
 - **httpOnly cookie auth.** Refresh tokens live in the `vnshop_rt` cookie (HttpOnly, SameSite=Lax, Path=/auth, configurable Secure) issued by user-service. Access tokens are JS-memory-only. XSS can't bootstrap a new session.
 - **Resilience4j** circuit breaker + retry on the user-service → product-service stats adapter (sliding window 10, failure rate 50%, 10s open, 3 half-open trial, 3-attempt retry with 200ms exponential backoff).
 - **Caffeine** in-memory cache on the same adapter (5-minute TTL, 10k entries, `recordStats()` enabled).
+- **Redis `@Cacheable`** on product-by-id and coupon-by-code for hot-path reads.
 - **Pinned timeouts** on outbound HTTP — 1s connect / 2.5s read via shared `JdkClientHttpRequestFactory`.
 - **Batch endpoints** kill N+1 on the SellerShowcase: `POST /reviews/seller-summaries` and `POST /products/counts` (≤100 ids each).
 - **Cart guest mode** — anonymous users get a localStorage cart at `vnshop:guest-cart`; one-shot replay on first authenticated render preserves items across login.
 - **Saga compensation E2E coverage** — cancel-before-fulfilment + return + refund driven through the saga + outbox + projection cycle.
+- **PayPal refund saga** — full round-trip: return-completed → refund-requested (outbox) → PayPal refund (idempotent via PayPal-Request-Id) → payment.refunded → Return marked REFUNDED + seller wallet debited.
+- **Idempotent consumers** — seller-finance `processed_refund` table prevents double-debit on Kafka redelivery; order-service state-based idempotency on Return status transitions.
+- **Commission tier propagation** — `commissionTier` flows through the refund event chain so wallet debits match the original credit calculation.
+- **FX audit trail** — PayPal payments persist `externalAmount`, `externalCurrency`, `fxRate`, `fxRateAt` for dispute support.
+- **Kafka producer health probes** — `KafkaProducerHealthIndicator` on order, payment, product services surfaces broker connectivity in `/actuator/health`.
 - **Kafka producers** declare explicit `JsonSerializer` for record payloads (default `StringSerializer` would silently drop them).
 - **JSONB** columns use `@JdbcTypeCode(SqlTypes.JSON)` (the `columnDefinition = "jsonb"` only affects schema generation).
 - **Audit columns** (`created_at`, `updated_at`) on all core tables (V17 + V18); saga and outbox have stable order numbers across restarts (millisecond-of-day prefix).
 - **CORS** explicit on the gateway (`CorsConfigurationSource` bean + `setAllowCredentials(true)` for the cookie flow + `permitAll` on OPTIONS for `/**`).
 - **Health probes** exposed via `/actuator/health` with `circuitbreakers` contributor enabled; Prometheus endpoint available.
+- **Virtual threads** enabled on 11 servlet services (`spring.threads.virtual.enabled=true`).
+- **BuildKit cache mounts** on 15 Dockerfiles (60-80% cold-build speedup).
 
 See [`docs/SESSION-HANDOVER-2026-05-19-pt4.md`](docs/SESSION-HANDOVER-2026-05-19-pt4.md#operational-gotchas--durable-rules--additions-to-the-pt3-list) for the durable rules learned along the way (Hibernate 7 single-row aggregate wrapping, Spring 4 PathPattern regex limits, AOP-only `@CircuitBreaker`, `@MappedSuperclass` retroactivity, cookie-based auth needing `credentials: "include"` on every call, etc.).
 
