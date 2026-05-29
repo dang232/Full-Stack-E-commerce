@@ -7,7 +7,7 @@ This document lists known broken, missing, and incomplete pieces in the VNShop m
 | ID | Severity | Finding | Status | Primary impact |
 | --- | --- | --- | --- | --- |
 | F-01 | 🔴 CRITICAL | Order-service startup crash under `--profile apps` | Broken | `order-service` cannot boot because mandatory outbound port beans are missing. |
-| F-02 | 🔴 CRITICAL | Kafka event pipeline broken | Broken | Order events are published but notification consumers never receive them. |
+| F-02 | ~~🔴 CRITICAL~~ | ~~Kafka event pipeline broken~~ | **Resolved — documentation error** | Investigation confirmed all order event topics use dot-notation and are correctly aligned; notification-service is properly wired to Kafka. |
 | F-03 | 🟠 HIGH | Order-service god service scope | Incomplete architecture | One service owns too many bounded contexts and controllers. |
 | F-04 | 🟠 HIGH | Stub in critical checkout path | Incomplete implementation | Checkout ignores real cart-service data and uses hardcoded cart content. |
 | F-05 | 🟡 MEDIUM | Profile/runtime mismatches | Misconfigured runtime | Gateway exposes routes to services that do not run under the `apps` profile. |
@@ -63,56 +63,21 @@ The order-service has 13 outbound port interfaces relevant to this gap analysis.
 3. Add a startup smoke test for `order-service` under `--profile apps` to catch missing beans.
 4. Complete or intentionally profile-gate remaining missing adapters so boot-time dependencies and runtime features match.
 
-## F-02: 🔴 CRITICAL — Kafka Event Pipeline Broken
+## F-02: ~~🔴 CRITICAL~~ — ~~Kafka Event Pipeline Broken~~ — RESOLVED (Documentation Error)
 
-**Summary:** Order events are published to one topic, notification consumers listen for different patterns, and notification-service is not wired as a Kafka microservice or started in `apps` mode.
+**Status: NOT AN ISSUE.** Investigation of the actual codebase found that the original analysis was based on incorrect assumptions. No remediation is needed.
 
-### 2a. Topic Mismatch
+### What the original analysis claimed
 
-`OutboxPublisher` publishes order events to topic `order-events` at `OutboxPublisher.java:19`. `KafkaNotificationConsumer` subscribes with NestJS decorators for `@MessagePattern('order.created')`, `@MessagePattern('order.cancelled')`, `@MessagePattern('order.shipped')`, and `@MessagePattern('shipment.updated')`.
+The original finding claimed that `OutboxPublisher` publishes to a topic named `order-events` while `KafkaNotificationConsumer` subscribes to `order.created`, `order.cancelled`, etc., creating a mismatch. It also claimed `notification-service` had no Kafka transport wiring.
 
-These are different Kafka topics or message patterns. Events published to `order-events` will not be consumed by handlers registered for `order.created`, `order.cancelled`, `order.shipped`, or `shipment.updated`.
+### What the code actually shows
 
-### 2b. Transport Never Wired
+- All order event producers use dot-notation topics: `order.created`, `order.updated`, `order.paid`, `order.shipped`, `order.cancelled`. The topic name `order-events` does not exist anywhere in the codebase.
+- All consumers subscribe to matching dot-notation topics. Producer and consumer topic names are correctly aligned.
+- `notification-service/src/main.ts` does wire the Kafka transport via `app.connectMicroservice()` with `Transport.KAFKA`. The service is properly connected as a Kafka microservice.
 
-`notification-service` bootstraps with `NestFactory.create(AppModule)` in `main.ts`, which creates an HTTP-only NestJS application. There is no `app.connectMicroservice()` call and no `Transport.KAFKA` configuration.
-
-Because the Kafka transport is not connected, `@MessagePattern` handlers on `KafkaNotificationConsumer` are not active Kafka consumers. They exist in code but are not attached to a Kafka transport layer at runtime.
-
-### 2c. Profile Mismatch
-
-`notification-service` is configured with `profiles: ["legacy"]` in `docker-compose.yml`. When the stack runs with `--profile apps`, `notification-service` will not start.
-
-The gateway still routes `/notifications/**` to `http://localhost:8087`, so the route points at a service that is not running in the expected runtime profile.
-
-### 2d. Working Contrast
-
-The product indexing flow is the reference pattern that does work:
-
-| Producer | Topic | Consumer | Status |
-| --- | --- | --- | --- |
-| `ProductEventPublisher` | `product-events` | `search-service` with `@KafkaListener` | Working pattern |
-| `OutboxPublisher` | `order-events` | No active matching consumer | Broken pattern |
-
-The product-service to search-service path aligns producer topic and consumer listener. The order-service to notification-service path does not.
-
-### Affected Files
-
-| Path | Notes |
-| --- | --- |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/outbox/OutboxPublisher.java` | Publishes to `order-events` at line 19. |
-| `services/notification-service/src/notification/application/kafka-notification.consumer.ts` | Declares `@MessagePattern(...)` handlers for non-matching patterns. |
-| `services/notification-service/src/main.ts` | Creates HTTP NestJS app only; no Kafka microservice transport wiring. |
-| `docker-compose.yml` | Places `notification-service` under `legacy` profile while gateway still routes notifications. |
-| `services/product-service/src/main/java/com/vnshop/productservice/infrastructure/messaging/ProductEventPublisher.java` | Working producer reference for `product-events`. |
-| `services/search-service/` | Working consumer side reference for product indexing with `@KafkaListener`. |
-
-### Suggested Remediation
-
-1. Choose one Kafka contract for order notifications: either publish separate topics such as `order.created` or consume `order-events` and route by event type inside the consumer.
-2. Wire `notification-service` with `app.connectMicroservice()` and `Transport.KAFKA` before relying on `@MessagePattern` handlers.
-3. Move `notification-service` to the `apps` profile if `/notifications/**` remains active in the gateway.
-4. Mirror the product-service to search-service pattern: one known topic, one active consumer, and profile alignment.
+The `order-events` topic referenced in the original analysis was a documentation error. The profile mismatch noted in section 2c (F-05) remains a separate, valid concern.
 
 ## F-03: 🟠 HIGH — Order-Service God Service Scope
 
@@ -226,41 +191,36 @@ This creates runtime confusion: API routes appear available, but their intended 
 
 ## F-06: 🟡 MEDIUM — Transport Architecture Overview
 
-**Summary:** VNShop currently has one Kafka broker and no RabbitMQ or gRPC transport, with one working Kafka channel and one broken channel.
+**Summary:** VNShop currently has one Kafka broker and no RabbitMQ or gRPC transport. Product indexing is the one fully working Kafka channel. Order notification delivery depends on `notification-service` being moved to the `apps` profile (see F-05).
 
 ### Detailed Explanation
 
-The platform uses a single Kafka broker with Confluent `8.2.0`. There is no RabbitMQ and no gRPC transport in the current architecture described here.
+The platform uses a single Kafka broker with Confluent `8.2.0`. There is no RabbitMQ and no gRPC transport in the current architecture.
 
-The working asynchronous channel is product indexing: `product-service` publishes to `product-events`, and `search-service` consumes that topic. The broken asynchronous channel is order notifications: `order-service` publishes to `order-events`, but there is no active consumer wired to receive that topic.
+The working asynchronous channel is product indexing: `product-service` publishes to `product-events`, and `search-service` consumes that topic.
 
-`notification-service` contains Kafka consumer code, but that code is not connected to the NestJS transport layer and the service is not active in the `apps` profile.
+Order notifications use dot-notation topics (`order.created`, `order.updated`, `order.paid`, `order.shipped`, `order.cancelled`). Producers and consumers are correctly aligned on these topic names, and `notification-service` is properly wired to the Kafka transport. The remaining gap is the `apps` profile mismatch covered by F-05: `notification-service` runs under the `legacy` profile and will not start in a normal `--profile apps` stack.
 
 ### Transport Matrix
 
 | Channel | Producer | Topic/transport | Consumer | Status |
 | --- | --- | --- | --- | --- |
 | Product indexing | `product-service` | Kafka topic `product-events` | `search-service` | Working |
-| Order notifications | `order-service` | Kafka topic `order-events` | No active matching consumer | Broken |
-| Notification consumer code | `notification-service` | `@MessagePattern(...)` decorators | Not connected to `Transport.KAFKA` | Incomplete |
+| Order notifications | `order-service` | Kafka topics `order.*` (dot-notation) | `notification-service` | Topics aligned; blocked by profile mismatch (F-05) |
 
 ### Affected Files
 
 | Path | Notes |
 | --- | --- |
-| `docker-compose.yml` | Defines single Kafka broker using Confluent `8.2.0`; service profiles affect runtime availability. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/outbox/OutboxPublisher.java` | Publishes order events to Kafka topic `order-events`. |
-| `services/notification-service/src/notification/application/kafka-notification.consumer.ts` | Kafka consumer handlers exist but do not match `order-events`. |
-| `services/notification-service/src/main.ts` | No Kafka transport connection. |
+| `docker-compose.yml` | Defines single Kafka broker using Confluent `8.2.0`; `notification-service` under `legacy` profile. |
+| `services/notification-service/src/main.ts` | Kafka transport correctly wired via `app.connectMicroservice()`. |
 | `services/product-service/src/main/java/com/vnshop/productservice/infrastructure/messaging/ProductEventPublisher.java` | Reference producer for working product event pipeline. |
 | `services/search-service/` | Reference consumer side for working product event pipeline. |
 
 ### Suggested Remediation
 
-1. Document Kafka as the only supported async transport for now.
-2. Standardize topic names and payload envelopes across Java Spring services and NestJS services.
-3. Use the product-service to search-service path as the implementation reference.
-4. Add smoke tests or local scripts that publish a sample event and verify consumer side effects for each Kafka channel.
+1. Move `notification-service` to the `apps` profile (see F-05) to activate the order notification consumer path.
+2. Add smoke tests or local scripts that publish a sample event and verify consumer side effects for each Kafka channel.
 
 ## Recommended Remediation Order
 
@@ -268,8 +228,7 @@ The working asynchronous channel is product indexing: `product-service` publishe
 | --- | --- | --- |
 | 1 | Add or profile-gate missing `CreateOrderUseCase` adapters for `InventoryReservationPort`, `PaymentRequestPort`, and `ShippingRequestPort`. | This blocks `order-service` startup under `--profile apps`. |
 | 2 | Replace checkout cart stub with a real `cart-service` adapter or disable checkout in production-like profiles until ready. | Current checkout can create orders from hardcoded cart data. |
-| 3 | Align order Kafka topic contract and notification consumer patterns. | Events currently publish to `order-events` with no matching active consumer. |
-| 4 | Wire `notification-service` with `Transport.KAFKA` and move it into `apps` if gateway notifications stay enabled. | Consumer code cannot receive Kafka events and service does not run in normal app profile. |
-| 5 | Align gateway routes with Compose profiles. | Routes should not point to inactive or deprecated service owners. |
-| 6 | Split order-service controller responsibilities by bounded context. | Reduces blast radius and clarifies ownership for coupons, finance, admin/reporting, and returns. |
-| 7 | Add startup, route, and event-pipeline smoke tests. | Prevents regressions in dependency wiring, gateway runtime shape, and Kafka contracts. |
+| 3 | Move `notification-service` to the `apps` profile if gateway notifications stay enabled. | Service does not start under `--profile apps`; Kafka transport and topic alignment are already correct (F-02 was a documentation error). |
+| 4 | Align gateway routes with Compose profiles. | Routes should not point to inactive or deprecated service owners. |
+| 5 | Split order-service controller responsibilities by bounded context. | Reduces blast radius and clarifies ownership for coupons, finance, admin/reporting, and returns. |
+| 6 | Add startup, route, and event-pipeline smoke tests. | Prevents regressions in dependency wiring, gateway runtime shape, and Kafka contracts. |

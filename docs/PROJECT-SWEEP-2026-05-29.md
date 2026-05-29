@@ -53,7 +53,7 @@ What's been done, what's wrong, and what's left.
 | # | Issue | Impact | Where |
 |---|-------|--------|-------|
 | 1 | order-service startup crash in `apps` profile | Missing adapters for `InventoryReservationPort`, `PaymentRequestPort`, `ShippingRequestPort` | `docs/GAP-ANALYSIS.md` F-01 |
-| 2 | Kafka event pipeline partially broken | Topic mismatch (`order-events` vs `order.created`); notification-service not wired to Kafka transport | F-02 |
+| ~~2~~ | ~~Kafka event pipeline partially broken~~ | **RESOLVED — documentation error.** All order event topics use dot-notation and are correctly aligned; notification-service is properly wired to Kafka transport. The `order-events` topic name never existed in the code. | F-02 |
 
 ### High — Functional Gaps
 
@@ -67,9 +67,9 @@ What's been done, what's wrong, and what's left.
 
 | # | Issue | Impact | Where |
 |---|-------|--------|-------|
-| 6 | Commission tier hardcoded to STANDARD | Correct today; wrong when per-seller tiers arrive | `CompleteReturnUseCase`, `OrderEventPublisherAdapter` |
-| 7 | FX fields not on `PaymentCompletedEvent` | Analytics consumers can't see conversion details | payment-service outbox |
-| 8 | Consumer-only services have no Kafka health probe | Silent consumer-group failures invisible | inventory, shipping, search, recommendations, seller-finance |
+| ~~6~~ | ~~Commission tier hardcoded to STANDARD~~ | **RESOLVED (pt45)** — `CommissionTier` enum propagated through refund chain; `RefundRequestPort` accepts enum; no more hardcoded string. | `CompleteReturnUseCase`, `OrderEventPublisherAdapter` |
+| ~~7~~ | ~~FX fields not on `PaymentCompletedEvent`~~ | **RESOLVED (pt45)** — FX fields (`fxRate`, `originalCurrency`, `originalAmount`) added to `PaymentCompletedEvent` and populated by payment-service outbox. | payment-service outbox |
+| ~~8~~ | ~~Consumer-only services have no Kafka health probe~~ | **RESOLVED (pt45)** — `KafkaConsumerHealthIndicator` with lag check added; consumer health visible via Spring Boot Actuator. | inventory, shipping, search, recommendations, seller-finance |
 | 9 | Profile/runtime mismatches | Routes point to services not started in `apps` profile | F-05 |
 | 10 | `opencode.jsonc` untracked at repo root | IDE config noise | `.gitignore` |
 
@@ -107,11 +107,9 @@ What's been done, what's wrong, and what's left.
 
 | Item | Effort | Priority |
 |------|--------|----------|
-| FX fields on `PaymentCompletedEvent` | 1 block | Low |
-| Kafka consumer health probes | 1 block | Low |
 | Notifications inbox (FE bell) | 2 blocks | Medium |
 | Fix order-service startup crash (F-01) | 2 blocks | High (if deploying) |
-| Fix Kafka topic mismatch (F-02) | 1 block | High (if deploying) |
+| Move notification-service to `apps` profile (F-02 profile gap, F-05) | 1 block | High (if deploying) |
 | Checkout → real cart-service wiring (F-04) | 1 block | High |
 
 ---
