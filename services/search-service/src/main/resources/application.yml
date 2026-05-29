@@ -56,6 +56,13 @@ otel:
       sampler:
         probability: 0.1
 
+kafka:
+  health:
+    consumer:
+      enabled: true
+      lag-threshold: 1000
+      group-id: search-service
+
 ---
 spring:
   config:
