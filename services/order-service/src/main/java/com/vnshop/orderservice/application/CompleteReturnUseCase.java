@@ -47,7 +47,7 @@ public class CompleteReturnUseCase {
         Money refundAmount = targetSubOrder.itemsTotal();
         orderReturn.complete();
         Return savedReturn = returnRepository.save(orderReturn);
-        refundRequestPort.requestRefund(savedReturn, targetSubOrder.sellerId(), refundAmount, targetSubOrder.commissionTier().name());
+        refundRequestPort.requestRefund(savedReturn, targetSubOrder.sellerId(), refundAmount, targetSubOrder.commissionTier());
         return savedReturn;
     }
 }

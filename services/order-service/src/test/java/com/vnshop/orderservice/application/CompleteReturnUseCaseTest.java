@@ -12,6 +12,7 @@ import com.vnshop.orderservice.domain.OrderItem;
 import com.vnshop.orderservice.domain.PaymentStatus;
 import com.vnshop.orderservice.domain.Return;
 import com.vnshop.orderservice.domain.ReturnStatus;
+import com.vnshop.orderservice.domain.ShippingInfo;
 import com.vnshop.orderservice.domain.SubOrder;
 import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
 import java.math.BigDecimal;
@@ -54,7 +55,7 @@ class CompleteReturnUseCaseTest {
         assertThat(refunds.calls.get(0).amount).isEqualTo(TEN_THOUSAND);
         assertThat(refunds.calls.get(0).returnId).isEqualTo(returnId);
         assertThat(refunds.calls.get(0).sellerId).isEqualTo(SELLER_OWNER);
-        assertThat(refunds.calls.get(0).commissionTier).isEqualTo("PREFERRED");
+        assertThat(refunds.calls.get(0).commissionTier).isEqualTo(CommissionTier.PREFERRED);
     }
 
     @Test
@@ -135,7 +136,7 @@ class CompleteReturnUseCaseTest {
     private static Order orderWith(UUID orderId, Long subOrderId, String sellerId) {
         OrderItem item = new OrderItem("product-1", "P-1", sellerId, "Phone", 1, TEN_THOUSAND, null);
         SubOrder subOrder = new SubOrder(subOrderId, sellerId, List.of(item),
-                FulfillmentStatus.SHIPPED, Money.ZERO, "STANDARD", "GHN", "TRK-1", CommissionTier.PREFERRED);
+                FulfillmentStatus.SHIPPED, new ShippingInfo(Money.ZERO, "STANDARD", "GHN", "TRK-1"), CommissionTier.PREFERRED);
         Address shippingAddress = new Address("123 Day Street", "Ward 1", "District 1", "HCMC");
         return new Order(orderId, "ORD-1", "buyer-1", shippingAddress, List.of(subOrder),
                 TEN_THOUSAND, Money.ZERO, Money.ZERO,
@@ -143,11 +144,11 @@ class CompleteReturnUseCaseTest {
     }
 
     private static final class RecordingRefundPort implements RefundRequestPort {
-        record Call(UUID returnId, String sellerId, Money amount, String commissionTier) {}
+        record Call(UUID returnId, String sellerId, Money amount, CommissionTier commissionTier) {}
         final List<Call> calls = new ArrayList<>();
 
         @Override
-        public void requestRefund(Return orderReturn, String sellerId, Money amount, String commissionTier) {
+        public void requestRefund(Return orderReturn, String sellerId, Money amount, CommissionTier commissionTier) {
             calls.add(new Call(orderReturn.returnId(), sellerId, amount, commissionTier));
         }
     }
