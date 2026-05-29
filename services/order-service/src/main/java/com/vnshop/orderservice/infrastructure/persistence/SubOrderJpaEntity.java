@@ -1,5 +1,6 @@
 package com.vnshop.orderservice.infrastructure.persistence;
 
+import com.vnshop.orderservice.domain.CommissionTier;
 import com.vnshop.orderservice.domain.FulfillmentStatus;
 import com.vnshop.orderservice.domain.SubOrder;
 import com.vnshop.orderservice.infrastructure.persistence.BaseJpaEntity;
@@ -62,6 +63,10 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
     @Column(name = "tracking_number")
     private String trackingNumber;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "commission_tier", nullable = false)
+    private CommissionTier commissionTier = CommissionTier.STANDARD;
+
     @OneToMany(mappedBy = "subOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderItemJpaEntity> items = new ArrayList<>();
 
@@ -83,6 +88,7 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
         entity.shippingMethod = subOrder.shippingMethod();
         entity.carrier = subOrder.carrier();
         entity.trackingNumber = subOrder.trackingNumber();
+        entity.commissionTier = subOrder.commissionTier();
         entity.items = subOrder.items().stream()
                 .map(item -> OrderItemJpaEntity.fromDomain(item, entity))
                 .toList();
@@ -99,7 +105,8 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
                 shippingCost.toDomain(),
                 shippingMethod,
                 carrier,
-                trackingNumber
+                trackingNumber,
+                commissionTier
         );
     }
 }
