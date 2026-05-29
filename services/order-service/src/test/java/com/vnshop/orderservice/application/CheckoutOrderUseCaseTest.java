@@ -9,6 +9,8 @@ import com.vnshop.orderservice.domain.Money;
 import com.vnshop.orderservice.domain.Order;
 import com.vnshop.orderservice.domain.OrderItem;
 import com.vnshop.orderservice.domain.SubOrder;
+import com.vnshop.orderservice.domain.CommissionTier;
+import com.vnshop.orderservice.domain.port.out.CommissionTierLookupPort;
 import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
@@ -41,9 +43,10 @@ class CheckoutOrderUseCaseTest {
     private final RecordingPayment payment = new RecordingPayment();
     private final RecordingShipping shipping = new RecordingShipping();
     private final RecordingOrderEvents events = new RecordingOrderEvents();
+    private final CommissionTierLookupPort tierLookup = sellerId -> CommissionTier.STANDARD;
 
     private CheckoutOrderUseCase newUseCase() {
-        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events);
+        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup);
         return new CheckoutOrderUseCase(catalog, createOrderUseCase);
     }
 

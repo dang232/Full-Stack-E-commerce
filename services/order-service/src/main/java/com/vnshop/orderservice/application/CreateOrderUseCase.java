@@ -1,9 +1,11 @@
 package com.vnshop.orderservice.application;
 
 import com.vnshop.orderservice.domain.Address;
+import com.vnshop.orderservice.domain.CommissionTier;
 import com.vnshop.orderservice.domain.Order;
 import com.vnshop.orderservice.domain.OrderItem;
 import com.vnshop.orderservice.domain.SubOrder;
+import com.vnshop.orderservice.domain.port.out.CommissionTierLookupPort;
 import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
@@ -23,19 +25,22 @@ public class CreateOrderUseCase {
     private final PaymentRequestPort paymentRequestPort;
     private final ShippingRequestPort shippingRequestPort;
     private final OrderEventPublisherPort orderEventPublisherPort;
+    private final CommissionTierLookupPort commissionTierLookupPort;
 
     public CreateOrderUseCase(
             OrderRepositoryPort orderRepository,
             InventoryReservationPort inventoryReservationPort,
             PaymentRequestPort paymentRequestPort,
             ShippingRequestPort shippingRequestPort,
-            OrderEventPublisherPort orderEventPublisherPort
+            OrderEventPublisherPort orderEventPublisherPort,
+            CommissionTierLookupPort commissionTierLookupPort
     ) {
         this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository is required");
         this.inventoryReservationPort = Objects.requireNonNull(inventoryReservationPort, "inventoryReservationPort is required");
         this.paymentRequestPort = Objects.requireNonNull(paymentRequestPort, "paymentRequestPort is required");
         this.shippingRequestPort = Objects.requireNonNull(shippingRequestPort, "shippingRequestPort is required");
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
+        this.commissionTierLookupPort = Objects.requireNonNull(commissionTierLookupPort, "commissionTierLookupPort is required");
     }
 
     public Order create(CreateOrderCommand command) {
@@ -79,7 +84,8 @@ public class CreateOrderUseCase {
                 .collect(Collectors.groupingBy(OrderItem::sellerId, Collectors.toList()));
         List<SubOrder> subOrders = new ArrayList<>();
         for (Map.Entry<String, List<OrderItem>> entry : itemsBySeller.entrySet()) {
-            subOrders.add(new SubOrder(entry.getKey(), entry.getValue()));
+            CommissionTier tier = commissionTierLookupPort.findBySellerId(entry.getKey());
+            subOrders.add(new SubOrder(entry.getKey(), entry.getValue(), tier));
         }
         return List.copyOf(subOrders);
     }

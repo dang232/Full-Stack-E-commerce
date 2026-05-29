@@ -30,6 +30,7 @@ import com.vnshop.orderservice.application.coupon.ValidateCouponUseCase;
 import com.vnshop.orderservice.domain.coupon.CouponRepository;
 import com.vnshop.orderservice.domain.coupon.CouponUsageRepository;
 import com.vnshop.orderservice.domain.coupon.CouponValidator;
+import com.vnshop.orderservice.domain.port.out.CommissionTierLookupPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.DashboardAnalyticsPort;
 import com.vnshop.orderservice.domain.port.out.DisputeRepositoryPort;
@@ -65,9 +66,10 @@ public class UseCaseConfig {
             InventoryReservationPort inventoryReservationPort,
             PaymentRequestPort paymentRequestPort,
             ShippingRequestPort shippingRequestPort,
-            OrderEventPublisherPort orderEventPublisherPort
+            OrderEventPublisherPort orderEventPublisherPort,
+            CommissionTierLookupPort commissionTierLookupPort
     ) {
-        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort);
+        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort);
     }
 
     @Bean

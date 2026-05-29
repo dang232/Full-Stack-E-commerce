@@ -18,6 +18,10 @@ public class SubOrder {
         this(null, sellerId, items, FulfillmentStatus.PENDING_ACCEPTANCE, Money.ZERO, "STANDARD", null, null, null);
     }
 
+    public SubOrder(String sellerId, List<OrderItem> items, CommissionTier commissionTier) {
+        this(null, sellerId, items, FulfillmentStatus.PENDING_ACCEPTANCE, Money.ZERO, "STANDARD", null, null, commissionTier);
+    }
+
     public SubOrder(
             Long id,
             String sellerId,
