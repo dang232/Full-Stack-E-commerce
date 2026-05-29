@@ -403,8 +403,8 @@ test.describe.serial("Workday — buyer (guest → register → shop → order)"
       const avatar = page.locator('img[alt][class*="rounded-2xl"]').first();
       await expect(avatar).toBeVisible({ timeout: 10_000 });
       const src = await avatar.getAttribute("src");
-      expect(src, "avatar img src must point at the vnshop-avatars bucket").toMatch(
-        /\/vnshop-avatars\/avatars\//,
+      expect(src, "avatar img src must point at the avatars path").toMatch(
+        /\/avatars\//,
       );
       await expectNoGlobalError(page);
     });

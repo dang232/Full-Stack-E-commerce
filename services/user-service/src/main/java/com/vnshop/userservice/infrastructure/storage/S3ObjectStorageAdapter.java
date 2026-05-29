@@ -44,15 +44,20 @@ public class S3ObjectStorageAdapter implements ObjectStoragePort {
 
     @Override
     public URI publicUrl(String key) {
-        // Path-style URL: {publicEndpoint}/{bucket}/{key}. Avatar bucket has
-        // anonymous download policy so this is directly resolvable from the
-        // browser without signing — and crucially, doesn't expire, so the
-        // BuyerProfile.avatarUrl can be cached forever.
+        // Avatar bucket has anonymous download policy so this is directly
+        // resolvable from the browser without signing — and crucially, doesn't
+        // expire, so the BuyerProfile.avatarUrl can be cached forever.
+        //
+        // Path-style (MinIO):  {publicEndpoint}/{bucket}/{key}
+        // Virtual-hosted (R2): {publicEndpoint}/{key}  (bucket is in hostname)
         String base = properties.resolvePublicEndpoint();
         if (base.endsWith("/")) {
             base = base.substring(0, base.length() - 1);
         }
-        return URI.create(base + "/" + properties.getBucket() + "/" + key);
+        if (properties.isPathStyleAccess()) {
+            return URI.create(base + "/" + properties.getBucket() + "/" + key);
+        }
+        return URI.create(base + "/" + key);
     }
 
     @Override
