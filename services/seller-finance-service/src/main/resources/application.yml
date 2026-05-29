@@ -43,6 +43,13 @@ management:
     tracing:
       endpoint: http://localhost:4318/v1/traces
 
+kafka:
+  health:
+    consumer:
+      enabled: true
+      lag-threshold: 1000
+      group-id: seller-finance-service-refund
+
 vnshop:
   commission:
     tiers:
