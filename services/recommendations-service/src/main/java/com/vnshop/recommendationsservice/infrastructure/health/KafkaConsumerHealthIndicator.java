@@ -1,5 +1,7 @@
 package com.vnshop.recommendationsservice.infrastructure.health;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.common.TopicPartition;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Component
@@ -17,10 +20,17 @@ import java.util.stream.Collectors;
 public class KafkaConsumerHealthIndicator implements HealthIndicator {
     private final AdminClient adminClient;
     private final KafkaConsumerHealthProperties props;
+    private final AtomicLong lagGauge = new AtomicLong(0);
 
-    public KafkaConsumerHealthIndicator(AdminClient adminClient, KafkaConsumerHealthProperties props) {
+    public KafkaConsumerHealthIndicator(AdminClient adminClient,
+                                        KafkaConsumerHealthProperties props,
+                                        MeterRegistry meterRegistry) {
         this.adminClient = adminClient;
         this.props = props;
+        Gauge.builder("kafka_consumer_lag_total", lagGauge, AtomicLong::get)
+            .tag("group.id", props.groupId())
+            .tag("service", "recommendations-service")
+            .register(meterRegistry);
     }
 
     @Override
@@ -52,6 +62,8 @@ public class KafkaConsumerHealthIndicator implements HealthIndicator {
                     return Math.max(0, end - current);
                 })
                 .sum();
+
+            lagGauge.set(totalLag);
 
             var details = Map.of(
                 "totalLag", totalLag,

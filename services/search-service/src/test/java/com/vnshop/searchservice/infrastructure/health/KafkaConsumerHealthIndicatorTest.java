@@ -1,5 +1,6 @@
 package com.vnshop.searchservice.infrastructure.health;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
@@ -27,6 +28,7 @@ class KafkaConsumerHealthIndicatorTest {
     @Mock AdminClient adminClient;
     @Mock ListConsumerGroupOffsetsResult listOffsetsResult;
     @Mock ListOffsetsResult endOffsetsResult;
+    @Mock MeterRegistry meterRegistry;
 
     KafkaConsumerHealthProperties props;
     KafkaConsumerHealthIndicator indicator;
@@ -34,7 +36,7 @@ class KafkaConsumerHealthIndicatorTest {
     @BeforeEach
     void setUp() {
         props = new KafkaConsumerHealthProperties(true, 1000, "search-service");
-        indicator = new KafkaConsumerHealthIndicator(adminClient, props);
+        indicator = new KafkaConsumerHealthIndicator(adminClient, props, meterRegistry);
     }
 
     @Test
