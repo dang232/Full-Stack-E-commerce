@@ -161,8 +161,12 @@ public class PaymentController {
                 request.orderId(), JwtPrincipalUtil.currentUserId(),
                 PaymentMethodInput.PAYPAL, idempotencyKey));
         PayPalGateway.PayPalOrder order = gateway.createOrder(payment);
+        // Persist FX details so they survive for dispute support / audit.
+        Payment enriched = payment.withFxDetails(
+                order.externalAmount(), order.externalCurrency(), order.fxRate(), Instant.now());
+        paymentRepository.save(enriched);
         return ApiResponse.ok(PayPalCreateResponse.of(
-                payment,
+                enriched,
                 gateway.properties().clientId(),
                 order.paypalOrderId(),
                 order.status(),

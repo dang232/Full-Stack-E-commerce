@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +46,18 @@ public class PaymentJpaEntity extends BaseJpaEntity {
     @Column(name = "transaction_ref")
     private String transactionRef;
 
+    @Column(name = "external_amount", precision = 19, scale = 2)
+    private BigDecimal externalAmount;
+
+    @Column(name = "external_currency", length = 3)
+    private String externalCurrency;
+
+    @Column(name = "fx_rate", precision = 19, scale = 8)
+    private BigDecimal fxRate;
+
+    @Column(name = "fx_rate_at")
+    private Instant fxRateAt;
+
 
     protected PaymentJpaEntity() {
     }
@@ -58,6 +71,10 @@ public class PaymentJpaEntity extends BaseJpaEntity {
         entity.method = payment.method();
         entity.status = payment.status();
         entity.transactionRef = payment.transactionRef();
+        entity.externalAmount = payment.externalAmount();
+        entity.externalCurrency = payment.externalCurrency();
+        entity.fxRate = payment.fxRate();
+        entity.fxRateAt = payment.fxRateAt();
         // Seed createdAt from the domain so an UPDATE save (e.g. the admin
         // VietQR confirm path) doesn't return a managed entity with
         // createdAt=null. @PrePersist only fires on INSERT; merge() of a
@@ -68,6 +85,7 @@ public class PaymentJpaEntity extends BaseJpaEntity {
     }
 
     public Payment toDomain() {
-        return new Payment(paymentId, orderId, buyerId, amount, method, status, transactionRef, getCreatedAt());
+        return new Payment(paymentId, orderId, buyerId, amount, method, status, transactionRef, getCreatedAt(),
+                externalAmount, externalCurrency, fxRate, fxRateAt);
     }
 }

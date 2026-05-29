@@ -14,8 +14,17 @@ public class Payment {
     private final PaymentStatus status;
     private final String transactionRef;
     private final Instant createdAt;
+    private final BigDecimal externalAmount;
+    private final String externalCurrency;
+    private final BigDecimal fxRate;
+    private final Instant fxRateAt;
 
     public Payment(UUID paymentId, String orderId, String buyerId, BigDecimal amount, PaymentMethod method, PaymentStatus status, String transactionRef, Instant createdAt) {
+        this(paymentId, orderId, buyerId, amount, method, status, transactionRef, createdAt, null, null, null, null);
+    }
+
+    public Payment(UUID paymentId, String orderId, String buyerId, BigDecimal amount, PaymentMethod method, PaymentStatus status, String transactionRef, Instant createdAt,
+                   BigDecimal externalAmount, String externalCurrency, BigDecimal fxRate, Instant fxRateAt) {
         this.paymentId = Objects.requireNonNull(paymentId, "paymentId is required");
         this.orderId = requireNonBlank(orderId, "orderId");
         this.buyerId = requireNonBlank(buyerId, "buyerId");
@@ -24,6 +33,10 @@ public class Payment {
         this.status = Objects.requireNonNull(status, "status is required");
         this.transactionRef = transactionRef;
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+        this.externalAmount = externalAmount;
+        this.externalCurrency = externalCurrency;
+        this.fxRate = fxRate;
+        this.fxRateAt = fxRateAt;
     }
 
     public static Payment pending(String orderId, String buyerId, BigDecimal amount, PaymentMethod method) {
@@ -31,7 +44,11 @@ public class Payment {
     }
 
     public Payment withResult(PaymentStatus status, String transactionRef) {
-        return new Payment(paymentId, orderId, buyerId, amount, method, status, transactionRef, createdAt);
+        return new Payment(paymentId, orderId, buyerId, amount, method, status, transactionRef, createdAt, externalAmount, externalCurrency, fxRate, fxRateAt);
+    }
+
+    public Payment withFxDetails(BigDecimal externalAmount, String externalCurrency, BigDecimal fxRate, Instant fxRateAt) {
+        return new Payment(paymentId, orderId, buyerId, amount, method, status, transactionRef, createdAt, externalAmount, externalCurrency, fxRate, fxRateAt);
     }
 
     public UUID paymentId() {
@@ -64,6 +81,22 @@ public class Payment {
 
     public Instant createdAt() {
         return createdAt;
+    }
+
+    public BigDecimal externalAmount() {
+        return externalAmount;
+    }
+
+    public String externalCurrency() {
+        return externalCurrency;
+    }
+
+    public BigDecimal fxRate() {
+        return fxRate;
+    }
+
+    public Instant fxRateAt() {
+        return fxRateAt;
     }
 
     private static String requireNonBlank(String value, String fieldName) {

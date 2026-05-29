@@ -31,7 +31,11 @@ public record PaymentResponse(
         String status,
         String transactionRef,
         String redirectUrl,
-        Instant createdAt
+        Instant createdAt,
+        BigDecimal externalAmount,
+        String externalCurrency,
+        BigDecimal fxRate,
+        Instant fxRateAt
 ) {
     static PaymentResponse fromDomain(Payment payment) {
         return new PaymentResponse(
@@ -43,7 +47,11 @@ public record PaymentResponse(
                 payment.status().name(),
                 payment.transactionRef(),
                 redirectUrlFor(payment),
-                payment.createdAt()
+                payment.createdAt(),
+                payment.externalAmount(),
+                payment.externalCurrency(),
+                payment.fxRate(),
+                payment.fxRateAt()
         );
     }
 
