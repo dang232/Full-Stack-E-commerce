@@ -2,6 +2,7 @@ package com.vnshop.orderservice.infrastructure.persistence;
 
 import com.vnshop.orderservice.domain.CommissionTier;
 import com.vnshop.orderservice.domain.FulfillmentStatus;
+import com.vnshop.orderservice.domain.ShippingInfo;
 import com.vnshop.orderservice.domain.SubOrder;
 import com.vnshop.orderservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.AttributeOverride;
@@ -97,15 +98,18 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
 
 
     SubOrder toDomain() {
+        ShippingInfo shipping = new ShippingInfo(
+                shippingCost.toDomain(),
+                shippingMethod,
+                carrier,
+                trackingNumber
+        );
         return new SubOrder(
                 id,
                 sellerId,
                 items.stream().map(OrderItemJpaEntity::toDomain).toList(),
                 fulfillmentStatus,
-                shippingCost.toDomain(),
-                shippingMethod,
-                carrier,
-                trackingNumber,
+                shipping,
                 commissionTier
         );
     }
