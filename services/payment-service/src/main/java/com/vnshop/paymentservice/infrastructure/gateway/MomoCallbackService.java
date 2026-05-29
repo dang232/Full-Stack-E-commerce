@@ -80,7 +80,8 @@ public class MomoCallbackService {
             outbox.save(PaymentCallbackOutboxRecord.pending(
                     "MOMO", payment.paymentId(), payment.orderId(),
                     verification.transactionNo(), verification.status().name(), payment.amount(),
-                    savedAttempt.callbackId(), savedAttempt.eventId(), savedAttempt.payloadHash()));
+                    savedAttempt.callbackId(), savedAttempt.eventId(), savedAttempt.payloadHash(),
+                    null, null, null, null));
             return MomoIpnResult.success();
         }
 

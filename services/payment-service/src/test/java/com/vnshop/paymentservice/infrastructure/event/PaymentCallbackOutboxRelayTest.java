@@ -112,7 +112,7 @@ class PaymentCallbackOutboxRelayTest {
             rows.put(id, new PaymentCallbackOutboxRecord(
                     id, provider, UUID.randomUUID(), orderId, "ref-" + id, "COMPLETED",
                     new BigDecimal("10000"), "VND", UUID.randomUUID(), "evt-" + id, "hash-" + id,
-                    Instant.now(), null));
+                    Instant.now(), null, null, null, null, null));
         }
 
         @Override

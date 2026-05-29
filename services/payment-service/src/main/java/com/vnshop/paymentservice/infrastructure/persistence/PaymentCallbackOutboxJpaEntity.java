@@ -58,6 +58,18 @@ public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
     @Column(name = "published_at")
     private Instant publishedAt;
 
+    @Column(name = "external_amount", precision = 19, scale = 4)
+    private BigDecimal externalAmount;
+
+    @Column(name = "external_currency", length = 3)
+    private String externalCurrency;
+
+    @Column(name = "fx_rate", precision = 19, scale = 6)
+    private BigDecimal fxRate;
+
+    @Column(name = "fx_rate_at")
+    private Instant fxRateAt;
+
     protected PaymentCallbackOutboxJpaEntity() {
     }
 
@@ -75,11 +87,18 @@ public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
         entity.callbackEventId = record.callbackEventId();
         entity.payloadHash = record.payloadHash();
         entity.publishedAt = record.publishedAt();
+        entity.externalAmount = record.externalAmount();
+        entity.externalCurrency = record.externalCurrency();
+        entity.fxRate = record.fxRate();
+        entity.fxRateAt = record.fxRateAt();
         return entity;
     }
 
     PaymentCallbackOutboxRecord toRecord() {
-        return new PaymentCallbackOutboxRecord(id, provider, paymentId, orderId, transactionRef, status, amount, currency, callbackId, callbackEventId, payloadHash, getCreatedAt(), publishedAt);
+        return new PaymentCallbackOutboxRecord(
+                id, provider, paymentId, orderId, transactionRef, status, amount, currency,
+                callbackId, callbackEventId, payloadHash, getCreatedAt(), publishedAt,
+                externalAmount, externalCurrency, fxRate, fxRateAt);
     }
 
     boolean isPublished() {

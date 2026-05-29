@@ -77,7 +77,8 @@ public class PaymentPromotionService {
                     saved.amount(),
                     attempt.callbackId(),
                     attempt.eventId(),
-                    attempt.payloadHash()));
+                    attempt.payloadHash(),
+                    null, null, null, null));
         }
         log.info("payment-promoted provider={} paymentId={} orderId={} providerRef={}",
                 command.provider(), saved.paymentId(), saved.orderId(), command.providerRef());
