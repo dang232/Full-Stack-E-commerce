@@ -72,7 +72,11 @@ public class PaymentCallbackOutboxRelay {
                     record.amount(),
                     record.currency(),
                     record.callbackId(),
-                    record.callbackEventId());
+                    record.callbackEventId(),
+                    record.externalAmount(),
+                    record.externalCurrency(),
+                    record.fxRate(),
+                    record.fxRateAt());
             kafkaTemplate.send(TOPIC, record.orderId(), event);
             outbox.markPublished(record.id());
             LOGGER.debug("payment-callback-outbox published id={} provider={} orderId={}",
