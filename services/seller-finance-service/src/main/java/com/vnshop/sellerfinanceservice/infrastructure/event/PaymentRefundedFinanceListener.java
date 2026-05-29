@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.sellerfinanceservice.application.RefundWalletUseCase;
 import com.vnshop.sellerfinanceservice.domain.CommissionTier;
+import com.vnshop.sellerfinanceservice.infrastructure.persistence.ProcessedRefund;
+import com.vnshop.sellerfinanceservice.infrastructure.persistence.ProcessedRefundRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -19,34 +22,46 @@ import java.math.BigDecimal;
  * VND total; this listener applies the same commission tier as the original
  * credit so the wallet projection ends up where it started.
  *
- * <p>Idempotency is intentionally NOT handled here: a redelivery would
- * double-debit the wallet. Today the publish path is the at-least-once Kafka
- * primitive, but in practice {@code PayPalGateway.refund} is itself idempotent
- * via the PayPal-Request-Id header — meaning a true duplicate {@code payment.refunded}
- * shouldn't fire because the upstream listener will short-circuit on the
- * existing refund record. If that assumption breaks (e.g. the upstream listener
- * fails after PayPal succeeds and Kafka redelivers), a refund-ledger row will
- * be the right fix; deferring until that gap is real.
+ * <p>Idempotency is enforced via the {@code processed_refund} table: before
+ * debiting, the listener checks whether the {@code refundId} has already been
+ * processed. If so, the event is skipped. The debit and the insert are wrapped
+ * in a single transaction so they commit atomically — a crash between the two
+ * cannot leave the system in an inconsistent state.
  */
 @Service
 public class PaymentRefundedFinanceListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(PaymentRefundedFinanceListener.class);
 
     private final RefundWalletUseCase refundWalletUseCase;
+    private final ProcessedRefundRepository processedRefundRepository;
     private final ObjectMapper objectMapper;
 
-    public PaymentRefundedFinanceListener(RefundWalletUseCase refundWalletUseCase, ObjectMapper objectMapper) {
+    public PaymentRefundedFinanceListener(RefundWalletUseCase refundWalletUseCase,
+                                          ProcessedRefundRepository processedRefundRepository,
+                                          ObjectMapper objectMapper) {
         this.refundWalletUseCase = refundWalletUseCase;
+        this.processedRefundRepository = processedRefundRepository;
         this.objectMapper = objectMapper;
     }
 
     @KafkaListener(topics = "payment.refunded", groupId = "seller-finance-service-refund")
+    @Transactional
     public void onPaymentRefunded(String eventJson) {
         JsonNode payload = readTree(eventJson);
         String sellerId = text(payload, "sellerId");
         String amountRaw = text(payload, "amount");
+        String refundId = text(payload, "refundId");
         if (sellerId == null || sellerId.isBlank() || amountRaw == null || amountRaw.isBlank()) {
             LOGGER.warn("payment.refunded missing sellerId or amount — skipping. payload={}", eventJson);
+            return;
+        }
+        if (refundId == null || refundId.isBlank()) {
+            LOGGER.warn("payment.refunded missing refundId — skipping. payload={}", eventJson);
+            return;
+        }
+        // Idempotency: skip if this refundId was already processed.
+        if (processedRefundRepository.existsById(refundId)) {
+            LOGGER.info("payment.refunded refundId={} already processed — skipping", refundId);
             return;
         }
         BigDecimal amount;
@@ -70,6 +85,8 @@ public class PaymentRefundedFinanceListener {
         refundWalletUseCase.refund(sellerId, amount, tier).ifPresentOrElse(
                 result -> LOGGER.info("seller-wallet-refunded sellerId={} debited={}", sellerId, result.sellerNet()),
                 () -> LOGGER.warn("seller-wallet-refund skipped — no wallet for sellerId={}", sellerId));
+        // Record the refundId so a redelivery is a no-op.
+        processedRefundRepository.save(new ProcessedRefund(refundId, sellerId, amount));
     }
 
     private JsonNode readTree(String json) {

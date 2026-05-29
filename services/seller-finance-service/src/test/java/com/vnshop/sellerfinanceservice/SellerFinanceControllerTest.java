@@ -11,6 +11,7 @@ import com.vnshop.sellerfinanceservice.domain.PayoutStatus;
 import com.vnshop.sellerfinanceservice.domain.SellerWallet;
 import com.vnshop.sellerfinanceservice.domain.port.out.PayoutRepositoryPort;
 import com.vnshop.sellerfinanceservice.domain.port.out.SellerWalletRepositoryPort;
+import com.vnshop.sellerfinanceservice.infrastructure.persistence.ProcessedRefundRepository;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -50,6 +51,9 @@ class SellerFinanceControllerTest {
 
     @MockitoBean
     private PayoutRepositoryPort payoutRepositoryPort;
+
+    @MockitoBean
+    private ProcessedRefundRepository processedRefundRepository;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
