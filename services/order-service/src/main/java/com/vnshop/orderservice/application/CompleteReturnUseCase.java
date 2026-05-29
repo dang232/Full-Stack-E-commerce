@@ -47,9 +47,7 @@ public class CompleteReturnUseCase {
         Money refundAmount = targetSubOrder.itemsTotal();
         orderReturn.complete();
         Return savedReturn = returnRepository.save(orderReturn);
-        // Commission tier is currently uniform (STANDARD). When per-seller tiers
-        // arrive, resolve from the order/subOrder domain instead of hardcoding.
-        refundRequestPort.requestRefund(savedReturn, targetSubOrder.sellerId(), refundAmount, "STANDARD");
+        refundRequestPort.requestRefund(savedReturn, targetSubOrder.sellerId(), refundAmount, targetSubOrder.commissionTier().name());
         return savedReturn;
     }
 }

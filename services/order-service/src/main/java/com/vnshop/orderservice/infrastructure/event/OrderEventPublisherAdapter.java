@@ -72,7 +72,7 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
                     order.buyerId(),
                     order.paymentStatus().name(),
                     order.subOrders().stream()
-                            .map(subOrder -> new SellerTotal(subOrder.sellerId(), subOrder.itemsTotal().amount(), "STANDARD"))
+                            .map(subOrder -> new SellerTotal(subOrder.sellerId(), subOrder.itemsTotal().amount(), subOrder.commissionTier().name()))
                             .toList(),
                     order.subOrders().stream()
                             .flatMap(subOrder -> subOrder.items().stream()

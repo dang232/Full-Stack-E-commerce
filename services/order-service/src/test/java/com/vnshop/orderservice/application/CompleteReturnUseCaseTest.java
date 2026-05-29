@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.vnshop.orderservice.domain.Address;
+import com.vnshop.orderservice.domain.CommissionTier;
 import com.vnshop.orderservice.domain.FulfillmentStatus;
 import com.vnshop.orderservice.domain.Money;
 import com.vnshop.orderservice.domain.Order;
@@ -53,7 +54,7 @@ class CompleteReturnUseCaseTest {
         assertThat(refunds.calls.get(0).amount).isEqualTo(TEN_THOUSAND);
         assertThat(refunds.calls.get(0).returnId).isEqualTo(returnId);
         assertThat(refunds.calls.get(0).sellerId).isEqualTo(SELLER_OWNER);
-        assertThat(refunds.calls.get(0).commissionTier).isEqualTo("STANDARD");
+        assertThat(refunds.calls.get(0).commissionTier).isEqualTo("PREFERRED");
     }
 
     @Test
@@ -134,7 +135,7 @@ class CompleteReturnUseCaseTest {
     private static Order orderWith(UUID orderId, Long subOrderId, String sellerId) {
         OrderItem item = new OrderItem("product-1", "P-1", sellerId, "Phone", 1, TEN_THOUSAND, null);
         SubOrder subOrder = new SubOrder(subOrderId, sellerId, List.of(item),
-                FulfillmentStatus.SHIPPED, Money.ZERO, "STANDARD", "GHN", "TRK-1");
+                FulfillmentStatus.SHIPPED, Money.ZERO, "STANDARD", "GHN", "TRK-1", CommissionTier.PREFERRED);
         Address shippingAddress = new Address("123 Day Street", "Ward 1", "District 1", "HCMC");
         return new Order(orderId, "ORD-1", "buyer-1", shippingAddress, List.of(subOrder),
                 TEN_THOUSAND, Money.ZERO, Money.ZERO,
