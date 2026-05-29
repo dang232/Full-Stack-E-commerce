@@ -20,6 +20,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -82,6 +83,18 @@ public class OrderJpaEntity extends BaseJpaEntity {
     @Column(name = "idempotency_key", nullable = false, unique = true)
     private String idempotencyKey;
 
+    @Column(name = "external_amount", precision = 19, scale = 4)
+    private BigDecimal externalAmount;
+
+    @Column(name = "external_currency", length = 3)
+    private String externalCurrency;
+
+    @Column(name = "fx_rate", precision = 12, scale = 6)
+    private BigDecimal fxRate;
+
+    @Column(name = "fx_rate_at")
+    private Instant fxRateAt;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<SubOrderJpaEntity> subOrders = new ArrayList<>();
 
@@ -101,6 +114,10 @@ public class OrderJpaEntity extends BaseJpaEntity {
         entity.paymentMethod = order.paymentMethod();
         entity.paymentStatus = order.paymentStatus();
         entity.idempotencyKey = order.idempotencyKey();
+        entity.externalAmount = order.externalAmount();
+        entity.externalCurrency = order.externalCurrency();
+        entity.fxRate = order.fxRate();
+        entity.fxRateAt = order.fxRateAt();
         entity.subOrders = order.subOrders().stream()
                 .map(subOrder -> SubOrderJpaEntity.fromDomain(subOrder, entity))
                 .toList();
@@ -108,7 +125,7 @@ public class OrderJpaEntity extends BaseJpaEntity {
     }
 
     public Order toDomain() {
-        return new Order(
+        Order order = new Order(
                 id,
                 orderNumber,
                 buyerId,
@@ -121,6 +138,13 @@ public class OrderJpaEntity extends BaseJpaEntity {
                 paymentStatus,
                 idempotencyKey
         );
+        if (externalAmount != null) {
+            order.setExternalAmount(externalAmount);
+            order.setExternalCurrency(externalCurrency);
+            order.setFxRate(fxRate);
+            order.setFxRateAt(fxRateAt);
+        }
+        return order;
     }
 
 

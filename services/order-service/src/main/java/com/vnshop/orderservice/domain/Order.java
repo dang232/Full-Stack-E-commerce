@@ -1,5 +1,7 @@
 package com.vnshop.orderservice.domain;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +26,12 @@ public class Order {
     private final String paymentMethod;
     private PaymentStatus paymentStatus;
     private final String idempotencyKey;
+
+    // FX fields — populated when payment is completed in a foreign currency
+    private BigDecimal externalAmount;
+    private String externalCurrency;
+    private BigDecimal fxRate;
+    private Instant fxRateAt;
 
     public Order(UUID id, String buyerId, Address shippingAddress, List<SubOrder> subOrders, String idempotencyKey) {
         this(id, generateOrderNumber(), buyerId, shippingAddress, subOrders, Money.ZERO, Money.ZERO, Money.ZERO,
@@ -145,6 +153,16 @@ public class Order {
     public void markPaymentFailed() {
         paymentStatus = PaymentStatus.FAILED;
     }
+
+    public BigDecimal externalAmount() { return externalAmount; }
+    public String externalCurrency() { return externalCurrency; }
+    public BigDecimal fxRate() { return fxRate; }
+    public Instant fxRateAt() { return fxRateAt; }
+
+    public void setExternalAmount(BigDecimal externalAmount) { this.externalAmount = externalAmount; }
+    public void setExternalCurrency(String externalCurrency) { this.externalCurrency = externalCurrency; }
+    public void setFxRate(BigDecimal fxRate) { this.fxRate = fxRate; }
+    public void setFxRateAt(Instant fxRateAt) { this.fxRateAt = fxRateAt; }
 
     private static void requireNonBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) {

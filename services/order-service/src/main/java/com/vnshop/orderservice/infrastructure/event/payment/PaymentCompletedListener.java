@@ -6,6 +6,8 @@ import com.vnshop.orderservice.domain.Order;
 import com.vnshop.orderservice.domain.PaymentStatus;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -73,6 +75,15 @@ public class PaymentCompletedListener {
             return;
         }
         order.markPaymentCompleted();
+        String externalAmountRaw = text(payload, "externalAmount");
+        if (externalAmountRaw != null) {
+            order.setExternalAmount(new BigDecimal(externalAmountRaw));
+            order.setExternalCurrency(text(payload, "externalCurrency"));
+            String fxRateRaw = text(payload, "fxRate");
+            order.setFxRate(fxRateRaw != null ? new BigDecimal(fxRateRaw) : null);
+            String fxRateAtRaw = text(payload, "fxRateAt");
+            order.setFxRateAt(fxRateAtRaw != null ? Instant.parse(fxRateAtRaw) : null);
+        }
         Order saved = orderRepository.save(order);
         orderEventPublisher.publishOrderPaid(saved);
         LOGGER.info("payment-completed orderId={} provider={} transactionRef={}",

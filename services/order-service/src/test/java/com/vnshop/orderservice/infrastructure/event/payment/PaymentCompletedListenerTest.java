@@ -11,6 +11,7 @@ import com.vnshop.orderservice.domain.SubOrder;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +94,51 @@ class PaymentCompletedListenerTest {
         listener.onPaymentCompleted("{\"orderId\":\"not-a-uuid\",\"status\":\"COMPLETED\"}");
 
         assertThat(publisher.paid).isEmpty();
+    }
+
+    @Test
+    void persistsFxFieldsWhenPresent() {
+        UUID orderId = UUID.randomUUID();
+        InMemoryOrderRepo repo = new InMemoryOrderRepo();
+        repo.save(pendingOrder(orderId));
+        RecordingPublisher publisher = new RecordingPublisher();
+        PaymentCompletedListener listener = new PaymentCompletedListener(repo, publisher, objectMapper);
+
+        Instant fxRateAt = Instant.parse("2024-06-01T10:00:00Z");
+        String json = String.format(
+                "{\"orderId\":\"%s\",\"status\":\"COMPLETED\",\"provider\":\"STRIPE\"," +
+                "\"transactionRef\":\"ref-fx\",\"externalAmount\":\"9.99\"," +
+                "\"externalCurrency\":\"USD\",\"fxRate\":\"25000.500000\"," +
+                "\"fxRateAt\":\"%s\"}",
+                orderId, fxRateAt);
+
+        listener.onPaymentCompleted(json);
+
+        Order saved = repo.findById(orderId).orElseThrow();
+        assertThat(saved.paymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(saved.externalAmount()).isEqualByComparingTo(new BigDecimal("9.99"));
+        assertThat(saved.externalCurrency()).isEqualTo("USD");
+        assertThat(saved.fxRate()).isEqualByComparingTo(new BigDecimal("25000.500000"));
+        assertThat(saved.fxRateAt()).isEqualTo(fxRateAt);
+    }
+
+    @Test
+    void handlesNullFxFieldsGracefully() {
+        UUID orderId = UUID.randomUUID();
+        InMemoryOrderRepo repo = new InMemoryOrderRepo();
+        repo.save(pendingOrder(orderId));
+        RecordingPublisher publisher = new RecordingPublisher();
+        PaymentCompletedListener listener = new PaymentCompletedListener(repo, publisher, objectMapper);
+
+        // No FX fields in payload — must not throw NPE
+        listener.onPaymentCompleted(eventJson(orderId, "COMPLETED", "VNPAY"));
+
+        Order saved = repo.findById(orderId).orElseThrow();
+        assertThat(saved.paymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(saved.externalAmount()).isNull();
+        assertThat(saved.externalCurrency()).isNull();
+        assertThat(saved.fxRate()).isNull();
+        assertThat(saved.fxRateAt()).isNull();
     }
 
     private static Order pendingOrder(UUID orderId) {
