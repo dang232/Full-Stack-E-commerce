@@ -63,6 +63,25 @@ public class CheckoutController {
         return ApiResponse.ok(CheckoutBreakdownResponse.fromApplication(breakdown));
     }
 
+    /**
+     * Cart-based checkout preview. Fetches the authenticated buyer's active
+     * cart from cart-service (via {@link com.vnshop.orderservice.domain.port.out.CartRepositoryPort})
+     * and returns the same {@link CheckoutBreakdownResponse} shape as
+     * {@code POST /checkout/calculate}.
+     *
+     * <p>Authentication is required — the cart is keyed by userId, so an
+     * anonymous caller has no cart to fetch. Use {@code POST /checkout/calculate}
+     * for unauthenticated "buy now" previews.
+     */
+    @PostMapping("/calculate-from-cart")
+    public ApiResponse<CheckoutBreakdownResponse> calculateFromCart() {
+        // Cart-service identifies carts by x-user-id header, so userId IS the cart key.
+        String userId = JwtPrincipalUtil.currentUserId();
+        CalculateCheckoutUseCase.CheckoutBreakdown breakdown =
+                calculateCheckoutUseCase.calculate(userId);
+        return ApiResponse.ok(CheckoutBreakdownResponse.fromApplication(breakdown));
+    }
+
     private static String safeCurrentUserId() {
         try {
             return JwtPrincipalUtil.currentUserId();
