@@ -52,6 +52,7 @@ class CompleteReturnUseCaseTest {
         assertThat(refunds.calls).hasSize(1);
         assertThat(refunds.calls.get(0).amount).isEqualTo(TEN_THOUSAND);
         assertThat(refunds.calls.get(0).returnId).isEqualTo(returnId);
+        assertThat(refunds.calls.get(0).sellerId).isEqualTo(SELLER_OWNER);
     }
 
     @Test
@@ -140,12 +141,12 @@ class CompleteReturnUseCaseTest {
     }
 
     private static final class RecordingRefundPort implements RefundRequestPort {
-        record Call(UUID returnId, Money amount) {}
+        record Call(UUID returnId, String sellerId, Money amount) {}
         final List<Call> calls = new ArrayList<>();
 
         @Override
-        public void requestRefund(Return orderReturn, Money amount) {
-            calls.add(new Call(orderReturn.returnId(), amount));
+        public void requestRefund(Return orderReturn, String sellerId, Money amount) {
+            calls.add(new Call(orderReturn.returnId(), sellerId, amount));
         }
     }
 }

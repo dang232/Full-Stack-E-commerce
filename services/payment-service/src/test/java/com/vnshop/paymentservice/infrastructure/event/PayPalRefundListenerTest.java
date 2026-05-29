@@ -26,11 +26,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import org.mockito.ArgumentCaptor;
+
 class PayPalRefundListenerTest {
 
     private static final String CAPTURE_ID = "CAPTURE-1";
     private static final String ORDER_ID = "ORDER-99";
     private static final String RETURN_ID = "RETURN-7";
+    private static final String SELLER_ID = "SELLER-42";
 
     private final PaymentRepositoryPort paymentRepository = mock(PaymentRepositoryPort.class);
     private final PayPalGateway gateway = mock(PayPalGateway.class);
@@ -54,7 +57,12 @@ class PayPalRefundListenerTest {
         listener.onRefundRequested(envelope("100000", "VND"));
 
         verify(gateway).refund(eq(CAPTURE_ID), eq(new BigDecimal("4.00")), eq(RETURN_ID));
-        verify(kafkaTemplate).send(eq(PayPalRefundListener.REFUNDED_TOPIC), eq(ORDER_ID), any(PaymentRefundedEvent.class));
+        ArgumentCaptor<PaymentRefundedEvent> captor = ArgumentCaptor.forClass(PaymentRefundedEvent.class);
+        verify(kafkaTemplate).send(eq(PayPalRefundListener.REFUNDED_TOPIC), eq(ORDER_ID), captor.capture());
+        // sellerId must propagate from the inbound event so seller-finance knows
+        // which wallet to debit; the listener only forwards, never derives it.
+        assertThat(captor.getValue().sellerId()).isEqualTo(SELLER_ID);
+        assertThat(captor.getValue().refundId()).isEqualTo("REFUND-1");
     }
 
     @Test
@@ -73,7 +81,8 @@ class PayPalRefundListenerTest {
 
         // Bare event payload (no outbox envelope)
         String flat = "{\"returnId\":\"" + RETURN_ID + "\",\"orderId\":\"" + ORDER_ID
-                + "\",\"buyerId\":\"BUYER-1\",\"amount\":\"100000\",\"currency\":\"VND\"}";
+                + "\",\"buyerId\":\"BUYER-1\",\"sellerId\":\"" + SELLER_ID
+                + "\",\"amount\":\"100000\",\"currency\":\"VND\"}";
         listener.onRefundRequested(flat);
 
         verify(gateway).refund(eq(CAPTURE_ID), eq(new BigDecimal("4.00")), eq(RETURN_ID));
@@ -141,7 +150,8 @@ class PayPalRefundListenerTest {
     private static String envelope(String amount, String currency) {
         // Mirrors what order-service's outbox writes: {"eventType":"payment.refund_requested","payload":"<inner json>"}
         String inner = "{\\\"returnId\\\":\\\"" + RETURN_ID + "\\\",\\\"orderId\\\":\\\"" + ORDER_ID
-                + "\\\",\\\"buyerId\\\":\\\"BUYER-1\\\",\\\"amount\\\":\\\"" + amount
+                + "\\\",\\\"buyerId\\\":\\\"BUYER-1\\\",\\\"sellerId\\\":\\\"" + SELLER_ID
+                + "\\\",\\\"amount\\\":\\\"" + amount
                 + "\\\",\\\"currency\\\":\\\"" + currency + "\\\"}";
         return "{\"eventType\":\"payment.refund_requested\",\"payload\":\"" + inner + "\"}";
     }

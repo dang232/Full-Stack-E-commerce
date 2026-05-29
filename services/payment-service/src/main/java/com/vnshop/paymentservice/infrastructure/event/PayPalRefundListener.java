@@ -78,6 +78,7 @@ public class PayPalRefundListener {
 
         String returnId = text(payload, "returnId");
         String orderId = text(payload, "orderId");
+        String sellerId = text(payload, "sellerId");
         String amountRaw = text(payload, "amount");
         String currency = text(payload, "currency");
         if (orderId == null || orderId.isBlank() || returnId == null || returnId.isBlank() || amountRaw == null) {
@@ -115,10 +116,10 @@ public class PayPalRefundListener {
         LOGGER.info("paypal-refund-issued orderId={} returnId={} captureId={} refundId={} status={}",
                 orderId, returnId, captureId, refund.refundId(), refund.status());
 
-        publishRefunded(payment, returnId, refund, vndAmount, currency);
+        publishRefunded(payment, returnId, sellerId, refund, vndAmount, currency);
     }
 
-    private void publishRefunded(Payment payment, String returnId,
+    private void publishRefunded(Payment payment, String returnId, String sellerId,
                                   PayPalGateway.PayPalRefund refund, BigDecimal vndAmount, String currency) {
         KafkaTemplate<String, Object> kafkaTemplate = kafkaTemplateProvider.getIfAvailable();
         if (kafkaTemplate == null) {
@@ -131,6 +132,7 @@ public class PayPalRefundListener {
                 payment.paymentId(),
                 payment.orderId(),
                 returnId,
+                sellerId,
                 refund.refundId(),
                 refund.captureId(),
                 refund.status(),

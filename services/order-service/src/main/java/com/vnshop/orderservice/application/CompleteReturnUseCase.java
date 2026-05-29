@@ -40,14 +40,14 @@ public class CompleteReturnUseCase {
         ReturnAuthorization.requireSellerOwnsReturn(orderRepository, orderReturn, sellerId);
         Order order = orderRepository.findById(UUID.fromString(orderReturn.orderId()))
                 .orElseThrow(() -> new IllegalStateException("return points at missing order"));
-        Money refundAmount = order.subOrders().stream()
+        SubOrder targetSubOrder = order.subOrders().stream()
                 .filter(subOrder -> orderReturn.subOrderId().equals(subOrder.id()))
                 .findFirst()
-                .map(SubOrder::itemsTotal)
                 .orElseThrow(() -> new IllegalStateException("return points at missing subOrder"));
+        Money refundAmount = targetSubOrder.itemsTotal();
         orderReturn.complete();
         Return savedReturn = returnRepository.save(orderReturn);
-        refundRequestPort.requestRefund(savedReturn, refundAmount);
+        refundRequestPort.requestRefund(savedReturn, targetSubOrder.sellerId(), refundAmount);
         return savedReturn;
     }
 }

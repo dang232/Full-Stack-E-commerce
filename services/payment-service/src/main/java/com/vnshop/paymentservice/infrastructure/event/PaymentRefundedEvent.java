@@ -17,6 +17,7 @@ public record PaymentRefundedEvent(
         UUID paymentId,
         String orderId,
         String returnId,
+        String sellerId,
         String refundId,
         String captureId,
         String status,

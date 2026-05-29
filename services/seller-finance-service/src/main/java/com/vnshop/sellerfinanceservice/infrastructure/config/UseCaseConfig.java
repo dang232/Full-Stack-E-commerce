@@ -4,6 +4,7 @@ import com.vnshop.sellerfinanceservice.application.CreditWalletUseCase;
 import com.vnshop.sellerfinanceservice.application.GetSellerPayoutsUseCase;
 import com.vnshop.sellerfinanceservice.application.ListPayoutsUseCase;
 import com.vnshop.sellerfinanceservice.application.ProcessPayoutUseCase;
+import com.vnshop.sellerfinanceservice.application.RefundWalletUseCase;
 import com.vnshop.sellerfinanceservice.application.RequestPayoutUseCase;
 import com.vnshop.sellerfinanceservice.application.ViewWalletUseCase;
 import com.vnshop.sellerfinanceservice.domain.CommissionCalculator;
@@ -22,6 +23,11 @@ public class UseCaseConfig {
     @Bean
     CreditWalletUseCase creditWalletUseCase(SellerWalletRepositoryPort walletRepositoryPort, CommissionCalculator commissionCalculator) {
         return new CreditWalletUseCase(walletRepositoryPort, commissionCalculator);
+    }
+
+    @Bean
+    RefundWalletUseCase refundWalletUseCase(SellerWalletRepositoryPort walletRepositoryPort, CommissionCalculator commissionCalculator) {
+        return new RefundWalletUseCase(walletRepositoryPort, commissionCalculator);
     }
 
     @Bean

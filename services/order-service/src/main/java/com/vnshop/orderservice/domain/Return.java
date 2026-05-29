@@ -98,6 +98,17 @@ public class Return {
         resolvedAt = Instant.now();
     }
 
+    public void markRefunded() {
+        if (status == ReturnStatus.REFUNDED) {
+            return;
+        }
+        if (status != ReturnStatus.COMPLETED) {
+            throw new IllegalStateException("cannot mark refunded from " + status);
+        }
+        status = ReturnStatus.REFUNDED;
+        resolvedAt = Instant.now();
+    }
+
     private static void requireNonBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " is required");
