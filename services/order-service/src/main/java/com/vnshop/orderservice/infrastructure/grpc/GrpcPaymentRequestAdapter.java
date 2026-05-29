@@ -7,9 +7,11 @@ import com.vnshop.proto.payment.PaymentServiceGrpc;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnBean(PaymentServiceGrpc.PaymentServiceBlockingStub.class)
 public class GrpcPaymentRequestAdapter implements PaymentRequestPort {
 
     private static final Logger log = LoggerFactory.getLogger(GrpcPaymentRequestAdapter.class);

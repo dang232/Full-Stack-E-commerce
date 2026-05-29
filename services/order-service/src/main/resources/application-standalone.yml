@@ -1,0 +1,6 @@
+# Standalone profile — start order-service without any gRPC dependencies.
+# Activates the no-op adapters for inventory, payment, and shipping.
+# Usage: --spring.profiles.active=standalone
+grpc:
+  client:
+    enabled: false

@@ -9,9 +9,11 @@ import com.vnshop.proto.shipping.ShippingRequest;
 import com.vnshop.proto.shipping.ShippingResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnBean(ShippingServiceGrpc.ShippingServiceBlockingStub.class)
 public class GrpcShippingRequestAdapter implements ShippingRequestPort {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GrpcShippingRequestAdapter.class);

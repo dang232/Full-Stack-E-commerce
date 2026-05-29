@@ -10,12 +10,14 @@ import com.vnshop.proto.inventory.ReserveResponse;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
 
 @Component
+@ConditionalOnBean(InventoryServiceGrpc.InventoryServiceBlockingStub.class)
 public class GrpcInventoryReservationAdapter implements InventoryReservationPort {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GrpcInventoryReservationAdapter.class);

@@ -6,10 +6,12 @@ import com.vnshop.proto.shipping.ShippingServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnProperty(name = "grpc.client.enabled", havingValue = "true", matchIfMissing = true)
 public class GrpcClientConfig {
 
     @Value("${grpc.client.inventory.host:localhost}")
