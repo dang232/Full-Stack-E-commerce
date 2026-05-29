@@ -159,10 +159,21 @@ public class Order {
     public BigDecimal fxRate() { return fxRate; }
     public Instant fxRateAt() { return fxRateAt; }
 
-    public void setExternalAmount(BigDecimal externalAmount) { this.externalAmount = externalAmount; }
-    public void setExternalCurrency(String externalCurrency) { this.externalCurrency = externalCurrency; }
-    public void setFxRate(BigDecimal fxRate) { this.fxRate = fxRate; }
-    public void setFxRateAt(Instant fxRateAt) { this.fxRateAt = fxRateAt; }
+    /**
+     * Records foreign-exchange details from the payment provider.
+     * All four fields are set atomically — partial FX state is not allowed.
+     * Pass all-null to clear (domestic payment).
+     */
+    public void recordFxDetails(BigDecimal externalAmount, String externalCurrency,
+                                BigDecimal fxRate, Instant fxRateAt) {
+        if (externalAmount != null && (externalCurrency == null || externalCurrency.isBlank())) {
+            throw new IllegalArgumentException("externalCurrency required when externalAmount is set");
+        }
+        this.externalAmount = externalAmount;
+        this.externalCurrency = externalCurrency;
+        this.fxRate = fxRate;
+        this.fxRateAt = fxRateAt;
+    }
 
     private static void requireNonBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) {

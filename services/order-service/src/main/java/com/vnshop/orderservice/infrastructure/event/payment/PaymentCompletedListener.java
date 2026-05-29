@@ -77,12 +77,18 @@ public class PaymentCompletedListener {
         order.markPaymentCompleted();
         String externalAmountRaw = text(payload, "externalAmount");
         if (externalAmountRaw != null) {
-            order.setExternalAmount(new BigDecimal(externalAmountRaw));
-            order.setExternalCurrency(text(payload, "externalCurrency"));
-            String fxRateRaw = text(payload, "fxRate");
-            order.setFxRate(fxRateRaw != null ? new BigDecimal(fxRateRaw) : null);
-            String fxRateAtRaw = text(payload, "fxRateAt");
-            order.setFxRateAt(fxRateAtRaw != null ? Instant.parse(fxRateAtRaw) : null);
+            try {
+                BigDecimal extAmount = new BigDecimal(externalAmountRaw);
+                String extCurrency = text(payload, "externalCurrency");
+                String fxRateRaw = text(payload, "fxRate");
+                BigDecimal fxRateVal = fxRateRaw != null ? new BigDecimal(fxRateRaw) : null;
+                String fxRateAtRaw = text(payload, "fxRateAt");
+                Instant fxRateAtVal = fxRateAtRaw != null ? Instant.parse(fxRateAtRaw) : null;
+                order.recordFxDetails(extAmount, extCurrency, fxRateVal, fxRateAtVal);
+            } catch (NumberFormatException | java.time.format.DateTimeParseException e) {
+                LOGGER.warn("payment.completed orderId={} malformed FX data — skipping FX: {}",
+                        orderId, e.getMessage());
+            }
         }
         Order saved = orderRepository.save(order);
         orderEventPublisher.publishOrderPaid(saved);

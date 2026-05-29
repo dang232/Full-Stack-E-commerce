@@ -139,10 +139,7 @@ public class OrderJpaEntity extends BaseJpaEntity {
                 idempotencyKey
         );
         if (externalAmount != null) {
-            order.setExternalAmount(externalAmount);
-            order.setExternalCurrency(externalCurrency);
-            order.setFxRate(fxRate);
-            order.setFxRateAt(fxRateAt);
+            order.recordFxDetails(externalAmount, externalCurrency, fxRate, fxRateAt);
         }
         return order;
     }

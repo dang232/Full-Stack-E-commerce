@@ -64,7 +64,7 @@ public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
     @Column(name = "external_currency", length = 3)
     private String externalCurrency;
 
-    @Column(name = "fx_rate", precision = 19, scale = 6)
+    @Column(name = "fx_rate", precision = 12, scale = 6)
     private BigDecimal fxRate;
 
     @Column(name = "fx_rate_at")
