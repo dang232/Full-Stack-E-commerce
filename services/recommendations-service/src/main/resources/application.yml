@@ -37,6 +37,13 @@ vnshop:
     # Max categories worth of candidates to consider before ranking.
     you-may-also-like-candidate-pool: 100
 
+kafka:
+  health:
+    consumer:
+      enabled: true
+      lag-threshold: 1000
+      group-id: recommendations-service
+
 management:
   endpoints:
     web:
