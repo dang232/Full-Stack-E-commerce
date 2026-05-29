@@ -1,5 +1,6 @@
 package com.vnshop.orderservice.domain.finance;
 
+import com.vnshop.orderservice.domain.CommissionTier;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;

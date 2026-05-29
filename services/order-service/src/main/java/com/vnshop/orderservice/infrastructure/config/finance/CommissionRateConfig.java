@@ -1,7 +1,7 @@
 package com.vnshop.orderservice.infrastructure.config.finance;
 
 import com.vnshop.orderservice.domain.finance.CommissionCalculator;
-import com.vnshop.orderservice.domain.finance.CommissionTier;
+import com.vnshop.orderservice.domain.CommissionTier;
 import java.math.BigDecimal;
 import java.util.EnumMap;
 import java.util.Map;

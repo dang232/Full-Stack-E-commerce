@@ -3,7 +3,7 @@ package com.vnshop.orderservice.infrastructure.event.finance;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.orderservice.application.finance.CreditWalletUseCase;
-import com.vnshop.orderservice.domain.finance.CommissionTier;
+import com.vnshop.orderservice.domain.CommissionTier;
 import java.math.BigDecimal;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
