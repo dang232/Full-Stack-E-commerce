@@ -12,9 +12,10 @@ public class SubOrder {
     private String shippingMethod;
     private String carrier;
     private String trackingNumber;
+    private CommissionTier commissionTier;
 
     public SubOrder(String sellerId, List<OrderItem> items) {
-        this(null, sellerId, items, FulfillmentStatus.PENDING_ACCEPTANCE, Money.ZERO, "STANDARD", null, null);
+        this(null, sellerId, items, FulfillmentStatus.PENDING_ACCEPTANCE, Money.ZERO, "STANDARD", null, null, null);
     }
 
     public SubOrder(
@@ -26,6 +27,20 @@ public class SubOrder {
             String shippingMethod,
             String carrier,
             String trackingNumber
+    ) {
+        this(id, sellerId, items, fulfillmentStatus, shippingCost, shippingMethod, carrier, trackingNumber, null);
+    }
+
+    public SubOrder(
+            Long id,
+            String sellerId,
+            List<OrderItem> items,
+            FulfillmentStatus fulfillmentStatus,
+            Money shippingCost,
+            String shippingMethod,
+            String carrier,
+            String trackingNumber,
+            CommissionTier commissionTier
     ) {
         requireNonBlank(sellerId, "sellerId");
         if (items == null || items.isEmpty()) {
@@ -39,6 +54,7 @@ public class SubOrder {
         this.shippingMethod = shippingMethod == null || shippingMethod.isBlank() ? "STANDARD" : shippingMethod;
         this.carrier = carrier;
         this.trackingNumber = trackingNumber;
+        this.commissionTier = commissionTier != null ? commissionTier : CommissionTier.STANDARD;
     }
 
     public Long id() {
@@ -71,6 +87,10 @@ public class SubOrder {
 
     public String trackingNumber() {
         return trackingNumber;
+    }
+
+    public CommissionTier commissionTier() {
+        return commissionTier;
     }
 
     public Money itemsTotal() {
