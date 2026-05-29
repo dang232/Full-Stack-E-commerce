@@ -82,9 +82,11 @@ public class CreateOrderUseCase {
     private List<SubOrder> splitBySeller(List<OrderItem> items) {
         Map<String, List<OrderItem>> itemsBySeller = items.stream()
                 .collect(Collectors.groupingBy(OrderItem::sellerId, Collectors.toList()));
+        Map<String, CommissionTier> tiersBySeller =
+                commissionTierLookupPort.findBySellerIds(itemsBySeller.keySet());
         List<SubOrder> subOrders = new ArrayList<>();
         for (Map.Entry<String, List<OrderItem>> entry : itemsBySeller.entrySet()) {
-            CommissionTier tier = commissionTierLookupPort.findBySellerId(entry.getKey());
+            CommissionTier tier = tiersBySeller.getOrDefault(entry.getKey(), CommissionTier.STANDARD);
             subOrders.add(new SubOrder(entry.getKey(), entry.getValue(), tier));
         }
         return List.copyOf(subOrders);

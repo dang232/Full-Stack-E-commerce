@@ -43,7 +43,14 @@ class CheckoutOrderUseCaseTest {
     private final RecordingPayment payment = new RecordingPayment();
     private final RecordingShipping shipping = new RecordingShipping();
     private final RecordingOrderEvents events = new RecordingOrderEvents();
-    private final CommissionTierLookupPort tierLookup = sellerId -> CommissionTier.STANDARD;
+    private final CommissionTierLookupPort tierLookup = new CommissionTierLookupPort() {
+        @Override
+        public CommissionTier findBySellerId(String sellerId) { return CommissionTier.STANDARD; }
+        @Override
+        public java.util.Map<String, CommissionTier> findBySellerIds(java.util.Set<String> sellerIds) {
+            return sellerIds.stream().collect(java.util.stream.Collectors.toMap(id -> id, id -> CommissionTier.STANDARD));
+        }
+    };
 
     private CheckoutOrderUseCase newUseCase() {
         CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup);
