@@ -63,6 +63,7 @@ class PayPalRefundListenerTest {
         // which wallet to debit; the listener only forwards, never derives it.
         assertThat(captor.getValue().sellerId()).isEqualTo(SELLER_ID);
         assertThat(captor.getValue().refundId()).isEqualTo("REFUND-1");
+        assertThat(captor.getValue().commissionTier()).isEqualTo("STANDARD");
     }
 
     @Test
@@ -82,7 +83,7 @@ class PayPalRefundListenerTest {
         // Bare event payload (no outbox envelope)
         String flat = "{\"returnId\":\"" + RETURN_ID + "\",\"orderId\":\"" + ORDER_ID
                 + "\",\"buyerId\":\"BUYER-1\",\"sellerId\":\"" + SELLER_ID
-                + "\",\"amount\":\"100000\",\"currency\":\"VND\"}";
+                + "\",\"amount\":\"100000\",\"currency\":\"VND\",\"commissionTier\":\"STANDARD\"}";
         listener.onRefundRequested(flat);
 
         verify(gateway).refund(eq(CAPTURE_ID), eq(new BigDecimal("4.00")), eq(RETURN_ID));
@@ -152,7 +153,8 @@ class PayPalRefundListenerTest {
         String inner = "{\\\"returnId\\\":\\\"" + RETURN_ID + "\\\",\\\"orderId\\\":\\\"" + ORDER_ID
                 + "\\\",\\\"buyerId\\\":\\\"BUYER-1\\\",\\\"sellerId\\\":\\\"" + SELLER_ID
                 + "\\\",\\\"amount\\\":\\\"" + amount
-                + "\\\",\\\"currency\\\":\\\"" + currency + "\\\"}";
+                + "\\\",\\\"currency\\\":\\\"" + currency
+                + "\\\",\\\"commissionTier\\\":\\\"STANDARD\\\"}";
         return "{\"eventType\":\"payment.refund_requested\",\"payload\":\"" + inner + "\"}";
     }
 

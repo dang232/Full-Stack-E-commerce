@@ -81,6 +81,7 @@ public class PayPalRefundListener {
         String sellerId = text(payload, "sellerId");
         String amountRaw = text(payload, "amount");
         String currency = text(payload, "currency");
+        String commissionTier = text(payload, "commissionTier");
         if (orderId == null || orderId.isBlank() || returnId == null || returnId.isBlank() || amountRaw == null) {
             LOGGER.warn("paypal-refund skipping malformed event returnId={} orderId={} amount={}",
                     returnId, orderId, amountRaw);
@@ -116,10 +117,10 @@ public class PayPalRefundListener {
         LOGGER.info("paypal-refund-issued orderId={} returnId={} captureId={} refundId={} status={}",
                 orderId, returnId, captureId, refund.refundId(), refund.status());
 
-        publishRefunded(payment, returnId, sellerId, refund, vndAmount, currency);
+        publishRefunded(payment, returnId, sellerId, commissionTier, refund, vndAmount, currency);
     }
 
-    private void publishRefunded(Payment payment, String returnId, String sellerId,
+    private void publishRefunded(Payment payment, String returnId, String sellerId, String commissionTier,
                                   PayPalGateway.PayPalRefund refund, BigDecimal vndAmount, String currency) {
         KafkaTemplate<String, Object> kafkaTemplate = kafkaTemplateProvider.getIfAvailable();
         if (kafkaTemplate == null) {
@@ -137,7 +138,8 @@ public class PayPalRefundListener {
                 refund.captureId(),
                 refund.status(),
                 vndAmount,
-                currency != null ? currency : "VND");
+                currency != null ? currency : "VND",
+                commissionTier != null ? commissionTier : "STANDARD");
         kafkaTemplate.send(REFUNDED_TOPIC, payment.orderId(), event);
     }
 

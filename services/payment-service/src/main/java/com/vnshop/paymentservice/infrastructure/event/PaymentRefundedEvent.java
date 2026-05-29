@@ -22,5 +22,6 @@ public record PaymentRefundedEvent(
         String captureId,
         String status,
         BigDecimal amount,
-        String currency) {
+        String currency,
+        String commissionTier) {
 }

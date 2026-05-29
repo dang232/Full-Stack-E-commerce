@@ -80,10 +80,52 @@ class PaymentRefundedFinanceListenerTest {
         assertThat(wallets.savedCount).isZero();
     }
 
+    @Test
+    void usesCommissionTierFromEventWhenPresent() {
+        // VERIFIED tier has 8% commission → sellerNet = 92,000 for a 100,000 order.
+        CommissionRateConfig rateConfig = new CommissionRateConfig();
+        rateConfig.setTiers(Map.of(
+                CommissionTier.STANDARD, new BigDecimal("0.10"),
+                CommissionTier.VERIFIED, new BigDecimal("0.08")));
+        CommissionCalculator calc = new CommissionCalculator(rateConfig);
+        RefundWalletUseCase tieredUseCase = new RefundWalletUseCase(wallets, calc);
+        PaymentRefundedFinanceListener tieredListener =
+                new PaymentRefundedFinanceListener(tieredUseCase, objectMapper);
+
+        wallets.save(new SellerWallet(SELLER_ID,
+                new BigDecimal("92000.00"), BigDecimal.ZERO, new BigDecimal("92000.00"), null));
+
+        tieredListener.onPaymentRefunded(eventJsonWithTier("100000", SELLER_ID, "VERIFIED"));
+
+        SellerWallet after = wallets.findBySellerId(SELLER_ID).orElseThrow();
+        // Debit = sellerNet at VERIFIED tier = 92,000
+        assertThat(after.availableBalance()).isEqualByComparingTo("0.00");
+    }
+
+    @Test
+    void defaultsToStandardWhenCommissionTierMissing() {
+        // Event without commissionTier field — backward compat with older publishers.
+        wallets.save(new SellerWallet(SELLER_ID,
+                new BigDecimal("90000.00"), BigDecimal.ZERO, new BigDecimal("90000.00"), null));
+
+        // eventJson() does NOT include commissionTier
+        listener.onPaymentRefunded(eventJson("100000", SELLER_ID));
+
+        SellerWallet after = wallets.findBySellerId(SELLER_ID).orElseThrow();
+        // STANDARD 10% → sellerNet = 90,000 → debit 90,000 → balance 0
+        assertThat(after.availableBalance()).isEqualByComparingTo("0.00");
+    }
+
     private static String eventJson(String amount, String sellerId) {
         return String.format(
                 "{\"provider\":\"PAYPAL\",\"orderId\":\"O-1\",\"returnId\":\"R-1\",\"sellerId\":\"%s\",\"refundId\":\"RF-1\",\"captureId\":\"C-1\",\"status\":\"COMPLETED\",\"amount\":\"%s\",\"currency\":\"VND\"}",
                 sellerId, amount);
+    }
+
+    private static String eventJsonWithTier(String amount, String sellerId, String tier) {
+        return String.format(
+                "{\"provider\":\"PAYPAL\",\"orderId\":\"O-1\",\"returnId\":\"R-1\",\"sellerId\":\"%s\",\"refundId\":\"RF-1\",\"captureId\":\"C-1\",\"status\":\"COMPLETED\",\"amount\":\"%s\",\"currency\":\"VND\",\"commissionTier\":\"%s\"}",
+                sellerId, amount, tier);
     }
 
     private static CommissionCalculator standardCalculator() {

@@ -56,11 +56,18 @@ public class PaymentRefundedFinanceListener {
             LOGGER.warn("payment.refunded amount={} not a valid number — skipping", amountRaw);
             return;
         }
-        // Tier is not carried on the refunded event; the original credit used
-        // STANDARD as the OrderCreated event default and there is no per-seller
-        // override yet. When commission tiers diverge, both events will need to
-        // carry the tier explicitly.
-        refundWalletUseCase.refund(sellerId, amount, CommissionTier.STANDARD).ifPresentOrElse(
+        // Read commission tier from the event; default to STANDARD for backward
+        // compatibility with events published before the tier field was added.
+        String tierRaw = text(payload, "commissionTier");
+        CommissionTier tier = CommissionTier.STANDARD;
+        if (tierRaw != null && !tierRaw.isBlank()) {
+            try {
+                tier = CommissionTier.valueOf(tierRaw);
+            } catch (IllegalArgumentException ex) {
+                LOGGER.warn("payment.refunded unknown commissionTier={} — defaulting to STANDARD", tierRaw);
+            }
+        }
+        refundWalletUseCase.refund(sellerId, amount, tier).ifPresentOrElse(
                 result -> LOGGER.info("seller-wallet-refunded sellerId={} debited={}", sellerId, result.sellerNet()),
                 () -> LOGGER.warn("seller-wallet-refund skipped — no wallet for sellerId={}", sellerId));
     }
