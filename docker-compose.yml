@@ -831,6 +831,33 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
 
+  monitoring-service-v2:
+    profiles: ["apps"]
+    build: ./services/monitoring-service-v2
+    container_name: vnshop-monitoring
+    ports:
+      - "8096:8096"
+    environment:
+      PORT: 8096
+      GATEWAY_URL: http://api-gateway:8080
+      GATEWAY_ACTUATOR_URL: http://api-gateway:8080/actuator/gateway/routes
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: monitoring
+      TIMESCALE_USER: monitoring
+      TIMESCALE_PASSWORD: monitoring
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
+      CORS_ORIGINS: http://localhost:8096,http://localhost:3000,http://localhost:5173
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8096/monitoring/services || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres-legacy-data:
   postgres-keycloak-data:
