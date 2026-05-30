@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -6,6 +7,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { appConfig } from './config/app.config.js';
 import { databaseConfig } from './config/database.config.js';
+import { AuthModule } from './auth/auth.module.js';
+import { JwtAuthGuard } from './auth/auth.guard.js';
+import { RolesGuard } from './auth/roles.guard.js';
 
 @Module({
   imports: [
@@ -25,6 +29,11 @@ import { databaseConfig } from './config/database.config.js';
       }),
     }),
     ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', 'public') }),
+    AuthModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}
