@@ -169,6 +169,25 @@ services:
       timeout: 5s
       retries: 5
 
+  timescaledb:
+    profiles: ["apps"]
+    image: timescale/timescaledb:latest-pg16
+    container_name: vnshop-timescaledb
+    environment:
+      POSTGRES_DB: monitoring
+      POSTGRES_USER: monitoring
+      POSTGRES_PASSWORD: monitoring
+    ports:
+      - "5440:5432"
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data
+      - ./infra/timescaledb/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monitoring -d monitoring"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:8.6-alpine
     container_name: vnshop-redis
@@ -607,42 +626,6 @@ services:
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
 
-  # DEPRECATED - migrated to order-service/product-service
-  review-service:
-    profiles: ["legacy"]
-    build: ./services/review-service
-    container_name: vnshop-review-service
-    ports:
-      - "8089:8089"
-    depends_on:
-      postgres-legacy:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      SERVER_PORT: 8089
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=review_svc
-      SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
-      REDIS_HOST: redis
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
-      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
-      MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
-      # Object storage — pre-existing bit-rot, surfaced + fixed in pt14.
-      # ReviewImageUploadService unconditionally injects ObjectStoragePort
-      # but the @ConditionalOnProperty on ObjectStorageConfig was never
-      # satisfied, so cold rebuilds failed to wire the bean.
-      VNSHOP_OBJECT_STORAGE_ENABLED: ${OBJECT_STORAGE_ENABLED:-true}
-      VNSHOP_OBJECT_STORAGE_PROFILE: ${OBJECT_STORAGE_PROFILE:-MINIO}
-      VNSHOP_OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET_REVIEWS:-vnshop-reviews}
-      VNSHOP_OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:-http://minio:9000}
-      VNSHOP_OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-auto}
-      VNSHOP_OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:-vnshop}
-      VNSHOP_OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:-vnshop123}
-      VNSHOP_OBJECT_STORAGE_PATH_STYLE_ACCESS: ${OBJECT_STORAGE_PATH_STYLE:-true}
 
   seller-finance-service:
     profiles: ["apps"]
@@ -805,6 +788,17 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      # Carrier mode: "stub" (default, deterministic pricing) or "live" (real GHN/GHTK APIs).
+      CARRIER_MODE: ${CARRIER_MODE:-stub}
+      # GHN (Giao Hàng Nhanh) credentials — https://dev.ghn.vn
+      GHN_BASE_URL: ${GHN_BASE_URL:-https://dev-online-gateway.ghn.vn}
+      GHN_TOKEN: ${GHN_TOKEN:-}
+      GHN_SHOP_ID: ${GHN_SHOP_ID:-}
+      GHN_SERVICE_TYPE_ID: ${GHN_SERVICE_TYPE_ID:-2}
+      # GHTK (Giao Hàng Tiết Kiệm) credentials — https://giaohangtietkiem.vn
+      GHTK_BASE_URL: ${GHTK_BASE_URL:-https://services.giaohangtietkiem.vn}
+      GHTK_TOKEN: ${GHTK_TOKEN:-}
+      GHTK_PARTNER_CODE: ${GHTK_PARTNER_CODE:-}
 
   messaging-service:
     profiles: ["apps"]
@@ -846,3 +840,4 @@ volumes:
   elasticsearch-data:
   minio-data:
   mongo-data:
+  timescaledb-data:
