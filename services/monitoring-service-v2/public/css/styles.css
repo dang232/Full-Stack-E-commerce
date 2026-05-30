@@ -1,0 +1,529 @@
+/* ============================================================
+   VNShop Monitoring Dashboard — Dark Theme
+   ============================================================ */
+
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --surface-hover: #1a2744;
+  --text: #e0e0e0;
+  --text-muted: #8892a4;
+  --accent: #4fc3f7;
+  --success: #66bb6a;
+  --warning: #ffa726;
+  --danger: #ef5350;
+  --border: #2a3a5e;
+  --radius: 8px;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Base */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  margin-right: auto;
+}
+
+header nav {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+.tab {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover {
+  background-color: var(--surface-hover);
+  color: var(--text);
+}
+
+.tab.active {
+  background-color: var(--bg);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ============================================================
+   Logout button
+   ============================================================ */
+.btn-logout {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-logout:hover {
+  background-color: var(--danger);
+  color: #fff;
+}
+
+/* ============================================================
+   Main content
+   ============================================================ */
+main {
+  padding: 2rem;
+}
+
+/* ============================================================
+   Views
+   ============================================================ */
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+/* ============================================================
+   Alert banner
+   ============================================================ */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.alert-banner {
+  padding: 0.75rem 2rem;
+  background-color: var(--danger);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideDown 0.2s ease-out;
+}
+
+.alert-banner.hidden {
+  display: none;
+}
+
+/* ============================================================
+   Services grid
+   ============================================================ */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+/* ============================================================
+   Service card
+   ============================================================ */
+.service-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.service-card:hover {
+  border-color: var(--accent);
+  background-color: var(--surface-hover);
+}
+
+.service-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.service-card .meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   Status dot
+   ============================================================ */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.status-dot.up {
+  background-color: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+.status-dot.degraded {
+  background-color: var(--warning);
+  box-shadow: 0 0 6px var(--warning);
+}
+
+.status-dot.down {
+  background-color: var(--danger);
+  box-shadow: 0 0 6px var(--danger);
+}
+
+/* ============================================================
+   Detail panel
+   ============================================================ */
+.detail-panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.detail-panel h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--accent);
+}
+
+.detail-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.detail-panel table th,
+.detail-panel table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-panel table th {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ============================================================
+   Playground layout
+   ============================================================ */
+.playground-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* ============================================================
+   Endpoint list
+   ============================================================ */
+.endpoint-list {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.endpoint-list h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.5rem 0.5rem;
+}
+
+.endpoint-item {
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.1s;
+  color: var(--text);
+}
+
+.endpoint-item:hover {
+  background-color: var(--surface-hover);
+}
+
+.endpoint-item.active {
+  background-color: var(--surface-hover);
+  color: var(--accent);
+}
+
+.endpoint-item span.path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Method badge
+   ============================================================ */
+.method-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.method-badge.get {
+  background-color: rgba(102, 187, 106, 0.2);
+  color: var(--success);
+}
+
+.method-badge.post {
+  background-color: rgba(255, 167, 38, 0.2);
+  color: var(--warning);
+}
+
+.method-badge.put {
+  background-color: rgba(79, 195, 247, 0.2);
+  color: var(--accent);
+}
+
+.method-badge.delete {
+  background-color: rgba(239, 83, 80, 0.2);
+  color: var(--danger);
+}
+
+/* ============================================================
+   Request panel
+   ============================================================ */
+.request-panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.request-panel h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.request-panel label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.request-panel input[type="text"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.request-panel input[type="text"]:focus {
+  border-color: var(--accent);
+}
+
+textarea {
+  width: 100%;
+  min-height: 150px;
+  background-color: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.8rem;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+textarea:focus {
+  border-color: var(--accent);
+}
+
+.btn-send {
+  margin-top: 1rem;
+  padding: 0.6rem 1.5rem;
+  background-color: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-send:hover {
+  opacity: 0.85;
+}
+
+.btn-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Response panel
+   ============================================================ */
+.response-panel {
+  margin-top: 1rem;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.response-panel .response-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.response-panel .response-meta .status-ok {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.response-panel .response-meta .status-err {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.response-panel pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.8rem;
+  color: var(--text);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* ============================================================
+   Login screen
+   ============================================================ */
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.login-screen.hidden {
+  display: none;
+}
+
+/* ============================================================
+   Scrollbar styling
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ============================================================
+   Utility
+   ============================================================ */
+.hidden {
+  display: none !important;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+.text-accent {
+  color: var(--accent);
+}
