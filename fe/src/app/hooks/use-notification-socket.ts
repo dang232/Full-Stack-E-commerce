@@ -63,6 +63,9 @@ export function useNotificationSocket(): void {
         if (!result.success) return;
         const notification = result.data;
 
+        // ACK delivery to server
+        socket.emit("notification:ack", { ids: [notification.id] });
+
         // Update notifications list cache
         qc.setQueryData(NOTIFICATIONS_KEY, (prev: any) => {
           if (!prev) return prev;
@@ -94,6 +97,9 @@ export function useNotificationSocket(): void {
           .map((r) => r.data!);
 
         if (notifications.length === 0) return;
+
+        // ACK delivery for all catch-up notifications
+        socket.emit("notification:ack", { ids: notifications.map((n) => n.id) });
 
         // Merge into cache
         qc.setQueryData(NOTIFICATIONS_KEY, (prev: any) => {

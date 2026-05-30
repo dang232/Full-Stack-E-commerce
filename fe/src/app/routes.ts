@@ -54,6 +54,11 @@ const PasswordResetPage = lazy(() =>
 const NotificationsPage = lazy(() =>
   import("./pages/NotificationsPage").then((m) => ({ default: m.NotificationsPageRoute })),
 );
+const NotificationPreferencesPage = lazy(() =>
+  import("./components/notifications/notification-preferences-page").then((m) => ({
+    default: m.NotificationPreferencesPage,
+  })),
+);
 
 const Fallback = () =>
   createElement(
@@ -113,6 +118,7 @@ export const router = createBrowserRouter([
       { path: "payment/return/:provider", element: lazyRoute(createElement(PaymentReturnPage)) },
       { path: "messages", element: guarded(createElement(MessagesPage)) },
       { path: "notifications", element: guarded(createElement(NotificationsPage)) },
+      { path: "notifications/preferences", element: guarded(createElement(NotificationPreferencesPage)) },
       { path: "sellers/:id", element: suspenseWithBoundary(createElement(SellerDetailPage)), loader: ({ params }) => {
         const id = params.id ?? "";
         void queryClient.prefetchQuery(sellerDetailOptions(id));

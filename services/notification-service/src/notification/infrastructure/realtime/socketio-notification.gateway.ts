@@ -1,6 +1,7 @@
 import {
   WebSocketGateway,
   WebSocketServer,
+  SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
@@ -17,6 +18,7 @@ import {
   NotificationRepository,
   NOTIFICATION_REPOSITORY,
 } from '../../domain/port/outbound/notification.repository';
+import { DeliveryStatusValue } from '../../domain/model/delivery-status';
 
 @WebSocketGateway({
   namespace: '/ws/notifications',
@@ -109,6 +111,28 @@ export class SocketioNotificationGateway
         this.logger.log(`Disconnected: ${client.id} userId=${userId}`);
       } catch (err) {
         this.logger.warn(`Failed to unregister ${client.id}: ${err}`);
+      }
+    }
+  }
+
+  @SubscribeMessage('notification:ack')
+  async handleAck(client: Socket, payload: { ids: string[] }): Promise<void> {
+    const userId = (client as Socket & { userId?: string }).userId;
+    if (!userId || !Array.isArray(payload?.ids) || payload.ids.length === 0) return;
+
+    // Cap batch size to prevent abuse
+    const ids = payload.ids.slice(0, 100);
+
+    for (const id of ids) {
+      try {
+        const notification = await this.notificationRepo.findByIdAndUserId(id, userId);
+        if (!notification) continue;
+        if (notification.deliveryStatus.getValue() !== DeliveryStatusValue.SENT) continue;
+
+        notification.markDelivered();
+        await this.notificationRepo.save(notification);
+      } catch (err) {
+        this.logger.warn(`Failed to ACK notification ${id}: ${err}`);
       }
     }
   }
