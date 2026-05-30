@@ -39,7 +39,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,gateway
   tracing:
     sampling:
       probability: 1.0

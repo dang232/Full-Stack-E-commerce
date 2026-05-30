@@ -36,6 +36,7 @@ public class RouteConfig {
     private final String sellerFinanceServiceUri;
     private final String recommendationsServiceUri;
     private final String messagingServiceUri;
+    private final String monitoringServiceUri;
 
     public RouteConfig(
         @Value("${vnshop.routes.product-service:http://product-service:8082}") String productServiceUri,
@@ -50,7 +51,8 @@ public class RouteConfig {
         @Value("${vnshop.routes.coupon-service:http://coupon-service:8088}") String couponServiceUri,
         @Value("${vnshop.routes.seller-finance-service:http://seller-finance-service:8090}") String sellerFinanceServiceUri,
         @Value("${vnshop.routes.recommendations-service:http://recommendations-service:8094}") String recommendationsServiceUri,
-        @Value("${vnshop.routes.messaging-service:http://messaging-service:8095}") String messagingServiceUri
+        @Value("${vnshop.routes.messaging-service:http://messaging-service:8095}") String messagingServiceUri,
+        @Value("${vnshop.routes.monitoring-service:http://monitoring-service-v2:8096}") String monitoringServiceUri
     ) {
         this.productServiceUri = productServiceUri;
         this.userServiceUri = userServiceUri;
@@ -65,6 +67,7 @@ public class RouteConfig {
         this.sellerFinanceServiceUri = sellerFinanceServiceUri;
         this.recommendationsServiceUri = recommendationsServiceUri;
         this.messagingServiceUri = messagingServiceUri;
+        this.monitoringServiceUri = monitoringServiceUri;
     }
 
     @Bean
@@ -214,6 +217,9 @@ public class RouteConfig {
             .route("admin-vietqr", route -> route.path("/admin/vietqr/**")
                 .filters(filters -> resilient(filters, "payment-service"))
                 .uri(paymentServiceUri))
+            .route("monitoring", route -> route.path("/monitoring/**")
+                .filters(filters -> resilient(filters, "monitoring-service"))
+                .uri(monitoringServiceUri))
             .route("admin", route -> route.path("/admin/**")
                 .filters(filters -> resilient(filters, "user-service"))
                 .uri(userServiceUri))
