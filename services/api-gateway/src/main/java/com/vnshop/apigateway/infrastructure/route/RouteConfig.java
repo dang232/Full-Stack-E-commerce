@@ -160,6 +160,11 @@ public class RouteConfig {
             .route("notifications", route -> route.path("/notifications/**")
                 .filters(filters -> resilient(filters, "notification-service"))
                 .uri(notificationServiceUri))
+            // Notification WebSocket upgrade. Circuit breaker intentionally omitted
+            // for the same reason as messaging-ws: Resilience4j doesn't reliably wrap
+            // the Upgrade lifecycle and would surface 5xx during reconnect storms.
+            .route("notifications-ws", route -> route.path("/ws/notifications/**")
+                .uri(notificationServiceUri))
             // Buyer-seller messaging (REST). The matching WebSocket upgrade lives on
             // /ws/messaging — Spring Cloud Gateway proxies HTTP-Upgrade requests
             // through to the downstream `http://` URI without extra config. The circuit

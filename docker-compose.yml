@@ -183,6 +183,24 @@ services:
       timeout: 5s
       retries: 5
 
+  mongo:
+    image: mongo:7.0
+    container_name: vnshop-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: vnshop
+      MONGO_INITDB_ROOT_PASSWORD: vnshop123
+      MONGO_INITDB_DATABASE: notification_db
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   kafka:
     image: confluentinc/cp-kafka:8.2.0
     container_name: vnshop-kafka
@@ -549,19 +567,15 @@ services:
     ports:
       - "8087:8087"
     depends_on:
-      postgres-legacy:
+      mongo:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
         condition: service_healthy
     environment:
-      DB_HOST: postgres-legacy
-      DB_PORT: 5432
-      DB_USERNAME: vnshop
-      DB_PASSWORD: vnshop123
-      DB_DATABASE: vnshop
-      DATABASE_URL: postgresql://vnshop:vnshop123@postgres-legacy:5432/vnshop?currentSchema=notification_svc
+      MONGO_URI: mongodb://vnshop:vnshop123@mongo:27017/notification_db?authSource=admin
+      REDIS_URL: redis://redis:6379
       PORT: 8087
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: always_on
@@ -831,3 +845,4 @@ volumes:
   kafka-data:
   elasticsearch-data:
   minio-data:
+  mongo-data:

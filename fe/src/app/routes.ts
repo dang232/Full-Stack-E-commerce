@@ -51,6 +51,9 @@ const SellerDetailPage = lazy(() =>
 const PasswordResetPage = lazy(() =>
   import("./pages/PasswordResetPage").then((m) => ({ default: m.PasswordResetPage })),
 );
+const NotificationsPage = lazy(() =>
+  import("./pages/NotificationsPage").then((m) => ({ default: m.NotificationsPageRoute })),
+);
 
 const Fallback = () =>
   createElement(
@@ -109,6 +112,7 @@ export const router = createBrowserRouter([
       { path: "design-system", element: lazyRoute(createElement(DesignSystemPage)) },
       { path: "payment/return/:provider", element: lazyRoute(createElement(PaymentReturnPage)) },
       { path: "messages", element: guarded(createElement(MessagesPage)) },
+      { path: "notifications", element: guarded(createElement(NotificationsPage)) },
       { path: "sellers/:id", element: suspenseWithBoundary(createElement(SellerDetailPage)), loader: ({ params }) => {
         const id = params.id ?? "";
         void queryClient.prefetchQuery(sellerDetailOptions(id));

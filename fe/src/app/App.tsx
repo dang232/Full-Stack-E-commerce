@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { ErrorBoundary } from "./components/error-boundary";
 import { VNShopProvider } from "./components/vnshop-context";
 import { useMessagingSocket } from "./hooks/use-messaging-socket";
+import { useNotificationSocket } from "./hooks/use-notification-socket";
 import { router } from "./routes";
 import "../styles/fonts.css";
 
@@ -14,6 +15,7 @@ import "../styles/fonts.css";
  */
 function BackgroundEffects() {
   useMessagingSocket();
+  useNotificationSocket();
   return null;
 }
 

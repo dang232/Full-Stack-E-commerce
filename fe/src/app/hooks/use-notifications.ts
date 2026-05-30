@@ -9,22 +9,18 @@ import {
 import type { Notification } from "../types/api";
 
 import { useAuth } from "./use-auth";
-import { usePageVisible } from "./use-page-visible";
 
-const POLL_INTERVAL_MS = 30_000;
 const NOTIFICATIONS_KEY = ["notifications", "list"] as const;
 const UNREAD_KEY = ["notifications", "unread-count"] as const;
 
 export function useNotifications() {
   const { ready, authenticated } = useAuth();
-  const visible = usePageVisible();
   const qc = useQueryClient();
 
   const query = useQuery({
     queryKey: NOTIFICATIONS_KEY,
     queryFn: () => listNotifications({ size: 30 }),
     enabled: ready && authenticated,
-    refetchInterval: visible ? POLL_INTERVAL_MS : false,
     refetchOnWindowFocus: true,
     retry: false,
   });
@@ -33,7 +29,6 @@ export function useNotifications() {
     queryKey: UNREAD_KEY,
     queryFn: () => unreadNotificationCount(),
     enabled: ready && authenticated,
-    refetchInterval: visible ? POLL_INTERVAL_MS : false,
     refetchOnWindowFocus: true,
     retry: false,
   });

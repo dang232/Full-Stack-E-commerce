@@ -1,14 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppModule } from './app.module';
-import { startTracing } from './tracing';
 
 async function bootstrap() {
-  startTracing();
   const app = await NestFactory.create(AppModule);
 
-  // —— Kafka transport ——————————————————————
+  // WebSocket adapter (socket.io)
+  app.useWebSocketAdapter(new IoAdapter(app));
+
+  // Kafka microservice transport
   const brokers = (process.env.KAFKA_BOOTSTRAP_SERVERS ?? 'localhost:9092')
     .split(',')
     .map((b: string) => b.trim())
@@ -28,14 +29,11 @@ async function bootstrap() {
     },
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('Notification Service')
-    .setVersion('1.0')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
-
   await app.startAllMicroservices();
-  await app.listen(8087);
+
+  const port = process.env.PORT ?? 8087;
+  await app.listen(port);
+  console.log(`Notification service running on port ${port}`);
 }
+
 void bootstrap();

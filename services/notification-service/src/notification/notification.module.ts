@@ -1,100 +1,92 @@
-import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
-import { CountUnreadNotificationsUseCase } from './application/count-unread-notifications.use-case';
-import { FindNotificationByIdUseCase } from './application/find-notification-by-id.use-case';
-import { FindUserNotificationsUseCase } from './application/find-user-notifications.use-case';
-import { KafkaNotificationConsumer } from './application/kafka-notification.consumer';
-import { MarkAllNotificationsReadUseCase } from './application/mark-all-notifications-read.use-case';
-import { MarkNotificationReadUseCase } from './application/mark-notification-read.use-case';
-import {
-  NotificationChannel,
-  SendNotificationUseCase,
-} from './application/send-notification.use-case';
-import {
-  NOTIFICATION_REPOSITORY,
-  NotificationRepository,
-} from './domain/notification.repository';
-import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
-import { ConsoleChannelAdapter } from './infrastructure/channel/console-channel.adapter';
-import { EmailChannelAdapter } from './infrastructure/channel/email-channel.adapter';
-import { NotificationController } from './infrastructure/notification.controller';
-import { NotificationMikroOrmEntity } from './infrastructure/notification.mikro-orm-entity';
-import { NotificationMikroOrmRepository } from './infrastructure/notification.mikro-orm-repository';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
-export const NOTIFICATION_CHANNELS = Symbol('NOTIFICATION_CHANNELS');
+// Infrastructure — Persistence
+import {
+  NotificationSchemaClass,
+  NotificationSchema,
+} from './infrastructure/persistence/mongo-notification.schema';
+import { MongoNotificationRepository } from './infrastructure/persistence/mongo-notification.repository';
+
+// Infrastructure — Cache
+import { RedisModule } from './infrastructure/cache/redis.module';
+import { RedisDeduplicationAdapter } from './infrastructure/cache/redis-deduplication.adapter';
+import { RedisConnectionRegistryAdapter } from './infrastructure/cache/redis-connection-registry.adapter';
+
+// Infrastructure — Realtime
+import { SocketioNotificationGateway } from './infrastructure/realtime/socketio-notification.gateway';
+import { SocketioRealtimeChannelAdapter } from './infrastructure/realtime/socketio-realtime-channel.adapter';
+
+// Infrastructure — Messaging
+import { KafkaEventConsumer } from './infrastructure/messaging/kafka-event.consumer';
+
+// Infrastructure — REST
+import { NotificationRestController } from './infrastructure/rest/notification.controller';
+
+// Infrastructure — Auth
+import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
+
+// Application — Commands
+import { SendNotificationUseCase } from './application/command/send-notification.use-case';
+import { MarkNotificationReadUseCase } from './application/command/mark-notification-read.use-case';
+import { MarkAllReadUseCase } from './application/command/mark-all-read.use-case';
+import { RetryFailedDeliveriesUseCase } from './application/command/retry-failed-deliveries.use-case';
+
+// Application — Queries
+import { FindUserNotificationsUseCase } from './application/query/find-user-notifications.use-case';
+import { FindNotificationThreadsUseCase } from './application/query/find-notification-threads.use-case';
+import { FindThreadNotificationsUseCase } from './application/query/find-thread-notifications.use-case';
+import { CountUnreadUseCase } from './application/query/count-unread.use-case';
+
+// Application — Event Handlers
+import { NotificationCreatedHandler } from './application/event-handler/notification-created.handler';
+
+// Domain — Port Symbols
+import { NOTIFICATION_REPOSITORY } from './domain/port/outbound/notification.repository';
+import { REALTIME_CHANNEL_PORT } from './domain/port/outbound/realtime-channel.port';
+import { DEDUPLICATION_PORT } from './domain/port/outbound/deduplication.port';
+import { CONNECTION_REGISTRY_PORT } from './domain/port/outbound/connection-registry.port';
 
 @Module({
   imports: [
-    MikroOrmModule.forFeature([NotificationMikroOrmEntity]),
+    MongooseModule.forFeature([
+      { name: NotificationSchemaClass.name, schema: NotificationSchema },
+    ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    EventEmitterModule.forRoot(),
+    RedisModule,
   ],
-  controllers: [NotificationController, KafkaNotificationConsumer],
+  controllers: [NotificationRestController, KafkaEventConsumer],
   providers: [
+    // Auth
     JwtStrategy,
-    ConsoleChannelAdapter,
-    EmailChannelAdapter,
-    {
-      provide: NOTIFICATION_CHANNELS,
-      useFactory: (
-        consoleChannel: ConsoleChannelAdapter,
-        emailChannel: EmailChannelAdapter,
-      ): NotificationChannel[] => [consoleChannel, emailChannel],
-      inject: [ConsoleChannelAdapter, EmailChannelAdapter],
-    },
-    {
-      provide: NOTIFICATION_REPOSITORY,
-      useClass: NotificationMikroOrmRepository,
-    },
-    {
-      provide: FindUserNotificationsUseCase,
-      useFactory: (
-        repository: NotificationRepository,
-      ): FindUserNotificationsUseCase =>
-        new FindUserNotificationsUseCase(repository),
-      inject: [NOTIFICATION_REPOSITORY],
-    },
-    {
-      provide: FindNotificationByIdUseCase,
-      useFactory: (
-        repository: NotificationRepository,
-      ): FindNotificationByIdUseCase =>
-        new FindNotificationByIdUseCase(repository),
-      inject: [NOTIFICATION_REPOSITORY],
-    },
-    {
-      provide: MarkNotificationReadUseCase,
-      useFactory: (
-        repository: NotificationRepository,
-      ): MarkNotificationReadUseCase =>
-        new MarkNotificationReadUseCase(repository),
-      inject: [NOTIFICATION_REPOSITORY],
-    },
-    {
-      provide: MarkAllNotificationsReadUseCase,
-      useFactory: (
-        repository: NotificationRepository,
-      ): MarkAllNotificationsReadUseCase =>
-        new MarkAllNotificationsReadUseCase(repository),
-      inject: [NOTIFICATION_REPOSITORY],
-    },
-    {
-      provide: CountUnreadNotificationsUseCase,
-      useFactory: (
-        repository: NotificationRepository,
-      ): CountUnreadNotificationsUseCase =>
-        new CountUnreadNotificationsUseCase(repository),
-      inject: [NOTIFICATION_REPOSITORY],
-    },
-    {
-      provide: SendNotificationUseCase,
-      useFactory: (
-        repository: NotificationRepository,
-        channels: NotificationChannel[],
-      ): SendNotificationUseCase =>
-        new SendNotificationUseCase(repository, channels),
-      inject: [NOTIFICATION_REPOSITORY, NOTIFICATION_CHANNELS],
-    },
+
+    // Port → Adapter bindings
+    { provide: NOTIFICATION_REPOSITORY, useClass: MongoNotificationRepository },
+    { provide: REALTIME_CHANNEL_PORT, useClass: SocketioRealtimeChannelAdapter },
+    { provide: DEDUPLICATION_PORT, useClass: RedisDeduplicationAdapter },
+    { provide: CONNECTION_REGISTRY_PORT, useClass: RedisConnectionRegistryAdapter },
+
+    // Infrastructure (needed for DI resolution)
+    SocketioNotificationGateway,
+    SocketioRealtimeChannelAdapter,
+
+    // Application — Commands
+    SendNotificationUseCase,
+    MarkNotificationReadUseCase,
+    MarkAllReadUseCase,
+    RetryFailedDeliveriesUseCase,
+
+    // Application — Queries
+    FindUserNotificationsUseCase,
+    FindNotificationThreadsUseCase,
+    FindThreadNotificationsUseCase,
+    CountUnreadUseCase,
+
+    // Application — Event Handlers
+    NotificationCreatedHandler,
   ],
 })
 export class NotificationModule {}

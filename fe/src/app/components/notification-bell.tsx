@@ -1,11 +1,12 @@
-import { IconBell, IconCheck } from "@tabler/icons-react";
-import { motion, AnimatePresence } from "motion/react";
+import { IconBell } from "@tabler/icons-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { useAuth } from "../hooks/use-auth";
 import { useNotifications } from "../hooks/use-notifications";
-import type { Notification } from "../types/api";
+import type { Notification } from "../types/api/notification";
+import { NotificationIcon } from "./notifications/notification-icon";
 
 function relativeTime(iso?: string | null): string {
   if (!iso) return "";
@@ -22,13 +23,48 @@ function relativeTime(iso?: string | null): string {
   return new Date(then).toLocaleDateString("vi-VN");
 }
 
+function dateGroup(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86_400_000);
+  if (d >= today) return "Hôm nay";
+  if (d >= yesterday) return "Hôm qua";
+  return "Trước đó";
+}
+
+function groupByDate(items: Notification[]): { label: string; items: Notification[] }[] {
+  const groups: Record<string, Notification[]> = {};
+  for (const item of items) {
+    const key = dateGroup(item.createdAt);
+    (groups[key] ??= []).push(item);
+  }
+  return ["Hôm nay", "Hôm qua", "Trước đó"]
+    .filter((k) => groups[k]?.length)
+    .map((label) => ({ label, items: groups[label] }));
+}
+
 export function NotificationBell() {
   const navigate = useNavigate();
   const { authenticated } = useAuth();
-  const { items, unreadCount, isLoading, markRead } = useNotifications();
+  const { items, unreadCount, isLoading, markRead, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [pulse, setPulse] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const prevUnreadRef = useRef(unreadCount);
 
+  // Pulse animation when new notification arrives
+  useEffect(() => {
+    if (unreadCount > prevUnreadRef.current) {
+      setPulse(true);
+      const timer = setTimeout(() => setPulse(false), 2000);
+      prevUnreadRef.current = unreadCount;
+      return () => clearTimeout(timer);
+    }
+    prevUnreadRef.current = unreadCount;
+  }, [unreadCount]);
+
+  // Close on outside click / Escape
   useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {
@@ -46,7 +82,7 @@ export function NotificationBell() {
   }, [open]);
 
   const handleSelect = (n: Notification) => {
-    if (n.read === false) markRead(n.id);
+    if (!n.read) markRead(n.id);
     setOpen(false);
     if (n.deepLink) {
       try {
@@ -61,6 +97,10 @@ export function NotificationBell() {
       }
     }
   };
+
+  // Show only top 10, already sorted by createdAt DESC from the API
+  const displayed = items.slice(0, 10);
+  const groups = groupByDate(displayed);
 
   return (
     <div ref={containerRef} className="relative">
@@ -78,7 +118,7 @@ export function NotificationBell() {
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <IconBell size={22} />
+        <IconBell size={22} className={pulse ? "animate-bounce" : ""} />
         {unreadCount > 0 ? (
           <span
             className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 rounded-full text-white text-[10px] font-bold flex items-center justify-center"
@@ -99,76 +139,90 @@ export function NotificationBell() {
             transition={{ duration: 0.15 }}
             className="absolute right-0 mt-2 w-80 sm:w-96 bg-card rounded-2xl shadow-xl border border-border overflow-hidden z-50"
           >
+            {/* Header */}
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <h3 className="font-semibold text-sm text-foreground">Thông báo</h3>
               {unreadCount > 0 ? (
-                <span className="text-[11px] text-muted-foreground">{unreadCount} chưa đọc</span>
+                <button
+                  onClick={() => markAllRead()}
+                  className="text-[11px] font-medium hover:underline"
+                  style={{ color: "#00BFB3" }}
+                >
+                  Đánh dấu tất cả đã đọc
+                </button>
               ) : null}
             </div>
 
+            {/* Content */}
             <div className="max-h-96 overflow-y-auto">
               {isLoading ? (
                 <p className="px-4 py-6 text-sm text-muted-foreground text-center">Đang tải...</p>
               ) : null}
-              {!isLoading && items.length === 0 ? (
+
+              {!isLoading && groups.length === 0 ? (
                 <div className="px-4 py-10 text-center">
-                  <IconBell size={32} className="mx-auto mb-3 text-gray-200" />
+                  <IconBell size={32} className="mx-auto mb-3 text-muted-foreground/30" />
                   <p className="text-sm text-muted-foreground">Chưa có thông báo nào</p>
                 </div>
               ) : null}
-              {!isLoading && items.length > 0 ? (
-                <ul className="divide-y divide-gray-50">
-                  {items.map((n) => (
-                    <li key={n.id}>
-                      <button
-                        onClick={() => handleSelect(n)}
-                        className="w-full px-4 py-3 flex gap-3 text-left hover:bg-muted transition-colors"
-                      >
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                          style={{
-                            background: n.read === false ? "rgba(0,191,179,0.12)" : "#f3f4f6",
-                            color: n.read === false ? "#00BFB3" : "#9ca3af",
-                          }}
+
+              {!isLoading && groups.length > 0
+                ? groups.map(({ label, items: groupItems }) => (
+                    <div key={label}>
+                      <p className="px-4 py-1.5 text-[11px] font-medium text-muted-foreground bg-muted/50 uppercase tracking-wide">
+                        {label}
+                      </p>
+                      {groupItems.map((n) => (
+                        <button
+                          key={n.id}
+                          onClick={() => handleSelect(n)}
+                          className="w-full px-4 py-3 flex gap-3 text-left hover:bg-muted transition-colors"
                         >
-                          {n.read === false ? <IconBell size={14} /> : <IconCheck size={14} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p
-                              className="text-sm font-medium text-foreground line-clamp-1"
-                              style={{ fontWeight: n.read === false ? 600 : 500 }}
-                            >
-                              {n.title ?? n.type ?? "Thông báo"}
-                            </p>
-                            {n.read === false ? (
-                              <span
-                                className="w-2 h-2 rounded-full shrink-0 mt-1.5"
-                                style={{ background: "#FF6200" }}
-                              />
-                            ) : null}
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                            style={{
+                              background: !n.read ? "rgba(0,191,179,0.12)" : "var(--muted)",
+                            }}
+                          >
+                            <NotificationIcon type={n.type} size={14} />
                           </div>
-                          {n.body ? (
-                            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.body}</p>
-                          ) : null}
-                          {n.createdAt ? (
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p
+                                className="text-sm text-foreground line-clamp-1"
+                                style={{ fontWeight: !n.read ? 600 : 400 }}
+                              >
+                                {n.title}
+                              </p>
+                              {!n.read ? (
+                                <span
+                                  className="w-2 h-2 rounded-full shrink-0 mt-1.5"
+                                  style={{ background: "#FF6200" }}
+                                />
+                              ) : null}
+                            </div>
+                            {n.body ? (
+                              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                                {n.body}
+                              </p>
+                            ) : null}
                             <p className="text-[11px] text-muted-foreground mt-1">
                               {relativeTime(n.createdAt)}
                             </p>
-                          ) : null}
-                        </div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ))
+                : null}
             </div>
 
+            {/* Footer */}
             <div className="px-4 py-2.5 border-t border-border text-center">
               <button
                 onClick={() => {
                   setOpen(false);
-                  void navigate("/profile");
+                  void navigate("/notifications");
                 }}
                 className="text-xs font-medium"
                 style={{ color: "#00BFB3" }}
