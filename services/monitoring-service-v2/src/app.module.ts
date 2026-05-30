@@ -10,6 +10,8 @@ import { databaseConfig } from './config/database.config.js';
 import { AuthModule } from './auth/auth.module.js';
 import { JwtAuthGuard } from './auth/auth.guard.js';
 import { RolesGuard } from './auth/roles.guard.js';
+import { MetricsModule } from './metrics/metrics.module.js';
+import { DiscoveryModule } from './discovery/discovery.module.js';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { RolesGuard } from './auth/roles.guard.js';
     }),
     ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', 'public') }),
     AuthModule,
+    MetricsModule,
+    DiscoveryModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
