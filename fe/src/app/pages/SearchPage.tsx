@@ -321,7 +321,11 @@ export function SearchPage() {
   // Backend search runs when there's a query OR a category. Empty results are kept
   // (the user really did search and got nothing back). We only fall through to the local
   // catalog when search wasn't enabled or the backend failed outright.
-  const searchEnabled = !!(query || selectedCat || selectedBrand);
+  // Category-only filtering goes through useProducts (product-service) which
+  // now accepts categoryId directly. The search-service is only engaged when
+  // there is a text query or brand filter — it may have an empty read model
+  // in dev/staging, so we avoid routing pure category clicks through it.
+  const searchEnabled = !!(query || selectedBrand);
   const search = useSearch(
     {
       q: query || undefined,
@@ -346,7 +350,7 @@ export function SearchPage() {
     enabled: searchEnabled,
   });
 
-  const { data: localCatalog = [] } = useProducts();
+  const { data: localCatalog = [] } = useProducts({ categoryId: selectedCat || undefined });
   const { data: categories = [] } = useCategories();
   // With keepPreviousData on the search hook, isLoading is only true on the
   // very first fetch (before any successful data) — so we can safely treat

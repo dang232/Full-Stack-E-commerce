@@ -8,6 +8,7 @@ export interface ProductListQueryParams {
   sellerId?: string;
   page?: number;
   size?: number;
+  categoryId?: string;
 }
 
 export const productListOptions = (params: ProductListQueryParams = {}) =>
@@ -18,6 +19,7 @@ export const productListOptions = (params: ProductListQueryParams = {}) =>
         size: params.size ?? 50,
         page: params.page,
         sellerId: params.sellerId,
+        categoryId: params.categoryId,
       });
       return page.content.map(fromServer);
     },
