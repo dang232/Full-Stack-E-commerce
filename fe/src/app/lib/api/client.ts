@@ -23,6 +23,42 @@ const BASE_URL = (
   (import.meta.env as Record<string, string | undefined>).VITE_API_URL ?? "http://localhost:8080"
 ).replace(/\/$/, "");
 
+// ---------------------------------------------------------------------------
+// Cross-tab token-refresh coordination via BroadcastChannel
+// ---------------------------------------------------------------------------
+const REFRESH_CHANNEL =
+  typeof BroadcastChannel !== "undefined"
+    ? new BroadcastChannel("vnshop:token-refresh")
+    : null;
+
+type RefreshMessage =
+  | { type: "refresh-started" }
+  | { type: "refresh-complete"; success: boolean };
+
+/** Resolves to true when another tab's refresh succeeds, false on failure. */
+let crossTabRefreshPromise: Promise<boolean> | null = null;
+let crossTabRefreshResolve: ((success: boolean) => void) | null = null;
+/** True while this tab owns the in-flight refresh. */
+let thisTabRefreshing = false;
+
+if (REFRESH_CHANNEL) {
+  REFRESH_CHANNEL.onmessage = (ev: MessageEvent<RefreshMessage>) => {
+    const msg = ev.data;
+    if (msg.type === "refresh-started" && !thisTabRefreshing) {
+      // Another tab started a refresh — park behind its result.
+      if (!crossTabRefreshPromise) {
+        crossTabRefreshPromise = new Promise<boolean>((resolve) => {
+          crossTabRefreshResolve = resolve;
+        });
+      }
+    } else if (msg.type === "refresh-complete") {
+      crossTabRefreshResolve?.(msg.success);
+      crossTabRefreshResolve = null;
+      crossTabRefreshPromise = null;
+    }
+  };
+}
+
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export interface RequestOptions<TSchema extends z.ZodType> {
@@ -127,15 +163,46 @@ export async function request<TSchema extends z.ZodType>(
   // interceptor has already cleared local auth state and dispatched
   // `auth:unauthorized` — surfacing a thrown ApiError lets callers render
   // their own error UI while AuthProvider redirects.
+  //
+  // Cross-tab coordination: if another tab is already refreshing, park behind
+  // its BroadcastChannel result instead of issuing a duplicate refresh.
   if (response.status === 401 && auth) {
-    try {
-      response = await runErrorChain(new UnauthorizedError(response), requestCtx);
-    } catch {
-      throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
-    }
-    if (response.status === 401) {
-      window.dispatchEvent(new Event("auth:unauthorized"));
-      throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
+    if (crossTabRefreshPromise && !thisTabRefreshing) {
+      // Another tab owns the refresh — wait for its outcome.
+      const succeeded = await crossTabRefreshPromise;
+      if (!succeeded) {
+        window.dispatchEvent(new Event("auth:unauthorized"));
+        throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
+      }
+      // Retry the original request with the new token.
+      const retryCtx = await runRequestChain({
+        url,
+        init: { ...init, headers: {} },
+        correlationId,
+        meta: { auth, idempotencyKey: opts.idempotencyKey, hasBody },
+      });
+      response = await fetch(retryCtx.url, retryCtx.init);
+    } else {
+      // This tab owns the refresh.
+      thisTabRefreshing = true;
+      REFRESH_CHANNEL?.postMessage({ type: "refresh-started" } satisfies RefreshMessage);
+      let refreshSucceeded = false;
+      try {
+        response = await runErrorChain(new UnauthorizedError(response), requestCtx);
+        refreshSucceeded = response.status !== 401;
+      } catch {
+        refreshSucceeded = false;
+      } finally {
+        thisTabRefreshing = false;
+        REFRESH_CHANNEL?.postMessage({
+          type: "refresh-complete",
+          success: refreshSucceeded,
+        } satisfies RefreshMessage);
+      }
+      if (!refreshSucceeded) {
+        window.dispatchEvent(new Event("auth:unauthorized"));
+        throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
+      }
     }
   }
 

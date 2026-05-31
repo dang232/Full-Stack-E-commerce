@@ -309,7 +309,22 @@ export function MessagesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, authenticated, requestedRecipient, requestedThreadId, requestedProduct]);
 
-  const selectedId = requestedThreadId ?? threads.items.find((thread) => !!thread.id)?.id ?? null;
+  // Only treat the URL thread param as selected if it actually exists in the
+  // loaded thread list. This prevents the pane from rendering stale/invalid
+  // thread content while threads are still loading or after a URL is shared.
+  const threadIds = useMemo(
+    () => new Set(threads.items.map((t) => t.id)),
+    [threads.items],
+  );
+  const selectedId: string | null = useMemo(() => {
+    if (requestedThreadId && threadIds.has(requestedThreadId)) return requestedThreadId;
+    // Fall back to the first available thread only when no explicit param is set.
+    if (!requestedThreadId) return threads.items.find((t) => !!t.id)?.id ?? null;
+    // URL has a threadId but threads haven't loaded yet — keep it so the pane
+    // shows a loading state rather than the "select a conversation" placeholder.
+    if (threads.isLoading) return requestedThreadId;
+    return null;
+  }, [requestedThreadId, threadIds, threads.items, threads.isLoading]);
 
   const selectThread = (id: string) => {
     const next = new URLSearchParams(params);

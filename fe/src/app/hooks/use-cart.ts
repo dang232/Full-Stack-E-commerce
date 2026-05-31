@@ -140,6 +140,7 @@ export function useCart() {
     queryKey: CART_KEY,
     queryFn: getCart,
     enabled: ready && authenticated,
+    refetchOnWindowFocus: true,
   });
 
   // One-shot guest -> server merge on first authenticated load.
@@ -174,9 +175,11 @@ export function useCart() {
     onMutate: async (input) => {
       await qc.cancelQueries({ queryKey: CART_KEY });
       const previous = qc.getQueryData<Cart>(CART_KEY);
-      qc.setQueryData<Cart>(CART_KEY, (curr) =>
-        optimisticAdd(curr, input.productId, input.quantity),
-      );
+      if (query.isSuccess) {
+        qc.setQueryData<Cart>(CART_KEY, (curr) =>
+          optimisticAdd(curr, input.productId, input.quantity),
+        );
+      }
       return { previous };
     },
     onSuccess: (cart) => qc.setQueryData(CART_KEY, cart),
@@ -196,7 +199,9 @@ export function useCart() {
     onMutate: async ({ productId, quantity }) => {
       await qc.cancelQueries({ queryKey: CART_KEY });
       const previous = qc.getQueryData<Cart>(CART_KEY);
-      qc.setQueryData<Cart>(CART_KEY, (curr) => optimisticUpdate(curr, productId, quantity));
+      if (query.isSuccess) {
+        qc.setQueryData<Cart>(CART_KEY, (curr) => optimisticUpdate(curr, productId, quantity));
+      }
       return { previous };
     },
     onSuccess: (cart) => qc.setQueryData(CART_KEY, cart),
