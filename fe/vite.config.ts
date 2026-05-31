@@ -35,12 +35,18 @@ export default defineConfig({
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
 
+  // Pre-bundle heavy icon library so Vite doesn't split each icon into its own chunk
+  optimizeDeps: {
+    include: ['@tabler/icons-react'],
+  },
+
   build: {
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router'],
+          'icons': ['@tabler/icons-react'],
           recharts: ['recharts'],
           motion: ['motion'],
           'react-query': ['@tanstack/react-query'],
