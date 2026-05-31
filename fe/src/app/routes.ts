@@ -8,10 +8,17 @@ import { profileOptions } from "./hooks/use-profile";
 import { sellerDetailOptions, sellerProductsOptions } from "./hooks/use-sellers";
 import { RequireAuth, RequireRole } from "./lib/auth/role-guard";
 import { queryClient } from "./lib/query-client";
-import { HomePage } from "./pages/HomePage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
 import { Root } from "./pages/Root";
+
+const HomePage = lazy(() =>
+  import("./pages/HomePage").then((m) => ({ default: m.HomePage })),
+);
+const LoginPage = lazy(() =>
+  import("./pages/LoginPage").then((m) => ({ default: m.LoginPage })),
+);
+const RegisterPage = lazy(() =>
+  import("./pages/RegisterPage").then((m) => ({ default: m.RegisterPage })),
+);
 
 const SearchPage = lazy(() =>
   import("./pages/SearchPage").then((m) => ({ default: m.SearchPage })),
@@ -90,7 +97,7 @@ export const router = createBrowserRouter([
     path: "/",
     Component: Root,
     children: [
-      { index: true, Component: HomePage },
+      { index: true, element: lazyRoute(createElement(HomePage)) },
       { path: "search", element: lazyRoute(createElement(SearchPage)) },
       { path: "product/:id", element: suspenseWithBoundary(createElement(ProductPage)), loader: ({ params }) => {
         const id = params.id ?? "";
@@ -109,8 +116,8 @@ export const router = createBrowserRouter([
         return null;
       }},
       { path: "wishlist", element: guarded(createElement(WishlistPage)) },
-      { path: "login", Component: LoginPage },
-      { path: "register", Component: RegisterPage },
+      { path: "login", element: lazyRoute(createElement(LoginPage)) },
+      { path: "register", element: lazyRoute(createElement(RegisterPage)) },
       { path: "password-reset", element: lazyRoute(createElement(PasswordResetPage)) },
       { path: "seller/*", element: sellerOnly(createElement(SellerPage)) },
       { path: "admin/*", element: adminOnly(createElement(AdminPage)) },
