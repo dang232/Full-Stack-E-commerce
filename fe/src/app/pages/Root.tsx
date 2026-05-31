@@ -107,7 +107,7 @@ function Navbar() {
 
   return (
     <header
-      className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#00BFB3] to-[#009990] dark:from-[#0d3d3a] dark:to-[#062523]"
+      className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#EE4D2D] to-[#FF6633] dark:from-[#1A1A2E] dark:to-[#16213E]"
     >
       {/* Top bar */}
       <div className="border-b border-white/10 hidden md:block">
@@ -278,7 +278,7 @@ function Navbar() {
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted transition-colors text-left text-foreground"
                         >
-                          <item.icon size={16} style={{ color: "#00BFB3" }} />
+                          <item.icon size={16} style={{ color: "#EE4D2D" }} />
                           {item.label}
                         </button>
                       ))}
@@ -303,7 +303,7 @@ function Navbar() {
               <button
                 onClick={() => navigate("/login")}
                 className="ml-1 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-                style={{ background: "#FF6200", color: "#fff" }}
+                style={{ background: "#EE4D2D", color: "#fff" }}
               >
                 {t("auth.login")}
               </button>
