@@ -66,7 +66,7 @@ function SectionHeader({
 function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { addToCart, toggleWishlist, isWishlisted } = useVNShop();
+  const { toggleWishlist, isWishlisted } = useVNShop();
   const loved = isWishlisted(product.id);
 
   return (
@@ -74,7 +74,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.05, 0.4), duration: 0.3 }}
-      className="group rounded-2xl overflow-hidden cursor-pointer bg-card border border-border hover:border-transparent hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300"
+      className="group rounded-[4px] overflow-hidden cursor-pointer bg-card border border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all duration-[250ms] ease-[ease]"
       role="link"
       tabIndex={0}
       aria-label={product.name}
@@ -87,59 +87,65 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
         }
       }}
     >
+      {/* Image */}
       <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
         <ImageWithFallback
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[250ms] ease-[ease]"
         />
-        {/* Badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
+        {/* Discount / badge stack — top-left */}
+        <div className="absolute top-1.5 left-1.5 flex flex-col gap-0.5">
           {product.discount ? (
             <span
-              className="px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight"
-              style={{ background: "#FF6200" }}
+              className="px-1.5 py-0.5 rounded-sm text-white text-[11px] font-bold leading-tight"
+              style={{ background: "#EE4D2D" }}
             >
               -{product.discount}%
             </span>
           ) : null}
           {product.badge === "flash" ? (
             <span
-              className="flex items-center gap-0.5 px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight"
-              style={{ background: "#E53E3E" }}
+              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm text-white text-[11px] font-bold leading-tight"
+              style={{ background: "#EE4D2D" }}
             >
               <IconBolt size={9} fill="white" /> Flash
             </span>
           ) : null}
           {product.badge === "new" ? (
             <span
-              className="px-2 py-0.5 rounded-full text-white text-xs font-bold leading-tight"
+              className="px-1.5 py-0.5 rounded-sm text-white text-[11px] font-bold leading-tight"
               style={{ background: "#10B981" }}
             >
               {t("product.new")}
             </span>
           ) : null}
         </div>
+        {/* Free shipping badge — top-right */}
         {product.shippingFee === 0 ? (
           <span
-            className="absolute top-2.5 right-2.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-white text-xs font-semibold"
-            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
+            className="absolute top-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm text-white text-[11px] font-semibold"
+            style={{ background: "rgba(38,170,153,0.88)" }}
           >
-            <IconTruck size={9} /> Free
+            <IconTruck size={9} /> Free Ship
           </span>
         ) : null}
-        {/* Wishlist */}
+        {/* Wishlist heart — top-right, below free-ship badge; hidden until hover on desktop */}
         <button
-          className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 hover:scale-110"
-          style={{ background: loved ? "#FF6200" : "rgba(255,255,255,0.95)" }}
+          className="absolute right-1.5 w-7 h-7 rounded-full flex items-center justify-center shadow transition-all duration-200 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 hover:scale-110"
+          style={{
+            top: product.shippingFee === 0 ? "calc(1.5rem + 6px)" : "1.5rem",
+            background: loved ? "#EE4D2D" : "rgba(255,255,255,0.92)",
+          }}
+          aria-label={loved ? "Remove from wishlist" : "Add to wishlist"}
           onClick={(e) => {
             e.stopPropagation();
             toggleWishlist(product.id);
           }}
         >
           <svg
-            width="14"
-            height="14"
+            width="12"
+            height="12"
             viewBox="0 0 24 24"
             fill={loved ? "white" : "none"}
             stroke={loved ? "white" : "#374151"}
@@ -148,27 +154,15 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
-        {/* Add to cart overlay */}
-        <button
-          className="absolute bottom-0 left-0 right-0 py-2 text-white text-xs font-semibold translate-y-full group-hover:translate-y-0 group-focus-within:translate-y-0 [@media(hover:none)]:translate-y-0 transition-transform duration-300"
-          style={{ background: "rgba(0,191,179,0.95)", backdropFilter: "blur(4px)" }}
-          onClick={(e) => {
-            e.stopPropagation();
-            addToCart(product);
-          }}
-        >
-          + {t("home.addToCart")}
-        </button>
       </div>
-      <div className="p-4">
-        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1 truncate font-medium">
-          {product.sellerName}
-        </p>
-        <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2 mb-3 min-h-[2.5rem]">
+
+      {/* Info */}
+      <div className="p-2">
+        <h3 className="text-sm text-foreground leading-snug line-clamp-2 mb-1.5 min-h-[2.5rem]">
           {product.name}
         </h3>
-        <div className="flex items-baseline gap-2 mb-2.5">
-          <span className="font-bold text-base" style={{ color: "#FF6200" }}>
+        <div className="flex items-baseline gap-2 mb-1.5">
+          <span className="font-bold text-sm" style={{ color: "#EE4D2D" }}>
             {formatPrice(product.price)}
           </span>
           {product.originalPrice ? (
@@ -177,22 +171,20 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
             </span>
           ) : null}
         </div>
-        <div className="flex items-center gap-1.5 pt-2.5 border-t border-border">
-          <IconStar size={11} fill="#FF6200" color="#FF6200" />
-          <span className="text-xs font-semibold text-foreground">{product.rating}</span>
-          <span className="text-xs text-muted-foreground">
-            (
-            {product.reviewCount >= 1000
-              ? `${(product.reviewCount / 1000).toFixed(1)}k`
-              : product.reviewCount}
-            )
-          </span>
+        <div className="flex items-center gap-1 pt-1.5 border-t border-border">
+          <IconStar size={10} fill="#FF6200" color="#FF6200" />
+          <span className="text-xs text-foreground">{product.rating}</span>
           <span className="text-xs text-muted-foreground ml-auto">
             {t("home.soldShort", {
               count: product.sold >= 1000 ? `${(product.sold / 1000).toFixed(0)}k` : product.sold,
             })}
           </span>
         </div>
+        {product.sellerName ? (
+          <p className="text-[11px] text-muted-foreground mt-1 truncate">
+            📍 {product.sellerName}
+          </p>
+        ) : null}
       </div>
     </motion.div>
   );
