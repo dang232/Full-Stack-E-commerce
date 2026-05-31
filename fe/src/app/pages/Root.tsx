@@ -441,75 +441,28 @@ export function Root() {
           </div>
         </footer>
       ) : (
-        <footer className="mt-16 border-t border-[#2a2d3b] bg-[#1a1d2b] dark:bg-[#0a0c12]">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <IconSparkles className="w-5 h-5" style={{ color: "#00BFB3" }} />
-                <span
-                  className="text-white font-bold text-lg"
-                  style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-                >
-                  VNShop
-                </span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed">{t("footer.tagline")}</p>
-              <div className="flex gap-3 mt-4">
-                {[
-                  { key: "fb", label: "Facebook", href: "https://facebook.com" },
-                  { key: "ig", label: "Instagram", href: "https://instagram.com" },
-                  { key: "tw", label: "Twitter", href: "https://x.com" },
-                  { key: "yt", label: "YouTube", href: "https://youtube.com" },
-                ].map((s) => (
-                  <a
-                    key={s.key}
-                    href={s.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={s.label}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white hover:opacity-80 transition-opacity"
-                    style={{ background: "#00BFB3" }}
-                  >
-                    {s.key.toUpperCase()}
-                  </a>
-                ))}
-              </div>
-            </div>
-            {[
-              {
-                title: t("footer.customerSupport"),
-                links: [
-                  t("footer.helpCenter"),
-                  t("footer.warranty"),
-                  t("footer.buyingGuide"),
-                  t("footer.paymentMethods"),
-                  t("footer.shipping"),
-                ],
-              },
-              {
-                title: "VNShop",
-                links: [
-                  t("footer.about"),
-                  t("footer.careers"),
-                  t("footer.terms"),
-                  t("footer.privacy"),
-                  t("footer.blog"),
-                ],
-              },
-              {
-                title: t("footer.paymentShipping"),
-                links: ["VNPay", "MoMo", "ZaloPay", "Thẻ ngân hàng", "Giao Hàng Nhanh"],
-              },
-            ].map((col) => (
-              <div key={col.title}>
-                <h4 className="text-white font-semibold mb-4 text-sm">{col.title}</h4>
+        <footer className="mt-16 bg-[#F5F5F5] dark:bg-[#1A1A2E]">
+          {/* Main 5-column grid */}
+          <div className="max-w-7xl mx-auto px-4 py-10">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+
+              {/* Column 1: Customer Service */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#222222] dark:text-[#E8E8E8] mb-4">
+                  {t("footer.customerSupport")}
+                </h4>
                 <ul className="space-y-2.5">
-                  {col.links.map((link) => (
+                  {[
+                    t("footer.helpCenter"),
+                    t("footer.buyingGuide"),
+                    "How to Sell",
+                    t("footer.shipping"),
+                    "Returns",
+                  ].map((link) => (
                     <li key={link}>
                       <button
                         onClick={() => comingSoon(link)}
-                        className="text-gray-400 text-sm hover:text-white transition-colors text-left"
+                        className="text-sm text-[#757575] hover:text-[#EE4D2D] transition-colors text-left"
                       >
                         {link}
                       </button>
@@ -517,31 +470,140 @@ export function Root() {
                   ))}
                 </ul>
               </div>
-            ))}
+
+              {/* Column 2: About VNShop */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#222222] dark:text-[#E8E8E8] mb-4">
+                  About VNShop
+                </h4>
+                <ul className="space-y-2.5">
+                  {[
+                    t("footer.about"),
+                    t("footer.careers"),
+                    "Policies",
+                    t("footer.privacy"),
+                    t("footer.terms"),
+                  ].map((link) => (
+                    <li key={link}>
+                      <button
+                        onClick={() => comingSoon(link)}
+                        className="text-sm text-[#757575] hover:text-[#EE4D2D] transition-colors text-left"
+                      >
+                        {link}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 3: Payment */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#222222] dark:text-[#E8E8E8] mb-4">
+                  {t("footer.paymentShipping")}
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {["VNPay", "MoMo", "COD", "Visa", "Mastercard"].map((method) => (
+                    <span
+                      key={method}
+                      className="px-2 py-1 rounded border border-[#E0E0E0] dark:border-[#333] bg-white dark:bg-[#252540] text-[#757575] text-xs font-medium"
+                    >
+                      {method}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Column 4: Follow Us */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#222222] dark:text-[#E8E8E8] mb-4">
+                  Follow Us
+                </h4>
+                <div className="flex flex-col gap-2.5">
+                  {[
+                    { key: "fb", label: "Facebook", href: "https://facebook.com" },
+                    { key: "ig", label: "Instagram", href: "https://instagram.com" },
+                    { key: "tw", label: "Twitter / X", href: "https://x.com" },
+                    { key: "yt", label: "YouTube", href: "https://youtube.com" },
+                  ].map((s) => (
+                    <a
+                      key={s.key}
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-[#757575] hover:text-[#EE4D2D] transition-colors"
+                    >
+                      <span
+                        className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                        style={{ background: "#EE4D2D" }}
+                        aria-hidden="true"
+                      >
+                        {s.key.toUpperCase()}
+                      </span>
+                      {s.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Column 5: VNShop App */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#222222] dark:text-[#E8E8E8] mb-4">
+                  VNShop App
+                </h4>
+                <div
+                  aria-hidden="true"
+                  className="w-20 h-20 rounded-lg border-2 border-dashed border-[#E0E0E0] dark:border-[#333] flex items-center justify-center mb-3"
+                >
+                  <span className="text-[#BDBDBD] text-[9px] text-center leading-tight">
+                    QR<br />Code
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {["App Store", "Google Play"].map((store) => (
+                    <button
+                      key={store}
+                      onClick={() => comingSoon(store)}
+                      className="px-3 py-1.5 rounded border border-[#E0E0E0] dark:border-[#333] text-xs text-[#757575] hover:text-[#EE4D2D] hover:border-[#EE4D2D] transition-colors text-left"
+                    >
+                      {store}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+            </div>
           </div>
-          <div className="mt-10 pt-6 border-t border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-gray-500 text-xs">{t("footer.copyright")}</p>
-            <div className="flex items-center gap-3">
+
+          {/* Separator */}
+          <div className="border-t border-[#E0E0E0] dark:border-[#2A2A4A]" />
+
+          {/* Bottom bar */}
+          <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#757575]">
+            <span>{t("footer.copyright")}</span>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <IconMapPin size={12} aria-hidden="true" />
+                Country: Vietnam
+              </span>
               <button
                 onClick={() => navigate("/design-system")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-700 text-gray-500 text-xs hover:border-teal-600 hover:text-teal-400 transition-colors"
+                className="inline-flex items-center gap-1 hover:text-[#EE4D2D] transition-colors"
               >
-                <IconPalette size={14} stroke={1.75} />
+                <IconPalette size={12} stroke={1.75} aria-hidden="true" />
                 Design System
               </button>
               {["DMCA", "BoCongThuong", "SSL"].map((b) => (
                 <div
                   key={b}
                   aria-hidden="true"
-                  className="px-3 py-1.5 rounded-lg border border-gray-700 text-gray-500 text-xs"
+                  className="px-2 py-1 rounded border border-[#E0E0E0] dark:border-[#333] text-[10px]"
                 >
                   {b}
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
       )}
     </div>
   );
