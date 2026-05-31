@@ -422,7 +422,7 @@ export function Root() {
       ) : (
         <Navbar />
       )}
-      <main>
+      <main className="animate-fade-in">
         <Outlet />
       </main>
       {/* Storefront marketing footer — VNPay/MoMo/payments columns —
