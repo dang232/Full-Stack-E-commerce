@@ -3,16 +3,76 @@ import { Money } from '../domain/money';
 import type { ProductClientPort } from '../application/product-client.port';
 import type { ProductSnapshot } from '../application/product-snapshot';
 
+// product-service ProductResponse — the actual wire shape today.
+// Top-level price/image do NOT exist; they live under variants[] and images[].
+// See services/product-service/.../ProductResponse.java.
+interface ProductServiceVariant {
+  sku?: string;
+  name?: string;
+  priceAmount?: number;
+  priceCurrency?: string;
+  imageUrl?: string;
+  stockQuantity?: number;
+}
+
+interface ProductServiceImage {
+  url?: string;
+  alt?: string;
+  sortOrder?: number;
+}
+
 interface ProductServiceResponse {
   id?: string;
   productId?: string;
   name?: string;
   productName?: string;
+  // Legacy/optional top-level fields kept for tolerance — newer
+  // product-service builds may surface a flat price for read-models.
   image?: string;
   productImage?: string;
   price?: number | { amount: number; currency?: string };
   unitPrice?: number | { amount: number; currency?: string };
   currency?: string;
+  // Real fields on the live BE.
+  variants?: ProductServiceVariant[];
+  images?: ProductServiceImage[];
+}
+
+function pickPrice(product: ProductServiceResponse): {
+  amount: number;
+  currency: string;
+} {
+  // 1. Flat top-level price (legacy or future read-model shape).
+  const flat = product.unitPrice ?? product.price;
+  if (typeof flat === 'number') {
+    return { amount: flat, currency: product.currency ?? 'VND' };
+  }
+  if (flat && typeof flat === 'object' && typeof flat.amount === 'number') {
+    return {
+      amount: flat.amount,
+      currency: flat.currency ?? product.currency ?? 'VND',
+    };
+  }
+  // 2. First variant — this is what product-service actually returns today.
+  const variant = product.variants?.[0];
+  if (variant && typeof variant.priceAmount === 'number') {
+    return {
+      amount: variant.priceAmount,
+      currency: variant.priceCurrency ?? 'VND',
+    };
+  }
+  return { amount: 0, currency: product.currency ?? 'VND' };
+}
+
+function pickImage(product: ProductServiceResponse): string {
+  if (product.productImage) return product.productImage;
+  if (product.image) return product.image;
+  // product-service surfaces images[] (sortOrder ascending) and variants[].imageUrl.
+  const sorted = (product.images ?? [])
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  if (sorted[0]?.url) return sorted[0].url;
+  return product.variants?.[0]?.imageUrl ?? '';
 }
 
 export class ProductHttpClientAdapter implements ProductClientPort {
@@ -44,17 +104,12 @@ export class ProductHttpClientAdapter implements ProductClientPort {
       | ProductServiceResponse
       | { data: ProductServiceResponse };
     const product = 'data' in payload ? payload.data : payload;
-    const price = product.unitPrice ?? product.price ?? 0;
-    const amount = typeof price === 'number' ? price : price.amount;
-    const currency =
-      typeof price === 'number'
-        ? (product.currency ?? 'VND')
-        : (price.currency ?? product.currency ?? 'VND');
+    const { amount, currency } = pickPrice(product);
 
     return {
       productId: product.productId ?? product.id ?? productId,
       productName: product.productName ?? product.name ?? productId,
-      productImage: product.productImage ?? product.image ?? '',
+      productImage: pickImage(product),
       unitPrice: Money.of(amount, currency),
     };
   }

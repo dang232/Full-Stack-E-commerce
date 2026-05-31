@@ -1,0 +1,11 @@
+grpc:
+  client:
+    inventory:
+      host: localhost
+      port: 9093
+    payment:
+      host: localhost
+      port: 9094
+    shipping:
+      host: localhost
+      port: 9095

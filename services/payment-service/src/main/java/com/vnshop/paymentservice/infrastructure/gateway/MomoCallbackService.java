@@ -1,11 +1,10 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
+import com.vnshop.paymentservice.application.PaymentPromotionService;
 import com.vnshop.paymentservice.domain.Payment;
 import com.vnshop.paymentservice.domain.PaymentMethod;
 import com.vnshop.paymentservice.domain.PaymentStatus;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
-import com.vnshop.paymentservice.application.LedgerPaymentCommand;
-import com.vnshop.paymentservice.application.ledger.LedgerService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,20 +15,22 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
-@ConditionalOnProperty(name = "payment.mode", havingValue = "live")
+@ConditionalOnProperty(name = "payment.momo.enabled", havingValue = "true")
 public class MomoCallbackService {
     private final PaymentRepositoryPort paymentRepositoryPort;
-    private final LedgerService ledgerService;
     private final MomoGateway momoGateway;
     private final PaymentCallbackLogStore callbackLogStore;
     private final PaymentCallbackOutbox outbox;
+    private final PaymentPromotionService promotionService;
 
-    public MomoCallbackService(PaymentRepositoryPort paymentRepositoryPort, LedgerService ledgerService, MomoGateway momoGateway, PaymentCallbackLogStore callbackLogStore, PaymentCallbackOutbox outbox) {
+    public MomoCallbackService(PaymentRepositoryPort paymentRepositoryPort, MomoGateway momoGateway,
+                               PaymentCallbackLogStore callbackLogStore, PaymentCallbackOutbox outbox,
+                               PaymentPromotionService promotionService) {
         this.paymentRepositoryPort = Objects.requireNonNull(paymentRepositoryPort, "paymentRepositoryPort is required");
-        this.ledgerService = Objects.requireNonNull(ledgerService, "ledgerService is required");
         this.momoGateway = Objects.requireNonNull(momoGateway, "momoGateway is required");
         this.callbackLogStore = Objects.requireNonNull(callbackLogStore, "callbackLogStore is required");
         this.outbox = Objects.requireNonNull(outbox, "outbox is required");
+        this.promotionService = Objects.requireNonNull(promotionService, "promotionService is required");
     }
 
     @Transactional
@@ -68,13 +69,27 @@ public class MomoCallbackService {
             return MomoIpnResult.success();
         }
 
-        Payment updatedPayment = payment.withResult(verification.status(), verification.transactionNo());
-        paymentRepositoryPort.save(updatedPayment);
-        if (verification.status() == PaymentStatus.COMPLETED) {
-            ledgerService.recordPayment(new LedgerPaymentCommand(verification.transactionNo(), payment.orderId(), payment.amount()));
+        if (verification.status() != PaymentStatus.COMPLETED) {
+            // FAILED IPN — persist the terminal status and an outbox row so
+            // downstream consumers see the failure, but do not credit the
+            // ledger. PaymentPromotionService only handles the success path.
+            Payment failed = payment.withResult(verification.status(), verification.transactionNo());
+            paymentRepositoryPort.save(failed);
+            PaymentCallbackAttempt savedAttempt = callbackLogStore.save(
+                    attempt(request, headers, payloadHash, signatureHash, "FAILED", false));
+            outbox.save(PaymentCallbackOutboxRecord.pending(
+                    "MOMO", payment.paymentId(), payment.orderId(),
+                    verification.transactionNo(), verification.status().name(), payment.amount(),
+                    savedAttempt.callbackId(), savedAttempt.eventId(), savedAttempt.payloadHash(),
+                    null, null, null, null));
+            return MomoIpnResult.success();
         }
-        PaymentCallbackAttempt savedAttempt = callbackLogStore.save(attempt(request, headers, payloadHash, signatureHash, verification.status() == PaymentStatus.COMPLETED ? "PROCESSED" : "FAILED", false));
-        outbox.save(PaymentCallbackOutboxRecord.pending("MOMO", payment.paymentId(), payment.orderId(), verification.transactionNo(), verification.status().name(), payment.amount(), savedAttempt.callbackId(), savedAttempt.eventId(), savedAttempt.payloadHash()));
+
+        PaymentCallbackAttempt savedAttempt = callbackLogStore.save(
+                attempt(request, headers, payloadHash, signatureHash, "PROCESSED", false));
+        promotionService.promote(PaymentPromotionService.PromotionCommand.fromCallback(
+                payment.paymentId(), "MOMO", verification.transactionNo(),
+                savedAttempt.callbackId(), savedAttempt.eventId(), savedAttempt.payloadHash()));
         return MomoIpnResult.success();
     }
 

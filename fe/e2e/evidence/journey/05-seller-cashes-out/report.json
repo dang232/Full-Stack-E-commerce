@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "id": "05-seller-cashes-out",
+    "title": "Chapter 5 — Seller cashes out",
+    "persona": "seller",
+    "acceptanceCriteria": [
+      {
+        "code": "AC-5.1",
+        "outcome": "Seller with positive wallet balance can submit a payout request"
+      },
+      {
+        "code": "AC-5.2",
+        "outcome": "Submitted payout immediately appears in admin's pending payout queue"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "index": 1,
+      "acCode": "AC-5.1",
+      "outcome": "Predecessor chapters left a fulfilled order in state.json",
+      "slug": "01-ac-5-1-predecessor-chapters-left-a-fulfilled-order-in-state-.png",
+      "status": "BLOCKED",
+      "errorMessage": "journey state missing required keys: orderId, subOrderId — a previous chapter must run first"
+    }
+  ],
+  "acStatuses": [
+    {
+      "code": "AC-5.1",
+      "outcome": "Seller with positive wallet balance can submit a payout request",
+      "status": "BLOCKED",
+      "failingStep": {
+        "index": 1,
+        "acCode": "AC-5.1",
+        "outcome": "Predecessor chapters left a fulfilled order in state.json",
+        "slug": "01-ac-5-1-predecessor-chapters-left-a-fulfilled-order-in-state-.png",
+        "status": "BLOCKED",
+        "errorMessage": "journey state missing required keys: orderId, subOrderId — a previous chapter must run first"
+      }
+    },
+    {
+      "code": "AC-5.2",
+      "outcome": "Submitted payout immediately appears in admin's pending payout queue",
+      "status": "NOT_RUN"
+    }
+  ],
+  "verdict": "BLOCKED",
+  "generatedAt": "2026-05-31T12:20:27.778Z"
+}

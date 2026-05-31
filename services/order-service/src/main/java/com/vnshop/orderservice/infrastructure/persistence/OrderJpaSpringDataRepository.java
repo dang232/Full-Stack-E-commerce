@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEntity, UUID> {
+public interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEntity, UUID> {
     Optional<OrderJpaEntity> findByOrderNumber(String orderNumber);
 
     Optional<OrderJpaEntity> findByIdempotencyKey(String idempotencyKey);
@@ -28,6 +28,12 @@ interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEntity, UUI
     List<OrderJpaEntity> findBySellerIdAndFulfillmentStatus(
             @Param("sellerId") String sellerId,
             @Param("status") FulfillmentStatus status
+    );
+
+    @Query("select distinct subOrder.order from SubOrderJpaEntity subOrder where subOrder.sellerId = :sellerId and subOrder.fulfillmentStatus in :statuses")
+    List<OrderJpaEntity> findBySellerIdAndFulfillmentStatusIn(
+            @Param("sellerId") String sellerId,
+            @Param("statuses") List<FulfillmentStatus> statuses
     );
 
     long countByCreatedAtBetween(Instant startInclusive, Instant endInclusive);
@@ -61,4 +67,19 @@ interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEntity, UUI
 
     @Query("select new com.vnshop.orderservice.infrastructure.persistence.OrderJpaRepository$TopMetric(subOrder.sellerId, subOrder.sellerId, coalesce(sum(subOrder.order.finalAmount.amount), 0)) from SubOrderJpaEntity subOrder group by subOrder.sellerId order by coalesce(sum(subOrder.order.finalAmount.amount), 0) desc")
     List<OrderJpaRepository.TopMetric> topSellers(Pageable pageable);
+
+    @Query("select new com.vnshop.orderservice.infrastructure.persistence.OrderJpaRepository$SellerRevenueByDate("
+            + "cast(item.subOrder.order.createdAt as LocalDate), "
+            + "coalesce(sum(item.unitPrice.amount * item.quantity), 0), "
+            + "count(distinct item.subOrder.id)) "
+            + "from OrderItemJpaEntity item "
+            + "where item.sellerId = :sellerId "
+            + "and item.subOrder.order.createdAt between :startInclusive and :endInclusive "
+            + "group by cast(item.subOrder.order.createdAt as LocalDate) "
+            + "order by cast(item.subOrder.order.createdAt as LocalDate)")
+    List<OrderJpaRepository.SellerRevenueByDate> sellerRevenueByDateBetween(
+            @Param("sellerId") String sellerId,
+            @Param("startInclusive") Instant startInclusive,
+            @Param("endInclusive") Instant endInclusive
+    );
 }

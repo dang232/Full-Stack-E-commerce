@@ -1,0 +1,256 @@
+import { Controller, Logger } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  SendNotificationCommand,
+  SendNotificationUseCase,
+} from '../../application/command/send-notification.use-case';
+import { NotificationType } from '../../domain/model/notification-type.enum';
+import { Priority } from '../../domain/model/priority.enum';
+
+interface OrderEventPayload {
+  orderId?: string;
+  buyerId?: string;
+  sellerId?: string;
+  productId?: string;
+  productName?: string;
+  reviewId?: string;
+  returnId?: string;
+  payoutId?: string;
+  amount?: string;
+  reason?: string;
+  [key: string]: unknown;
+}
+
+@Controller()
+export class KafkaEventConsumer {
+  private readonly logger = new Logger(KafkaEventConsumer.name);
+
+  constructor(private readonly sendNotification: SendNotificationUseCase) {}
+
+  @MessagePattern('order.created')
+  async handleOrderCreated(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.buyerId) {
+      await this.send({
+        userId: p.buyerId,
+        type: NotificationType.ORDER_CREATED,
+        title: 'Đặt hàng thành công',
+        body: `Đơn hàng #${p.orderId} đã được đặt thành công.`,
+        deepLink: `/orders/${p.orderId}`,
+        priority: Priority.HIGH,
+        threadId: `order:${p.orderId}`,
+        threadTitle: `Đơn hàng #${p.orderId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `order.created:${p.orderId}:ORDER_CREATED`,
+      });
+    }
+    if (p.sellerId) {
+      await this.send({
+        userId: p.sellerId,
+        type: NotificationType.SELLER_NEW_ORDER,
+        title: 'Đơn hàng mới',
+        body: `Bạn có đơn hàng mới #${p.orderId}.`,
+        deepLink: `/seller/orders/${p.orderId}`,
+        priority: Priority.HIGH,
+        threadId: `seller-order:${p.orderId}`,
+        threadTitle: `Đơn hàng #${p.orderId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `order.created:${p.orderId}:SELLER_NEW_ORDER`,
+      });
+    }
+  }
+
+  @MessagePattern('order.cancelled')
+  async handleOrderCancelled(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.buyerId) {
+      await this.send({
+        userId: p.buyerId,
+        type: NotificationType.ORDER_CANCELLED,
+        title: 'Đơn hàng đã hủy',
+        body: `Đơn hàng #${p.orderId} đã bị hủy.`,
+        deepLink: `/orders/${p.orderId}`,
+        priority: Priority.HIGH,
+        threadId: `order:${p.orderId}`,
+        threadTitle: `Đơn hàng #${p.orderId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `order.cancelled:${p.orderId}:ORDER_CANCELLED`,
+      });
+    }
+  }
+
+  @MessagePattern('order.shipped')
+  async handleOrderShipped(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.buyerId) {
+      await this.send({
+        userId: p.buyerId,
+        type: NotificationType.ORDER_SHIPPED,
+        title: 'Đơn hàng đang vận chuyển',
+        body: `Đơn hàng #${p.orderId} đã được giao cho đơn vị vận chuyển.`,
+        deepLink: `/orders/${p.orderId}`,
+        priority: Priority.HIGH,
+        threadId: `order:${p.orderId}`,
+        threadTitle: `Đơn hàng #${p.orderId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `order.shipped:${p.orderId}:ORDER_SHIPPED`,
+      });
+    }
+  }
+
+  @MessagePattern('order.delivered')
+  async handleOrderDelivered(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.buyerId) {
+      await this.send({
+        userId: p.buyerId,
+        type: NotificationType.ORDER_DELIVERED,
+        title: 'Đơn hàng đã giao',
+        body: `Đơn hàng #${p.orderId} đã được giao thành công.`,
+        deepLink: `/orders/${p.orderId}`,
+        priority: Priority.HIGH,
+        threadId: `order:${p.orderId}`,
+        threadTitle: `Đơn hàng #${p.orderId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `order.delivered:${p.orderId}:ORDER_DELIVERED`,
+      });
+    }
+  }
+
+  @MessagePattern('payment.completed')
+  async handlePaymentCompleted(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.buyerId) {
+      await this.send({
+        userId: p.buyerId,
+        type: NotificationType.PAYMENT_COMPLETED,
+        title: 'Thanh toán thành công',
+        body: `Thanh toán cho đơn hàng #${p.orderId} thành công.`,
+        deepLink: `/orders/${p.orderId}`,
+        priority: Priority.HIGH,
+        threadId: `order:${p.orderId}`,
+        threadTitle: `Đơn hàng #${p.orderId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `payment.completed:${p.orderId}:PAYMENT_COMPLETED`,
+      });
+    }
+  }
+
+  @MessagePattern('payment.refunded')
+  async handlePaymentRefunded(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.buyerId) {
+      await this.send({
+        userId: p.buyerId,
+        type: NotificationType.PAYMENT_REFUNDED,
+        title: 'Hoàn tiền thành công',
+        body: `Đơn hàng #${p.orderId} đã được hoàn tiền.`,
+        deepLink: `/orders/${p.orderId}`,
+        priority: Priority.HIGH,
+        threadId: `order:${p.orderId}`,
+        threadTitle: `Đơn hàng #${p.orderId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `payment.refunded:${p.orderId}:PAYMENT_REFUNDED`,
+      });
+    }
+  }
+
+  @MessagePattern('product.approved')
+  async handleProductApproved(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.sellerId) {
+      await this.send({
+        userId: p.sellerId,
+        type: NotificationType.PRODUCT_APPROVED,
+        title: 'Sản phẩm đã được duyệt',
+        body: `Sản phẩm "${p.productName}" đã được duyệt và đang hiển thị.`,
+        deepLink: `/seller/products/${p.productId}`,
+        priority: Priority.MEDIUM,
+        threadId: `product:${p.productId}`,
+        threadTitle: `${p.productName}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `product.approved:${p.productId}:PRODUCT_APPROVED`,
+      });
+    }
+  }
+
+  @MessagePattern('product.rejected')
+  async handleProductRejected(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.sellerId) {
+      await this.send({
+        userId: p.sellerId,
+        type: NotificationType.PRODUCT_REJECTED,
+        title: 'Sản phẩm bị từ chối',
+        body: `Sản phẩm "${p.productName}" bị từ chối. Lý do: ${p.reason ?? 'Không rõ'}.`,
+        deepLink: `/seller/products/${p.productId}`,
+        priority: Priority.MEDIUM,
+        threadId: `product:${p.productId}`,
+        threadTitle: `${p.productName}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `product.rejected:${p.productId}:PRODUCT_REJECTED`,
+      });
+    }
+  }
+
+  @MessagePattern('review.replied')
+  async handleReviewReplied(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.buyerId) {
+      await this.send({
+        userId: p.buyerId,
+        type: NotificationType.REVIEW_REPLIED,
+        title: 'Người bán đã trả lời đánh giá',
+        body: `Đánh giá của bạn về "${p.productName}" đã có phản hồi.`,
+        deepLink: `/product/${p.productId}#reviews`,
+        priority: Priority.LOW,
+        threadId: `review:${p.reviewId}`,
+        threadTitle: `Đánh giá "${p.productName}"`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `review.replied:${p.reviewId}:REVIEW_REPLIED`,
+      });
+    }
+  }
+
+  @MessagePattern('return.requested')
+  async handleReturnRequested(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.sellerId) {
+      await this.send({
+        userId: p.sellerId,
+        type: NotificationType.RETURN_REQUESTED,
+        title: 'Yêu cầu trả hàng mới',
+        body: `Đơn hàng #${p.orderId} có yêu cầu trả hàng.`,
+        deepLink: `/seller/orders/${p.orderId}/returns`,
+        priority: Priority.HIGH,
+        threadId: `return:${p.returnId}`,
+        threadTitle: `Trả hàng đơn #${p.orderId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `return.requested:${p.returnId}:RETURN_REQUESTED`,
+      });
+    }
+  }
+
+  @MessagePattern('payout.completed')
+  async handlePayoutCompleted(@Payload() p: OrderEventPayload): Promise<void> {
+    if (p.sellerId) {
+      await this.send({
+        userId: p.sellerId,
+        type: NotificationType.PAYOUT_COMPLETED,
+        title: 'Đã chuyển khoản',
+        body: `Số tiền ${p.amount} VND đã được chuyển vào tài khoản.`,
+        deepLink: `/seller/finance/payouts/${p.payoutId}`,
+        priority: Priority.MEDIUM,
+        threadId: `payout:${p.payoutId}`,
+        threadTitle: `Chuyển khoản #${p.payoutId}`,
+        metadata: this.sanitizeMetadata(p),
+        idempotencyKey: `payout.completed:${p.payoutId}:PAYOUT_COMPLETED`,
+      });
+    }
+  }
+
+  private sanitizeMetadata(p: OrderEventPayload): Record<string, unknown> {
+    const { buyerId, sellerId, ...displayFields } = p;
+    return displayFields;
+  }
+
+  private async send(command: SendNotificationCommand): Promise<void> {
+    try {
+      await this.sendNotification.execute(command);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send notification: type=${command.type} user=${command.userId} error=${error}`,
+      );
+    }
+  }
+}

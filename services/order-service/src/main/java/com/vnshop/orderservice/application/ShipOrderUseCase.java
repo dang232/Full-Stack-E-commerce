@@ -31,8 +31,14 @@ public class ShipOrderUseCase {
 
     private Order findOrder(UUID orderId) {
         Objects.requireNonNull(orderId, "orderId is required");
+        // Pt40 audit (extends pt37/pt38/pt39): the prior IAE/400 on
+        // unknown orderId let a probe distinguish "doesn't exist" from
+        // "exists, not yours" via status code alone (gotcha #106). Both
+        // outcomes now raise OAD with the constant ownership-rejection
+        // message — the response body and status are identical regardless
+        // of which condition tripped.
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to ship this order"));
     }
 
     private SubOrder findSellerSubOrder(Order order, String sellerId) {
@@ -40,7 +46,16 @@ public class ShipOrderUseCase {
         return order.subOrders().stream()
                 .filter(subOrder -> subOrder.sellerId().equals(sellerId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found for seller: " + sellerId));
+                // Pt37 audit: was IllegalArgumentException, which the
+                // ApiExceptionHandler maps to 400. Two problems with that:
+                // 1) HTTP semantics — "you tried to ship someone else's
+                //    order" is 403, not 400.
+                // 2) The old message included the requested sellerId,
+                //    handing a malicious caller an oracle for whether
+                //    that seller had a sub-order on this order. Generic
+                //    "not authorized" message keeps the response shape
+                //    the same regardless of which seller probes.
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to ship this order"));
     }
 
     private static void requireNonBlank(String value, String fieldName) {

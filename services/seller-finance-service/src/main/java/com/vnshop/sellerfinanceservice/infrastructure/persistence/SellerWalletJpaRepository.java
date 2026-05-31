@@ -2,7 +2,6 @@ package com.vnshop.sellerfinanceservice.infrastructure.persistence;
 
 import com.vnshop.sellerfinanceservice.domain.SellerWallet;
 import com.vnshop.sellerfinanceservice.domain.port.out.SellerWalletRepositoryPort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -23,8 +22,5 @@ public class SellerWalletJpaRepository implements SellerWalletRepositoryPort {
     @Override
     public SellerWallet save(SellerWallet wallet) {
         return repository.save(SellerWalletJpaEntity.fromDomain(wallet)).toDomain();
-    }
-
-    interface SellerWalletSpringDataRepository extends JpaRepository<SellerWalletJpaEntity, String> {
     }
 }

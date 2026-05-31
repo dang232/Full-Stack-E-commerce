@@ -35,6 +35,9 @@ public class DisputeJpaEntity extends BaseJpaEntity {
     @Column(name = "admin_resolution", length = 2048)
     private String adminResolution;
 
+    @Column(name = "resolved_by", length = 255)
+    private String resolvedBy;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private DisputeStatus status;
@@ -49,11 +52,12 @@ public class DisputeJpaEntity extends BaseJpaEntity {
         entity.buyerReason = dispute.buyerReason();
         entity.sellerResponse = dispute.sellerResponse();
         entity.adminResolution = dispute.adminResolution();
+        entity.resolvedBy = dispute.resolvedBy();
         entity.status = dispute.status();
         return entity;
     }
 
     Dispute toDomain() {
-        return new Dispute(disputeId, returnId.toString(), buyerReason, sellerResponse, adminResolution, status);
+        return new Dispute(disputeId, returnId.toString(), buyerReason, sellerResponse, adminResolution, resolvedBy, status);
     }
 }

@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-final class PaymentCallbackHasher {
+public final class PaymentCallbackHasher {
     private PaymentCallbackHasher() {
     }
 
-    static String sha256(String value) {
+    public static String sha256(String value) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] bytes = digest.digest((value == null ? "" : value).getBytes(StandardCharsets.UTF_8));
@@ -24,7 +24,7 @@ final class PaymentCallbackHasher {
         }
     }
 
-    static String canonical(Map<String, String> values) {
+    public static String canonical(Map<String, String> values) {
         return new TreeMap<>(values).entrySet().stream()
                 .map(entry -> entry.getKey() + "=" + (entry.getValue() == null ? "" : entry.getValue()))
                 .collect(Collectors.joining("&"));

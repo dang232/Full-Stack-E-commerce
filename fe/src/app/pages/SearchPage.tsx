@@ -1,0 +1,843 @@
+import { IconAdjustmentsHorizontal, IconStar, IconTruck, IconX, IconBolt, IconLayoutGrid, IconLayoutList, IconSearch } from "@tabler/icons-react";
+import { motion } from "motion/react";
+import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useSearchParams } from "react-router";
+
+import { FacetList } from "../components/facet-list";
+import { ImageWithFallback } from "../components/image-with-fallback";
+import { useVNShop } from "../components/vnshop-context";
+import { categoryDisplayLabel, useCategories } from "../hooks/use-categories";
+import { useProducts } from "../hooks/use-products";
+import { useResettableState } from "../hooks/use-resettable-state";
+import { useSearch } from "../hooks/use-search";
+import { useSearchFacets } from "../hooks/use-search-facets";
+import { formatPrice } from "../lib/format";
+import type { Product } from "../types/ui";
+
+function ProductListItem({ product }: { product: Product }) {
+  const navigate = useNavigate();
+  const { addToCart, toggleWishlist, isWishlisted } = useVNShop();
+  const { t } = useTranslation();
+  const loved = isWishlisted(product.id);
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={t("search.viewDetailsAria", { name: product.name })}
+      className="flex gap-4 bg-card rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+      onClick={() => {
+        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+        void navigate(`/product/${product.id}`);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+          void navigate(`/product/${product.id}`);
+        }
+      }}
+    >
+      <div className="relative shrink-0 w-36 h-36 rounded-xl overflow-hidden">
+        <ImageWithFallback
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+        />
+        {product.discount ? (
+          <span
+            className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white text-[10px] font-bold"
+            style={{ background: "#FF6200" }}
+          >
+            -{product.discount}%
+          </span>
+        ) : null}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-muted-foreground mb-1">
+          {product.sellerName} · {product.location}
+        </p>
+        <h3 className="font-medium text-foreground mb-2 line-clamp-2">{product.name}</h3>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <IconStar
+                key={i} // eslint-disable-line react/no-array-index-key -- decorative star rating, no stable id
+                size={12}
+                className={
+                  i < Math.floor(product.rating)
+                    ? "text-amber-400 fill-amber-400"
+                    : "text-gray-300 fill-gray-200"
+                }
+              />
+            ))}
+          </div>
+          <span className="text-xs text-muted-foreground">({product.reviewCount.toLocaleString()})</span>
+          <span className="text-xs text-muted-foreground">• {t("home.soldShort", { count: product.sold.toLocaleString() })}</span>
+        </div>
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+          {product.description.slice(0, 100)}...
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          {product.shippingFee === 0 ? (
+            <span
+              className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "rgba(238,77,45,0.1)", color: "#EE4D2D" }}
+            >
+              <IconTruck size={10} /> {t("search.freeShippingTag")}
+            </span>
+          ) : null}
+          {product.colors?.slice(0, 3).map((c) => (
+            <span key={c} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+              {c}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="shrink-0 flex flex-col items-end justify-between">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product.id);
+          }}
+          className="p-1.5 rounded-lg transition-colors"
+          style={{ color: loved ? "#FF6200" : "#9ca3af" }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill={loved ? "currentColor" : "none"}
+            color="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
+        <div className="text-right">
+          <p className="font-bold text-lg" style={{ color: "#FF6200" }}>
+            {formatPrice(product.price)}
+          </p>
+          {product.originalPrice ? (
+            <p className="text-sm text-muted-foreground line-through">
+              {formatPrice(product.originalPrice)}
+            </p>
+          ) : null}
+        </div>
+        <button
+          className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors"
+          style={{ background: "#EE4D2D" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            addToCart(product);
+          }}
+        >
+          Mua ngay
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ProductGridCard({ product, index }: { product: Product; index: number }) {
+  const navigate = useNavigate();
+  const { addToCart, toggleWishlist, isWishlisted } = useVNShop();
+  const loved = isWishlisted(product.id);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.04, 0.5) }}
+      role="link"
+      tabIndex={0}
+      aria-label={product.name}
+      className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer group"
+      onClick={() => {
+        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+        void navigate(`/product/${product.id}`);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+          void navigate(`/product/${product.id}`);
+        }
+      }}
+    >
+      <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
+        <ImageWithFallback
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        {product.discount ? (
+          <span
+            className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[10px] font-bold"
+            style={{ background: "#FF6200" }}
+          >
+            -{product.discount}%
+          </span>
+        ) : null}
+        <button
+          className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{
+            background: loved ? "#FF6200" : "rgba(255,255,255,0.9)",
+            color: loved ? "white" : "#6b7280",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product.id);
+          }}
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill={loved ? "currentColor" : "none"}
+            color="currentColor"
+            strokeWidth="2.5"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
+        <button
+          className="absolute bottom-0 inset-x-0 py-2 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 translate-y-full group-hover:translate-y-0 transition-all duration-200"
+          style={{ background: "rgba(238,77,45,0.92)" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            addToCart(product);
+          }}
+        >
+          Thêm vào giỏ
+        </button>
+      </div>
+      <div className="p-3">
+        <p className="text-[11px] text-muted-foreground truncate">{product.sellerName}</p>
+        <h3 className="text-sm font-medium text-foreground line-clamp-2 mt-0.5 mb-1.5 leading-snug">
+          {product.name}
+        </h3>
+        <div className="flex items-center gap-1 mb-2">
+          <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
+          <span className="text-xs text-foreground">{product.rating}</span>
+          <span className="text-xs text-muted-foreground">
+            (
+            {product.reviewCount > 999
+              ? `${(product.reviewCount / 1000).toFixed(1)}k`
+              : product.reviewCount}
+            )
+          </span>
+        </div>
+        <div className="flex items-end justify-between gap-1">
+          <div>
+            <p className="font-bold text-sm" style={{ color: "#FF6200" }}>
+              {formatPrice(product.price)}
+            </p>
+            {product.originalPrice ? (
+              <p className="text-[11px] text-muted-foreground line-through">
+                {formatPrice(product.originalPrice)}
+              </p>
+            ) : null}
+          </div>
+          {product.shippingFee === 0 ? (
+            <span className="text-[10px] font-medium" style={{ color: "#EE4D2D" }}>
+              Free ship
+            </span>
+          ) : null}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+const SCROLL_KEY = "vnshop:search-scroll";
+
+export function SearchPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get("q") ?? "";
+  // URL is the source of truth for the selected category — no shadow state.
+  const selectedCat = searchParams.get("cat") ?? "";
+  const isFlash = searchParams.get("flash") === "true";
+  const { t } = useTranslation();
+
+  const [localQuery, setLocalQuery] = useState(query);
+  // Key filters are URL-derived so refresh preserves them.
+  const priceMin = searchParams.get("priceMin") ?? "";
+  const priceMax = searchParams.get("priceMax") ?? "";
+  const sortBy = searchParams.get("sort") ?? "popular";
+
+  const setPriceMin = (v: string) =>
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (v) p.set("priceMin", v);
+      else p.delete("priceMin");
+      return p;
+    });
+
+  const setPriceMax = (v: string) =>
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (v) p.set("priceMax", v);
+      else p.delete("priceMax");
+      return p;
+    });
+
+  const setSortBy = (v: string) =>
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (v && v !== "popular") p.set("sort", v);
+      else p.delete("sort");
+      return p;
+    });
+  const [minRating, setMinRating] = useState(0);
+  const [freeShipOnly, setFreeShipOnly] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Restore scroll position when returning from a product page.
+  useEffect(() => {
+    const saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved) {
+      window.scrollTo(0, parseInt(saved, 10));
+      sessionStorage.removeItem(SCROLL_KEY);
+    }
+  }, []);
+
+  // Filter signature drives a key-based remount of the result window so
+  // pagination resets without an effect.
+  const filterSignature = `${query}|${selectedCat}|${selectedBrand}|${priceMin}|${priceMax}|${minRating}|${freeShipOnly}|${sortBy}|${isFlash}`;
+  const [pageSize, setPageSize] = useResettableState(20, filterSignature);
+
+  // Helper: replace `cat` in the URL while preserving other params.
+  const setCategory = (next: string) => {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      if (next) params.set("cat", next);
+      else params.delete("cat");
+      return params;
+    });
+  };
+
+  // Backend search runs when there's a query OR a category. Empty results are kept
+  // (the user really did search and got nothing back). We only fall through to the local
+  // catalog when search wasn't enabled or the backend failed outright.
+  // Category-only filtering goes through useProducts (product-service) which
+  // now accepts categoryId directly. The search-service is only engaged when
+  // there is a text query or brand filter — it may have an empty read model
+  // in dev/staging, so we avoid routing pure category clicks through it.
+  const searchEnabled = !!(query || selectedBrand);
+  const search = useSearch(
+    {
+      q: query || undefined,
+      category: selectedCat || undefined,
+      brand: selectedBrand || undefined,
+      minPrice: priceMin ? Number(priceMin) * 1000 : undefined,
+      maxPrice: priceMax ? Number(priceMax) * 1000 : undefined,
+      sort: sortBy === "popular" ? undefined : sortBy,
+      size: pageSize,
+    },
+    searchEnabled,
+  );
+
+  // BE-driven facet counts for the sidebar. Only fetched when there's
+  // something to facet against; the hook short-circuits otherwise.
+  const { facets } = useSearchFacets({
+    q: query || undefined,
+    category: selectedCat || undefined,
+    brand: selectedBrand || undefined,
+    minPrice: priceMin ? Number(priceMin) * 1000 : undefined,
+    maxPrice: priceMax ? Number(priceMax) * 1000 : undefined,
+    enabled: searchEnabled,
+  });
+
+  const { data: localCatalog = [] } = useProducts({ categoryId: selectedCat || undefined });
+  const { data: categories = [] } = useCategories();
+  // With keepPreviousData on the search hook, isLoading is only true on the
+  // very first fetch (before any successful data) — so we can safely treat
+  // a non-error successful query as "use backend" without flicker on refetch.
+  const usedBackend = searchEnabled && !search.error;
+  const catalog = usedBackend ? search.products : localCatalog;
+
+  const filtered = useMemo(() => {
+    let list = [...catalog];
+    if (isFlash) list = list.filter((p) => (p.discount ?? 0) >= 20 || p.badge === "flash");
+    // Backend already applied q + category — skip those client-side filters.
+    if (!usedBackend) {
+      if (selectedCat) list = list.filter((p) => p.category === selectedCat);
+      if (query) {
+        const q = query.toLowerCase();
+        list = list.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q) ||
+            p.tags.some((t) => t.includes(q)),
+        );
+      }
+    }
+    if (priceMin) list = list.filter((p) => p.price >= Number(priceMin) * 1000);
+    if (priceMax) list = list.filter((p) => p.price <= Number(priceMax) * 1000);
+    if (minRating > 0) list = list.filter((p) => p.rating >= minRating);
+    if (freeShipOnly) list = list.filter((p) => p.shippingFee === 0);
+    switch (sortBy) {
+      case "price-low":
+        list.sort((a, b) => a.price - b.price);
+        break;
+      case "price-high":
+        list.sort((a, b) => b.price - a.price);
+        break;
+      case "rating":
+        list.sort((a, b) => b.rating - a.rating);
+        break;
+      case "newest":
+        list.sort((a, b) => (b.badge === "new" ? 1 : 0) - (a.badge === "new" ? 1 : 0));
+        break;
+      default:
+        list.sort((a, b) => b.sold - a.sold);
+    }
+    return list;
+  }, [
+    catalog,
+    usedBackend,
+    query,
+    selectedCat,
+    priceMin,
+    priceMax,
+    minRating,
+    freeShipOnly,
+    sortBy,
+    isFlash,
+  ]);
+
+  const paginated = filtered.slice(0, pageSize);
+  const remaining = Math.max(0, filtered.length - pageSize);
+
+  const clearFilters = () => {
+    setMinRating(0);
+    setFreeShipOnly(false);
+    setSelectedBrand("");
+    // Preserve q and flash; wipe all filter params in one update.
+    setSearchParams((prev) => {
+      const p = new URLSearchParams();
+      const q = prev.get("q");
+      if (q) p.set("q", q);
+      const flash = prev.get("flash");
+      if (flash) p.set("flash", flash);
+      return p;
+    });
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (localQuery.trim()) setSearchParams({ q: localQuery.trim() });
+  };
+
+  const activeFilterCount = [
+    selectedCat,
+    selectedBrand,
+    priceMin,
+    priceMax,
+    minRating > 0,
+    freeShipOnly,
+  ].filter(Boolean).length;
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* IconSearch bar */}
+      <form onSubmit={handleSearch} className="flex gap-3 mb-6">
+        <div className="flex-1 flex items-center bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+          <IconSearch size={18} className="ml-4 text-muted-foreground shrink-0" />
+          <input
+            value={localQuery}
+            onChange={(e) => setLocalQuery(e.target.value)}
+            placeholder={t("search.barPlaceholder")}
+            aria-label="Search products"
+            className="flex-1 px-3 py-3 text-sm outline-none bg-transparent"
+          />
+          {localQuery ? (
+            <button
+              type="button"
+              onClick={() => {
+                setLocalQuery("");
+                setSearchParams({});
+              }}
+              className="pr-3 text-muted-foreground"
+            >
+              <IconX size={16} />
+            </button>
+          ) : null}
+        </div>
+        <button
+          type="submit"
+          className="px-6 py-3 rounded-xl text-white font-semibold text-sm"
+          style={{ background: "#EE4D2D" }}
+        >
+          {t("search.submit")}
+        </button>
+      </form>
+
+      {/* Category pills */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1 scrollbar-hide">
+        <button
+          onClick={() => setCategory("")}
+          className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
+          style={
+            !selectedCat
+              ? { background: "#EE4D2D", color: "#fff" }
+              : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
+          }
+        >
+          {t("search.allCategories")}
+        </button>
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setCategory(selectedCat === cat.id ? "" : cat.id)}
+            className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
+            style={
+              selectedCat === cat.id
+                ? { background: "#EE4D2D", color: "#fff" }
+                : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
+            }
+          >
+            {categoryDisplayLabel(cat)}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-6">
+        {/* Sidebar filters */}
+        <aside className={`shrink-0 w-56 space-y-5 ${showFilters ? "block" : "hidden lg:block"}`}>
+          <div className="bg-card rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-foreground">{t("search.filtersTitle")}</h3>
+              {activeFilterCount > 0 ? (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs font-medium"
+                  style={{ color: "#FF6200" }}
+                >
+                  {t("search.clearAll")}
+                </button>
+              ) : null}
+            </div>
+
+            {/* Sort */}
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-foreground mb-2">{t("search.sortHeader")}</p>
+              {[
+                { v: "popular", l: t("search.sort.popular") },
+                { v: "rating", l: t("search.sort.rating") },
+                { v: "price-low", l: t("search.sort.priceLow") },
+                { v: "price-high", l: t("search.sort.priceHigh") },
+                { v: "newest", l: t("search.sort.newest") },
+              ].map((opt) => (
+                <button
+                  key={opt.v}
+                  onClick={() => setSortBy(opt.v)}
+                  className="w-full text-left text-sm py-1.5 flex items-center gap-2"
+                  style={{ color: sortBy === opt.v ? "#EE4D2D" : "#4b5563" }}
+                >
+                  <div
+                    className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                    style={{ borderColor: sortBy === opt.v ? "#EE4D2D" : "#d1d5db" }}
+                  >
+                    {sortBy === opt.v ? (
+                      <div className="w-2 h-2 rounded-full" style={{ background: "#EE4D2D" }} />
+                    ) : null}
+                  </div>
+                  {opt.l}
+                </button>
+              ))}
+            </div>
+
+            {/* Price range */}
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-foreground mb-2">{t("search.priceHeader")}</p>
+              <div className="flex gap-2">
+                <input
+                  value={priceMin}
+                  onChange={(e) => setPriceMin(e.target.value)}
+                  placeholder={t("search.priceFrom")}
+                  type="number"
+                  className="flex-1 px-3 py-2 border border-border rounded-lg text-xs outline-none focus:border-[#EE4D2D]"
+                />
+                <input
+                  value={priceMax}
+                  onChange={(e) => setPriceMax(e.target.value)}
+                  placeholder={t("search.priceTo")}
+                  type="number"
+                  className="flex-1 px-3 py-2 border border-border rounded-lg text-xs outline-none focus:border-[#EE4D2D]"
+                />
+              </div>
+              {[
+                { labelKey: "search.priceBuckets.under100", min: "", max: "100" },
+                { labelKey: "search.priceBuckets.100to500", min: "100", max: "500" },
+                { labelKey: "search.priceBuckets.500to2000", min: "500", max: "2000" },
+                { labelKey: "search.priceBuckets.over2000", min: "2000", max: "" },
+              ].map((range) => (
+                <button
+                  key={range.labelKey}
+                  onClick={() => {
+                    setPriceMin(range.min);
+                    setPriceMax(range.max);
+                  }}
+                  className="mt-1 mr-1 px-2.5 py-1 rounded-full text-xs border transition-colors"
+                  style={{
+                    borderColor:
+                      priceMin === range.min && priceMax === range.max ? "#EE4D2D" : "#e5e7eb",
+                    color: priceMin === range.min && priceMax === range.max ? "#EE4D2D" : "#6b7280",
+                    background:
+                      priceMin === range.min && priceMax === range.max
+                        ? "rgba(238,77,45,0.08)"
+                        : "transparent",
+                  }}
+                >
+                  {t(range.labelKey)}
+                </button>
+              ))}
+            </div>
+
+            {/* Rating */}
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-foreground mb-2">{t("search.ratingHeader")}</p>
+              {[4, 3, 2].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setMinRating(minRating === r ? 0 : r)}
+                  className="w-full flex items-center gap-2 py-1.5 text-sm"
+                  style={{ color: minRating === r ? "#EE4D2D" : "#4b5563" }}
+                >
+                  <div className="flex">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <IconStar
+                        key={i} // eslint-disable-line react/no-array-index-key -- decorative star rating, no stable id
+                        size={13}
+                        fill={i < r ? "#F59E0B" : "#e5e7eb"}
+                        className="text-amber-400"
+                      />
+                    ))}
+                  </div>
+                  <span>{t("search.ratingAtLeast", { r })}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Free shipping */}
+            <div>
+              <button
+                onClick={() => setFreeShipOnly(!freeShipOnly)}
+                className="flex items-center gap-3 text-sm"
+              >
+                <div
+                  className="w-10 h-5 rounded-full flex items-center transition-all duration-200 px-0.5"
+                  style={{ background: freeShipOnly ? "#EE4D2D" : "#d1d5db" }}
+                >
+                  <div
+                    className="w-4 h-4 rounded-full bg-card shadow transition-transform duration-200"
+                    style={{ transform: freeShipOnly ? "translateX(20px)" : "none" }}
+                  />
+                </div>
+                <span className="text-foreground">{t("search.freeShipping")}</span>
+              </button>
+            </div>
+
+            {/* Brand + category facets — driven by /search/facets so the
+                options reflect the current query and other filters. Each
+                axis hides itself when the BE returned no entries (e.g. on
+                the welcome state before the user has searched). */}
+            <FacetList
+              title={t("search.brandsTitle")}
+              entries={facets.brands}
+              selected={selectedBrand}
+              onToggle={(key) => setSelectedBrand(selectedBrand === key ? "" : key)}
+            />
+            <FacetList
+              title={t("search.categoriesTitle")}
+              entries={facets.categories}
+              selected={selectedCat}
+              onToggle={(key) => setCategory(selectedCat === key ? "" : key)}
+              formatLabel={(key) => {
+                const cat = categories.find((c) => c.id === key);
+                return cat ? categoryDisplayLabel(cat) : key;
+              }}
+            />
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          {/* Result header */}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-foreground font-medium">
+                {isFlash ? (
+                  <span className="inline-flex items-center gap-1 mr-2 text-red-500 font-bold">
+                    <IconBolt size={16} fill="currentColor" /> Flash Sale
+                  </span>
+                ) : null}
+                {query ? t("search.resultsForQuery", { q: query }) : t("search.allProducts")}
+              </p>
+              <p aria-live="polite" aria-atomic="true" className="text-sm text-muted-foreground mt-0.5">
+                {t("search.resultCount", {
+                  count: usedBackend ? search.totalElements : filtered.length,
+                })}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card text-sm font-medium"
+              >
+                <IconAdjustmentsHorizontal size={16} />
+                {t("search.filterToggle")} {activeFilterCount > 0 ? `(${activeFilterCount})` : null}
+              </button>
+              <div className="hidden sm:flex border border-border rounded-xl overflow-hidden bg-card">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className="p-2.5 transition-colors"
+                  style={{
+                    background: viewMode === "grid" ? "#EE4D2D" : "transparent",
+                    color: viewMode === "grid" ? "white" : "#6b7280",
+                  }}
+                >
+                  <IconLayoutGrid size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className="p-2.5 transition-colors"
+                  style={{
+                    background: viewMode === "list" ? "#EE4D2D" : "transparent",
+                    color: viewMode === "list" ? "white" : "#6b7280",
+                  }}
+                >
+                  <IconLayoutList size={16} />
+                </button>
+              </div>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border border-border rounded-xl bg-card text-sm outline-none"
+              >
+                <option value="popular">{t("search.sort.shortPopular")}</option>
+                <option value="rating">{t("search.sort.shortRating")}</option>
+                <option value="price-low">{t("search.sort.shortPriceLow")}</option>
+                <option value="price-high">{t("search.sort.shortPriceHigh")}</option>
+                <option value="newest">{t("search.sort.shortNewest")}</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Active filter chips */}
+          {activeFilterCount > 0 ? (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {selectedCat ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#EE4D2D" }}
+                >
+                  {(() => {
+                    const cat = categories.find((c) => c.id === selectedCat);
+                    return cat ? categoryDisplayLabel(cat) : selectedCat;
+                  })()}
+                  <button onClick={() => setCategory("")}>
+                    <IconX size={12} />
+                  </button>
+                </span>
+              ) : null}
+              {selectedBrand ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#EE4D2D" }}
+                >
+                  {selectedBrand}
+                  <button onClick={() => setSelectedBrand("")}>
+                    <IconX size={12} />
+                  </button>
+                </span>
+              ) : null}
+              {priceMin || priceMax ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#EE4D2D" }}
+                >
+                  {priceMin ? `${priceMin}k` : "0"} – {priceMax ? `${priceMax}k` : "∞"}
+                  <button
+                    onClick={() => {
+                      setPriceMin("");
+                      setPriceMax("");
+                    }}
+                  >
+                    <IconX size={12} />
+                  </button>
+                </span>
+              ) : null}
+              {minRating > 0 ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#EE4D2D" }}
+                >
+                  {t("search.ratingAtLeast", { r: minRating })}
+                  <button onClick={() => setMinRating(0)}>
+                    <IconX size={12} />
+                  </button>
+                </span>
+              ) : null}
+              {freeShipOnly ? (
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
+                  style={{ background: "#EE4D2D" }}
+                >
+                  {t("search.freeShipping")}
+                  <button onClick={() => setFreeShipOnly(false)}>
+                    <IconX size={12} />
+                  </button>
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Empty state */}
+          {paginated.length === 0 ? (
+            <div className="py-24 text-center bg-card rounded-2xl">
+              <IconSearch size={48} className="mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">{t("search.emptyTitle")}</h3>
+              <p className="text-sm text-muted-foreground mb-6">{t("search.emptySub")}</p>
+              <button
+                onClick={clearFilters}
+                className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold"
+                style={{ background: "#EE4D2D" }}
+              >
+                {t("search.emptyClear")}
+              </button>
+            </div>
+          ) : viewMode === "grid" ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+              {paginated.map((p, i) => (
+                <ProductGridCard key={p.id} product={p} index={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {paginated.map((p) => (
+                <ProductListItem key={p.id} product={p} />
+              ))}
+            </div>
+          )}
+
+          {/* Load more */}
+          {remaining > 0 ? (
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setPageSize((s) => s + 20)}
+                className="px-8 py-3 rounded-full border-2 text-sm font-semibold transition-all hover:text-white hover:bg-[#EE4D2D]"
+                style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
+              >
+                {t("search.loadMore", { count: Math.min(20, remaining) })}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}

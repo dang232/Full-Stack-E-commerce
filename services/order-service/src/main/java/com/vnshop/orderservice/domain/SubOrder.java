@@ -8,15 +8,18 @@ public class SubOrder {
     private final String sellerId;
     private final List<OrderItem> items;
     private FulfillmentStatus fulfillmentStatus;
-    private Money shippingCost;
-    private String shippingMethod;
-    private String carrier;
-    private String trackingNumber;
+    private ShippingInfo shippingInfo;
+    private CommissionTier commissionTier;
 
     public SubOrder(String sellerId, List<OrderItem> items) {
-        this(null, sellerId, items, FulfillmentStatus.PENDING_ACCEPTANCE, Money.ZERO, "STANDARD", null, null);
+        this(null, sellerId, items, FulfillmentStatus.PENDING_ACCEPTANCE, ShippingInfo.EMPTY, null);
     }
 
+    public SubOrder(String sellerId, List<OrderItem> items, CommissionTier commissionTier) {
+        this(null, sellerId, items, FulfillmentStatus.PENDING_ACCEPTANCE, ShippingInfo.EMPTY, commissionTier);
+    }
+
+    /** Backward-compatible 8-param constructor used by tests and legacy call sites. */
     public SubOrder(
             Long id,
             String sellerId,
@@ -27,6 +30,35 @@ public class SubOrder {
             String carrier,
             String trackingNumber
     ) {
+        this(id, sellerId, items, fulfillmentStatus,
+                new ShippingInfo(shippingCost, shippingMethod, carrier, trackingNumber), null);
+    }
+
+    /** Backward-compatible 9-param constructor used by tests and legacy call sites. */
+    public SubOrder(
+            Long id,
+            String sellerId,
+            List<OrderItem> items,
+            FulfillmentStatus fulfillmentStatus,
+            Money shippingCost,
+            String shippingMethod,
+            String carrier,
+            String trackingNumber,
+            CommissionTier commissionTier
+    ) {
+        this(id, sellerId, items, fulfillmentStatus,
+                new ShippingInfo(shippingCost, shippingMethod, carrier, trackingNumber), commissionTier);
+    }
+
+    /** Canonical constructor — takes a ShippingInfo value object. */
+    public SubOrder(
+            Long id,
+            String sellerId,
+            List<OrderItem> items,
+            FulfillmentStatus fulfillmentStatus,
+            ShippingInfo shippingInfo,
+            CommissionTier commissionTier
+    ) {
         requireNonBlank(sellerId, "sellerId");
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("items must not be empty");
@@ -35,11 +67,19 @@ public class SubOrder {
         this.sellerId = sellerId;
         this.items = List.copyOf(items);
         this.fulfillmentStatus = Objects.requireNonNull(fulfillmentStatus, "fulfillmentStatus is required");
-        this.shippingCost = Objects.requireNonNull(shippingCost, "shippingCost is required");
-        this.shippingMethod = shippingMethod == null || shippingMethod.isBlank() ? "STANDARD" : shippingMethod;
-        this.carrier = carrier;
-        this.trackingNumber = trackingNumber;
+        Objects.requireNonNull(shippingInfo, "shippingInfo is required");
+        // Normalise shippingMethod to "STANDARD" when blank
+        String method = shippingInfo.shippingMethod();
+        ShippingInfo normalised = (method == null || method.isBlank())
+                ? new ShippingInfo(shippingInfo.shippingCost(), "STANDARD", shippingInfo.carrier(), shippingInfo.trackingNumber())
+                : shippingInfo;
+        this.shippingInfo = normalised;
+        this.commissionTier = commissionTier != null ? commissionTier : CommissionTier.STANDARD;
     }
+
+    // -------------------------------------------------------------------------
+    // Accessors
+    // -------------------------------------------------------------------------
 
     public Long id() {
         return id;
@@ -57,20 +97,29 @@ public class SubOrder {
         return fulfillmentStatus;
     }
 
+    public ShippingInfo shippingInfo() {
+        return shippingInfo;
+    }
+
+    // Delegating accessors — kept for backward compatibility with all call sites.
     public Money shippingCost() {
-        return shippingCost;
+        return shippingInfo.shippingCost();
     }
 
     public String shippingMethod() {
-        return shippingMethod;
+        return shippingInfo.shippingMethod();
     }
 
     public String carrier() {
-        return carrier;
+        return shippingInfo.carrier();
     }
 
     public String trackingNumber() {
-        return trackingNumber;
+        return shippingInfo.trackingNumber();
+    }
+
+    public CommissionTier commissionTier() {
+        return commissionTier;
     }
 
     public Money itemsTotal() {
@@ -78,6 +127,10 @@ public class SubOrder {
                 .map(OrderItem::totalPrice)
                 .reduce(Money.ZERO, Money::add);
     }
+
+    // -------------------------------------------------------------------------
+    // State transitions
+    // -------------------------------------------------------------------------
 
     public void accept() {
         transitionTo(FulfillmentStatus.ACCEPTED);
@@ -95,8 +148,7 @@ public class SubOrder {
         requireNonBlank(carrier, "carrier");
         requireNonBlank(trackingNumber, "trackingNumber");
         transitionTo(FulfillmentStatus.SHIPPED);
-        this.carrier = carrier;
-        this.trackingNumber = trackingNumber;
+        this.shippingInfo = shippingInfo.withTracking(carrier, trackingNumber);
     }
 
     public void cancel() {
@@ -108,12 +160,18 @@ public class SubOrder {
     }
 
     public void setShippingCost(Money shippingCost) {
-        this.shippingCost = Objects.requireNonNull(shippingCost, "shippingCost is required");
+        Objects.requireNonNull(shippingCost, "shippingCost is required");
+        this.shippingInfo = shippingInfo.withCost(shippingCost);
     }
 
     public void setShippingMethod(String shippingMethod) {
-        this.shippingMethod = shippingMethod == null || shippingMethod.isBlank() ? "STANDARD" : shippingMethod;
+        String method = shippingMethod == null || shippingMethod.isBlank() ? "STANDARD" : shippingMethod;
+        this.shippingInfo = new ShippingInfo(shippingInfo.shippingCost(), method, shippingInfo.carrier(), shippingInfo.trackingNumber());
     }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     private void transitionTo(FulfillmentStatus nextStatus) {
         if (!canTransitionTo(nextStatus)) {

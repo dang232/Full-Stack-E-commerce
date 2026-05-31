@@ -44,15 +44,18 @@ public class ProductImageUploadController {
     }
 
     @PostMapping("/activate")
-    public ApiResponse<ActivatedImageResponse> activate(@Valid @RequestBody ActivateImageRequest request) {
-        ProductImageActivationResponse response = productImageUploadService.activate(request.objectKey(), ProductImageActivationRequest.builder()
-                .detectedContentType(request.detectedContentType())
-                .contentLength(request.contentLength())
-                .sha256Hex(request.sha256Hex())
-                .imageWidth(request.imageWidth())
-                .imageHeight(request.imageHeight())
-                .avScanClean(request.avScanClean())
-                .build());
+    public ApiResponse<ActivatedImageResponse> activate(@PathVariable String productId, @Valid @RequestBody ActivateImageRequest request) {
+        ProductImageActivationResponse response = productImageUploadService.activate(
+                productId,
+                JwtPrincipalUtil.currentSellerId(),
+                request.objectKey(),
+                ProductImageActivationRequest.builder()
+                        .detectedContentType(request.detectedContentType())
+                        .contentLength(request.contentLength())
+                        .sha256Hex(request.sha256Hex())
+                        .imageWidth(request.imageWidth())
+                        .imageHeight(request.imageHeight())
+                        .build());
         return ApiResponse.ok(ActivatedImageResponse.fromApplication(response));
     }
 

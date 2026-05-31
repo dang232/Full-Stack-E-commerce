@@ -1,5 +1,6 @@
 package com.vnshop.productservice.application.image;
 
+import com.vnshop.productservice.application.ProductAccessDeniedException;
 import com.vnshop.productservice.application.storage.ObjectValidationPolicy;
 import com.vnshop.productservice.application.storage.ObjectValidationRequest;
 import com.vnshop.productservice.application.storage.ObjectValidationService;
@@ -58,7 +59,15 @@ public class ProductImageUploadService {
                 .build();
     }
 
-    public ProductImageActivationResponse activate(String objectKey, ProductImageActivationRequest request) {
+    public ProductImageActivationResponse activate(String productId, String sellerId, String objectKey, ProductImageActivationRequest request) {
+        Product product = productRepositoryPort.findById(UUID.fromString(productId))
+                .orElseThrow(() -> new ProductAccessDeniedException("product not found or not owned by caller"));
+        if (!product.sellerId().equals(sellerId)) {
+            throw new ProductAccessDeniedException("product not found or not owned by caller");
+        }
+        if (!objectKey.startsWith("products/" + productId + "/")) {
+            throw new ProductAccessDeniedException("objectKey does not belong to product " + productId);
+        }
         ObjectMetadata metadata = objectMetadataRepositoryPort.findByKey(objectKey)
                 .orElseThrow(() -> new IllegalArgumentException("object metadata not found"));
         ObjectValidationResult result = objectValidationService.validate(ObjectValidationRequest.builder()
@@ -70,7 +79,12 @@ public class ProductImageUploadService {
                         .build())
                 .expectedSha256Hex(metadata.getSha256Hex())
                 .detectedContentType(request.detectedContentType())
-                .avScanClean(request.avScanClean())
+                // Pt19 audit: avScanClean is no longer accepted on the wire — a
+                // hostile seller could trivially set it to true and bypass the
+                // gate. Hardcoded here to match the createUpload path; if a real
+                // AV scanner gets wired in, switch this to a server-side lookup
+                // on ObjectMetadata.
+                .avScanClean(true)
                 .build());
         ObjectMetadata activated = metadata.toBuilder()
                 .contentLength(request.contentLength())

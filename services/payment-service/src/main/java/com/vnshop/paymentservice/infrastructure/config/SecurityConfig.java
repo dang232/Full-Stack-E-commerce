@@ -14,7 +14,16 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
+                        // Payment-gateway callbacks (VNPay/MoMo IPN+return, Stripe webhook)
+                        // cannot carry a JWT; their integrity is verified by signed payload
+                        // + HMAC inside the controller. These specific paths must remain
+                        // reachable without an Authorization header. In prod the api-gateway
+                        // permits the same paths; in local dev `stripe listen` forwards
+                        // straight to this service, so the permit must live here too.
+                        .requestMatchers("/payment/*/ipn", "/payment/*/return", "/payment/*/webhook").permitAll()
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
     }

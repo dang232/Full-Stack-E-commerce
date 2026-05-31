@@ -1,25 +1,22 @@
 package com.vnshop.orderservice.infrastructure.web;
 
-import com.vnshop.orderservice.domain.Money;
-import com.vnshop.orderservice.domain.OrderItem;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase.CheckoutLineItem;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
-import java.math.BigDecimal;
-
+/**
+ * Wire shape for a checkout line item: only what the client legitimately
+ * knows ({@code productId}, optionally a chosen {@code variantSku}, and
+ * {@code quantity}). Price, seller, name, and image come from the
+ * product-service server-side at checkout time — never trust the client
+ * with anything that affects total amount or seller routing.
+ */
 public record OrderItemRequest(
         @NotBlank String productId,
-        @NotBlank String variantSku,
-        @NotBlank String sellerId,
-        @NotBlank String name,
-        @Min(1) int quantity,
-        @NotNull BigDecimal unitPriceAmount,
-        String unitPriceCurrency,
-        String imageUrl
+        String variantSku,
+        @Min(1) int quantity
 ) {
-
-    OrderItem toDomain() {
-        return new OrderItem(productId, variantSku, sellerId, name, quantity, new Money(unitPriceAmount, unitPriceCurrency), imageUrl);
+    CheckoutLineItem toLineItem() {
+        return new CheckoutLineItem(productId, variantSku, quantity);
     }
 }

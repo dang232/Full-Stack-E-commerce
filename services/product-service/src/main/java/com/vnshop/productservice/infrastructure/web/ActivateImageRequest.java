@@ -10,6 +10,5 @@ public record ActivateImageRequest(
         @Min(1) long contentLength,
         @NotBlank String sha256Hex,
         @NotNull Integer imageWidth,
-        @NotNull Integer imageHeight,
-        boolean avScanClean) {
+        @NotNull Integer imageHeight) {
 }

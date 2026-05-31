@@ -1,5 +1,6 @@
 package com.vnshop.userservice.domain;
 
+import java.time.Instant;
 import java.util.Objects;
 
 public class SellerProfile {
@@ -11,7 +12,12 @@ public class SellerProfile {
     private boolean approved;
     private Tier tier;
     private boolean vacationMode;
+    private String description;
+    private String logoUrl;
+    private String bannerUrl;
+    private final Instant createdAt;
 
+    /** Existing 8-arg constructor — new fields default to null. All existing call sites unchanged. */
     public SellerProfile(
             String id,
             String shopName,
@@ -22,6 +28,25 @@ public class SellerProfile {
             Tier tier,
             boolean vacationMode
     ) {
+        this(id, shopName, bankName, bankAccount, pickupAddress, approved, tier, vacationMode,
+                null, null, null, null);
+    }
+
+    /** Full constructor used by JPA toDomain mapping. */
+    public SellerProfile(
+            String id,
+            String shopName,
+            String bankName,
+            String bankAccount,
+            Address pickupAddress,
+            boolean approved,
+            Tier tier,
+            boolean vacationMode,
+            String description,
+            String logoUrl,
+            String bannerUrl,
+            Instant createdAt
+    ) {
         this.id = id;
         this.shopName = requireNonBlank(shopName, "shopName");
         this.bankName = requireNonBlank(bankName, "bankName");
@@ -30,39 +55,24 @@ public class SellerProfile {
         this.approved = approved;
         this.tier = tier == null ? Tier.STANDARD : tier;
         this.vacationMode = vacationMode;
+        this.description = description;
+        this.logoUrl = logoUrl;
+        this.bannerUrl = bannerUrl;
+        this.createdAt = createdAt;
     }
 
-    public String id() {
-        return id;
-    }
-
-    public String shopName() {
-        return shopName;
-    }
-
-    public String bankName() {
-        return bankName;
-    }
-
-    public String bankAccount() {
-        return bankAccount;
-    }
-
-    public Address pickupAddress() {
-        return pickupAddress;
-    }
-
-    public boolean approved() {
-        return approved;
-    }
-
-    public Tier tier() {
-        return tier;
-    }
-
-    public boolean vacationMode() {
-        return vacationMode;
-    }
+    public String id() { return id; }
+    public String shopName() { return shopName; }
+    public String bankName() { return bankName; }
+    public String bankAccount() { return bankAccount; }
+    public Address pickupAddress() { return pickupAddress; }
+    public boolean approved() { return approved; }
+    public Tier tier() { return tier; }
+    public boolean vacationMode() { return vacationMode; }
+    public String description() { return description; }
+    public String logoUrl() { return logoUrl; }
+    public String bannerUrl() { return bannerUrl; }
+    public Instant createdAt() { return createdAt; }
 
     public void updateShop(String shopName, Address pickupAddress) {
         this.shopName = requireNonBlank(shopName, "shopName");

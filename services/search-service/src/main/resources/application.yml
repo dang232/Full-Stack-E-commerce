@@ -2,23 +2,30 @@ server:
   port: 8086
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   application:
     name: search-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=search_svc
+    url: jdbc:postgresql://localhost:5438/vnshop_search?currentSchema=search_svc
     username: vnshop
     password: vnshop
   flyway:
     enabled: true
     schemas: search_svc
     default-schema: search_svc
+  jpa:
+    hibernate:
+      ddl-auto: validate
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/vnshop}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs}
 
 springdoc:
   api-docs:
@@ -37,3 +44,33 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
+kafka:
+  health:
+    consumer:
+      enabled: true
+      lag-threshold: 1000
+      group-id: search-service
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0

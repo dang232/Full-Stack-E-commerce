@@ -1,5 +1,6 @@
 package com.vnshop.productservice.infrastructure.config;
 
+import com.vnshop.productservice.application.CountSellerProductsUseCase;
 import com.vnshop.productservice.application.CreateProductUseCase;
 import com.vnshop.productservice.application.GetProductUseCase;
 import com.vnshop.productservice.application.UpdateProductUseCase;
@@ -10,6 +11,7 @@ import com.vnshop.productservice.application.review.CreateReviewUseCase;
 import com.vnshop.productservice.application.review.GetProductReviewsUseCase;
 import com.vnshop.productservice.application.review.GetQuestionsUseCase;
 import com.vnshop.productservice.application.review.ModerateReviewUseCase;
+import com.vnshop.productservice.application.review.SellerReviewSummaryUseCase;
 import com.vnshop.productservice.application.review.VoteHelpfulUseCase;
 import com.vnshop.productservice.application.review.image.ReviewImageUploadService;
 import com.vnshop.productservice.application.storage.ObjectValidationPolicy;
@@ -18,6 +20,7 @@ import com.vnshop.productservice.domain.port.out.ObjectMetadataRepositoryPort;
 import com.vnshop.productservice.domain.port.out.ObjectStoragePort;
 import com.vnshop.productservice.domain.port.out.ProductEventPublisherPort;
 import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
+import com.vnshop.productservice.domain.review.port.out.BuyerProfileLookupPort;
 import com.vnshop.productservice.domain.review.port.out.ReviewRepositoryPort;
 import com.vnshop.productservice.domain.storage.ObjectStorageClass;
 import java.util.Set;
@@ -39,6 +42,11 @@ public class UseCaseConfig {
     @Bean
     GetProductUseCase getProductUseCase(ProductRepositoryPort productRepositoryPort) {
         return new GetProductUseCase(productRepositoryPort);
+    }
+
+    @Bean
+    CountSellerProductsUseCase countSellerProductsUseCase(ProductRepositoryPort productRepositoryPort) {
+        return new CountSellerProductsUseCase(productRepositoryPort);
     }
 
     @Bean
@@ -66,8 +74,9 @@ public class UseCaseConfig {
     }
 
     @Bean
-    GetProductReviewsUseCase getProductReviewsUseCase(ReviewRepositoryPort reviewRepositoryPort) {
-        return new GetProductReviewsUseCase(reviewRepositoryPort);
+    GetProductReviewsUseCase getProductReviewsUseCase(ReviewRepositoryPort reviewRepositoryPort,
+            BuyerProfileLookupPort buyerProfileLookupPort) {
+        return new GetProductReviewsUseCase(reviewRepositoryPort, buyerProfileLookupPort);
     }
 
     @Bean
@@ -93,6 +102,11 @@ public class UseCaseConfig {
     @Bean
     GetQuestionsUseCase getQuestionsUseCase(ReviewRepositoryPort reviewRepositoryPort) {
         return new GetQuestionsUseCase(reviewRepositoryPort);
+    }
+
+    @Bean
+    SellerReviewSummaryUseCase sellerReviewSummaryUseCase(ReviewRepositoryPort reviewRepositoryPort) {
+        return new SellerReviewSummaryUseCase(reviewRepositoryPort);
     }
 
     @Bean

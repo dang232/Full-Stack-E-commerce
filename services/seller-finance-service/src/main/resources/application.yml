@@ -2,6 +2,9 @@ server:
   port: 8090
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   application:
     name: seller-finance-service
   datasource:
@@ -13,12 +16,14 @@ spring:
     schemas: seller_finance_svc
     default-schema: seller_finance_svc
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/vnshop}
+
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs}
 
 springdoc:
   api-docs:
@@ -37,6 +42,13 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+kafka:
+  health:
+    consumer:
+      enabled: true
+      lag-threshold: 1000
+      group-id: seller-finance-service-refund
 
 vnshop:
   commission:

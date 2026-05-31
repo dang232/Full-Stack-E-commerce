@@ -22,15 +22,22 @@ public class RequestReturnUseCase {
         requireNonBlank(buyerId, "buyerId");
         Objects.requireNonNull(subOrderId, "subOrderId is required");
         requireNonBlank(reason, "reason");
+        // Pt38 audit (extends pt37): the prior code surfaced two different
+        // 400 responses depending on whether the subOrderId existed at all
+        // vs existed-but-belonged-to-someone-else. That's an existence-
+        // probe oracle: a malicious buyer iterating subOrderIds gets
+        // distinct error bodies for "exists" vs "doesn't exist." Collapse
+        // both into a single OAD with a constant message so the response
+        // is identical regardless of which condition tripped.
         Order order = orderRepository.findBySubOrderId(subOrderId)
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found: " + subOrderId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to request return on this order"));
         if (!order.buyerId().equals(buyerId)) {
-            throw new IllegalArgumentException("return buyer does not own order");
+            throw new OrderAccessDeniedException("not authorized to request return on this order");
         }
         SubOrder subOrder = order.subOrders().stream()
                 .filter(candidate -> subOrderId.equals(candidate.id()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found: " + subOrderId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to request return on this order"));
         if (subOrder.carrier() == null || subOrder.trackingNumber() == null) {
             throw new IllegalStateException("return can be requested after shipment");
         }

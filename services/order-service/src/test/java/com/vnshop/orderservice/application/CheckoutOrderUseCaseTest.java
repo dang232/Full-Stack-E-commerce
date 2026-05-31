@@ -1,0 +1,226 @@
+package com.vnshop.orderservice.application;
+
+import com.vnshop.orderservice.application.CheckoutOrderUseCase.CheckoutLineItem;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase.CheckoutOrderCommand;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase.ProductNotFoundException;
+import com.vnshop.orderservice.application.catalog.CatalogProduct;
+import com.vnshop.orderservice.domain.Address;
+import com.vnshop.orderservice.domain.Money;
+import com.vnshop.orderservice.domain.Order;
+import com.vnshop.orderservice.domain.OrderItem;
+import com.vnshop.orderservice.domain.SubOrder;
+import com.vnshop.orderservice.domain.CommissionTier;
+import com.vnshop.orderservice.domain.port.out.CommissionTierLookupPort;
+import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
+import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
+import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
+import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
+import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
+import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+/**
+ * Verifies that {@link CheckoutOrderUseCase} closes the price-tampering hole.
+ * The client-supplied wire shape carries only {productId, variantSku?, quantity}
+ * — never a price. Anything else (sellerId, name, image, unitPrice) is sourced
+ * from the {@link ProductCatalogPort} server-side.
+ */
+class CheckoutOrderUseCaseTest {
+
+    private final FakeProductCatalog catalog = new FakeProductCatalog();
+    private final FakeOrderRepository repository = new FakeOrderRepository();
+    private final RecordingInventory inventory = new RecordingInventory();
+    private final RecordingPayment payment = new RecordingPayment();
+    private final RecordingShipping shipping = new RecordingShipping();
+    private final RecordingOrderEvents events = new RecordingOrderEvents();
+    private final CommissionTierLookupPort tierLookup = new CommissionTierLookupPort() {
+        @Override
+        public CommissionTier findBySellerId(String sellerId) { return CommissionTier.STANDARD; }
+        @Override
+        public java.util.Map<String, CommissionTier> findBySellerIds(java.util.Set<String> sellerIds) {
+            return sellerIds.stream().collect(java.util.stream.Collectors.toMap(id -> id, id -> CommissionTier.STANDARD));
+        }
+    };
+
+    private CheckoutOrderUseCase newUseCase() {
+        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup);
+        return new CheckoutOrderUseCase(catalog, createOrderUseCase);
+    }
+
+    @Test
+    void resolvesPriceFromCatalogServerSideIgnoringWhateverClientMightHaveSent() {
+        catalog.add(new CatalogProduct(
+                "p1",
+                "seller-A",
+                "Authoritative Product",
+                List.of(new CatalogProduct.Variant("sku-1", new Money(new BigDecimal("199000"), "VND"))),
+                "https://cdn/img.png"));
+
+        Order order = newUseCase().checkout(new CheckoutOrderCommand(
+                "buyer-1",
+                new Address("1 Some St", "ward", "district", "HCM"),
+                List.of(new CheckoutLineItem("p1", "sku-1", 2)),
+                "idem-1"));
+
+        assertThat(order.subOrders()).hasSize(1);
+        SubOrder subOrder = order.subOrders().get(0);
+        assertThat(subOrder.sellerId()).isEqualTo("seller-A");
+        assertThat(subOrder.items()).hasSize(1);
+        OrderItem item = subOrder.items().get(0);
+        assertThat(item.productId()).isEqualTo("p1");
+        assertThat(item.variantSku()).isEqualTo("sku-1");
+        assertThat(item.name()).isEqualTo("Authoritative Product");
+        assertThat(item.imageUrl()).isEqualTo("https://cdn/img.png");
+        // The critical assertion: even if a malicious client tried to ship a
+        // unitPrice on the wire, the BE doesn't accept it. The price here is
+        // exactly what the catalog said.
+        assertThat(item.unitPrice().amount()).isEqualByComparingTo(new BigDecimal("199000"));
+        assertThat(item.unitPrice().currency()).isEqualTo("VND");
+    }
+
+    @Test
+    void picksFirstVariantWhenClientOmitsVariantSku() {
+        catalog.add(new CatalogProduct(
+                "p1",
+                "seller-A",
+                "Multi-variant Product",
+                List.of(
+                        new CatalogProduct.Variant("default", new Money(new BigDecimal("100000"), "VND")),
+                        new CatalogProduct.Variant("alt", new Money(new BigDecimal("150000"), "VND"))),
+                ""));
+
+        Order order = newUseCase().checkout(new CheckoutOrderCommand(
+                "buyer-1",
+                new Address("street", "ward", "district", "city"),
+                List.of(new CheckoutLineItem("p1", null, 1)),
+                "idem-default-variant"));
+
+        assertThat(order.subOrders().get(0).items().get(0).variantSku()).isEqualTo("default");
+        assertThat(order.subOrders().get(0).items().get(0).unitPrice().amount())
+                .isEqualByComparingTo(new BigDecimal("100000"));
+    }
+
+    @Test
+    void rejectsMissingProduct() {
+        // Catalog empty — any productId is unknown.
+
+        assertThatThrownBy(() -> newUseCase().checkout(new CheckoutOrderCommand(
+                "buyer-1",
+                new Address("street", "ward", "district", "city"),
+                List.of(new CheckoutLineItem("missing", null, 1)),
+                "idem-missing")))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("missing");
+    }
+
+    @Test
+    void rejectsMissingVariantSkuWhenClientNamesOneThatDoesNotExist() {
+        catalog.add(new CatalogProduct(
+                "p1",
+                "seller-A",
+                "Product",
+                List.of(new CatalogProduct.Variant("real-sku", new Money(new BigDecimal("100000"), "VND"))),
+                ""));
+
+        assertThatThrownBy(() -> newUseCase().checkout(new CheckoutOrderCommand(
+                "buyer-1",
+                new Address("street", "ward", "district", "city"),
+                List.of(new CheckoutLineItem("p1", "fake-sku", 1)),
+                "idem-bad-sku")))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("fake-sku");
+    }
+
+    @Test
+    void rejectsEmptyLineItemList() {
+        assertThatThrownBy(() -> newUseCase().checkout(new CheckoutOrderCommand(
+                "buyer-1",
+                new Address("street", "ward", "district", "city"),
+                List.of(),
+                "idem-empty")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("items");
+    }
+
+    @Test
+    void groupsItemsBySellerWhenLineItemsSpanMultipleSellers() {
+        catalog.add(new CatalogProduct(
+                "p1", "seller-A", "Product 1",
+                List.of(new CatalogProduct.Variant("sku1", new Money(new BigDecimal("100000"), "VND"))),
+                ""));
+        catalog.add(new CatalogProduct(
+                "p2", "seller-B", "Product 2",
+                List.of(new CatalogProduct.Variant("sku2", new Money(new BigDecimal("200000"), "VND"))),
+                ""));
+
+        Order order = newUseCase().checkout(new CheckoutOrderCommand(
+                "buyer-1",
+                new Address("street", "ward", "district", "city"),
+                List.of(
+                        new CheckoutLineItem("p1", "sku1", 1),
+                        new CheckoutLineItem("p2", "sku2", 1)),
+                "idem-multi-seller"));
+
+        assertThat(order.subOrders()).hasSize(2);
+        assertThat(order.subOrders().stream().map(SubOrder::sellerId).toList())
+                .containsExactlyInAnyOrder("seller-A", "seller-B");
+    }
+
+    // --- fakes ----------------------------------------------------------
+
+    private static final class FakeProductCatalog implements ProductCatalogPort {
+        private final Map<String, CatalogProduct> products = new HashMap<>();
+
+        void add(CatalogProduct product) {
+            products.put(product.productId(), product);
+        }
+
+        @Override
+        public Optional<CatalogProduct> findByProductId(String productId) {
+            return Optional.ofNullable(products.get(productId));
+        }
+    }
+
+    private static final class FakeOrderRepository implements OrderRepositoryPort {
+        private final Map<UUID, Order> byId = new HashMap<>();
+        private final Map<String, Order> byIdem = new HashMap<>();
+
+        @Override public Order save(Order order) { byId.put(order.id(), order); byIdem.put(order.idempotencyKey(), order); return order; }
+        @Override public Optional<Order> findById(UUID id) { return Optional.ofNullable(byId.get(id)); }
+        @Override public Optional<Order> findByOrderNumber(String orderNumber) { return Optional.empty(); }
+        @Override public Optional<Order> findByIdempotencyKey(String key) { return Optional.ofNullable(byIdem.get(key)); }
+        @Override public List<Order> findByBuyerId(String buyerId) { return List.of(); }
+        @Override public Optional<Order> findBySubOrderId(Long subOrderId) { return Optional.empty(); }
+        @Override public Optional<String> findOrderIdBySubOrderId(Long subOrderId) { return Optional.empty(); }
+        @Override public List<Order> findBySellerIdAndFulfillmentStatus(String sellerId, com.vnshop.orderservice.domain.FulfillmentStatus status) { return List.of(); }
+    }
+
+    private static final class RecordingInventory implements InventoryReservationPort {
+        @Override public void reserve(String orderId, List<OrderItem> items) {}
+        @Override public void release(String orderId) {}
+    }
+
+    private static final class RecordingPayment implements PaymentRequestPort {
+        @Override public void requestPayment(String orderId, String paymentMethod, Money amount) {}
+    }
+
+    private static final class RecordingShipping implements ShippingRequestPort {
+        @Override public void requestShipping(String orderId, SubOrder subOrder, Address address) {}
+    }
+
+    private static final class RecordingOrderEvents implements OrderEventPublisherPort {
+        @Override public void publishOrderCreated(Order order) {}
+        @Override public void publishOrderUpdated(Order order) {}
+        @Override public void publishOrderPaid(Order order) {}
+    }
+}

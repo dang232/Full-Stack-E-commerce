@@ -1,6 +1,6 @@
 package com.vnshop.orderservice.infrastructure.web.finance;
 
-import com.vnshop.orderservice.domain.finance.CommissionTier;
+import com.vnshop.orderservice.domain.CommissionTier;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

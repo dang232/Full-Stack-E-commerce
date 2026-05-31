@@ -4,8 +4,16 @@ import com.vnshop.productservice.domain.Money;
 import com.vnshop.productservice.domain.ProductVariant;
 import java.math.BigDecimal;
 
-public record VariantRequest(String sku, String name, BigDecimal priceAmount, String priceCurrency, String imageUrl) {
+public record VariantRequest(
+        String sku,
+        String name,
+        BigDecimal priceAmount,
+        String priceCurrency,
+        String imageUrl,
+        Integer stockQuantity
+) {
     ProductVariant toDomain() {
-        return new ProductVariant(sku, name, new Money(priceAmount, priceCurrency), imageUrl);
+        int stock = stockQuantity == null ? 0 : stockQuantity;
+        return new ProductVariant(sku, name, new Money(priceAmount, priceCurrency), imageUrl, stock);
     }
 }

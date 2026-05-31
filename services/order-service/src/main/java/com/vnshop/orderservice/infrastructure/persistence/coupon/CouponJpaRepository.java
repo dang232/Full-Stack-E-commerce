@@ -6,6 +6,8 @@ import com.vnshop.orderservice.domain.coupon.CouponRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -22,11 +24,13 @@ public class CouponJpaRepository implements CouponRepository {
     }
 
     @Override
+    @Cacheable(value = "coupon", key = "T(com.vnshop.orderservice.domain.coupon.Coupon).normalizeCode(#code)", sync = true, unless = "#result == null || !#result.isPresent()")
     public Optional<Coupon> findByCode(String code) {
         return springDataRepository.findByCode(Coupon.normalizeCode(code)).map(CouponJpaEntity::toDomain);
     }
 
     @Override
+    @CacheEvict(value = "coupon", key = "#coupon.code()")
     public Coupon save(Coupon coupon) {
         return springDataRepository.save(CouponJpaEntity.fromDomain(coupon)).toDomain();
     }

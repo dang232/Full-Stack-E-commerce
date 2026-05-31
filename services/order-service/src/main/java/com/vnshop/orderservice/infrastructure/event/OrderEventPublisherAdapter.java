@@ -34,6 +34,11 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
         publish("ORDER_UPDATED", order);
     }
 
+    @Override
+    public void publishOrderPaid(Order order) {
+        publish("ORDER_PAID", order);
+    }
+
     private void publish(String eventType, Order order) {
         OrderEvent event = OrderEvent.fromDomain(eventType, order);
         String payload = toJson(event);
@@ -50,7 +55,15 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
         }
     }
 
-    public record OrderEvent(String eventType, String orderId, String orderNumber, String buyerId, String paymentStatus, java.util.List<SellerTotal> sellerTotals) {
+    public record OrderEvent(
+            String eventType,
+            String orderId,
+            String orderNumber,
+            String buyerId,
+            String paymentStatus,
+            java.util.List<SellerTotal> sellerTotals,
+            java.util.List<OrderEventItem> items
+    ) {
         static OrderEvent fromDomain(String eventType, Order order) {
             return new OrderEvent(
                     eventType,
@@ -59,12 +72,24 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
                     order.buyerId(),
                     order.paymentStatus().name(),
                     order.subOrders().stream()
-                            .map(subOrder -> new SellerTotal(subOrder.sellerId(), subOrder.itemsTotal().amount(), "STANDARD"))
+                            .map(subOrder -> new SellerTotal(subOrder.sellerId(), subOrder.itemsTotal().amount(), subOrder.commissionTier().name()))
+                            .toList(),
+                    order.subOrders().stream()
+                            .flatMap(subOrder -> subOrder.items().stream()
+                                    .map(item -> new OrderEventItem(item.productId(), item.sellerId(), item.quantity())))
                             .toList()
             );
         }
     }
 
     public record SellerTotal(String sellerId, java.math.BigDecimal amount, String commissionTier) {
+    }
+
+    /**
+     * Per-line-item projection embedded in {@code order.created} / {@code order.updated}
+     * envelopes. Recommendations-service consumes this to maintain co-purchase counts;
+     * existing listeners (finance, projection) ignore unknown fields.
+     */
+    public record OrderEventItem(String productId, String sellerId, int quantity) {
     }
 }

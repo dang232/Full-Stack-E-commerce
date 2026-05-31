@@ -49,6 +49,15 @@ public class SellerProfileJpaEntity extends BaseJpaEntity {
     @Column(nullable = false)
     private boolean vacationMode;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "logo_url", length = 500)
+    private String logoUrl;
+
+    @Column(name = "banner_url", length = 500)
+    private String bannerUrl;
+
     protected SellerProfileJpaEntity() {
     }
 
@@ -73,6 +82,9 @@ public class SellerProfileJpaEntity extends BaseJpaEntity {
                 sellerProfile.vacationMode()
         );
         entity.applyPickupAddress(sellerProfile.pickupAddress());
+        entity.description = sellerProfile.description();
+        entity.logoUrl = sellerProfile.logoUrl();
+        entity.bannerUrl = sellerProfile.bannerUrl();
         return entity;
     }
 
@@ -85,7 +97,11 @@ public class SellerProfileJpaEntity extends BaseJpaEntity {
                 pickupAddress(),
                 approved,
                 Tier.valueOf(tier),
-                vacationMode
+                vacationMode,
+                description,
+                logoUrl,
+                bannerUrl,
+                getCreatedAt()
         );
     }
 

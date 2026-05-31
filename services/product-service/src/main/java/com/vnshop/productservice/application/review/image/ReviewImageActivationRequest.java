@@ -5,6 +5,5 @@ public record ReviewImageActivationRequest(
         long contentLength,
         String sha256Hex,
         Integer imageWidth,
-        Integer imageHeight,
-        boolean avScanClean
+        Integer imageHeight
 ) {}

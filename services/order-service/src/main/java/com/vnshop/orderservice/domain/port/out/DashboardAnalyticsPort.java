@@ -20,7 +20,16 @@ public interface DashboardAnalyticsPort {
 
     List<TopMetric> topSellers(int limit);
 
+    /**
+     * One seller's gross revenue (line-item total) and distinct sub-order count
+     * grouped by UTC date for the closed range [startDate, endDate]. Days with
+     * no orders are simply absent from the result; the use case pads them.
+     */
+    List<SellerRevenueByDate> sellerRevenueByDateBetween(String sellerId, LocalDate startDate, LocalDate endDate);
+
     record RevenueByDate(LocalDate date, BigDecimal revenue) {}
 
     record TopMetric(String id, String name, BigDecimal value) {}
+
+    record SellerRevenueByDate(LocalDate date, BigDecimal revenue, long orderCount) {}
 }

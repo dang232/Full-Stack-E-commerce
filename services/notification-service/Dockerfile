@@ -1,13 +1,14 @@
+# syntax=docker/dockerfile:1.7
 FROM node:24-alpine AS builder
 WORKDIR /workspace
 COPY package*.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY tsconfig*.json nest-cli.json ./
 COPY src ./src
 RUN npm run build
 
 FROM node:24-alpine AS runner
-RUN apk add --no-cache curl && addgroup -g 1000 vnshop && adduser -D -u 1000 -G vnshop vnshop
+RUN apk add --no-cache curl && addgroup -S vnshop && adduser -S -G vnshop vnshop
 WORKDIR /app
 COPY --from=builder /workspace/node_modules ./node_modules
 COPY --from=builder /workspace/dist ./dist

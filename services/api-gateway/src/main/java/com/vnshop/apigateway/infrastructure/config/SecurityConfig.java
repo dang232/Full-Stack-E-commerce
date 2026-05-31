@@ -1,5 +1,6 @@
 package com.vnshop.apigateway.infrastructure.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,8 +15,12 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,17 +32,71 @@ import java.util.stream.Stream;
 @EnableReactiveMethodSecurity
 public class SecurityConfig {
 
+    /**
+     * Define an explicit reactive CORS configuration source so Spring
+     * Security WebFlux's `.cors(withDefaults())` finds it on the chain. The
+     * Spring Cloud Gateway `globalcors` YAML configures a CorsWebFilter but
+     * doesn't expose a CorsConfigurationSource bean, so the security chain
+     * answers OPTIONS preflights without any Access-Control-* headers.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${spring.cloud.gateway.globalcors.cors-configurations.[/**].allowed-origins:http://localhost:3000,http://localhost:5173}")
+                    String allowedOrigins) {
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList());
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedHeaders(List.of("*"));
+        cfg.setExposedHeaders(List.of("X-Correlation-Id"));
+        // Cookie-based auth (vnshop_rt refresh-token cookie issued by
+        // user-service /auth/login) requires the browser to include
+        // credentials on cross-origin requests. Concrete allowed-origins
+        // list above keeps this safe — wildcards + credentials would be
+        // rejected by the browser.
+        cfg.setAllowCredentials(true);
+        cfg.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cfg);
+        return source;
+    }
+
     @Bean
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
+            // Without an explicit .cors(...) call, Spring Security WebFlux
+            // intercepts OPTIONS preflights and emits a bare 200 with no
+            // Access-Control-* headers, even though Spring Cloud Gateway's
+            // globalcors config wires up a CorsWebFilter. Wiring CORS into
+            // the security chain explicitly makes that filter contribute
+            // its headers before the chain finishes.
+            .cors(org.springframework.security.config.Customizer.withDefaults())
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authorizeExchange(exchanges -> exchanges
-                .pathMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/search/**", "/health").permitAll()
-                .pathMatchers("/auth/**", "/payment/*/callback", "/payment/*/ipn").permitAll()
+                // Browsers send a no-auth OPTIONS preflight before any
+                // cross-origin POST/PUT — permit it on every path so the
+                // CORS filter has a chance to respond with allow-origin.
+                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .pathMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/search/**",
+                        "/reviews/**", "/questions/**", "/recommendations/**", "/health",
+                        "/sellers", "/sellers/*", "/flash-sale/active").permitAll()
+                .pathMatchers(HttpMethod.POST, "/reviews/seller-summaries", "/products/counts").permitAll()
+                .pathMatchers("/auth/**", "/payment/*/callback", "/payment/*/ipn", "/payment/stripe/webhook").permitAll()
+                // The WebSocket handshake on /ws/messaging carries the JWT via the
+                // `?token=` query parameter (browsers can't set Authorization headers
+                // on `new WebSocket(...)`), so it cannot pass the gateway's resource
+                // server filter — and we can't relay query params into the
+                // Authorization header before the security filter chain. The
+                // downstream messaging-service verifies the token itself via
+                // WsJwtVerifier before binding the socket to a user.
+                .pathMatchers("/ws/messaging").permitAll()
                 .pathMatchers("/admin/**").hasRole("ADMIN")
                 .anyExchange().authenticated()
             )
-            .oauth2Login(oauth2 -> { })
+            // The SPA acquires tokens directly from Keycloak (PKCE) and sends them as Bearer.
+            // No oauth2Login (no client registration) — gateway is purely a JWT-validating proxy.
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
             )

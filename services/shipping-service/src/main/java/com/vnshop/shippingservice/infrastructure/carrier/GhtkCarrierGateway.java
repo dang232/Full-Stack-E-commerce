@@ -1,9 +1,11 @@
 package com.vnshop.shippingservice.infrastructure.carrier;
 
+import com.vnshop.shippingservice.domain.exception.CarrierTrackingNotFoundException;
 import com.vnshop.shippingservice.domain.model.LabelRequest;
 import com.vnshop.shippingservice.domain.model.RateQuote;
 import com.vnshop.shippingservice.domain.model.RateQuoteRequest;
 import com.vnshop.shippingservice.domain.model.ShippingLabel;
+import com.vnshop.shippingservice.domain.model.TrackingEvent;
 import com.vnshop.shippingservice.domain.model.TrackingInfo;
 import com.vnshop.shippingservice.domain.model.TrackingRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -69,22 +71,23 @@ public class GhtkCarrierGateway implements CarrierGatewayAdapter {
     @Override
     public TrackingInfo track(TrackingRequest request) {
         GhtkTrackingResponse response = httpClient.get(url("/services/shipment/v2/" + request.trackingCode()), headers(), GhtkTrackingResponse.class);
-        return new TrackingInfo(request.carrier(), request.trackingCode(), response.order().status(), response.order().statusText(), response.order().modified());
+        if (response.order() == null) {
+            throw new CarrierTrackingNotFoundException("GHTK has no record of tracking code: " + request.trackingCode());
+        }
+        GhtkTrackedOrder order = response.order();
+        List<TrackingEvent> events = order.log() == null ? List.of() :
+                order.log().stream()
+                        .map(entry -> new TrackingEvent(entry.updatedDate(), entry.status(), null, entry.statusText()))
+                        .toList();
+        return new TrackingInfo(request.carrier(), request.trackingCode(), order.status(), order.statusText(), order.modified(), events);
     }
 
     private Map<String, String> headers() {
-        return Map.of("Token", require(properties.token(), "GHTK token"));
+        return Map.of("Token", CarrierConfig.require(properties.token(), "GHTK token"));
     }
 
     private String url(String path) {
-        return require(properties.baseUrl(), "GHTK baseUrl") + path;
-    }
-
-    private static String require(String value, String name) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalStateException(name + " is required for live carrier mode");
-        }
-        return value;
+        return CarrierConfig.require(properties.baseUrl(), "GHTK baseUrl") + path;
     }
 
     record GhtkFeeRequest(String pickProvince, String pickDistrict, String province, String district,
@@ -118,6 +121,9 @@ public class GhtkCarrierGateway implements CarrierGatewayAdapter {
     record GhtkTrackingResponse(GhtkTrackedOrder order) {
     }
 
-    record GhtkTrackedOrder(String status, String statusText, String modified) {
+    record GhtkTrackedOrder(String status, String statusText, String modified, List<GhtkLogEntry> log) {
+    }
+
+    record GhtkLogEntry(String updatedDate, String status, String statusText) {
     }
 }

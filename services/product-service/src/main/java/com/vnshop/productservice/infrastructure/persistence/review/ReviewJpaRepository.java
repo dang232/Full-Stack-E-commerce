@@ -3,11 +3,16 @@ package com.vnshop.productservice.infrastructure.persistence.review;
 import com.vnshop.productservice.domain.review.ProductQuestion;
 import com.vnshop.productservice.domain.review.Review;
 import com.vnshop.productservice.domain.review.ReviewStatus;
+import com.vnshop.productservice.domain.review.SellerReviewSummary;
 import com.vnshop.productservice.domain.review.port.out.ReviewRepositoryPort;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -67,4 +72,35 @@ public class ReviewJpaRepository implements ReviewRepositoryPort {
     public Optional<ProductQuestion> findQuestionById(UUID questionId) {
         return questionRepository.findById(questionId).map(QuestionJpaEntity::toDomain);
     }
+
+    @Override
+    public SellerReviewSummary getSellerReviewSummary(String sellerId) {
+        java.util.List<Object[]> rows = reviewRepository.findSellerReviewStats(sellerId);
+        if (rows.isEmpty()) return new SellerReviewSummary(null, 0L);
+        Object[] row = rows.get(0);
+        long count = row.length < 2 || row[1] == null ? 0L : ((Number) row[1]).longValue();
+        Double avg = (count == 0 || row[0] == null) ? null : ((Number) row[0]).doubleValue();
+        return new SellerReviewSummary(avg, count);
+    }
+
+    @Override
+    public Map<String, SellerReviewSummary> getSellerReviewSummaries(Set<String> sellerIds) {
+        Map<String, SellerReviewSummary> result = new HashMap<>();
+        // Pre-fill all requested sellers with zero defaults
+        for (String id : sellerIds) {
+            result.put(id, new SellerReviewSummary(null, 0L));
+        }
+        if (sellerIds.isEmpty()) {
+            return result;
+        }
+        List<Object[]> rows = reviewRepository.findSellerReviewStatsBatch(sellerIds);
+        for (Object[] row : rows) {
+            String sellerId = (String) row[0];
+            long count = row[2] == null ? 0L : ((Number) row[2]).longValue();
+            Double avg = (count == 0 || row[1] == null) ? null : ((Number) row[1]).doubleValue();
+            result.put(sellerId, new SellerReviewSummary(avg, count));
+        }
+        return result;
+    }
 }
+

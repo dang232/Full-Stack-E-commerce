@@ -1,6 +1,7 @@
 package com.vnshop.productservice.domain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 public record Money(BigDecimal amount, String currency) {
@@ -17,7 +18,9 @@ public record Money(BigDecimal amount, String currency) {
         if (amount.signum() < 0) {
             throw new IllegalArgumentException("amount cannot be negative");
         }
-        if (amount.scale() != 0) {
+        try {
+            amount = amount.setScale(0, RoundingMode.UNNECESSARY);
+        } catch (ArithmeticException e) {
             throw new IllegalArgumentException("VND amount cannot have decimals");
         }
     }

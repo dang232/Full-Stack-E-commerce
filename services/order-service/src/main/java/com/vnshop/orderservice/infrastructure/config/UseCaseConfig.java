@@ -4,6 +4,7 @@ import com.vnshop.orderservice.application.AcceptOrderUseCase;
 import com.vnshop.orderservice.application.ApproveReturnUseCase;
 import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
 import com.vnshop.orderservice.application.CancelOrderUseCase;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase;
 import com.vnshop.orderservice.application.CompleteReturnUseCase;
 import com.vnshop.orderservice.application.CreateOrderUseCase;
 import com.vnshop.orderservice.application.DisputeQueryUseCase;
@@ -29,6 +30,7 @@ import com.vnshop.orderservice.application.coupon.ValidateCouponUseCase;
 import com.vnshop.orderservice.domain.coupon.CouponRepository;
 import com.vnshop.orderservice.domain.coupon.CouponUsageRepository;
 import com.vnshop.orderservice.domain.coupon.CouponValidator;
+import com.vnshop.orderservice.domain.port.out.CommissionTierLookupPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.DashboardAnalyticsPort;
 import com.vnshop.orderservice.domain.port.out.DisputeRepositoryPort;
@@ -39,6 +41,7 @@ import com.vnshop.orderservice.domain.port.out.InvoiceStoragePort;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
+import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
 import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
 import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
@@ -63,9 +66,18 @@ public class UseCaseConfig {
             InventoryReservationPort inventoryReservationPort,
             PaymentRequestPort paymentRequestPort,
             ShippingRequestPort shippingRequestPort,
-            OrderEventPublisherPort orderEventPublisherPort
+            OrderEventPublisherPort orderEventPublisherPort,
+            CommissionTierLookupPort commissionTierLookupPort
     ) {
-        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort);
+        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort);
+    }
+
+    @Bean
+    CheckoutOrderUseCase checkoutOrderUseCase(
+            ProductCatalogPort productCatalogPort,
+            CreateOrderUseCase createOrderUseCase
+    ) {
+        return new CheckoutOrderUseCase(productCatalogPort, createOrderUseCase);
     }
 
     @Bean
@@ -89,8 +101,16 @@ public class UseCaseConfig {
     }
 
     @Bean
-    CalculateCheckoutUseCase calculateCheckoutUseCase(CartRepositoryPort cartRepositoryPort) {
-        return new CalculateCheckoutUseCase(cartRepositoryPort);
+    com.vnshop.orderservice.application.GetSellerRevenueUseCase getSellerRevenueUseCase(DashboardAnalyticsPort analytics) {
+        return new com.vnshop.orderservice.application.GetSellerRevenueUseCase(analytics);
+    }
+
+    @Bean
+    CalculateCheckoutUseCase calculateCheckoutUseCase(
+            CartRepositoryPort cartRepositoryPort,
+            ProductCatalogPort productCatalogPort,
+            com.vnshop.orderservice.domain.port.out.CouponValidationPort couponValidationPort) {
+        return new CalculateCheckoutUseCase(cartRepositoryPort, productCatalogPort, couponValidationPort);
     }
 
     @Bean
@@ -183,13 +203,13 @@ public class UseCaseConfig {
     }
 
     @Bean
-    ApproveReturnUseCase approveReturnUseCase(ReturnRepositoryPort returnRepositoryPort) {
-        return new ApproveReturnUseCase(returnRepositoryPort);
+    ApproveReturnUseCase approveReturnUseCase(ReturnRepositoryPort returnRepositoryPort, OrderRepositoryPort orderRepositoryPort) {
+        return new ApproveReturnUseCase(returnRepositoryPort, orderRepositoryPort);
     }
 
     @Bean
-    RejectReturnUseCase rejectReturnUseCase(ReturnRepositoryPort returnRepositoryPort) {
-        return new RejectReturnUseCase(returnRepositoryPort);
+    RejectReturnUseCase rejectReturnUseCase(ReturnRepositoryPort returnRepositoryPort, OrderRepositoryPort orderRepositoryPort) {
+        return new RejectReturnUseCase(returnRepositoryPort, orderRepositoryPort);
     }
 
     @Bean

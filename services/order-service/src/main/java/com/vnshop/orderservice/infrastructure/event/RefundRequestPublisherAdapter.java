@@ -2,6 +2,7 @@ package com.vnshop.orderservice.infrastructure.event;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vnshop.orderservice.domain.CommissionTier;
 import com.vnshop.orderservice.domain.Money;
 import com.vnshop.orderservice.domain.Return;
 import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
@@ -26,17 +27,19 @@ public class RefundRequestPublisherAdapter implements RefundRequestPort {
     }
 
     @Override
-    public void requestRefund(Return orderReturn, Money amount) {
+    public void requestRefund(Return orderReturn, String sellerId, Money amount, CommissionTier commissionTier) {
         RefundRequestedEvent event = new RefundRequestedEvent(
                 orderReturn.returnId().toString(),
                 orderReturn.orderId().toString(),
                 orderReturn.subOrderId(),
                 orderReturn.buyerId(),
+                sellerId,
                 amount.amount().toPlainString(),
-                amount.currency()
+                amount.currency(),
+                commissionTier.name()
         );
         repository.save(OutboxEventJpaEntity.fromDomain(OutboxEvent.pending("Return", orderReturn.returnId().toString(), EVENT_TYPE, toJson(event))));
-        LOGGER.info("Refund event staged for return {} order {}", orderReturn.returnId(), orderReturn.orderId());
+        LOGGER.info("Refund event staged for return {} order {} seller {}", orderReturn.returnId(), orderReturn.orderId(), sellerId);
     }
 
     private String toJson(RefundRequestedEvent event) {
@@ -47,6 +50,6 @@ public class RefundRequestPublisherAdapter implements RefundRequestPort {
         }
     }
 
-    public record RefundRequestedEvent(String returnId, String orderId, Long subOrderId, String buyerId, String amount, String currency) {
+    public record RefundRequestedEvent(String returnId, String orderId, Long subOrderId, String buyerId, String sellerId, String amount, String currency, String commissionTier) {
     }
 }

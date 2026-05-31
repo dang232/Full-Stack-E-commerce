@@ -1,14 +1,24 @@
 package com.vnshop.userservice.infrastructure.config;
 
 import com.vnshop.userservice.application.ApproveSellerUseCase;
+import com.vnshop.userservice.application.AuthSessionUseCase;
+import com.vnshop.userservice.application.GetPublicSellerUseCase;
+import com.vnshop.userservice.application.ListBuyerPublicProfilesUseCase;
 import com.vnshop.userservice.application.ListPendingSellersUseCase;
+import com.vnshop.userservice.application.ListPublicSellersUseCase;
 import com.vnshop.userservice.application.ManageAddressUseCase;
 import com.vnshop.userservice.application.RegisterBuyerUseCase;
 import com.vnshop.userservice.application.RegisterSellerUseCase;
 import com.vnshop.userservice.application.UpsertBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewBuyerProfileUseCase;
 import com.vnshop.userservice.application.ViewSellerProfileUseCase;
+import com.vnshop.userservice.application.WishlistUseCase;
+import com.vnshop.userservice.application.avatar.AvatarUploadService;
+import com.vnshop.userservice.domain.port.out.ObjectStoragePort;
+import com.vnshop.userservice.domain.port.out.SellerStatsPort;
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
+import com.vnshop.userservice.domain.port.out.WishlistRepositoryPort;
+import com.vnshop.userservice.infrastructure.keycloak.KeycloakTokenClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -50,7 +60,39 @@ public class UseCaseConfig {
     }
 
     @Bean
+    ListBuyerPublicProfilesUseCase listBuyerPublicProfilesUseCase(UserRepositoryPort userRepositoryPort) {
+        return new ListBuyerPublicProfilesUseCase(userRepositoryPort);
+    }
+
+    @Bean
     ViewSellerProfileUseCase viewSellerProfileUseCase(UserRepositoryPort userRepositoryPort) {
         return new ViewSellerProfileUseCase(userRepositoryPort);
+    }
+
+    @Bean
+    WishlistUseCase wishlistUseCase(WishlistRepositoryPort wishlistRepositoryPort) {
+        return new WishlistUseCase(wishlistRepositoryPort);
+    }
+
+    @Bean
+    GetPublicSellerUseCase getPublicSellerUseCase(UserRepositoryPort userRepositoryPort, SellerStatsPort sellerStatsPort) {
+        return new GetPublicSellerUseCase(userRepositoryPort, sellerStatsPort);
+    }
+
+    @Bean
+    ListPublicSellersUseCase listPublicSellersUseCase(UserRepositoryPort userRepositoryPort, SellerStatsPort sellerStatsPort) {
+        return new ListPublicSellersUseCase(userRepositoryPort, sellerStatsPort);
+    }
+
+    @Bean
+    AuthSessionUseCase authSessionUseCase(KeycloakTokenClient tokenClient) {
+        return new AuthSessionUseCase(tokenClient);
+    }
+
+    @Bean
+    AvatarUploadService avatarUploadService(UserRepositoryPort userRepositoryPort,
+                                            ObjectStoragePort objectStoragePort,
+                                            RegisterBuyerUseCase registerBuyerUseCase) {
+        return new AvatarUploadService(userRepositoryPort, objectStoragePort, registerBuyerUseCase);
     }
 }

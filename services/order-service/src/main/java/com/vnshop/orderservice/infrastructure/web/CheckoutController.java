@@ -1,6 +1,10 @@
 package com.vnshop.orderservice.infrastructure.web;
 
 import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
+import com.vnshop.orderservice.application.shipping.ShippingOption;
+import com.vnshop.orderservice.application.shipping.ShippingQuotePort;
+import com.vnshop.orderservice.application.shipping.ShippingQuoteRequest;
+import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,26 +16,110 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/checkout")
 public class CheckoutController {
-    private final CalculateCheckoutUseCase calculateCheckoutUseCase;
+    // Static catalog of payment methods the FE renders on the checkout page.
+    // The shape matches paymentMethodSchema (code/name/description/enabled) so
+    // the FE can drop its FALLBACK_PAYMENT mirror. COD is always on; VNPAY and
+    // MOMO have provider integrations in payment-service. A follow-up will move
+    // this to @ConfigurationProperties so a deploy can toggle providers without
+    // a code change.
+    private static final List<PaymentMethodResponse> PAYMENT_METHODS = List.of(
+            new PaymentMethodResponse(
+                    "COD",
+                    "Cash on Delivery",
+                    "Pay with cash when the order is delivered",
+                    true),
+            new PaymentMethodResponse(
+                    "VNPAY",
+                    "VNPay",
+                    "Pay online via VNPay (ATM, QR, internet banking)",
+                    true),
+            new PaymentMethodResponse(
+                    "MOMO",
+                    "MoMo",
+                    "Pay with the MoMo e-wallet",
+                    true));
 
-    public CheckoutController(CalculateCheckoutUseCase calculateCheckoutUseCase) {
+    private final CalculateCheckoutUseCase calculateCheckoutUseCase;
+    private final ShippingQuotePort shippingQuotePort;
+
+    public CheckoutController(
+            CalculateCheckoutUseCase calculateCheckoutUseCase,
+            ShippingQuotePort shippingQuotePort) {
         this.calculateCheckoutUseCase = calculateCheckoutUseCase;
+        this.shippingQuotePort = shippingQuotePort;
     }
 
     @PostMapping("/calculate")
     public ApiResponse<CheckoutBreakdownResponse> calculate(@Valid @RequestBody CalculateCheckoutRequest request) {
-        CalculateCheckoutUseCase.CheckoutBreakdown breakdown = calculateCheckoutUseCase.calculate(request.cartId());
+        // userId pulled from the JWT — anonymous /calculate calls (no auth)
+        // resolve to null and the validator skips per-user usage checks.
+        // The wire shape's couponCode is the buyer's proposal; the BE
+        // resolves the actual discount via CouponValidator so the FE
+        // never gets to set a discount amount.
+        String userId = safeCurrentUserId();
+        CalculateCheckoutUseCase.CheckoutBreakdown breakdown =
+                calculateCheckoutUseCase.calculate(request.toLineItems(), request.couponCode(), userId);
 
         return ApiResponse.ok(CheckoutBreakdownResponse.fromApplication(breakdown));
     }
 
+    /**
+     * Cart-based checkout preview. Fetches the authenticated buyer's active
+     * cart from cart-service (via {@link com.vnshop.orderservice.domain.port.out.CartRepositoryPort})
+     * and returns the same {@link CheckoutBreakdownResponse} shape as
+     * {@code POST /checkout/calculate}.
+     *
+     * <p>Authentication is required — the cart is keyed by userId, so an
+     * anonymous caller has no cart to fetch. Use {@code POST /checkout/calculate}
+     * for unauthenticated "buy now" previews.
+     */
+    @PostMapping("/calculate-from-cart")
+    public ApiResponse<CheckoutBreakdownResponse> calculateFromCart() {
+        // Cart-service identifies carts by x-user-id header, so userId IS the cart key.
+        String userId = JwtPrincipalUtil.currentUserId();
+        CalculateCheckoutUseCase.CheckoutBreakdown breakdown =
+                calculateCheckoutUseCase.calculate(userId);
+        return ApiResponse.ok(CheckoutBreakdownResponse.fromApplication(breakdown));
+    }
+
+    private static String safeCurrentUserId() {
+        try {
+            return JwtPrincipalUtil.currentUserId();
+        } catch (RuntimeException ignored) {
+            // Anonymous /calculate calls (preview before login) — return null
+            // so per-user usage caps don't apply. Authoritative validation
+            // still runs on /checkout/apply-coupon at place-order time.
+            return null;
+        }
+    }
+
     @GetMapping("/payment-methods")
-    public ApiResponse<List<String>> paymentMethods() {
-        return ApiResponse.ok(List.of("COD"));
+    public ApiResponse<List<PaymentMethodResponse>> paymentMethods() {
+        return ApiResponse.ok(PAYMENT_METHODS);
     }
 
     @PostMapping("/shipping-options")
     public ApiResponse<List<ShippingOptionResponse>> shippingOptions(@Valid @RequestBody ShippingOptionsRequest request) {
-        return ApiResponse.ok(List.of(new ShippingOptionResponse("STANDARD", calculateCheckoutUseCase.standardShippingCost(), "3-5 days")));
+        // Live carrier rates from shipping-service. The adapter degrades to
+        // an empty list on transport failure; we surface the legacy static
+        // option in that case so the buyer can still check out — losing the
+        // EXPRESS choice is the only visible cost.
+        List<ShippingOption> live = shippingQuotePort.quote(toQuoteRequest(request));
+        if (live.isEmpty()) {
+            return ApiResponse.ok(List.of(new ShippingOptionResponse(
+                    "STANDARD",
+                    calculateCheckoutUseCase.standardShippingCost(),
+                    "3-5 days")));
+        }
+        List<ShippingOptionResponse> options = live.stream()
+                .map(o -> new ShippingOptionResponse(o.method(), o.cost(), o.estimate()))
+                .toList();
+        return ApiResponse.ok(options);
+    }
+
+    private static ShippingQuoteRequest toQuoteRequest(ShippingOptionsRequest request) {
+        AddressRequest addr = request.address();
+        return new ShippingQuoteRequest(addr.street(), addr.ward(), addr.district(), addr.city());
     }
 }
+

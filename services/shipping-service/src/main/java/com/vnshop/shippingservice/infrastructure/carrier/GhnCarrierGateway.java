@@ -1,14 +1,17 @@
 package com.vnshop.shippingservice.infrastructure.carrier;
 
+import com.vnshop.shippingservice.domain.exception.CarrierTrackingNotFoundException;
 import com.vnshop.shippingservice.domain.model.LabelRequest;
 import com.vnshop.shippingservice.domain.model.RateQuote;
 import com.vnshop.shippingservice.domain.model.RateQuoteRequest;
 import com.vnshop.shippingservice.domain.model.ShippingLabel;
+import com.vnshop.shippingservice.domain.model.TrackingEvent;
 import com.vnshop.shippingservice.domain.model.TrackingInfo;
 import com.vnshop.shippingservice.domain.model.TrackingRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -72,30 +75,31 @@ public class GhnCarrierGateway implements CarrierGatewayAdapter {
     @Override
     public TrackingInfo track(TrackingRequest request) {
         GhnTrackingResponse response = httpClient.post(url("/shiip/public-api/v2/shipping-order/detail"), headers(), Map.of("order_code", request.trackingCode()), GhnTrackingResponse.class);
-        return new TrackingInfo(request.carrier(), request.trackingCode(), response.data().status(), response.data().statusName(), response.data().updatedDate());
+        if (response.data() == null) {
+            throw new CarrierTrackingNotFoundException("GHN has no record of tracking code: " + request.trackingCode());
+        }
+        GhnTrackingData data = response.data();
+        List<TrackingEvent> events = data.orderStatusLogs() == null ? List.of() :
+                data.orderStatusLogs().stream()
+                        .map(log -> new TrackingEvent(log.updatedDate(), log.status(), log.updatedWarehouse(), log.note()))
+                        .toList();
+        return new TrackingInfo(request.carrier(), request.trackingCode(), data.status(), data.statusName(), data.updatedDate(), events);
     }
 
     private Map<String, String> headers() {
         return Map.of(
-                "Token", require(properties.token(), "GHN token"),
-                "ShopId", require(properties.shopId(), "GHN shopId")
+                "Token", CarrierConfig.require(properties.token(), "GHN token"),
+                "ShopId", CarrierConfig.require(properties.shopId(), "GHN shopId")
         );
     }
 
     private String url(String path) {
-        return require(properties.baseUrl(), "GHN baseUrl") + path;
-    }
-
-    private static String require(String value, String name) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalStateException(name + " is required for live carrier mode");
-        }
-        return value;
+        return CarrierConfig.require(properties.baseUrl(), "GHN baseUrl") + path;
     }
 
     private static int parseInt(String value, String name) {
         try {
-            return Integer.parseInt(require(value, name));
+            return Integer.parseInt(CarrierConfig.require(value, name));
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException(name + " must be numeric", exception);
         }
@@ -128,6 +132,9 @@ public class GhnCarrierGateway implements CarrierGatewayAdapter {
     record GhnTrackingResponse(GhnTrackingData data) {
     }
 
-    record GhnTrackingData(String status, String statusName, String updatedDate) {
+    record GhnTrackingData(String status, String statusName, String updatedDate, List<GhnStatusLog> orderStatusLogs) {
+    }
+
+    record GhnStatusLog(String updatedDate, String status, String updatedWarehouse, String note) {
     }
 }

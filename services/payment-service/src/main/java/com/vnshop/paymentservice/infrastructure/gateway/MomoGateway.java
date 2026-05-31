@@ -9,7 +9,7 @@ import java.math.RoundingMode;
 import java.util.Objects;
 
 @Component
-@ConditionalOnProperty(name = "payment.mode", havingValue = "live")
+@ConditionalOnProperty(name = "payment.momo.enabled", havingValue = "true")
 public class MomoGateway {
     private static final String EXTRA_DATA = "";
 

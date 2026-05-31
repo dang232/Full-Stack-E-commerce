@@ -17,16 +17,30 @@ public class DisputeUseCase {
         this.disputeRepository = Objects.requireNonNull(disputeRepository, "disputeRepository is required");
     }
 
-    public Dispute open(UUID returnId, String buyerReason, String sellerResponse) {
+    /**
+     * Pt14 audit fix: only the buyer who opened the return may escalate it
+     * into a dispute. Without this check any authenticated buyer could open
+     * a dispute on any other buyer's return by guessing the returnId UUID,
+     * which would surface in the admin disputes queue and waste admin time
+     * with bogus rows.
+     */
+    public Dispute open(UUID returnId, String buyerId, String buyerReason, String sellerResponse) {
+        if (buyerId == null || buyerId.isBlank()) {
+            throw new IllegalArgumentException("buyerId is required");
+        }
         Return orderReturn = returnRepository.findById(returnId)
                 .orElseThrow(() -> new IllegalArgumentException("return not found: " + returnId));
+        if (!buyerId.equals(orderReturn.buyerId())) {
+            throw new OrderAccessDeniedException(
+                    "buyer " + buyerId + " does not own return " + returnId);
+        }
         return disputeRepository.save(new Dispute(UUID.randomUUID(), orderReturn.returnId().toString(), buyerReason, sellerResponse));
     }
 
-    public Dispute resolve(UUID disputeId, String adminResolution) {
+    public Dispute resolve(UUID disputeId, String adminResolution, String resolvedBy) {
         Dispute dispute = disputeRepository.findById(disputeId)
                 .orElseThrow(() -> new IllegalArgumentException("dispute not found: " + disputeId));
-        dispute.resolve(adminResolution);
+        dispute.resolve(adminResolution, resolvedBy);
         return disputeRepository.save(dispute);
     }
 }

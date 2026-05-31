@@ -57,22 +57,26 @@ public class ReturnController {
 
     @PostMapping("/{returnId}/approve")
     public ApiResponse<ReturnResponse> approve(@PathVariable UUID returnId) {
-        return ApiResponse.ok(ReturnResponse.fromDomain(approveReturnUseCase.approve(returnId)));
+        return ApiResponse.ok(ReturnResponse.fromDomain(
+                approveReturnUseCase.approve(returnId, JwtPrincipalUtil.currentSellerId())));
     }
 
     @PostMapping("/{returnId}/reject")
     public ApiResponse<ReturnResponse> reject(@PathVariable UUID returnId) {
-        return ApiResponse.ok(ReturnResponse.fromDomain(rejectReturnUseCase.reject(returnId)));
+        return ApiResponse.ok(ReturnResponse.fromDomain(
+                rejectReturnUseCase.reject(returnId, JwtPrincipalUtil.currentSellerId())));
     }
 
     @PostMapping("/{returnId}/complete")
     public ApiResponse<ReturnResponse> complete(@PathVariable UUID returnId) {
-        return ApiResponse.ok(ReturnResponse.fromDomain(completeReturnUseCase.complete(returnId)));
+        return ApiResponse.ok(ReturnResponse.fromDomain(
+                completeReturnUseCase.complete(returnId, JwtPrincipalUtil.currentSellerId())));
     }
 
     @PostMapping("/{returnId}/disputes")
     public ApiResponse<DisputeResponse> dispute(@PathVariable UUID returnId, @Valid @RequestBody DisputeRequest request) {
-        return ApiResponse.ok(DisputeResponse.fromDomain(disputeUseCase.open(returnId, request.buyerReason(), request.sellerResponse())));
+        return ApiResponse.ok(DisputeResponse.fromDomain(
+                disputeUseCase.open(returnId, JwtPrincipalUtil.currentUserId(), request.buyerReason(), request.sellerResponse())));
     }
 
 }

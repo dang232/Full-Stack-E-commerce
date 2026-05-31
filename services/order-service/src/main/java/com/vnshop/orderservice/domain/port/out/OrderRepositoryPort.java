@@ -23,4 +23,20 @@ public interface OrderRepositoryPort {
     Optional<String> findOrderIdBySubOrderId(Long subOrderId);
 
     List<Order> findBySellerIdAndFulfillmentStatus(String sellerId, FulfillmentStatus status);
+
+    /**
+     * Multi-status variant of {@link #findBySellerIdAndFulfillmentStatus}. Used
+     * by the seller console's "Orders" tab so a single fetch returns every
+     * actionable row regardless of which fulfillment step it sits at
+     * (PENDING_ACCEPTANCE for accept/reject, ACCEPTED for ship).
+     *
+     * <p>Default falls back to {@link #findBySellerIdAndFulfillmentStatus}
+     * across each status — correct but N queries; the JPA adapter overrides
+     * with a single {@code IN}-clause query.</p>
+     */
+    default List<Order> findBySellerIdAndFulfillmentStatusIn(String sellerId, List<FulfillmentStatus> statuses) {
+        return statuses.stream()
+                .flatMap(s -> findBySellerIdAndFulfillmentStatus(sellerId, s).stream())
+                .toList();
+    }
 }

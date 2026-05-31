@@ -1,7 +1,7 @@
 package com.vnshop.orderservice.application.finance;
 
 import com.vnshop.orderservice.domain.finance.CommissionCalculator;
-import com.vnshop.orderservice.domain.finance.CommissionTier;
+import com.vnshop.orderservice.domain.CommissionTier;
 import com.vnshop.orderservice.domain.finance.SellerTransaction;
 import com.vnshop.orderservice.domain.finance.SellerWallet;
 import com.vnshop.orderservice.domain.finance.port.out.SellerTransactionRepositoryPort;

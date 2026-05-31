@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Configure the vnshop-admin-api Keycloak client so the user-service can call
+# the Admin API on POST /auth/register.
+#
+# This script is idempotent and safe to re-run. It performs the steps the
+# realm-import JSON cannot easily express in Keycloak 26:
+#   1. Set fullScopeAllowed=true on the client (so its service-account token
+#      includes the roles it has been granted).
+#   2. Add a "client roles" protocol mapper to the realm-default "roles" scope
+#      so resource_access.<client>.roles lands in the access token.
+#   3. Grant the service account the realm-management.{manage-users,view-users,
+#      query-users} roles.
+#
+# Run this whenever the keycloak-postgres volume gets wiped, or after a fresh
+# `docker compose up`. If the realm import handled all three steps natively the
+# script could go away.
+#
+# Required env (defaults work against the local stack):
+#   KC_CONTAINER       Keycloak container name (default: vnshop-keycloak)
+#   KC_INTERNAL_URL    URL inside the container (default: http://localhost:8080)
+#   KC_REALM           realm name (default: vnshop)
+#   KC_ADMIN_USER      master-realm admin user (default: admin)
+#   KC_ADMIN_PASS      master-realm admin password (default: admin)
+#   KC_CLIENT_ID       service-account client to configure (default: vnshop-admin-api)
+
+set -euo pipefail
+
+KC_CONTAINER="${KC_CONTAINER:-vnshop-keycloak}"
+KC_INTERNAL_URL="${KC_INTERNAL_URL:-http://localhost:8080}"
+KC_REALM="${KC_REALM:-vnshop}"
+KC_ADMIN_USER="${KC_ADMIN_USER:-admin}"
+KC_ADMIN_PASS="${KC_ADMIN_PASS:-admin}"
+KC_CLIENT_ID="${KC_CLIENT_ID:-vnshop-admin-api}"
+
+# MSYS_NO_PATHCONV stops Git Bash from rewriting the in-container paths into
+# Windows paths (which makes docker exec choke).
+export MSYS_NO_PATHCONV=1
+
+kcadm() {
+  docker exec "${KC_CONTAINER}" /opt/keycloak/bin/kcadm.sh "$@"
+}
+
+echo "==> logging in to ${KC_INTERNAL_URL}"
+kcadm config credentials \
+  --server "${KC_INTERNAL_URL}" \
+  --realm master \
+  --user "${KC_ADMIN_USER}" \
+  --password "${KC_ADMIN_PASS}" >/dev/null
+
+echo "==> looking up client uuid for ${KC_CLIENT_ID}"
+CLIENT_UUID=$(kcadm get clients -r "${KC_REALM}" --query "clientId=${KC_CLIENT_ID}" --fields id 2>/dev/null \
+  | grep -oE '"id" : "[^"]+"' | head -1 | sed 's/"id" : "//;s/"//')
+if [ -z "${CLIENT_UUID}" ]; then
+  echo "client ${KC_CLIENT_ID} not found in realm ${KC_REALM}" >&2
+  exit 1
+fi
+
+echo "==> setting fullScopeAllowed=true"
+kcadm update "clients/${CLIENT_UUID}" -r "${KC_REALM}" -s fullScopeAllowed=true >/dev/null
+
+echo "==> ensuring realm-management roles mapped to service account"
+kcadm add-roles -r "${KC_REALM}" \
+  --uusername "service-account-${KC_CLIENT_ID}" \
+  --cclientid realm-management \
+  --rolename manage-users --rolename view-users --rolename query-users 2>/dev/null || true
+
+echo "==> ensuring vnshop-api client has webOrigins for the SPA + dev server"
+# Without webOrigins set, Keycloak rejects CORS on /token from the FE origin
+# (manifests as `net::ERR_FAILED` on the FE auto-login after register).
+VNSHOP_API_UUID=$(kcadm get clients -r "${KC_REALM}" --query "clientId=vnshop-api" --fields id 2>/dev/null \
+  | grep -oE '"id" : "[^"]+"' | head -1 | sed 's/"id" : "//;s/"//')
+if [ -n "${VNSHOP_API_UUID}" ]; then
+  kcadm update "clients/${VNSHOP_API_UUID}" -r "${KC_REALM}" \
+    -s 'webOrigins=["+","http://localhost:3000","http://localhost:5173"]' >/dev/null 2>&1 || true
+fi
+
+echo "==> ensuring 'client roles' mapper exists on the 'roles' client scope"
+SCOPE_ID=$(kcadm get client-scopes -r "${KC_REALM}" --fields id,name 2>/dev/null \
+  | grep -B1 '"name" : "roles"' | grep -oE '"id" : "[^"]+"' | head -1 | sed 's/"id" : "//;s/"//')
+if [ -z "${SCOPE_ID}" ]; then
+  echo "couldn't find the 'roles' client scope" >&2
+  exit 1
+fi
+
+EXISTING=$(kcadm get "client-scopes/${SCOPE_ID}/protocol-mappers/models" -r "${KC_REALM}" --fields name 2>/dev/null \
+  | grep -c '"name" : "client roles"' || true)
+if [ "${EXISTING}" = "0" ]; then
+  kcadm create "client-scopes/${SCOPE_ID}/protocol-mappers/models" -r "${KC_REALM}" \
+    -s name="client roles" \
+    -s protocol=openid-connect \
+    -s protocolMapper=oidc-usermodel-client-role-mapper \
+    -s 'config."multivalued"=true' \
+    -s 'config."userinfo.token.claim"=true' \
+    -s 'config."id.token.claim"=true' \
+    -s 'config."access.token.claim"=true' \
+    -s 'config."claim.name"=resource_access.${client_id}.roles' \
+    -s 'config."jsonType.label"=String' >/dev/null
+  echo "  + created client-roles mapper"
+else
+  echo "  = client-roles mapper already present"
+fi
+
+echo "==> restarting user-service so it picks up a fresh admin token"
+docker compose restart user-service >/dev/null
+echo "==> done. Verify with:"
+echo "  curl -sS -X POST http://localhost:8080/auth/register -H 'Content-Type: application/json' \\"
+echo "    -d '{\"email\":\"smoke@vnshop.local\",\"password\":\"Test1234!\",\"firstName\":\"Smoke\",\"lastName\":\"Test\"}'"

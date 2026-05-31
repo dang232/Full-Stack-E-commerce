@@ -7,13 +7,20 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+/**
+ * EntityManager is constructor-injected with {@link Lazy} so the bean can be
+ * instantiated in test contexts that exclude JPA autoconfiguration. The real
+ * persistence calls still resolve the EntityManager from the application
+ * context at first use.
+ */
 @Repository
 public class UserJpaRepository implements UserRepositoryPort {
     private final EntityManager entityManager;
 
-    public UserJpaRepository(EntityManager entityManager) {
+    public UserJpaRepository(@Lazy EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
@@ -28,6 +35,25 @@ public class UserJpaRepository implements UserRepositoryPort {
     @Override
     public Optional<BuyerProfile> findBuyerByKeycloakId(String keycloakId) {
         return findBuyerEntityByKeycloakId(keycloakId).map(BuyerProfileJpaEntity::toDomain);
+    }
+
+    @Override
+    public List<BuyerProfile> findBuyersByKeycloakIds(List<String> keycloakIds) {
+        if (keycloakIds == null || keycloakIds.isEmpty()) {
+            return List.of();
+        }
+        // No `left join fetch` for addresses — public-profile callers only
+        // care about name + avatarUrl, and pulling addresses for batches of
+        // potentially-hundreds of buyers would cartesian-explode the result.
+        return entityManager.createQuery(
+                        "select buyer from BuyerProfileJpaEntity buyer where buyer.keycloakId in :keycloakIds",
+                        BuyerProfileJpaEntity.class
+                )
+                .setParameter("keycloakIds", keycloakIds)
+                .getResultList()
+                .stream()
+                .map(BuyerProfileJpaEntity::toDomain)
+                .toList();
     }
 
     @Override
@@ -59,6 +85,29 @@ public class UserJpaRepository implements UserRepositoryPort {
     @Transactional
     public SellerProfile updateSeller(SellerProfile sellerProfile) {
         return saveSeller(sellerProfile);
+    }
+
+    @Override
+    public List<SellerProfile> findApprovedSellers(int page, int size) {
+        return entityManager.createQuery(
+                        "select seller from SellerProfileJpaEntity seller where seller.approved = true order by seller.createdAt desc",
+                        SellerProfileJpaEntity.class
+                )
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList()
+                .stream()
+                .map(SellerProfileJpaEntity::toDomain)
+                .toList();
+    }
+
+    @Override
+    public long countApprovedSellers() {
+        return entityManager.createQuery(
+                        "select count(seller) from SellerProfileJpaEntity seller where seller.approved = true",
+                        Long.class
+                )
+                .getSingleResult();
     }
 
     private Optional<BuyerProfileJpaEntity> findBuyerEntityByKeycloakId(String keycloakId) {

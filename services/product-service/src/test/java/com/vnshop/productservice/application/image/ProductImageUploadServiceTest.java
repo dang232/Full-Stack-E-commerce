@@ -3,6 +3,7 @@ package com.vnshop.productservice.application.image;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.vnshop.productservice.application.ProductAccessDeniedException;
 import com.vnshop.productservice.application.storage.ObjectValidationPolicy;
 import com.vnshop.productservice.application.storage.ObjectValidationService;
 import com.vnshop.productservice.domain.Product;
@@ -14,6 +15,7 @@ import com.vnshop.productservice.domain.storage.ObjectQuarantineState;
 import com.vnshop.productservice.domain.storage.ObjectStorageClass;
 import java.io.InputStream;
 import java.net.URI;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -74,6 +76,71 @@ class ProductImageUploadServiceTest {
                 .isEqualTo(ObjectQuarantineState.REJECTED);
     }
 
+    @Test
+    void activateRejectsRequestForUnknownProductWithAccessDenied() {
+        // Doesn't seed any product. Pre-fix this would have looked up the
+        // metadata directly; post-fix the ownership gate fires first.
+        assertThatThrownBy(() -> service.activate(
+                "00000000-0000-0000-0000-000000000001",
+                "seller-1",
+                "products/00000000-0000-0000-0000-000000000001/images/x.png",
+                ProductImageActivationRequest.builder()
+                        .detectedContentType("image/png")
+                        .contentLength(1024)
+                        .sha256Hex("a".repeat(64))
+                        .imageWidth(800)
+                        .imageHeight(600)
+                        .build()))
+                .isInstanceOf(ProductAccessDeniedException.class);
+        // Crucially: the metadata table is never queried — the gate runs
+        // before the repository lookup, so existence isn't leaked.
+        assertThat(metadataRepository.findByKeyCalls).isEmpty();
+    }
+
+    @Test
+    void activateRejectsRequestFromWrongSellerWithAccessDenied() {
+        UUID productId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        productRepository.save(product(productId, "seller-1"));
+
+        assertThatThrownBy(() -> service.activate(
+                productId.toString(),
+                "seller-2",  // not the owner
+                "products/" + productId + "/images/x.png",
+                ProductImageActivationRequest.builder()
+                        .detectedContentType("image/png")
+                        .contentLength(1024)
+                        .sha256Hex("a".repeat(64))
+                        .imageWidth(800)
+                        .imageHeight(600)
+                        .build()))
+                .isInstanceOf(ProductAccessDeniedException.class);
+        assertThat(metadataRepository.findByKeyCalls).isEmpty();
+    }
+
+    @Test
+    void activateRejectsObjectKeyForDifferentProductWithAccessDenied() {
+        // The owner is correct, but the objectKey targets a different product.
+        // Critical: pt20 stacked the IDOR with the avScanClean bypass — without
+        // the path-prefix check, a hostile seller who legitimately owns product A
+        // could activate an objectKey on product B by passing their own JWT.
+        UUID productId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        productRepository.save(product(productId, "seller-1"));
+
+        assertThatThrownBy(() -> service.activate(
+                productId.toString(),
+                "seller-1",
+                "products/00000000-0000-0000-0000-000000000099/images/x.png",
+                ProductImageActivationRequest.builder()
+                        .detectedContentType("image/png")
+                        .contentLength(1024)
+                        .sha256Hex("a".repeat(64))
+                        .imageWidth(800)
+                        .imageHeight(600)
+                        .build()))
+                .isInstanceOf(ProductAccessDeniedException.class);
+        assertThat(metadataRepository.findByKeyCalls).isEmpty();
+    }
+
     private ProductImageUploadRequest.ProductImageUploadRequestBuilder validRequest() {
         return ProductImageUploadRequest.builder()
                 .productId("00000000-0000-0000-0000-000000000001")
@@ -124,6 +191,26 @@ class ProductImageUploadServiceTest {
         public java.util.List<String> findDistinctCategories() {
             return java.util.List.of();
         }
+
+        @Override
+        public org.springframework.data.domain.Page<Product> findCatalog(
+                String categoryId, String q, String sellerId, org.springframework.data.domain.Pageable pageable) {
+            return org.springframework.data.domain.Page.empty(pageable);
+        }
+
+        @Override
+        public long countBySellerId(String sellerId) {
+            return products.values().stream().filter(p -> sellerId.equals(p.sellerId())).count();
+        }
+
+        @Override
+        public java.util.Map<String, Long> countBySellerIds(java.util.Set<String> sellerIds) {
+            java.util.Map<String, Long> result = new java.util.HashMap<>();
+            for (String id : sellerIds) {
+                result.put(id, products.values().stream().filter(p -> id.equals(p.sellerId())).count());
+            }
+            return result;
+        }
     }
 
     private static final class FakeObjectStorage implements ObjectStoragePort {
@@ -153,21 +240,6 @@ class ProductImageUploadServiceTest {
         @Override
         public Optional<ObjectMetadata> headObject(String key) {
             return Optional.empty();
-        }
-    }
-
-    private static final class FakeObjectMetadataRepository implements ObjectMetadataRepositoryPort {
-        private final Map<String, ObjectMetadata> saved = new HashMap<>();
-
-        @Override
-        public ObjectMetadata save(ObjectMetadata metadata) {
-            saved.put(metadata.getKey(), metadata);
-            return metadata;
-        }
-
-        @Override
-        public Optional<ObjectMetadata> findByKey(String key) {
-            return Optional.ofNullable(saved.get(key));
         }
     }
 }

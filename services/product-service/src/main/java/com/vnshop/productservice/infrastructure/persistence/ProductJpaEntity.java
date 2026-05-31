@@ -113,6 +113,9 @@ public class ProductJpaEntity extends BaseJpaEntity {
         @Column(name = "image_url")
         private String imageUrl;
 
+        @Column(name = "stock_quantity", nullable = false)
+        private int stockQuantity;
+
         protected ProductVariantEmbeddable() {
         }
 
@@ -122,11 +125,12 @@ public class ProductJpaEntity extends BaseJpaEntity {
             embeddable.name = variant.name();
             embeddable.price = MoneyEmbeddable.fromDomain(variant.price());
             embeddable.imageUrl = variant.imageUrl();
+            embeddable.stockQuantity = variant.stockQuantity();
             return embeddable;
         }
 
         ProductVariant toDomain() {
-            return new ProductVariant(sku, name, price.toDomain(), imageUrl);
+            return new ProductVariant(sku, name, price.toDomain(), imageUrl, stockQuantity);
         }
     }
 

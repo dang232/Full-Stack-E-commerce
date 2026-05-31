@@ -1,7 +1,7 @@
 package com.vnshop.apigateway.infrastructure.route;
 
-import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
@@ -9,12 +9,66 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * The gateway is a pure JWT-validating reverse proxy: the SPA acquires tokens directly
+ * from Keycloak via PKCE and sends them as Bearer headers, which the resource-server
+ * filter validates. The previous TokenRelay setup (which required an OAuth2 client
+ * registration that did OIDC discovery at boot) has been dropped because it
+ * (a) wasn't actually used by the SPA flow and (b) failed when KC_HOSTNAME differs
+ * between in-network JWKS fetches and external token issuance.
+ *
+ * <p>The Authorization header is forwarded to downstream services automatically by
+ * Spring Cloud Gateway, so dropping TokenRelay does not lose anything.
+ */
 @Configuration
 public class RouteConfig {
 
-    private static final String PRODUCT_SERVICE = "http://localhost:8082";
-    private static final String USER_SERVICE = "http://localhost:8081";
-    private static final String ORDER_SERVICE = "http://localhost:8091";
+    private final String productServiceUri;
+    private final String userServiceUri;
+    private final String searchServiceUri;
+    private final String inventoryServiceUri;
+    private final String cartServiceUri;
+    private final String orderServiceUri;
+    private final String paymentServiceUri;
+    private final String shippingServiceUri;
+    private final String notificationServiceUri;
+    private final String couponServiceUri;
+    private final String sellerFinanceServiceUri;
+    private final String recommendationsServiceUri;
+    private final String messagingServiceUri;
+    private final String monitoringServiceUri;
+
+    public RouteConfig(
+        @Value("${vnshop.routes.product-service:http://product-service:8082}") String productServiceUri,
+        @Value("${vnshop.routes.user-service:http://user-service:8081}") String userServiceUri,
+        @Value("${vnshop.routes.search-service:http://search-service:8086}") String searchServiceUri,
+        @Value("${vnshop.routes.inventory-service:http://inventory-service:8083}") String inventoryServiceUri,
+        @Value("${vnshop.routes.cart-service:http://cart-service:8084}") String cartServiceUri,
+        @Value("${vnshop.routes.order-service:http://order-service:8091}") String orderServiceUri,
+        @Value("${vnshop.routes.payment-service:http://payment-service:8092}") String paymentServiceUri,
+        @Value("${vnshop.routes.shipping-service:http://shipping-service:8093}") String shippingServiceUri,
+        @Value("${vnshop.routes.notification-service:http://notification-service:8087}") String notificationServiceUri,
+        @Value("${vnshop.routes.coupon-service:http://coupon-service:8088}") String couponServiceUri,
+        @Value("${vnshop.routes.seller-finance-service:http://seller-finance-service:8090}") String sellerFinanceServiceUri,
+        @Value("${vnshop.routes.recommendations-service:http://recommendations-service:8094}") String recommendationsServiceUri,
+        @Value("${vnshop.routes.messaging-service:http://messaging-service:8095}") String messagingServiceUri,
+        @Value("${vnshop.routes.monitoring-service:http://monitoring-service-v2:8096}") String monitoringServiceUri
+    ) {
+        this.productServiceUri = productServiceUri;
+        this.userServiceUri = userServiceUri;
+        this.searchServiceUri = searchServiceUri;
+        this.inventoryServiceUri = inventoryServiceUri;
+        this.cartServiceUri = cartServiceUri;
+        this.orderServiceUri = orderServiceUri;
+        this.paymentServiceUri = paymentServiceUri;
+        this.shippingServiceUri = shippingServiceUri;
+        this.notificationServiceUri = notificationServiceUri;
+        this.couponServiceUri = couponServiceUri;
+        this.sellerFinanceServiceUri = sellerFinanceServiceUri;
+        this.recommendationsServiceUri = recommendationsServiceUri;
+        this.messagingServiceUri = messagingServiceUri;
+        this.monitoringServiceUri = monitoringServiceUri;
+    }
 
     @Bean
     RedisRateLimiter redisRateLimiter() {
@@ -24,77 +78,167 @@ public class RouteConfig {
     @Bean
     RouteLocator gatewayRoutes(
         RouteLocatorBuilder builder,
-        TokenRelayGatewayFilterFactory tokenRelay,
         RedisRateLimiter redisRateLimiter,
         KeyResolver userKeyResolver
     ) {
         return builder.routes()
             .route("products", route -> route.path("/products/**")
-                .filters(filters -> rateLimited(filters, "product-service", tokenRelay, redisRateLimiter, userKeyResolver))
-                .uri(PRODUCT_SERVICE))
+                .filters(filters -> rateLimited(filters, "product-service", redisRateLimiter, userKeyResolver))
+                .uri(productServiceUri))
             .route("categories", route -> route.path("/categories/**")
-                .filters(filters -> resilient(filters, "product-service", tokenRelay))
-                .uri(PRODUCT_SERVICE))
+                .filters(filters -> resilient(filters, "product-service"))
+                .uri(productServiceUri))
             .route("search", route -> route.path("/search/**")
-                .filters(filters -> resilient(filters, "search-service", tokenRelay))
-                .uri("http://localhost:8086"))
-            .route("inventory", route -> route.path("/inventory/**")
-                .filters(filters -> resilient(filters, "inventory-service", tokenRelay))
-                .uri("http://localhost:8083"))
+                .filters(filters -> resilient(filters, "search-service"))
+                .uri(searchServiceUri))
+            // /inventory/** route was removed in Phase 3C: inventory-service exposes
+            // only gRPC (Reserve/Release) and the flash-sale REST endpoint below.
+            // Stock for product detail is now served by product-service directly via
+            // ProductResponse.stock; no public HTTP /inventory/* endpoint exists.
+            .route("flash-sale", route -> route.path("/flash-sale/**")
+                .filters(filters -> resilient(filters, "inventory-service"))
+                .uri(inventoryServiceUri))
+            .route("questions", route -> route.path("/questions/**")
+                .filters(filters -> resilient(filters, "product-service"))
+                .uri(productServiceUri))
+            // Seller-owned product CRUD + image upload routes live on product-service.
+            // Must precede the broader /sellers/** route below (which targets user-service
+            // for seller profile/onboarding endpoints).
+            .route("seller-products", route -> route.path("/sellers/me/products/**")
+                .filters(filters -> resilient(filters, "product-service"))
+                .uri(productServiceUri))
+            // Seller analytics — daily revenue/order-count aggregate scoped to the
+            // caller's sellerId. Lives on order-service. Must precede /sellers/**.
+            .route("seller-analytics", route -> route.path("/sellers/me/revenue", "/sellers/me/analytics/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            // Seller finance — wallet balance + payout history/requests for the
+            // caller. Lives on seller-finance-service. Must precede /sellers/**.
+            .route("seller-finance-me", route -> route.path("/sellers/me/finance/**")
+                .filters(filters -> resilient(filters, "seller-finance-service"))
+                .uri(sellerFinanceServiceUri))
             .route("users", route -> route.path("/users/**", "/sellers/**")
-                .filters(filters -> resilient(filters, "user-service", tokenRelay))
-                .uri(USER_SERVICE))
+                .filters(filters -> resilient(filters, "user-service"))
+                .uri(userServiceUri))
+            // Public self-registration. SecurityConfig permits /auth/** without a
+            // bearer token; the controller in user-service proxies to Keycloak's
+            // Admin API to create the user, then materialises the buyer profile.
+            .route("auth", route -> route.path("/auth/**")
+                .filters(filters -> resilient(filters, "user-service"))
+                .uri(userServiceUri))
             .route("cart", route -> route.path("/cart/**")
-                .filters(filters -> resilient(filters, "cart-service", tokenRelay))
-                .uri("http://localhost:8084"))
+                .filters(filters -> resilient(filters, "cart-service"))
+                .uri(cartServiceUri))
+            // Seller fulfilment endpoints (accept/reject/ship sub-orders) live on
+            // order-service. Path is /seller/orders/** (singular), distinct from the
+            // /sellers/** profile/onboarding routes above.
+            .route("seller-orders", route -> route.path("/seller/orders/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            // Coupon-service owns the /checkout/{validate,apply}-coupon aliases
+            // (legacy paths kept alongside /coupons/validate). These specific
+            // routes must precede the broader /checkout/** -> order-service
+            // route below so the alias keeps reaching coupon-service.
+            .route("checkout-coupons", route -> route.path("/checkout/validate-coupon", "/checkout/apply-coupon")
+                .filters(filters -> resilient(filters, "coupon-service"))
+                .uri(couponServiceUri))
+            .route("checkout", route -> route.path("/checkout/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("returns", route -> route.path("/returns/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("invoices", route -> route.path("/invoices/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
             .route("orders", route -> route.path("/orders/**")
-                .filters(filters -> rateLimited(filters, "order-service", tokenRelay, redisRateLimiter, userKeyResolver))
-                .uri(ORDER_SERVICE))
+                .filters(filters -> rateLimited(filters, "order-service", redisRateLimiter, userKeyResolver))
+                .uri(orderServiceUri))
             .route("payment", route -> route.path("/payment/**")
-                .filters(filters -> rateLimited(filters, "payment-service", tokenRelay, redisRateLimiter, userKeyResolver))
-                .uri("http://localhost:8092"))
+                .filters(filters -> rateLimited(filters, "payment-service", redisRateLimiter, userKeyResolver))
+                .uri(paymentServiceUri))
             .route("shipping", route -> route.path("/shipping/**")
-                .filters(filters -> resilient(filters, "shipping-service", tokenRelay))
-                .uri("http://localhost:8093"))
+                .filters(filters -> resilient(filters, "shipping-service"))
+                .uri(shippingServiceUri))
             .route("notifications", route -> route.path("/notifications/**")
-                .filters(filters -> resilient(filters, "notification-service", tokenRelay))
-                .uri("http://localhost:8087"))
+                .filters(filters -> resilient(filters, "notification-service"))
+                .uri(notificationServiceUri))
+            // Notification WebSocket upgrade. Circuit breaker intentionally omitted
+            // for the same reason as messaging-ws: Resilience4j doesn't reliably wrap
+            // the Upgrade lifecycle and would surface 5xx during reconnect storms.
+            .route("notifications-ws", route -> route.path("/ws/notifications/**")
+                .uri(notificationServiceUri))
+            // Buyer-seller messaging (REST). The matching WebSocket upgrade lives on
+            // /ws/messaging — Spring Cloud Gateway proxies HTTP-Upgrade requests
+            // through to the downstream `http://` URI without extra config. The circuit
+            // breaker is intentionally omitted on the ws route because Resilience4j's
+            // ReactiveCircuitBreaker doesn't reliably wrap the Upgrade lifecycle and
+            // would surface 5xx during a reconnect storm; the FE handles reconnects.
+            .route("messaging", route -> route.path("/messaging/**")
+                .filters(filters -> resilient(filters, "messaging-service"))
+                .uri(messagingServiceUri))
+            .route("messaging-ws", route -> route.path("/ws/messaging")
+                .uri(messagingServiceUri))
             .route("coupons", route -> route.path("/coupons/**")
-                .filters(filters -> resilient(filters, "order-service", tokenRelay))
-                .uri(ORDER_SERVICE))
+                .filters(filters -> resilient(filters, "coupon-service"))
+                .uri(couponServiceUri))
             .route("reviews", route -> route.path("/reviews/**")
-                .filters(filters -> resilient(filters, "product-service", tokenRelay))
-                .uri(PRODUCT_SERVICE))
+                .filters(filters -> resilient(filters, "product-service"))
+                .uri(productServiceUri))
             .route("seller-finance", route -> route.path("/seller-finance/**")
-                .filters(filters -> resilient(filters, "order-service", tokenRelay))
-                .uri(ORDER_SERVICE))
+                .filters(filters -> resilient(filters, "seller-finance-service"))
+                .uri(sellerFinanceServiceUri))
+            // Recommendations endpoints (frequently-bought-together, you-may-also-like)
+            // are public reads — no rate limit, just a circuit breaker so a slow
+            // recommendations-service can't stall product detail page renders.
+            .route("recommendations", route -> route.path("/recommendations/**")
+                .filters(filters -> resilient(filters, "recommendations-service"))
+                .uri(recommendationsServiceUri))
+            // Admin sub-routes — more specific patterns must come before the
+            // catch-all /admin/** route below. Each maps to the service that owns
+            // the corresponding domain endpoints.
+            .route("admin-dashboard", route -> route.path("/admin/dashboard/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("admin-disputes", route -> route.path("/admin/disputes/**")
+                .filters(filters -> resilient(filters, "order-service"))
+                .uri(orderServiceUri))
+            .route("admin-coupons", route -> route.path("/admin/coupons/**")
+                .filters(filters -> resilient(filters, "coupon-service"))
+                .uri(couponServiceUri))
+            .route("admin-finance", route -> route.path("/admin/finance/**")
+                .filters(filters -> resilient(filters, "seller-finance-service"))
+                .uri(sellerFinanceServiceUri))
+            .route("admin-reviews", route -> route.path("/admin/reviews/**")
+                .filters(filters -> resilient(filters, "product-service"))
+                .uri(productServiceUri))
+            // Admin manual VietQR confirmation lives on payment-service. Must
+            // precede the catch-all /admin/** below.
+            .route("admin-vietqr", route -> route.path("/admin/vietqr/**")
+                .filters(filters -> resilient(filters, "payment-service"))
+                .uri(paymentServiceUri))
+            .route("monitoring", route -> route.path("/monitoring/**")
+                .filters(filters -> resilient(filters, "monitoring-service"))
+                .uri(monitoringServiceUri))
             .route("admin", route -> route.path("/admin/**")
-                .filters(filters -> resilient(filters, "user-service", tokenRelay))
-                .uri(USER_SERVICE))
+                .filters(filters -> resilient(filters, "user-service"))
+                .uri(userServiceUri))
             .build();
     }
 
-    private GatewayFilterSpec resilient(
-        GatewayFilterSpec filters,
-        String service,
-        TokenRelayGatewayFilterFactory tokenRelay
-    ) {
-        return filters
-            .filter(tokenRelay.apply())
-            .circuitBreaker(config -> config
-                .setName(service)
-                .setFallbackUri("forward:/fallback/" + service));
+    private GatewayFilterSpec resilient(GatewayFilterSpec filters, String service) {
+        return filters.circuitBreaker(config -> config
+            .setName(service)
+            .setFallbackUri("forward:/fallback/" + service));
     }
 
     private GatewayFilterSpec rateLimited(
         GatewayFilterSpec filters,
         String service,
-        TokenRelayGatewayFilterFactory tokenRelay,
         RedisRateLimiter redisRateLimiter,
         KeyResolver userKeyResolver
     ) {
         return filters
-            .filter(tokenRelay.apply())
             .requestRateLimiter(config -> config
                 .setRateLimiter(redisRateLimiter)
                 .setKeyResolver(userKeyResolver))

@@ -10,6 +10,5 @@ public record ReviewImageActivateRequest(
         @Min(1) long contentLength,
         @NotBlank String sha256Hex,
         @NotNull @Min(1) Integer imageWidth,
-        @NotNull @Min(1) Integer imageHeight,
-        boolean avScanClean) {
+        @NotNull @Min(1) Integer imageHeight) {
 }

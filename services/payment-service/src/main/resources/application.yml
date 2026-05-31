@@ -2,10 +2,15 @@ server:
   port: 8092
 
 spring:
+  threads:
+    virtual:
+      enabled: true
+  config:
+    import: classpath:application-grpc.yml
   application:
     name: payment-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=payment_svc
+    url: jdbc:postgresql://localhost:5436/vnshop_payment?currentSchema=payment_svc
     username: vnshop
     password: vnshop
   flyway:
@@ -13,16 +18,58 @@ spring:
     schemas: payment_svc
     default-schema: payment_svc
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # JsonSerializer (Spring) is what every other producer in the platform
+      # uses; matches the format order-service / seller-finance-service expect
+      # on consume. add.type.headers=false matches order-service so consumers
+      # bind to a value class without needing a __TypeId__ header.
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      # PayPalRefundListener consumes payment.refund_requested as raw JSON and
+      # parses with ObjectMapper, matching the order-service @KafkaListener
+      # pattern. Explicit StringDeserializer here so a future producer that
+      # forgets add.type.headers=false doesn't trip a class-not-found
+      # deserialization error inside the consumer thread.
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/vnshop}
 
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs}
+
 payment:
-  mode: ${PAYMENT_MODE:stub}
+  # Per-method enable flags. Set the env var to "true" to turn the method on.
+  # COD and VietQR default on (no external creds needed). VNPay/MoMo/Stripe/PayPal
+  # default off — flip the matching env var when sandbox creds are available.
+  cod:
+    enabled: ${COD_ENABLED:true}
+  vietqr:
+    enabled: ${VIETQR_ENABLED:true}
+  paypal:
+    enabled: ${PAYPAL_ENABLED:false}
+    client-id: ${PAYPAL_CLIENT_ID:}
+    client-secret: ${PAYPAL_CLIENT_SECRET:}
+    mode: ${PAYPAL_MODE:sandbox}
+  sepay:
+    enabled: ${SEPAY_ENABLED:false}
+    api-key: ${SEPAY_API_KEY:}
+    account-id: ${SEPAY_ACCOUNT_ID:}
+    base-url: ${SEPAY_BASE_URL:https://my.sepay.vn/userapi}
+    poll-interval-seconds: ${SEPAY_POLL_INTERVAL_SECONDS:30}
+  stripe:
+    enabled: ${STRIPE_ENABLED:false}
+    secret-key: ${STRIPE_SECRET_KEY:}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
   vnpay:
+    enabled: ${VNPAY_ENABLED:false}
     pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
     tmn-code: ${VNPAY_TMN_CODE:}
     hash-secret: ${VNPAY_HASH_SECRET:}
@@ -35,6 +82,7 @@ payment:
     currency: ${VNPAY_CURRENCY:VND}
     expire-minutes: ${VNPAY_EXPIRE_MINUTES:15}
   momo:
+    enabled: ${MOMO_ENABLED:false}
     create-endpoint: ${MOMO_CREATE_ENDPOINT:https://test-payment.momo.vn/v2/gateway/api/create}
     query-dr-endpoint: ${MOMO_QUERY_DR_ENDPOINT:https://test-payment.momo.vn/v2/gateway/api/query}
     partner-code: ${MOMO_PARTNER_CODE:}
@@ -44,6 +92,25 @@ payment:
     ipn-url: ${MOMO_IPN_URL:http://localhost:8092/payment/momo/ipn}
     request-type: ${MOMO_REQUEST_TYPE:captureWallet}
     lang: ${MOMO_LANG:vi}
+  fx:
+    # FrankfurterFxAdapter — frankfurter.app is free, ECB-sourced, no API key.
+    # 24h TTL because intraday FX swings are too small for sandbox to care.
+    # fallback-usd-to-vnd is applied (with a WARN log per hit) on adapter
+    # failure so a Stripe order doesn't 500 because frankfurter.app blipped.
+    base-url: ${FX_BASE_URL:https://api.frankfurter.app}
+    cache-ttl: ${FX_CACHE_TTL:PT24H}
+    cache-max-entries: ${FX_CACHE_MAX_ENTRIES:100}
+    fallback-usd-to-vnd: ${FX_FALLBACK_RATE:25500}
+
+# VietQR config — buyer scans the QR, transfers from their bank app, admin
+# manually confirms via POST /admin/vietqr/confirm/{paymentId}. No webhook,
+# no public domain. The bank-bin default is 970436 (Vietcombank); change for
+# other VN banks: TCB 970407, MBB 970422, etc. (vietqr.io/v2/banks lists all).
+vietqr:
+  bank-bin: ${VIETQR_BANK_BIN:970436}
+  account-no: ${VIETQR_ACCOUNT_NO:}
+  account-name: ${VIETQR_ACCOUNT_NAME:}
+  template: ${VIETQR_TEMPLATE:compact2}
 
 springdoc:
   api-docs:
@@ -62,3 +129,26 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0

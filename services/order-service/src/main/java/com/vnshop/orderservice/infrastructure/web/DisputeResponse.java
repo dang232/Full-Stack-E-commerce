@@ -8,6 +8,7 @@ public record DisputeResponse(
         String buyerReason,
         String sellerResponse,
         String adminResolution,
+        String resolvedBy,
         String status
 ) {
 
@@ -18,6 +19,7 @@ public record DisputeResponse(
                 dispute.buyerReason(),
                 dispute.sellerResponse(),
                 dispute.adminResolution(),
+                dispute.resolvedBy(),
                 dispute.status().name()
         );
     }

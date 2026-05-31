@@ -40,14 +40,17 @@ public class ReviewImageUploadController {
     }
 
     @PostMapping("/activate")
-    public ApiResponse<ReviewImageActivatedResponse> activate(@Valid @RequestBody ReviewImageActivateRequest request) {
-        ReviewImageActivationResponse response = reviewImageUploadService.activate(request.objectKey(), new ReviewImageActivationRequest(
-                request.detectedContentType(),
-                request.contentLength(),
-                request.sha256Hex(),
-                request.imageWidth(),
-                request.imageHeight(),
-                request.avScanClean()));
+    public ApiResponse<ReviewImageActivatedResponse> activate(@PathVariable String reviewId, @Valid @RequestBody ReviewImageActivateRequest request) {
+        ReviewImageActivationResponse response = reviewImageUploadService.activate(
+                reviewId,
+                JwtPrincipalUtil.currentUserId(),
+                request.objectKey(),
+                new ReviewImageActivationRequest(
+                        request.detectedContentType(),
+                        request.contentLength(),
+                        request.sha256Hex(),
+                        request.imageWidth(),
+                        request.imageHeight()));
         return ApiResponse.ok(ReviewImageActivatedResponse.fromApplication(response));
     }
 

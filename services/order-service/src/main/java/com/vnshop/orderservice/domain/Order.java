@@ -1,6 +1,9 @@
 package com.vnshop.orderservice.domain;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
@@ -23,6 +26,12 @@ public class Order {
     private final String paymentMethod;
     private PaymentStatus paymentStatus;
     private final String idempotencyKey;
+
+    // FX fields — populated when payment is completed in a foreign currency
+    private BigDecimal externalAmount;
+    private String externalCurrency;
+    private BigDecimal fxRate;
+    private Instant fxRateAt;
 
     public Order(UUID id, String buyerId, Address shippingAddress, List<SubOrder> subOrders, String idempotencyKey) {
         this(id, generateOrderNumber(), buyerId, shippingAddress, subOrders, Money.ZERO, Money.ZERO, Money.ZERO,
@@ -64,8 +73,15 @@ public class Order {
     }
 
     public static String generateOrderNumber() {
+        // The in-memory counter resets to 0 on every restart, which means the
+        // first order created after a restart collides with the prior day's
+        // VNS-...-00001 row and the unique constraint trips. Stamping the
+        // millisecond-of-day onto the sequence makes a same-second collision
+        // require both the same wall-clock millisecond and the same in-process
+        // sequence — extremely unlikely under any realistic load.
         int sequence = ORDER_COUNTER.updateAndGet(current -> current >= 99999 ? 1 : current + 1);
-        return "VNS-" + LocalDate.now().format(ORDER_DATE_FORMAT) + "-" + String.format("%05d", sequence);
+        long millis = LocalTime.now().toNanoOfDay() / 1_000_000;
+        return "VNS-" + LocalDate.now().format(ORDER_DATE_FORMAT) + "-" + String.format("%08d", millis) + "-" + String.format("%05d", sequence);
     }
 
     public UUID id() {
@@ -136,6 +152,27 @@ public class Order {
 
     public void markPaymentFailed() {
         paymentStatus = PaymentStatus.FAILED;
+    }
+
+    public BigDecimal externalAmount() { return externalAmount; }
+    public String externalCurrency() { return externalCurrency; }
+    public BigDecimal fxRate() { return fxRate; }
+    public Instant fxRateAt() { return fxRateAt; }
+
+    /**
+     * Records foreign-exchange details from the payment provider.
+     * All four fields are set atomically — partial FX state is not allowed.
+     * Pass all-null to clear (domestic payment).
+     */
+    public void recordFxDetails(BigDecimal externalAmount, String externalCurrency,
+                                BigDecimal fxRate, Instant fxRateAt) {
+        if (externalAmount != null && (externalCurrency == null || externalCurrency.isBlank())) {
+            throw new IllegalArgumentException("externalCurrency required when externalAmount is set");
+        }
+        this.externalAmount = externalAmount;
+        this.externalCurrency = externalCurrency;
+        this.fxRate = fxRate;
+        this.fxRateAt = fxRateAt;
     }
 
     private static void requireNonBlank(String value, String fieldName) {

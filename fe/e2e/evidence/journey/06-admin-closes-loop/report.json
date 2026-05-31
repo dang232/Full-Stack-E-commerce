@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "id": "06-admin-closes-loop",
+    "title": "Chapter 6 — Admin closes the loop",
+    "persona": "admin",
+    "acceptanceCriteria": [
+      {
+        "code": "AC-6.1",
+        "outcome": "Admin's payout queue surfaces the seller's pending payout with the right amount"
+      },
+      {
+        "code": "AC-6.2",
+        "outcome": "Admin can mark the payout complete and the payout leaves the pending queue"
+      },
+      {
+        "code": "AC-6.3",
+        "outcome": "Seller's wallet pendingBalance drops by exactly the payout amount once the projection settles"
+      },
+      {
+        "code": "AC-6.4",
+        "outcome": "Completed-payout audit trail surfaces who completed the payout and when, on the Completed tab and the BE /completed endpoint"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "index": 1,
+      "acCode": "AC-6.1",
+      "outcome": "Predecessor chapter 5 left a PENDING payoutId in state.json",
+      "slug": "01-ac-6-1-predecessor-chapter-5-left-a-pending-payoutid-in-stat.png",
+      "status": "BLOCKED",
+      "errorMessage": "journey state missing required keys: payoutId, payoutAmountVnd — a previous chapter must run first"
+    }
+  ],
+  "acStatuses": [
+    {
+      "code": "AC-6.1",
+      "outcome": "Admin's payout queue surfaces the seller's pending payout with the right amount",
+      "status": "BLOCKED",
+      "failingStep": {
+        "index": 1,
+        "acCode": "AC-6.1",
+        "outcome": "Predecessor chapter 5 left a PENDING payoutId in state.json",
+        "slug": "01-ac-6-1-predecessor-chapter-5-left-a-pending-payoutid-in-stat.png",
+        "status": "BLOCKED",
+        "errorMessage": "journey state missing required keys: payoutId, payoutAmountVnd — a previous chapter must run first"
+      }
+    },
+    {
+      "code": "AC-6.2",
+      "outcome": "Admin can mark the payout complete and the payout leaves the pending queue",
+      "status": "NOT_RUN"
+    },
+    {
+      "code": "AC-6.3",
+      "outcome": "Seller's wallet pendingBalance drops by exactly the payout amount once the projection settles",
+      "status": "NOT_RUN"
+    },
+    {
+      "code": "AC-6.4",
+      "outcome": "Completed-payout audit trail surfaces who completed the payout and when, on the Completed tab and the BE /completed endpoint",
+      "status": "NOT_RUN"
+    }
+  ],
+  "verdict": "BLOCKED",
+  "generatedAt": "2026-05-31T12:20:28.978Z"
+}

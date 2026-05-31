@@ -22,19 +22,32 @@ public class CompleteReturnUseCase {
         this.refundRequestPort = Objects.requireNonNull(refundRequestPort, "refundRequestPort is required");
     }
 
-    public Return complete(UUID returnId) {
+    /**
+     * Pt14 audit fix: only the seller who owns the SubOrder being returned
+     * may complete. The seller is the natural completer because they ship
+     * the refund — admins go through a separate admin endpoint.
+     */
+    public Return complete(UUID returnId, String sellerId) {
+        // Pt40 audit: see ApproveReturnUseCase. Same fold for unknown
+        // returnId. The order/subOrder follow-up lookups stay IAE
+        // because if the gate has passed (seller owns the return) and
+        // we still can't find the underlying order/subOrder, that's a
+        // referential-integrity bug — the caller has no probe value
+        // because they already proved ownership of a row that points
+        // at the missing referent.
         Return orderReturn = returnRepository.findById(returnId)
-                .orElseThrow(() -> new IllegalArgumentException("return not found: " + returnId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to act on this return"));
+        ReturnAuthorization.requireSellerOwnsReturn(orderRepository, orderReturn, sellerId);
         Order order = orderRepository.findById(UUID.fromString(orderReturn.orderId()))
-                .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderReturn.orderId()));
-        Money refundAmount = order.subOrders().stream()
+                .orElseThrow(() -> new IllegalStateException("return points at missing order"));
+        SubOrder targetSubOrder = order.subOrders().stream()
                 .filter(subOrder -> orderReturn.subOrderId().equals(subOrder.id()))
                 .findFirst()
-                .map(SubOrder::itemsTotal)
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found: " + orderReturn.subOrderId()));
+                .orElseThrow(() -> new IllegalStateException("return points at missing subOrder"));
+        Money refundAmount = targetSubOrder.itemsTotal();
         orderReturn.complete();
         Return savedReturn = returnRepository.save(orderReturn);
-        refundRequestPort.requestRefund(savedReturn, refundAmount);
+        refundRequestPort.requestRefund(savedReturn, targetSubOrder.sellerId(), refundAmount, targetSubOrder.commissionTier());
         return savedReturn;
     }
 }

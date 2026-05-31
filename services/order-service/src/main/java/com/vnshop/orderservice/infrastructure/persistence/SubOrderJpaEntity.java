@@ -1,6 +1,8 @@
 package com.vnshop.orderservice.infrastructure.persistence;
 
+import com.vnshop.orderservice.domain.CommissionTier;
 import com.vnshop.orderservice.domain.FulfillmentStatus;
+import com.vnshop.orderservice.domain.ShippingInfo;
 import com.vnshop.orderservice.domain.SubOrder;
 import com.vnshop.orderservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.AttributeOverride;
@@ -62,6 +64,10 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
     @Column(name = "tracking_number")
     private String trackingNumber;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "commission_tier", nullable = false)
+    private CommissionTier commissionTier = CommissionTier.STANDARD;
+
     @OneToMany(mappedBy = "subOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderItemJpaEntity> items = new ArrayList<>();
 
@@ -70,6 +76,12 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
 
     static SubOrderJpaEntity fromDomain(SubOrder subOrder, OrderJpaEntity order) {
         SubOrderJpaEntity entity = new SubOrderJpaEntity();
+        // Preserve the existing id on update. Without this every save(order) on
+        // the parent runs the @OneToMany orphanRemoval path: the old child rows
+        // are deleted and re-inserted with new BIGSERIAL ids. That breaks any
+        // follow-up call (e.g. /seller/orders/{subOrderId}/ship) that quoted
+        // the original id from the accept response.
+        entity.id = subOrder.id();
         entity.order = order;
         entity.sellerId = subOrder.sellerId();
         entity.fulfillmentStatus = subOrder.fulfillmentStatus();
@@ -77,6 +89,7 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
         entity.shippingMethod = subOrder.shippingMethod();
         entity.carrier = subOrder.carrier();
         entity.trackingNumber = subOrder.trackingNumber();
+        entity.commissionTier = subOrder.commissionTier();
         entity.items = subOrder.items().stream()
                 .map(item -> OrderItemJpaEntity.fromDomain(item, entity))
                 .toList();
@@ -85,15 +98,19 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
 
 
     SubOrder toDomain() {
+        ShippingInfo shipping = new ShippingInfo(
+                shippingCost.toDomain(),
+                shippingMethod,
+                carrier,
+                trackingNumber
+        );
         return new SubOrder(
                 id,
                 sellerId,
                 items.stream().map(OrderItemJpaEntity::toDomain).toList(),
                 fulfillmentStatus,
-                shippingCost.toDomain(),
-                shippingMethod,
-                carrier,
-                trackingNumber
+                shipping,
+                commissionTier
         );
     }
 }

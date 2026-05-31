@@ -2,10 +2,15 @@ server:
   port: 8091
 
 spring:
+  threads:
+    virtual:
+      enabled: true
+  config:
+    import: classpath:application-grpc.yml
   application:
     name: order-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=order_svc
+    url: jdbc:postgresql://localhost:5435/vnshop_order?currentSchema=order_svc
     username: vnshop
     password: vnshop
   flyway:
@@ -13,7 +18,16 @@ spring:
     schemas: order_svc
     default-schema: order_svc
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # OutboxEvent + saga events are domain records; without an explicit
+      # JsonSerializer here the producer falls back to StringSerializer and
+      # every outbox publish fails with ClassCastException, leaving the
+      # OrderSummaryProjection table empty.
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
   data:
     redis:
       host: localhost
@@ -23,6 +37,7 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/vnshop}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs}
 
 vnshop:
   idempotency:
@@ -44,6 +59,12 @@ outbox:
   publisher:
     poll-interval-ms: 1000
     batch-size: 50
+    max-attempts: 8
+    send-timeout-ms: 5000
+
+saga:
+  compensation-timeout-ms: 300000
+  compensation-finalizer-interval-ms: 60000
 
 management:
   endpoints:
@@ -56,3 +77,26 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0

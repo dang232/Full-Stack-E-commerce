@@ -9,10 +9,11 @@ public class Dispute {
     private final String buyerReason;
     private String sellerResponse;
     private String adminResolution;
+    private String resolvedBy;
     private DisputeStatus status;
 
     public Dispute(UUID disputeId, String returnId, String buyerReason, String sellerResponse) {
-        this(disputeId, returnId, buyerReason, sellerResponse, null, DisputeStatus.OPEN);
+        this(disputeId, returnId, buyerReason, sellerResponse, null, null, DisputeStatus.OPEN);
     }
 
     public Dispute(
@@ -21,6 +22,7 @@ public class Dispute {
             String buyerReason,
             String sellerResponse,
             String adminResolution,
+            String resolvedBy,
             DisputeStatus status
     ) {
         Objects.requireNonNull(disputeId, "disputeId is required");
@@ -31,6 +33,7 @@ public class Dispute {
         this.buyerReason = buyerReason;
         this.sellerResponse = sellerResponse;
         this.adminResolution = adminResolution;
+        this.resolvedBy = resolvedBy;
         this.status = Objects.requireNonNull(status, "status is required");
     }
 
@@ -54,16 +57,22 @@ public class Dispute {
         return adminResolution;
     }
 
+    public String resolvedBy() {
+        return resolvedBy;
+    }
+
     public DisputeStatus status() {
         return status;
     }
 
-    public void resolve(String adminResolution) {
+    public void resolve(String adminResolution, String resolvedBy) {
         requireNonBlank(adminResolution, "adminResolution");
+        requireNonBlank(resolvedBy, "resolvedBy");
         if (status != DisputeStatus.OPEN) {
             throw new IllegalStateException("cannot resolve dispute from " + status);
         }
         this.adminResolution = adminResolution;
+        this.resolvedBy = resolvedBy;
         this.status = DisputeStatus.RESOLVED;
     }
 

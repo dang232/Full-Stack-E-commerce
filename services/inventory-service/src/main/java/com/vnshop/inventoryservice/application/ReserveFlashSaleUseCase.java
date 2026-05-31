@@ -50,7 +50,17 @@ public class ReserveFlashSaleUseCase {
 		return reservation;
 	}
 
-	public void release(UUID reservationId) {
+	public void release(UUID reservationId, String callerId) {
+		FlashSaleReservation reservation = reservationPort.findById(reservationId).orElse(null);
+		if (reservation == null) {
+			// Idempotent: releasing a non-existent reservation is a no-op for the
+			// caller. Returning quietly avoids leaking which reservation ids exist.
+			return;
+		}
+		if (!reservation.getBuyerId().equals(callerId)) {
+			throw new FlashSaleAccessDeniedException(
+					"reservation " + reservationId + " not owned by caller");
+		}
 		reservationPort.release(reservationId);
 	}
 

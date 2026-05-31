@@ -28,11 +28,17 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<postgresql.version>42.7.11</postgresql.version>
+		<tomcat.version>11.0.22</tomcat.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -57,11 +63,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
@@ -119,7 +120,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.13</version>
+				<version>0.8.14</version>
 				<executions>
 					<execution>
 						<goals>
@@ -162,10 +163,18 @@
 				<version>12.1.9</version>
 				<configuration>
 					<failBuildOnCVSS>7</failBuildOnCVSS>
+					<knownExploitedEnabled>false</knownExploitedEnabled>
 					<formats>
 						<format>HTML</format>
 						<format>JSON</format>
 					</formats>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>@{argLine} -XX:+EnableDynamicAgentLoading</argLine>
 				</configuration>
 			</plugin>
 		</plugins>

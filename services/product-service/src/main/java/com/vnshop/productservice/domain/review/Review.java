@@ -23,7 +23,12 @@ public class Review {
         this.reviewId = Objects.requireNonNull(reviewId, "reviewId is required");
         this.productId = requireNonBlank(productId, "productId");
         this.buyerId = requireNonBlank(buyerId, "buyerId");
-        this.orderId = requireNonBlank(orderId, "orderId");
+        // orderId is optional per the BE controller contract (the FE
+        // review-from-product-page flow doesn't always have an orderId
+        // to attribute the review to). Normalise blank → null so the
+        // domain doesn't carry empty strings that would break
+        // verified-purchase checks downstream.
+        this.orderId = orderId == null || orderId.isBlank() ? null : orderId;
         this.rating = requireRating(rating);
         this.text = requireMaxLength(text, "text", 1000);
         this.images = List.copyOf(requireImageLimit(images));

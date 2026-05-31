@@ -17,7 +17,9 @@ public abstract class BaseJpaEntity {
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
-        this.createdAt = now;
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
         this.updatedAt = now;
     }
 
@@ -28,4 +30,6 @@ public abstract class BaseJpaEntity {
 
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
+    protected void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

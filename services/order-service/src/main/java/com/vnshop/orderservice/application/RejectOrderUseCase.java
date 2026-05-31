@@ -35,8 +35,9 @@ public class RejectOrderUseCase {
 
     private Order findOrder(UUID orderId) {
         Objects.requireNonNull(orderId, "orderId is required");
+        // Pt40 audit: same fold as Ship/Accept (gotcha #106).
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("order not found: " + orderId));
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to reject this order"));
     }
 
     private SubOrder findSellerSubOrder(Order order, String sellerId) {
@@ -44,7 +45,11 @@ public class RejectOrderUseCase {
         return order.subOrders().stream()
                 .filter(subOrder -> subOrder.sellerId().equals(sellerId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("subOrder not found for seller: " + sellerId));
+                // Pt38 audit (extends pt37): the prior IllegalArgumentException
+                // mapped to 400 (wrong status) and embedded the requested
+                // sellerId in the message (oracle). Constant-message OAD
+                // makes every probe response identical.
+                .orElseThrow(() -> new OrderAccessDeniedException("not authorized to reject this order"));
     }
 
     private static void requireNonBlank(String value, String fieldName) {

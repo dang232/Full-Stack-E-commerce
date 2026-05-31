@@ -1,0 +1,18 @@
+import { registerAs } from '@nestjs/config';
+
+export const appConfig = registerAs('app', () => ({
+  port: parseInt(process.env.PORT ?? '8096', 10),
+  gatewayUrl: process.env.GATEWAY_URL ?? 'http://localhost:8080',
+  gatewayActuatorUrl:
+    process.env.GATEWAY_ACTUATOR_URL ??
+    'http://localhost:8080/actuator/gateway/routes',
+  discoveryIntervalMs: parseInt(process.env.DISCOVERY_INTERVAL_MS ?? '300000', 10),
+  healthPollIntervalMs: parseInt(process.env.HEALTH_POLL_INTERVAL_MS ?? '10000', 10),
+  keycloak: {
+    issuerUri: process.env.KEYCLOAK_ISSUER_URI ?? 'http://localhost:9090/realms/vnshop',
+    jwkSetUri:
+      process.env.KEYCLOAK_JWK_SET_URI ??
+      'http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs',
+    adminRole: process.env.KEYCLOAK_ADMIN_ROLE ?? 'admin',
+  },
+}));

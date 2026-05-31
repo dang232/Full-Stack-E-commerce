@@ -2,10 +2,15 @@ server:
   port: 8083
 
 spring:
+  threads:
+    virtual:
+      enabled: true
+  config:
+    import: classpath:application-grpc.yml
   application:
     name: inventory-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=inventory_svc
+    url: jdbc:postgresql://localhost:5437/vnshop_inventory?currentSchema=inventory_svc
     username: vnshop
     password: vnshop
   data:
@@ -16,13 +21,18 @@ spring:
     enabled: true
     schemas: inventory_svc
     default-schema: inventory_svc
+  jpa:
+    hibernate:
+      ddl-auto: validate
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/vnshop}
+
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs}
 
 springdoc:
   api-docs:
@@ -41,3 +51,26 @@ management:
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces
+
+otel:
+  traces:
+    exporter: jaeger
+  exporter:
+    jaeger:
+      endpoint: http://localhost:14250
+  sdk:
+    trace:
+      sampler:
+        probability: 0.1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+otel:
+  sdk:
+    trace:
+      sampler:
+        probability: 1.0

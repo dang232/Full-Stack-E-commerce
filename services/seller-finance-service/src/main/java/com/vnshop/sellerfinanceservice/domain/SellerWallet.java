@@ -50,6 +50,20 @@ public class SellerWallet {
         totalEarned = totalEarned.add(creditAmount);
     }
 
+    /**
+     * Refund debit. Subtracts from {@code availableBalance} but clamps at
+     * zero — a seller who already paid out the credited amount will simply
+     * see a zero balance rather than going negative. {@code totalEarned}
+     * is left unchanged: it tracks lifetime gross earnings, not the running
+     * net. The eventual full accounting story (separate refund ledger or
+     * negative-balance debt tracking) is intentionally deferred.
+     */
+    public void debit(BigDecimal amount) {
+        BigDecimal debitAmount = requirePositive(amount, "amount");
+        BigDecimal next = availableBalance.subtract(debitAmount);
+        availableBalance = next.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : next;
+    }
+
     public void reservePayout(BigDecimal amount) {
         BigDecimal payoutAmount = requirePositive(amount, "amount");
         if (availableBalance.compareTo(payoutAmount) < 0) {

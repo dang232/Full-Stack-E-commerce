@@ -1,6 +1,8 @@
 package com.vnshop.productservice.application;
 
 import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,5 +35,9 @@ public class GetProductUseCase {
 
     public List<String> findCategories() {
         return productRepositoryPort.findDistinctCategories();
+    }
+
+    public Page<ProductResponse> findCatalog(String categoryId, String q, String sellerId, Pageable pageable) {
+        return productRepositoryPort.findCatalog(categoryId, q, sellerId, pageable).map(ProductResponse::fromDomain);
     }
 }

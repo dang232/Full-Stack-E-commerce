@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "id": "03-seller-fulfills",
+    "title": "Chapter 3 — Seller fulfills the order",
+    "persona": "seller",
+    "acceptanceCriteria": [
+      {
+        "code": "AC-3.1",
+        "outcome": "A seller sees the buyer's new order in their pending queue within 30 s"
+      },
+      {
+        "code": "AC-3.2",
+        "outcome": "A seller can accept and ship the order with a tracking number"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "index": 1,
+      "acCode": "AC-3.1",
+      "outcome": "Predecessor chapter has placed an order (state.json check)",
+      "slug": "01-ac-3-1-predecessor-chapter-has-placed-an-order-state-json-ch.png",
+      "status": "BLOCKED",
+      "errorMessage": "journey state missing required keys: orderId — a previous chapter must run first"
+    }
+  ],
+  "acStatuses": [
+    {
+      "code": "AC-3.1",
+      "outcome": "A seller sees the buyer's new order in their pending queue within 30 s",
+      "status": "BLOCKED",
+      "failingStep": {
+        "index": 1,
+        "acCode": "AC-3.1",
+        "outcome": "Predecessor chapter has placed an order (state.json check)",
+        "slug": "01-ac-3-1-predecessor-chapter-has-placed-an-order-state-json-ch.png",
+        "status": "BLOCKED",
+        "errorMessage": "journey state missing required keys: orderId — a previous chapter must run first"
+      }
+    },
+    {
+      "code": "AC-3.2",
+      "outcome": "A seller can accept and ship the order with a tracking number",
+      "status": "NOT_RUN"
+    }
+  ],
+  "verdict": "BLOCKED",
+  "generatedAt": "2026-05-31T12:20:25.119Z"
+}

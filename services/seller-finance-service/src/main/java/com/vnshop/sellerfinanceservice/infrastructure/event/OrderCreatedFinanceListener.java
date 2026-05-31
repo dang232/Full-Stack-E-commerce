@@ -19,7 +19,7 @@ public class OrderCreatedFinanceListener {
         this.objectMapper = objectMapper;
     }
 
-    @KafkaListener(topics = "order-events", groupId = "seller-finance-service")
+    @KafkaListener(topics = {"order.created", "order.paid"}, groupId = "seller-finance-service")
     public void onOrderEvent(String eventJson) {
         JsonNode envelope = readTree(eventJson);
         String eventType = text(envelope, "eventType");
