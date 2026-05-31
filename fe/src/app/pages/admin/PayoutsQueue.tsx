@@ -231,8 +231,8 @@ export function PayoutsQueue() {
                           p={p}
                           onComplete={() => setCompleteFor(p.id)}
                           onFail={() => setFailFor(p.id)}
-                          completePending={complete.isPending}
-                          failPending={fail.isPending}
+                          activeCompleteId={complete.isPending ? completeFor : null}
+                          activeFailId={fail.isPending ? failFor : null}
                         />
                       ) : (
                         <CompletedPayoutRow key={p.id} p={p} />
@@ -247,8 +247,8 @@ export function PayoutsQueue() {
                       p={p}
                       onComplete={() => setCompleteFor(p.id)}
                       onFail={() => setFailFor(p.id)}
-                      completePending={complete.isPending}
-                      failPending={fail.isPending}
+                      activeCompleteId={complete.isPending ? completeFor : null}
+                      activeFailId={fail.isPending ? failFor : null}
                     />
                   ) : (
                     <CompletedPayoutRow key={p.id} p={p} />
@@ -265,14 +265,14 @@ function PendingPayoutRow({
   p,
   onComplete,
   onFail,
-  completePending,
-  failPending,
+  activeCompleteId,
+  activeFailId,
 }: {
   p: AdminPayout;
   onComplete: () => void;
   onFail: () => void;
-  completePending: boolean;
-  failPending: boolean;
+  activeCompleteId: string | null;
+  activeFailId: string | null;
 }) {
   const { t } = useTranslation();
   return (
@@ -292,7 +292,7 @@ function PendingPayoutRow({
         </span>
         <button
           onClick={onComplete}
-          disabled={completePending}
+          disabled={activeCompleteId === p.id}
           className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
           style={{ background: "#10B981" }}
         >
@@ -300,7 +300,7 @@ function PendingPayoutRow({
         </button>
         <button
           onClick={onFail}
-          disabled={failPending}
+          disabled={activeFailId === p.id}
           className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 disabled:opacity-50"
         >
           {t("admin.payouts.fail")}

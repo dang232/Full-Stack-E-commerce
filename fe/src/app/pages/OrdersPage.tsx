@@ -501,7 +501,8 @@ export function OrdersPage() {
   const navigate = useNavigate();
   const { ready, authenticated, login } = useAuth();
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
-  const ordersQuery = useSuspenseQuery(myOrdersOptions({ size: 50 }));
+  const [page, setPage] = useState(0);
+  const ordersQuery = useSuspenseQuery(myOrdersOptions({ page, size: 20 }));
   const cancelOrder = useCancelOrder();
   const { addItemAsync } = useCart();
   const { t } = useTranslation();
@@ -592,7 +593,10 @@ export function OrdersPage() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              setActiveTab(tab.id);
+              setPage(0);
+            }}
             className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
             style={
               activeTab === tab.id
@@ -625,6 +629,28 @@ export function OrdersPage() {
           </div>
         ) : null}
       </div>
+
+      {(ordersQuery.data?.totalPages ?? 0) > 1 ? (
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={ordersQuery.data?.first ?? true}
+            className="px-4 py-2 rounded-xl border border-border text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+          >
+            {t("common.prev")}
+          </button>
+          <span className="text-sm text-muted-foreground">
+            {(ordersQuery.data?.page ?? page) + 1} / {ordersQuery.data?.totalPages ?? 1}
+          </span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={ordersQuery.data?.last ?? true}
+            className="px-4 py-2 rounded-xl border border-border text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+          >
+            {t("common.next")}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

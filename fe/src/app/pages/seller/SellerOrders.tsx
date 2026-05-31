@@ -192,7 +192,10 @@ export function SellerOrders({
                     {isPending ? (
                       <>
                         <button
-                          onClick={() => accept.mutate(order.id)}
+                          onClick={() => {
+                            if (!window.confirm(t("seller.orders.acceptConfirm"))) return;
+                            accept.mutate(order.id);
+                          }}
                           disabled={accept.isPending}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                           style={{ background: "#00BFB3" }}

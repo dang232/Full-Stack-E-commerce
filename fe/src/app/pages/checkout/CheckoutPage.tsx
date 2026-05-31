@@ -353,8 +353,13 @@ export function CheckoutPage() {
   const handleNext = () => {
     if (step === "address") {
       if (addresses.length === 0) {
-        toast.error(t("checkout.address.missingValidation"));
-        void navigate("/profile");
+        toast.error(t("checkout.address.missingValidation"), {
+          description: t("checkout.address.addAddressHint"),
+          action: {
+            label: t("checkout.address.openProfile"),
+            onClick: () => window.open("/profile", "_blank"),
+          },
+        });
         return;
       }
       setStep("shipping");
