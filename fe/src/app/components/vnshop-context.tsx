@@ -4,7 +4,7 @@
  * the minimum still consumed by the AI-generated UI; new code should pull from
  * useAuth / useCart / useWishlist directly.
  */
-import { createContext, useContext, useCallback, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "../hooks/use-auth";
@@ -54,7 +54,19 @@ export function VNShopProvider({ children }: { children: ReactNode }) {
   // /users/me carries the buyer's avatarUrl (uploaded via the profile camera
   // button -> object storage). Gate on auth so guests don't fire 401s.
   const profileQuery = useProfile({ enabled: auth.ready && auth.authenticated });
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("vnshop:theme") === "dark";
+    } catch {
+      return false;
+    }
+  });
+
+  // Sync the HTML class on mount so the initial value from localStorage takes effect.
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const cartCount = cart.itemCount;
 
@@ -108,6 +120,11 @@ export function VNShopProvider({ children }: { children: ReactNode }) {
     setIsDark((prev) => {
       const next = !prev;
       document.documentElement.classList.toggle("dark", next);
+      try {
+        localStorage.setItem("vnshop:theme", next ? "dark" : "light");
+      } catch {
+        // localStorage may be unavailable in private browsing
+      }
       return next;
     });
   }, []);

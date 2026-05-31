@@ -1,7 +1,7 @@
 import { IconArrowLeft, IconCircleCheck, IconCreditCard, IconLogin, IconPackage } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -137,6 +137,13 @@ export function CheckoutPage() {
   // Idempotency key generated once per checkout attempt; reused on retries.
   const idempotencyKeyRef = useRef<string>("");
   if (!idempotencyKeyRef.current) idempotencyKeyRef.current = uuidv4();
+
+  // Regenerate the key whenever the cart composition changes so a new set of
+  // items gets a fresh idempotency key rather than reusing the previous one.
+  useEffect(() => {
+    idempotencyKeyRef.current = uuidv4();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartItems.map((i) => i.productId).join(",")]);
 
   // Server-side preview of totals — best effort. UI falls back to local sum if unavailable.
   const calcQuery = useQuery({
