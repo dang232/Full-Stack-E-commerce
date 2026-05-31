@@ -101,6 +101,7 @@ export function LoginPage() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder={t("login.form.identifierPlaceholder")}
+                aria-describedby={error ? "login-error" : undefined}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
               />
             </div>
@@ -132,7 +133,11 @@ export function LoginPage() {
             </div>
 
             {error ? (
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-700">
+              <div
+                id="login-error"
+                role="alert"
+                className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-700"
+              >
                 <IconAlertCircle size={16} className="flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>

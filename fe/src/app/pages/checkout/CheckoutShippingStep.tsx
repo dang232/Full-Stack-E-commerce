@@ -25,10 +25,12 @@ export function CheckoutShippingStep({
   return (
     <div>
       <h2 className="font-bold text-foreground text-lg mb-4">{t("checkout.shipping.header")}</h2>
-      <div className="space-y-3">
+      <div role="radiogroup" aria-label="Shipping method" className="space-y-3">
         {shippingOptions.map((method) => (
           <button
             key={method.id}
+            role="radio"
+            aria-checked={selectedShippingId === method.id}
             onClick={() => setShippingChoice(method.id)}
             className="w-full p-4 rounded-2xl border-2 text-left transition-all bg-card"
             style={{

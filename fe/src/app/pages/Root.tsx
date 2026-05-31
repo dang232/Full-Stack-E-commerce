@@ -1,6 +1,6 @@
 import { IconShoppingCart, IconHeart, IconBell, IconSun, IconMoon, IconMenu2, IconX, IconHome, IconPackage, IconUser, IconLogout, IconSettings, IconBuildingStore, IconLayoutDashboard, IconChevronDown, IconSparkles, IconPhone, IconMapPin, IconTag, IconHeadphones, IconPalette } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate, useLocation } from "react-router";
 
@@ -25,6 +25,72 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { t } = useTranslation();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  const closeUserMenu = useCallback(() => {
+    setUserMenuOpen(false);
+    triggerRef.current?.focus();
+  }, []);
+
+  const handleDropdownKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!menuRef.current) return;
+      const items = Array.from(
+        menuRef.current.querySelectorAll<HTMLElement>("button[role='menuitem']"),
+      );
+      const focused = document.activeElement as HTMLElement;
+      const idx = items.indexOf(focused);
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        items[(idx + 1) % items.length]?.focus();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        items[(idx - 1 + items.length) % items.length]?.focus();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        items[0]?.focus();
+      } else if (e.key === "End") {
+        e.preventDefault();
+        items[items.length - 1]?.focus();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        closeUserMenu();
+      }
+    },
+    [closeUserMenu],
+  );
+
+  const handleMobileMenuKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        return;
+      }
+      if (e.key !== "Tab" || !mobileMenuRef.current) return;
+      const focusable = Array.from(
+        mobileMenuRef.current.querySelectorAll<HTMLElement>(
+          "button, input, a, [tabindex]:not([tabindex='-1'])",
+        ),
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    },
+    [],
+  );
 
   const submitSearch = (q: string) => {
     void navigate(`/search?q=${encodeURIComponent(q)}`);
@@ -83,7 +149,7 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center gap-4">
           {/* Logo */}
-          <button onClick={() => navigate("/")} className="flex items-center gap-2.5 shrink-0">
+          <button onClick={() => navigate("/")} className="flex items-center gap-2.5 shrink-0" aria-label="VNShop home">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg"
               style={{ background: "rgba(255,255,255,0.2)" }}
@@ -150,8 +216,12 @@ function Navbar() {
             {isLoggedIn ? (
               <div className="relative ml-1">
                 <button
+                  ref={triggerRef}
                   onClick={() => setUserMenuOpen((o) => !o)}
                   className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl text-white hover:bg-white/10 transition-colors"
+                  aria-label="Account menu"
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="true"
                 >
                   <ImageWithFallback
                     src={user?.avatar ?? ""}
@@ -174,6 +244,9 @@ function Navbar() {
                 <AnimatePresence>
                   {userMenuOpen ? (
                     <motion.div
+                      ref={menuRef}
+                      role="menu"
+                      onKeyDown={handleDropdownKeyDown}
                       initial={{ opacity: 0, y: 8, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
@@ -193,6 +266,7 @@ function Navbar() {
                       ].map((item) => (
                         <button
                           key={item.label}
+                          role="menuitem"
                           onClick={() => {
                             void navigate(item.path);
                             setUserMenuOpen(false);
@@ -205,6 +279,7 @@ function Navbar() {
                       ))}
                       <div className="border-t border-border">
                         <button
+                          role="menuitem"
                           onClick={() => {
                             logout();
                             setUserMenuOpen(false);
@@ -229,7 +304,12 @@ function Navbar() {
               </button>
             )}
 
-            <button className="md:hidden p-2 text-white" onClick={() => setMenuOpen((o) => !o)}>
+            <button
+              className="md:hidden p-2 text-white"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
+            >
               {menuOpen ? <IconX size={22} /> : <IconMenu2 size={22} />}
             </button>
           </div>
@@ -268,6 +348,8 @@ function Navbar() {
       <AnimatePresence>
         {menuOpen ? (
           <motion.div
+            ref={mobileMenuRef}
+            onKeyDown={handleMobileMenuKeyDown}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -366,14 +448,22 @@ export function Root() {
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">{t("footer.tagline")}</p>
               <div className="flex gap-3 mt-4">
-                {["fb", "ig", "tw", "yt"].map((s) => (
-                  <div
-                    key={s}
+                {(
+                  [
+                    { key: "fb", label: "Facebook" },
+                    { key: "ig", label: "Instagram" },
+                    { key: "tw", label: "Twitter" },
+                    { key: "yt", label: "YouTube" },
+                  ] as const
+                ).map((s) => (
+                  <button
+                    key={s.key}
+                    aria-label={s.label}
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:opacity-80 transition-opacity"
                     style={{ background: "#00BFB3" }}
                   >
-                    {s.toUpperCase()}
-                  </div>
+                    {s.key.toUpperCase()}
+                  </button>
                 ))}
               </div>
             </div>

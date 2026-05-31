@@ -196,7 +196,7 @@ export function ProductPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
         <button onClick={() => navigate("/")} className="hover:text-foreground">
           {t("product.breadcrumbHome")}
         </button>
@@ -208,7 +208,7 @@ export function ProductPage() {
           {product.categoryLabel}
         </button>
         <IconChevronRight size={14} />
-        <span className="text-foreground truncate max-w-xs">{product.name}</span>
+        <span aria-current="page" className="text-foreground truncate max-w-xs">{product.name}</span>
       </nav>
 
       <div className="grid lg:grid-cols-[500px_1fr] gap-8">
@@ -217,6 +217,17 @@ export function ProductPage() {
           <div
             className="relative bg-card rounded-2xl overflow-hidden shadow-sm"
             style={{ aspectRatio: "1" }}
+            tabIndex={0}
+            aria-label="Product image gallery"
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                setImageIdx((i) => (i - 1 + images.length) % images.length);
+              } else if (e.key === "ArrowRight") {
+                e.preventDefault();
+                setImageIdx((i) => (i + 1) % images.length);
+              }
+            }}
           >
             <AnimatePresence mode="wait">
               <motion.img
@@ -234,12 +245,14 @@ export function ProductPage() {
               <>
                 <button
                   onClick={() => setImageIdx((i) => (i - 1 + images.length) % images.length)}
+                  aria-label="Previous image"
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 shadow-md flex items-center justify-center hover:bg-card transition-colors"
                 >
                   <IconChevronLeft size={18} className="text-foreground" />
                 </button>
                 <button
                   onClick={() => setImageIdx((i) => (i + 1) % images.length)}
+                  aria-label="Next image"
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 shadow-md flex items-center justify-center hover:bg-card transition-colors"
                 >
                   <IconChevronRight size={18} className="text-foreground" />
@@ -507,10 +520,12 @@ export function ProductPage() {
 
       {/* Tabs */}
       <div className="mt-8 bg-card rounded-2xl shadow-sm overflow-hidden">
-        <div className="flex border-b border-border">
+        <div role="tablist" className="flex border-b border-border">
           {(["desc", "reviews", "qa"] as const).map((tab) => (
             <button
               key={tab}
+              role="tab"
+              aria-selected={activeTab === tab}
               onClick={() => setActiveTab(tab)}
               className="flex-1 py-4 text-sm font-semibold transition-colors"
               style={{
@@ -527,7 +542,7 @@ export function ProductPage() {
           ))}
         </div>
 
-        <div className="p-6">
+        <div role="tabpanel" className="p-6">
           {activeTab === "desc" ? (
             <div className="space-y-4">
               <p className="text-foreground leading-relaxed">{product.description}</p>

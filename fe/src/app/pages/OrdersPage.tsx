@@ -588,10 +588,12 @@ export function OrdersPage() {
         {t("orders.pageTitle")}
       </h1>
 
-      <div className="flex gap-1 overflow-x-auto pb-1 mb-6 scrollbar-hide">
+      <div role="tablist" aria-label="Order status" className="flex gap-1 overflow-x-auto pb-1 mb-6 scrollbar-hide">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
             style={

@@ -144,8 +144,17 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.04, 0.5) }}
+      role="link"
+      tabIndex={0}
+      aria-label={product.name}
       className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer group"
       onClick={() => navigate(`/product/${product.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          void navigate(`/product/${product.id}`);
+        }
+      }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
         <ImageWithFallback
@@ -387,6 +396,7 @@ export function SearchPage() {
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
             placeholder={t("search.barPlaceholder")}
+            aria-label="Search products"
             className="flex-1 px-3 py-3 text-sm outline-none bg-transparent"
           />
           {localQuery ? (
@@ -613,7 +623,7 @@ export function SearchPage() {
                 ) : null}
                 {query ? t("search.resultsForQuery", { q: query }) : t("search.allProducts")}
               </p>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p aria-live="polite" aria-atomic="true" className="text-sm text-muted-foreground mt-0.5">
                 {t("search.resultCount", {
                   count: usedBackend ? search.totalElements : filtered.length,
                 })}

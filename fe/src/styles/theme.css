@@ -46,7 +46,7 @@
   --vn-teal: #00bfb3;
   --vn-teal-dark: #009990;
   --vn-teal-light: rgba(0, 191, 179, 0.08);
-  --vn-red: #e53e3e;
+  --vn-red: #dc2626; /* red-600 — 4.83:1 on white, meets WCAG 1.4.3 */
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
   --muted: #ececf0;
@@ -90,6 +90,7 @@
   --popover-foreground: #e6e9ef;
   --primary: #00bfb3;
   --primary-foreground: #061211;
+  --vn-red: #f87171; /* red-400 — meets 4.5:1 on dark backgrounds */
   --vn-orange-light: rgba(255, 140, 50, 0.16);
   --vn-teal-light: rgba(0, 191, 179, 0.18);
   --secondary: #1d2230;
@@ -224,5 +225,44 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+
+  /* ── WCAG 1.4.3 / 2.4.7 accessibility fixes ─────────────────────────────── */
+
+  /* 1. Visible focus indicator (WCAG 2.4.7 / 1.4.11) */
+  *:focus-visible {
+    outline: 2px solid #00bfb3;
+    outline-offset: 2px;
+  }
+
+  /* 2. Disabled button contrast — opacity-50 (~3:1) → opacity-60 (~3.5:1) */
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* 3. Placeholder contrast — gray-500 (4.6:1 on white) / gray-400 (4.6:1 on dark) */
+  ::placeholder {
+    color: #6b7280; /* gray-500 */
+    opacity: 1;     /* Firefox reduces opacity by default */
+  }
+
+  .dark ::placeholder {
+    color: #9ca3af; /* gray-400 */
+    opacity: 1;
+  }
+
+  /* 4. Error text — red-600 (4.83:1 on white) already set via --vn-red above.
+        Ensure any bare text-red-500 usage is overridden at the token level.
+        Components should use text-destructive which maps to --destructive. */
+
+  /* 5. Link differentiation — underline for unstyled <a> tags */
+  a:not([class]) {
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 2px;
   }
 }
