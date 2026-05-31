@@ -552,6 +552,30 @@ services:
       # product name with 0₫. See product-http-client.adapter.ts.
       PRODUCT_SERVICE_URL: http://product-service:8082
 
+  configuration-service:
+    profiles: ["apps"]
+    build: ./services/configuration-service
+    container_name: vnshop-configuration-service
+    ports:
+      - "8097:8097"
+    environment:
+      SERVER_PORT: 8097
+      BRAND_NAME: VNShop
+      BRAND_TAGLINE: MARKETPLACE
+      SOCIAL_FACEBOOK: https://facebook.com/vnshop
+      SOCIAL_INSTAGRAM: https://instagram.com/vnshop
+      SOCIAL_TWITTER: https://x.com/vnshop
+      SOCIAL_YOUTUBE: https://youtube.com/vnshop
+      PAYMENT_PROVIDERS: VNPay,MoMo,COD,Visa,Mastercard
+      PAYMENT_DEFAULT: COD
+      SUPPORT_PHONE: "1900-0000"
+      SUPPORT_EMAIL: support@vnshop.vn
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8097/api/config"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   search-service:
     profiles: ["apps"]
     build:
