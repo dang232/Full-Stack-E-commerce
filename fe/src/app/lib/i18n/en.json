@@ -59,7 +59,8 @@
     "sslNotice": "Payment information is SSL-256-bit encrypted",
     "errors": {
       "cantRemove": "Couldn't remove item",
-      "cantUpdate": "Couldn't update item"
+      "cantUpdate": "Couldn't update item",
+      "maxQty": "Maximum quantity is {{max}} per item"
     }
   },
   "search": {

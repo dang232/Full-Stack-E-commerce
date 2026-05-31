@@ -1,5 +1,5 @@
 import { IconPackage, IconTruck, IconCircleCheck, IconCircleX, IconClock, IconRefresh, IconMapPin, IconMessage, IconStar, IconRotate, IconAlertCircle, IconLogin, IconArrowsLeftRight } from "@tabler/icons-react";
-import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -501,7 +501,7 @@ export function OrdersPage() {
   const navigate = useNavigate();
   const { ready, authenticated, login } = useAuth();
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
-  const ordersQuery = useSuspenseQuery(myOrdersOptions({ size: 50 }));
+  const ordersQuery = useQuery(myOrdersOptions({ size: 50 }));
   const cancelOrder = useCancelOrder();
   const { addItemAsync } = useCart();
   const { t } = useTranslation();
@@ -575,6 +575,27 @@ export function OrdersPage() {
         >
           <IconLogin size={16} /> {t("auth.login")}
         </button>
+      </div>
+    );
+  }
+
+  if (ordersQuery.isLoading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
+        {t("orders.loading")}
+      </div>
+    );
+  }
+
+  if (ordersQuery.isError) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center">
+        <IconAlertCircle size={48} className="mx-auto mb-4 text-red-300" />
+        <p className="text-sm text-red-500">
+          {ordersQuery.error instanceof ApiError
+            ? ordersQuery.error.message
+            : t("orders.loadError")}
+        </p>
       </div>
     );
   }

@@ -184,9 +184,10 @@ export function ProductPage() {
   const [activeTab, setActiveTab] = useState<"desc" | "reviews" | "qa">("desc");
   const loved = isWishlisted(product.id);
 
-  const handleAddToCart = () => addToCart(product, quantity);
+  const variant = { color: selectedColor || undefined, size: selectedSize || undefined };
+  const handleAddToCart = () => addToCart(product, quantity, variant);
   const handleBuyNow = () => {
-    addToCart(product, quantity);
+    addToCart(product, quantity, variant);
     void navigate("/checkout");
   };
 

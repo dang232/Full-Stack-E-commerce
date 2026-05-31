@@ -26,6 +26,7 @@ export const productList = (params: ProductListParams = {}) =>
       categoryId: params.categoryId,
       q: params.q,
       sort: params.sort,
+      sellerId: params.sellerId,
     },
     { auth: false },
   );

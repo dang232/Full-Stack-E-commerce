@@ -25,7 +25,7 @@ interface User {
 interface VNShopContextType {
   // Cart actions still wired through here so the existing product cards keep working.
   cartCount: number;
-  addToCart: (product: Product, quantity?: number) => void;
+  addToCart: (product: Product, quantity?: number, variant?: { color?: string; size?: string }) => void;
   // Wishlist — backed by /users/me/wishlist (user-service BE-8).
   wishlist: string[];
   toggleWishlist: (productId: string) => void;
@@ -59,18 +59,19 @@ export function VNShopProvider({ children }: { children: ReactNode }) {
   const cartCount = cart.itemCount;
 
   const addToCart = useCallback(
-    (product: Product, quantity = 1) => {
+    (product: Product, quantity = 1, variant?: { color?: string; size?: string }) => {
       if (!auth.authenticated) {
         toast.info("Vui lòng đăng nhập để thêm vào giỏ hàng");
         return;
       }
+      const variantDesc = [variant?.color, variant?.size].filter(Boolean).join(", ");
       cart.addItem(
         { productId: product.id, quantity },
         {
           onSuccess: () =>
             toast.success(
               `Đã thêm "${product.name.slice(0, 30)}${product.name.length > 30 ? "..." : ""}" vào giỏ hàng`,
-              { description: `Số lượng: ${quantity}` },
+              { description: variantDesc ? `${variantDesc} · Số lượng: ${quantity}` : `Số lượng: ${quantity}` },
             ),
         },
       );
@@ -80,11 +81,17 @@ export function VNShopProvider({ children }: { children: ReactNode }) {
 
   const toggleWishlist = useCallback(
     (productId: string) => {
+      if (!auth.authenticated) {
+        toast.error("Vui lòng đăng nhập để lưu sản phẩm", {
+          action: { label: "Đăng nhập", onClick: () => { window.location.href = "/login"; } },
+        });
+        return;
+      }
       const added = wishlistStore.toggle(productId);
       if (added) toast.success("Đã thêm vào danh sách yêu thích ❤️");
       else toast.info("Đã xóa khỏi danh sách yêu thích");
     },
-    [wishlistStore],
+    [auth.authenticated, wishlistStore],
   );
 
   const isWishlisted = useCallback(

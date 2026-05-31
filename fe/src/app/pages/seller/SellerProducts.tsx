@@ -1,19 +1,31 @@
-import { IconAlertCircle, IconEdit, IconFilter, IconPlus, IconSearch } from "@tabler/icons-react";
+import { IconAlertCircle, IconChevronLeft, IconChevronRight, IconEdit, IconFilter, IconPlus, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SellerProductModal } from "../../components/seller-product-modal";
+import { useAuth } from "../../hooks/use-auth";
 import { useProducts } from "../../hooks/use-products";
 import { formatPrice } from "../../lib/format";
 import { type Product } from "../../types/ui";
+
+const PAGE_SIZE = 24;
 
 export function SellerProducts() {
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const { data: catalog = [], isLoading } = useProducts();
-  const filtered = catalog.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+  const [page, setPage] = useState(0);
+  const { subject: sellerId } = useAuth();
+  const { data: catalog = [], isLoading } = useProducts({ sellerId, page, size: PAGE_SIZE });
   const { t } = useTranslation();
+
+  const filtered = catalog.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+  const hasMore = catalog.length === PAGE_SIZE;
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(0);
+  };
 
   return (
     <div className="space-y-5">
@@ -40,7 +52,7 @@ export function SellerProducts() {
           <IconSearch size={16} className="text-muted-foreground" />
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={t("seller.products.searchPlaceholder")}
             className="flex-1 text-sm outline-none"
           />
@@ -74,7 +86,7 @@ export function SellerProducts() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {filtered.slice(0, 50).map((p) => (
+            {filtered.map((p) => (
               <tr key={p.id} className="hover:bg-muted transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -109,6 +121,26 @@ export function SellerProducts() {
             ))}
           </tbody>
         </table>
+
+        <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+          <button
+            onClick={() => setPage((p) => p - 1)}
+            disabled={page === 0}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-muted-foreground border border-border disabled:opacity-40 hover:bg-muted transition-colors"
+          >
+            <IconChevronLeft size={14} /> {t("seller.products.prev")}
+          </button>
+          <span className="text-xs text-muted-foreground">
+            {t("seller.products.pageIndicator", { page: page + 1 })}
+          </span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={!hasMore}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-muted-foreground border border-border disabled:opacity-40 hover:bg-muted transition-colors"
+          >
+            {t("seller.products.next")} <IconChevronRight size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );

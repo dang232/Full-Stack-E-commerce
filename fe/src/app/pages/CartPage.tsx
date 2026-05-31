@@ -65,12 +65,18 @@ export function CartPage() {
     couponMutation.reset();
   };
 
+  const MAX_ITEM_QTY = 99;
+
   const onUpdate = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(productId, {
         onError: (err) =>
           toast.error(err instanceof ApiError ? err.message : t("cart.errors.cantRemove")),
       });
+      return;
+    }
+    if (quantity > MAX_ITEM_QTY) {
+      toast.warning(t("cart.errors.maxQty", { max: MAX_ITEM_QTY }));
       return;
     }
     updateItem(

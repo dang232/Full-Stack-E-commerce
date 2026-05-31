@@ -4,11 +4,21 @@ import { productById, productList } from "../lib/api/endpoints/products";
 import { fromServer } from "../lib/api/product-mapper";
 import type { Product } from "../types/ui";
 
-export const productListOptions = () =>
+export interface ProductListQueryParams {
+  sellerId?: string;
+  page?: number;
+  size?: number;
+}
+
+export const productListOptions = (params: ProductListQueryParams = {}) =>
   queryOptions<Product[]>({
-    queryKey: ["catalog", "products", "list"] as const,
+    queryKey: ["catalog", "products", "list", params] as const,
     queryFn: async () => {
-      const page = await productList({ size: 50 });
+      const page = await productList({
+        size: params.size ?? 50,
+        page: params.page,
+        sellerId: params.sellerId,
+      });
       return page.content.map(fromServer);
     },
   });
@@ -24,8 +34,8 @@ export const productDetailOptions = (id: string) =>
  * Catalog list. Returns whatever the backend returns — empty arrays included.
  * Errors propagate so callers can render an error state explicitly.
  */
-export function useProducts() {
-  return useQuery(productListOptions());
+export function useProducts(params: ProductListQueryParams = {}) {
+  return useQuery(productListOptions(params));
 }
 
 /** Detail of a single product. */

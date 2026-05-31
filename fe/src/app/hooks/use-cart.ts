@@ -149,17 +149,25 @@ export function useCart() {
     const pending = readGuestCart();
     if (pending.length === 0) return;
     mergeAttempted.current = true;
+    // Clear localStorage before the async loop so a page refresh mid-merge
+    // doesn't re-read the same guest items and double quantities.
+    writeGuestCart([]);
+    setGuestItems([]);
 
     void (async () => {
       for (const item of pending) {
+        // Deduplication guard: if the server cart already has this item with
+        // at least the guest quantity, a previous merge attempt already added
+        // it — skip to avoid doubling on flaky connections.
+        const serverCart = qc.getQueryData<Cart>(CART_KEY);
+        const serverItem = serverCart?.items?.find((i) => i.productId === item.productId);
+        if (serverItem && serverItem.quantity >= item.quantity) continue;
         try {
           await addCartItem({ productId: item.productId, quantity: item.quantity });
         } catch (err) {
           console.warn("cart merge: failed to add", item.productId, err);
         }
       }
-      writeGuestCart([]);
-      setGuestItems([]);
       void qc.invalidateQueries({ queryKey: CART_KEY });
     })();
   }, [ready, authenticated, qc]);

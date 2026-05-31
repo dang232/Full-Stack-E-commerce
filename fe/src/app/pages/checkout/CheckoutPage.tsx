@@ -260,6 +260,7 @@ export function CheckoutPage() {
   }
 
   const handlePlaceOrder = async () => {
+    if (isProcessing) return;
     setIsProcessing(true);
     try {
       const selectedAddress = addresses[selectedAddressIndex];
@@ -316,7 +317,10 @@ export function CheckoutPage() {
               ? t("checkout.payment.initFailedPrefix", { message: err.message })
               : t("checkout.payment.initFailedShort"),
           );
-          // Fall through to success screen — order exists; buyer can pay later.
+          // Payment init failed — redirect to order detail so buyer can retry later.
+          setPlacedOrderId(order.id);
+          navigate(`/orders/${order.id}`);
+          return;
         }
       } else if (selectedPaymentId === "COD") {
         try {
@@ -352,9 +356,9 @@ export function CheckoutPage() {
 
   const handleNext = () => {
     if (step === "address") {
-      if (addresses.length === 0) {
+      if (addresses.length === 0 || !addresses[selectedAddressIndex]) {
         toast.error(t("checkout.address.missingValidation"));
-        void navigate("/profile");
+        if (addresses.length === 0) void navigate("/profile");
         return;
       }
       setStep("shipping");

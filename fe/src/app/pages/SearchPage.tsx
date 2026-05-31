@@ -241,9 +241,34 @@ export function SearchPage() {
   const { t } = useTranslation();
 
   const [localQuery, setLocalQuery] = useState(query);
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
-  const [sortBy, setSortBy] = useState("popular");
+  // Key filters are URL-derived so refresh preserves them.
+  const priceMin = searchParams.get("priceMin") ?? "";
+  const priceMax = searchParams.get("priceMax") ?? "";
+  const sortBy = searchParams.get("sort") ?? "popular";
+
+  const setPriceMin = (v: string) =>
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (v) p.set("priceMin", v);
+      else p.delete("priceMin");
+      return p;
+    });
+
+  const setPriceMax = (v: string) =>
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (v) p.set("priceMax", v);
+      else p.delete("priceMax");
+      return p;
+    });
+
+  const setSortBy = (v: string) =>
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (v && v !== "popular") p.set("sort", v);
+      else p.delete("sort");
+      return p;
+    });
   const [minRating, setMinRating] = useState(0);
   const [freeShipOnly, setFreeShipOnly] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState("");
@@ -355,12 +380,18 @@ export function SearchPage() {
   const remaining = Math.max(0, filtered.length - pageSize);
 
   const clearFilters = () => {
-    setPriceMin("");
-    setPriceMax("");
     setMinRating(0);
     setFreeShipOnly(false);
     setSelectedBrand("");
-    setSearchParams({});
+    // Preserve q and flash; wipe all filter params in one update.
+    setSearchParams((prev) => {
+      const p = new URLSearchParams();
+      const q = prev.get("q");
+      if (q) p.set("q", q);
+      const flash = prev.get("flash");
+      if (flash) p.set("flash", flash);
+      return p;
+    });
   };
 
   const handleSearch = (e: React.FormEvent) => {

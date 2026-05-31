@@ -59,7 +59,8 @@
     "sslNotice": "Thông tin thanh toán được mã hóa SSL 256-bit",
     "errors": {
       "cantRemove": "Không thể xoá sản phẩm",
-      "cantUpdate": "Không thể cập nhật"
+      "cantUpdate": "Không thể cập nhật",
+      "maxQty": "Số lượng tối đa là {{max}} sản phẩm"
     }
   },
   "search": {

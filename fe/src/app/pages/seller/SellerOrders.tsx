@@ -18,9 +18,9 @@ import { ShipDialog } from "./ShipDialog";
 
 const STATUS_TABS = [
   { id: "all", match: () => true },
-  { id: "pending", match: (s: string) => s.toUpperCase().includes("PENDING") || s.toUpperCase().includes("ACCEPT") && !s.toUpperCase().includes("ACCEPTED") },
+  { id: "pending", match: (s: string) => s.toUpperCase().includes("PENDING") || (s.toUpperCase().includes("ACCEPT") && !s.toUpperCase().includes("ACCEPTED")) },
   { id: "accepted", match: (s: string) => s.toUpperCase().includes("ACCEPTED") },
-  { id: "packed", match: (s: string) => s.toUpperCase().includes("PACKED") || s.toUpperCase().includes("PACK") && !s.toUpperCase().includes("ACCEPTED") },
+  { id: "packed", match: (s: string) => s.toUpperCase().includes("PACKED") || (s.toUpperCase().includes("PACK") && !s.toUpperCase().includes("PACKED")) },
   { id: "shipped", match: (s: string) => s.toUpperCase().includes("SHIPPED") },
   { id: "cancelled", match: (s: string) => s.toUpperCase().includes("CANCEL") || s.toUpperCase().includes("REJECT") },
 ] as const;

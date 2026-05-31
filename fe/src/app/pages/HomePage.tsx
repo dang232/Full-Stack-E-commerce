@@ -725,13 +725,24 @@ function ProductsSection() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("all");
-  const { data: catalog = [] as Product[] } = useProducts();
+  const { data: catalog = [] as Product[], isLoading: productsLoading, isError: productsError } = useProducts();
+  const { data: apiCategories = [] } = useCategories();
+
+  // Map well-known category IDs to icons; fall back to IconPackage for others.
+  const categoryIconMap: Record<string, typeof IconSparkles> = {
+    electronics: IconDeviceMobile,
+    fashion: IconShirt,
+    beauty: IconBrush,
+    sports: IconBallFootball,
+  };
+
   const tabs = [
-    { id: "all", labelKey: "home.tabs.all", Icon: IconSparkles },
-    { id: "electronics", labelKey: "home.tabs.electronics", Icon: IconDeviceMobile },
-    { id: "fashion", labelKey: "home.tabs.fashion", Icon: IconShirt },
-    { id: "beauty", labelKey: "home.tabs.beauty", Icon: IconBrush },
-    { id: "sports", labelKey: "home.tabs.sports", Icon: IconBallFootball },
+    { id: "all", label: t("home.tabs.all"), Icon: IconSparkles },
+    ...apiCategories.map((cat) => ({
+      id: cat.id,
+      label: categoryDisplayLabel(cat),
+      Icon: categoryIconMap[cat.id] ?? IconPackage,
+    })),
   ];
   const filtered = useMemo(
     () => (activeTab === "all" ? catalog : catalog.filter((p) => p.category === activeTab)),
@@ -788,19 +799,34 @@ function ProductsSection() {
           >
             <span className="inline-flex items-center gap-1.5">
               <tab.Icon size={14} />
-              {t(tab.labelKey)}
+              {tab.label}
             </span>
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-        <AnimatePresence mode="popLayout">
-          {filtered.slice(0, 20).map((p, i) => (
-            <ProductCard key={p.id} product={p} index={i} />
+      {productsLoading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, i) => (
+            // eslint-disable-next-line react/no-array-index-key -- skeleton placeholder
+            <div key={i} className="rounded-2xl bg-muted animate-pulse aspect-[3/4]" />
           ))}
-        </AnimatePresence>
-      </div>
+        </div>
+      ) : productsError ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <IconPackage size={40} className="text-muted-foreground mb-3" />
+          <p className="text-sm font-semibold text-foreground">{t("home.productsError.title")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("home.productsError.body")}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+          <AnimatePresence mode="popLayout">
+            {filtered.slice(0, 20).map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} />
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
 
       <div className="mt-8 text-center">
         <button
