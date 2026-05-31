@@ -10,8 +10,9 @@ const BASE_URL = (
   (import.meta.env as Record<string, string | undefined>).VITE_API_URL ?? "http://localhost:8080"
 ).replace(/\/$/, "");
 
-const RECONNECT_BASE_MS = 1000;
+const RECONNECT_BASE_MS = 2000;
 const RECONNECT_CAP_MS = 30_000;
+const MAX_RECONNECT_ATTEMPTS = 5;
 
 const NOTIFICATIONS_KEY = ["notifications", "list"] as const;
 const UNREAD_KEY = ["notifications", "unread-count"] as const;
@@ -119,6 +120,7 @@ export function useNotificationSocket(): void {
       const scheduleReconnect = () => {
         if (stoppedRef.current) return;
         const attempt = attemptRef.current++;
+        if (attempt >= MAX_RECONNECT_ATTEMPTS) return; // Stop retrying after max attempts
         const delay = Math.min(RECONNECT_BASE_MS * 2 ** attempt, RECONNECT_CAP_MS);
         window.setTimeout(connect, delay);
       };

@@ -822,11 +822,9 @@ function ProductsSection() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-          <AnimatePresence mode="popLayout">
             {filtered.slice(0, 20).map((p, i) => (
               <ProductCard key={p.id} product={p} index={i} />
             ))}
-          </AnimatePresence>
         </div>
       )}
 
