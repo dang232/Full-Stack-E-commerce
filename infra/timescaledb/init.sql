@@ -29,7 +29,7 @@ GROUP BY bucket, service_id
 WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('health_hourly',
-  start_offset => INTERVAL '2 hours',
+  start_offset => INTERVAL '3 hours',
   end_offset => INTERVAL '1 hour',
   schedule_interval => INTERVAL '1 hour');
 

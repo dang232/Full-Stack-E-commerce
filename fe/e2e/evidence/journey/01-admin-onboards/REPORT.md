@@ -2,7 +2,7 @@
 
 **Persona:** admin
 **Verdict:** PASS
-**Generated:** 2026-05-25T06:01:26.594Z
+**Generated:** 2026-05-30T17:15:41.851Z
 
 ## Business outcomes verified
 
@@ -30,9 +30,9 @@ All 3 acceptance criteria verified for the admin flow. No business-rule regressi
 
 ![Approved seller appears in the public sellers list within 30 s](screenshots/03-ac-1-2-approved-seller-appears-in-the-public-sellers-list-wi.png)
 
-### 04. AC-1.3 — Admin publishes coupon JRN879618 (50,000 VND fixed discount, 30-day TTL) — PASS
+### 04. AC-1.3 — Admin publishes coupon JRN336982 (50,000 VND fixed discount, 30-day TTL) — PASS
 
-![Admin publishes coupon JRN879618 (50,000 VND fixed discount, 30-day TTL)](screenshots/04-ac-1-3-admin-publishes-coupon-jrn879618-50-000-vnd-fixed-dis.png)
+![Admin publishes coupon JRN336982 (50,000 VND fixed discount, 30-day TTL)](screenshots/04-ac-1-3-admin-publishes-coupon-jrn336982-50-000-vnd-fixed-dis.png)
 
 ### 05. AC-1.3 — Admin logs out and the journey state is persisted for the next chapter — PASS
 

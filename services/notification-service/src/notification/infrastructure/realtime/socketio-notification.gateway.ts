@@ -9,7 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
-import * as jwksRsa from 'jwks-rsa';
+import jwksRsa from 'jwks-rsa';
 import {
   ConnectionRegistryPort,
   CONNECTION_REGISTRY_PORT,
@@ -49,10 +49,7 @@ export class SocketioNotificationGateway
       'KEYCLOAK_JWK_SET_URI',
       'http://localhost:8085/realms/vnshop/protocol/openid-connect/certs',
     );
-    // jwks-rsa ships as CJS; handle both default-export and direct-call shapes
-    const factory =
-      (jwksRsa as unknown as { default?: typeof jwksRsa }).default ?? jwksRsa;
-    this.jwksClient = (factory as typeof jwksRsa)({
+    this.jwksClient = jwksRsa({
       jwksUri: jwkSetUri,
       cache: true,
       rateLimit: true,

@@ -1,20 +1,21 @@
 # Chapter 2 — Buyer discovers and orders
 
 **Persona:** buyer
-**Verdict:** PASS
-**Generated:** 2026-05-25T06:01:33.770Z
+**Verdict:** FAIL
+**Generated:** 2026-05-30T17:16:14.972Z
 
 ## Business outcomes verified
 
 | AC | Outcome | Status |
 |---|---|---|
 | AC-2.1 | A new visitor can register and start shopping in a single browser session | PASS |
-| AC-2.2 | A coupon applied at checkout reduces the order total by exactly the published discount | PASS |
-| AC-2.3 | A placed COD order is visible in the buyer's order history within 30 s | PASS |
+| AC-2.2 | A coupon applied at checkout reduces the order total by exactly the published discount | NOT_RUN |
+| AC-2.3 | A placed COD order is visible in the buyer's order history within 30 s | NOT_RUN |
+| AC-2.4 | A product the buyer can browse via /products is also discoverable via /search within 30 s — proves the kafka product-event → search-index projection is live | FAIL |
 
 ## Stakeholder summary
 
-All 3 acceptance criteria verified for the buyer flow. No business-rule regressions detected this run.
+1 of 4 acceptance criteria passed for the buyer flow. Failed: AC-2.4 (A product the buyer can browse via /products is also discoverable via /search within 30 s — proves the kafka product-event → search-index projection is live).
 
 ## Steps (engineer view)
 
@@ -34,25 +35,23 @@ All 3 acceptance criteria verified for the buyer flow. No business-rule regressi
 
 ![Buyer opens a real seeded product and adds it to their cart](screenshots/04-ac-2-1-buyer-opens-a-real-seeded-product-and-adds-it-to-thei.png)
 
-### 05. AC-2.2 — Buyer adds a delivery address and enters the checkout 4-step panel — PASS
+### 05. AC-2.4 — Product is discoverable via /search within 30 s of being browsable on /products — FAIL
 
-![Buyer adds a delivery address and enters the checkout 4-step panel](screenshots/05-ac-2-2-buyer-adds-a-delivery-address-and-enters-the-checkout.png)
+![Product is discoverable via /search within 30 s of being browsable on /products](screenshots/05-ac-2-4-product-is-discoverable-via-search-within-30-s-of-bei.png)
 
-### 06. AC-2.2 — Buyer captures the pre-coupon total shown on the checkout summary — PASS
+```
+expected /search?q=Tai nghe Sony WH-1000XM5 to surface productId=2b0a8522-4310-4665-9874-bf37a5481667 within 30 s — search-index projection may be stale or kafka consumer disconnected
 
-![Buyer captures the pre-coupon total shown on the checkout summary](screenshots/06-ac-2-2-buyer-captures-the-pre-coupon-total-shown-on-the-chec.png)
+expected /search?q=Tai nghe Sony WH-1000XM5 to surface productId=2b0a8522-4310-4665-9874-bf37a5481667 within 30 s — search-index projection may be stale or kafka consumer disconnected
 
-### 07. AC-2.2 — Coupon applies and the discount line drops the total by exactly the published amount — PASS
+[2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
 
-![Coupon applies and the discount line drops the total by exactly the published amount](screenshots/07-ac-2-2-coupon-applies-and-the-discount-line-drops-the-total-.png)
+Expected value: [32m"2b0a8522-4310-4665-9874-bf37a5481667"[39m
+Received array: [31m[][39m
 
-### 08. AC-2.3 — Buyer places a COD order and receives a confirmation — PASS
-
-![Buyer places a COD order and receives a confirmation](screenshots/08-ac-2-3-buyer-places-a-cod-order-and-receives-a-confirmation.png)
-
-### 09. AC-2.3 — Buyer's order history shows the new order and the chapter state is persisted — PASS
-
-![Buyer's order history shows the new order and the chapter state is persisted](screenshots/09-ac-2-3-buyer-s-order-history-shows-the-new-order-and-the-cha.png)
+Call Log:
+- Timeout 30000ms exceeded while waiting on the predicate
+```
 
 ## Artifacts
 
