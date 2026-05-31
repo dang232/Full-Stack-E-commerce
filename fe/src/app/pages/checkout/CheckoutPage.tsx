@@ -441,9 +441,11 @@ export function CheckoutPage() {
               <div className="flex flex-col items-center">
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                  onClick={() => { if (isDone) setStep(s.id); }}
                   style={{
                     background: isDone ? "#00BFB3" : isActive ? "#FF6200" : "#e5e7eb",
                     color: isDone || isActive ? "white" : "#9ca3af",
+                    cursor: isDone ? "pointer" : "default",
                   }}
                 >
                   {isDone ? <IconCircleCheck size={18} /> : <s.icon size={18} />}

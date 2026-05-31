@@ -2,6 +2,8 @@ import { IconAlertCircle, IconEdit, IconFilter, IconPlus, IconSearch } from "@ta
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { comingSoon } from "../../lib/ui/coming-soon";
+
 import { SellerProductModal } from "../../components/seller-product-modal";
 import { useProducts } from "../../hooks/use-products";
 import { formatPrice } from "../../lib/format";
@@ -45,7 +47,10 @@ export function SellerProducts() {
             className="flex-1 text-sm outline-none"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl bg-card text-sm text-muted-foreground">
+        <button
+          onClick={() => comingSoon("Product filtering")}
+          className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl bg-card text-sm text-muted-foreground"
+        >
           <IconFilter size={15} /> {t("seller.products.filter")}
         </button>
       </div>

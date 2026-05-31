@@ -18,6 +18,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   if (ready && authenticated) {
     return <Navigate to={next} replace />;
@@ -38,6 +39,7 @@ export function LoginPage() {
     void (async () => {
       try {
         await loginWithCredentials(identifier.trim(), password);
+        if (rememberMe) localStorage.setItem("rememberMe", "true");
         void navigate(next, { replace: true });
       } catch (err) {
         // Use duck-typing on errorCode rather than `instanceof AuthError`.
@@ -140,7 +142,12 @@ export function LoginPage() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
-                <input type="checkbox" className="rounded border-gray-300 text-[#00BFB3] focus:ring-[#00BFB3]" />
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-[#00BFB3] focus:ring-[#00BFB3]"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 {t("login.form.remember")}
               </label>
               <button

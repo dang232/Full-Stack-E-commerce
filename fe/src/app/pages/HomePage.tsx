@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useMemo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
@@ -13,6 +14,7 @@ import { useFlashSaleWithProducts, type FlashSaleItem } from "../hooks/use-flash
 import { useProducts } from "../hooks/use-products";
 import { listSellers } from "../lib/api/endpoints/sellers";
 import { formatPrice } from "../lib/format";
+import { comingSoon } from "../lib/ui/coming-soon";
 import { initialAvatarColor, initialFromName } from "../lib/initial-avatar";
 import type { PublicSeller } from "../types/api";
 import type { Product } from "../types/ui";
@@ -938,12 +940,14 @@ function AppBanner() {
         </div>
         <div className="flex gap-2.5 shrink-0">
           <button
+            onClick={() => comingSoon("Mobile app")}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
             style={{ color: "#009990" }}
           >
             <IconBrandApple size={18} stroke={2} /> {t("home.appStore")}
           </button>
           <button
+            onClick={() => comingSoon("Mobile app")}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
             style={{ color: "#009990" }}
           >
@@ -1043,9 +1047,15 @@ function UserWidget() {
           <p className="font-bold text-sm">{t("home.voucherToday")}</p>
         </div>
         <p className="text-white/70 text-xs mb-3">{t("home.voucherSub")}</p>
-        <div className="bg-white/20 rounded-xl px-3 py-2 text-center border border-white/20">
+        <button
+          className="bg-white/20 rounded-xl px-3 py-2 text-center border border-white/20 cursor-pointer hover:bg-white/30 transition-colors"
+          onClick={() => {
+            void navigator.clipboard.writeText("VNSHOP50");
+            toast.success("Coupon code copied!");
+          }}
+        >
           <span className="font-black text-xl tracking-[0.2em]">VNSHOP50</span>
-        </div>
+        </button>
         <p className="text-white/50 text-xs mt-2 text-center">{t("home.copyHint")}</p>
       </div>
 
