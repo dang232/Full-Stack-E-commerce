@@ -182,13 +182,13 @@ export function ProfilePage() {
         icon: IconStar,
         label: t("profile.menu.reviewsLabel"),
         desc: t("profile.menu.reviewsDesc"),
-        path: "/orders",
+        path: "/orders?tab=reviews",
       },
       {
         icon: IconBell,
         label: t("profile.menu.notificationsLabel"),
         desc: t("profile.menu.notificationsDesc"),
-        path: "/profile",
+        path: "/notifications",
       },
     ],
     [t],
@@ -316,6 +316,8 @@ export function ProfilePage() {
                   color: activeTab === tab.id ? "#00BFB3" : "#6b7280",
                   borderBottom:
                     activeTab === tab.id ? "2px solid #00BFB3" : "2px solid transparent",
+                  opacity: tab.id === "payment" ? 0.5 : 1,
+                  cursor: tab.id === "payment" ? "not-allowed" : "pointer",
                 }}
               >
                 <tab.icon size={15} />

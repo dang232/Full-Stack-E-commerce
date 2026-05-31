@@ -384,7 +384,7 @@ export function CartPage() {
               {t("cart.proceedCheckout")} <IconChevronRight size={18} />
             </button>
 
-            <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="mt-4 flex items-center justify-center gap-2" aria-hidden="true">
               {["VNPay", "MoMo", "ZaloPay", "Visa"].map((method) => (
                 <div
                   key={method}

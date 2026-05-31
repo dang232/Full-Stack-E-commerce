@@ -13,6 +13,7 @@ import { useVNShop } from "../components/vnshop-context";
 import { useCart } from "../hooks/use-cart";
 import { useSearchSuggestions } from "../hooks/use-search-suggestions";
 import { useWishlist } from "../hooks/use-wishlist";
+import { comingSoon } from "../lib/ui/coming-soon";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -188,13 +189,17 @@ function Navbar() {
                         { icon: IconUser, label: t("auth.myAccount"), path: "/profile" },
                         { icon: IconPackage, label: t("auth.myOrders"), path: "/orders" },
                         { icon: IconHeart, label: t("auth.wishlist"), path: "/wishlist" },
-                        { icon: IconBell, label: t("auth.notifications"), path: "#" },
-                        { icon: IconSettings, label: t("auth.settings"), path: "#" },
+                        { icon: IconBell, label: t("auth.notifications"), path: "/notifications" },
+                        { icon: IconSettings, label: t("auth.settings"), path: "#", action: () => comingSoon("Settings") },
                       ].map((item) => (
                         <button
                           key={item.label}
                           onClick={() => {
-                            void navigate(item.path);
+                            if (item.action) {
+                              item.action();
+                            } else {
+                              void navigate(item.path);
+                            }
                             setUserMenuOpen(false);
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted transition-colors text-left text-foreground"
@@ -257,7 +262,10 @@ function Navbar() {
             <IconTag size={14} />
             <span>{t("nav.allCategories")}</span>
           </button>
-          <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors">
+          <button
+            onClick={() => comingSoon("Support center")}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+          >
             <IconHeadphones size={14} />
             <span>{t("nav.support")}</span>
           </button>
@@ -366,14 +374,22 @@ export function Root() {
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">{t("footer.tagline")}</p>
               <div className="flex gap-3 mt-4">
-                {["fb", "ig", "tw", "yt"].map((s) => (
-                  <div
-                    key={s}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:opacity-80 transition-opacity"
+                {[
+                  { key: "fb", label: "FB", href: "https://facebook.com" },
+                  { key: "ig", label: "IG", href: "https://instagram.com" },
+                  { key: "tw", label: "TW", href: "https://x.com" },
+                  { key: "yt", label: "YT", href: "https://youtube.com" },
+                ].map((s) => (
+                  <a
+                    key={s.key}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white hover:opacity-80 transition-opacity"
                     style={{ background: "#00BFB3" }}
                   >
-                    {s.toUpperCase()}
-                  </div>
+                    {s.label}
+                  </a>
                 ))}
               </div>
             </div>
@@ -408,7 +424,10 @@ export function Root() {
                 <ul className="space-y-2.5">
                   {col.links.map((link) => (
                     <li key={link}>
-                      <button className="text-gray-400 text-sm hover:text-white transition-colors text-left">
+                      <button
+                        onClick={() => comingSoon(link)}
+                        className="text-gray-400 text-sm hover:text-white transition-colors text-left"
+                      >
                         {link}
                       </button>
                     </li>
@@ -430,6 +449,7 @@ export function Root() {
               {["DMCA", "BoCongThuong", "SSL"].map((b) => (
                 <div
                   key={b}
+                  aria-hidden="true"
                   className="px-3 py-1.5 rounded-lg border border-gray-700 text-gray-500 text-xs"
                 >
                   {b}

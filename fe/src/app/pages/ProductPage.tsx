@@ -18,6 +18,7 @@ import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions"
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
 import { formatPrice } from "../lib/format";
+import { comingSoon } from "../lib/ui/coming-soon";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {
   return (
@@ -310,7 +311,13 @@ export function ProductPage() {
                 >
                   <IconHeart size={18} fill={loved ? "currentColor" : "none"} />
                 </button>
-                <button className="p-2.5 rounded-xl border border-border text-muted-foreground hover:bg-muted">
+                <button
+                  className="p-2.5 rounded-xl border border-border text-muted-foreground hover:bg-muted"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(window.location.href);
+                    toast.success("Link copied!");
+                  }}
+                >
                   <IconShare size={18} />
                 </button>
               </div>
@@ -320,7 +327,10 @@ export function ProductPage() {
             <div className="flex items-center gap-3 mt-3">
               <StarRating value={product.rating} />
               <span className="font-semibold text-foreground">{product.rating}</span>
-              <button className="text-sm text-muted-foreground underline">
+              <button
+                className="text-sm text-muted-foreground underline"
+                onClick={() => setActiveTab("reviews")}
+              >
                 {t("product.reviewsCount", { count: product.reviewCount })}
               </button>
               <span className="text-gray-300">·</span>
@@ -394,7 +404,11 @@ export function ProductPage() {
                 <p className="text-sm font-semibold text-foreground">
                   {t("product.sizesLabel")}: <span className="font-normal text-muted-foreground">{selectedSize}</span>
                 </p>
-                <button className="text-xs font-medium underline" style={{ color: "#00BFB3" }}>
+                <button
+                  className="text-xs font-medium underline"
+                  style={{ color: "#00BFB3" }}
+                  onClick={() => comingSoon("Size guide")}
+                >
                   {t("product.sizeGuide")}
                 </button>
               </div>

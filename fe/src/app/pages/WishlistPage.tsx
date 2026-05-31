@@ -1,4 +1,6 @@
 import { IconHeart, IconShoppingCart, IconStar, IconTrash, IconShare, IconFilter } from "@tabler/icons-react";
+
+import { comingSoon } from "../lib/ui/coming-soon";
 import { useQueries } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { useMemo } from "react";
@@ -81,10 +83,19 @@ export function WishlistPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted">
+          <button
+            onClick={() => {
+              void navigator.clipboard.writeText(window.location.href);
+              toast.success("Link copied!");
+            }}
+            className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted"
+          >
             <IconShare size={18} />
           </button>
-          <button className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted">
+          <button
+            onClick={() => comingSoon("Wishlist filtering")}
+            className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted"
+          >
             <IconFilter size={18} />
           </button>
         </div>
