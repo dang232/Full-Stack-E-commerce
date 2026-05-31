@@ -1,5 +1,5 @@
 import { IconPackage, IconTruck, IconCircleCheck, IconCircleX, IconClock, IconRefresh, IconMapPin, IconMessage, IconStar, IconRotate, IconAlertCircle, IconLogin, IconArrowsLeftRight } from "@tabler/icons-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -501,7 +501,8 @@ export function OrdersPage() {
   const navigate = useNavigate();
   const { ready, authenticated, login } = useAuth();
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
-  const ordersQuery = useQuery(myOrdersOptions({ size: 50 }));
+  const [page, setPage] = useState(0);
+  const ordersQuery = useSuspenseQuery(myOrdersOptions({ page, size: 20 }));
   const cancelOrder = useCancelOrder();
   const { addItemAsync } = useCart();
   const { t } = useTranslation();
@@ -579,27 +580,6 @@ export function OrdersPage() {
     );
   }
 
-  if (ordersQuery.isLoading) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
-        {t("orders.loading")}
-      </div>
-    );
-  }
-
-  if (ordersQuery.isError) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <IconAlertCircle size={48} className="mx-auto mb-4 text-red-300" />
-        <p className="text-sm text-red-500">
-          {ordersQuery.error instanceof ApiError
-            ? ordersQuery.error.message
-            : t("orders.loadError")}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <h1
@@ -613,7 +593,10 @@ export function OrdersPage() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              setActiveTab(tab.id);
+              setPage(0);
+            }}
             className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
             style={
               activeTab === tab.id
@@ -646,6 +629,28 @@ export function OrdersPage() {
           </div>
         ) : null}
       </div>
+
+      {(ordersQuery.data?.totalPages ?? 0) > 1 ? (
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={ordersQuery.data?.first ?? true}
+            className="px-4 py-2 rounded-xl border border-border text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+          >
+            {t("common.prev")}
+          </button>
+          <span className="text-sm text-muted-foreground">
+            {(ordersQuery.data?.page ?? page) + 1} / {ordersQuery.data?.totalPages ?? 1}
+          </span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={ordersQuery.data?.last ?? true}
+            className="px-4 py-2 rounded-xl border border-border text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+          >
+            {t("common.next")}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

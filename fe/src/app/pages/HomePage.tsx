@@ -130,7 +130,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
         ) : null}
         {/* Wishlist */}
         <button
-          className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110"
+          className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 hover:scale-110"
           style={{ background: loved ? "#FF6200" : "rgba(255,255,255,0.95)" }}
           onClick={(e) => {
             e.stopPropagation();
@@ -150,7 +150,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
         </button>
         {/* Add to cart overlay */}
         <button
-          className="absolute bottom-0 left-0 right-0 py-2 text-white text-xs font-semibold translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+          className="absolute bottom-0 left-0 right-0 py-2 text-white text-xs font-semibold translate-y-full group-hover:translate-y-0 [@media(hover:none)]:translate-y-0 transition-transform duration-300"
           style={{ background: "rgba(0,191,179,0.95)", backdropFilter: "blur(4px)" }}
           onClick={(e) => {
             e.stopPropagation();

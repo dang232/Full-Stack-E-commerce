@@ -1,6 +1,6 @@
 import { IconAdjustmentsHorizontal, IconStar, IconTruck, IconX, IconBolt, IconLayoutGrid, IconLayoutList, IconSearch } from "@tabler/icons-react";
 import { motion } from "motion/react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 
@@ -26,10 +26,14 @@ function ProductListItem({ product }: { product: Product }) {
       tabIndex={0}
       aria-label={t("search.viewDetailsAria", { name: product.name })}
       className="flex gap-4 bg-card rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={() => {
+        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+        void navigate(`/product/${product.id}`);
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
+          sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
           void navigate(`/product/${product.id}`);
         }
       }}
@@ -145,7 +149,10 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.04, 0.5) }}
       className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer group"
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={() => {
+        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+        void navigate(`/product/${product.id}`);
+      }}
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
         <ImageWithFallback
@@ -232,6 +239,8 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
   );
 }
 
+const SCROLL_KEY = "vnshop:search-scroll";
+
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get("q") ?? "";
@@ -274,6 +283,15 @@ export function SearchPage() {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
+
+  // Restore scroll position when returning from a product page.
+  useEffect(() => {
+    const saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved) {
+      window.scrollTo(0, parseInt(saved, 10));
+      sessionStorage.removeItem(SCROLL_KEY);
+    }
+  }, []);
 
   // Filter signature drives a key-based remount of the result window so
   // pagination resets without an effect.

@@ -1,9 +1,10 @@
-import { IconCircleCheck, IconEye, IconSearch } from "@tabler/icons-react";
+import { IconCircleCheck, IconEye, IconSearch, IconX } from "@tabler/icons-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
+import { FormDialog } from "../../components/form-dialog";
 import { ApiError } from "../../lib/api";
 import { adminApproveSeller, adminListSellers } from "../../lib/api/endpoints/admin";
 import { formatRelativeTime } from "../../lib/format";
@@ -15,6 +16,7 @@ export function SellersApproval() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [detailFor, setDetailFor] = useState<string | null>(null);
+  const [rejectFor, setRejectFor] = useState<string | null>(null);
   const sellersQuery = useQuery({
     queryKey: ["admin", "sellers"],
     queryFn: adminListSellers,
@@ -32,6 +34,12 @@ export function SellersApproval() {
       toast.error(err instanceof ApiError ? err.message : t("admin.sellers.approveErr")),
   });
 
+  const handleReject = (_values: Record<string, string>) => {
+    // Rejection endpoint not yet available on the backend.
+    toast.info(t("admin.sellers.rejectComingSoon"));
+    setRejectFor(null);
+  };
+
   const filtered = (sellersQuery.data ?? []).filter((s) =>
     s.shopName.toLowerCase().includes(search.toLowerCase()),
   );
@@ -47,6 +55,25 @@ export function SellersApproval() {
         onClose={() => setDetailFor(null)}
         onApprove={(id) => approve.mutate(id)}
         isApproving={approve.isPending}
+      />
+      <FormDialog
+        open={!!rejectFor}
+        title={t("admin.sellers.rejectDialog.title")}
+        description={rejectFor ? t("admin.sellers.rejectDialog.subtitle", { id: rejectFor }) : undefined}
+        submitLabel={t("admin.sellers.rejectDialog.submitLabel")}
+        submitColor="#EF4444"
+        fields={[
+          {
+            key: "reason",
+            label: t("admin.sellers.rejectDialog.reasonLabel"),
+            placeholder: t("admin.sellers.rejectDialog.reasonPlaceholder"),
+            type: "textarea",
+            required: true,
+          },
+        ]}
+        onClose={() => setRejectFor(null)}
+        onSubmit={handleReject}
+        isSubmitting={false}
       />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-foreground">{t("admin.sellers.title")}</h2>
@@ -117,14 +144,22 @@ export function SellersApproval() {
                     <IconEye size={13} /> {t("admin.sellers.viewApplication")}
                   </button>
                   {!s.approved ? (
-                    <button
-                      onClick={() => approve.mutate(s.id)}
-                      disabled={approve.isPending}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                      style={{ background: "#00BFB3" }}
-                    >
-                      <IconCircleCheck size={13} /> {t("admin.sellers.approve")}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => approve.mutate(s.id)}
+                        disabled={approve.isPending}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                        style={{ background: "#00BFB3" }}
+                      >
+                        <IconCircleCheck size={13} /> {t("admin.sellers.approve")}
+                      </button>
+                      <button
+                        onClick={() => setRejectFor(s.id)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 hover:bg-red-50"
+                      >
+                        <IconX size={13} /> {t("admin.sellers.reject")}
+                      </button>
+                    </>
                   ) : null}
                 </div>
               </div>

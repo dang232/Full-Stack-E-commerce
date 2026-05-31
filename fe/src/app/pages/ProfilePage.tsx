@@ -528,7 +528,10 @@ export function ProfilePage() {
                         <div className="flex gap-2 shrink-0">
                           {!addr.isDefault ? (
                             <button
-                              onClick={() => removeAddressMutation.mutate(i)}
+                              onClick={() => {
+                                const idx = addresses.indexOf(addr);
+                                if (idx !== -1) removeAddressMutation.mutate(idx);
+                              }}
                               className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-400 hover:bg-red-50"
                             >
                               <IconTrash size={13} />
@@ -538,7 +541,10 @@ export function ProfilePage() {
                       </div>
                       {!addr.isDefault ? (
                         <button
-                          onClick={() => setDefaultMutation.mutate(i)}
+                          onClick={() => {
+                            const idx = addresses.indexOf(addr);
+                            if (idx !== -1) setDefaultMutation.mutate(idx);
+                          }}
                           disabled={setDefaultMutation.isPending}
                           className="mt-3 text-xs font-medium disabled:opacity-50"
                           style={{ color: "#00BFB3" }}

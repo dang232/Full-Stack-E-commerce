@@ -1,7 +1,7 @@
 import { IconArrowLeft, IconCircleCheck, IconCreditCard, IconLogin, IconPackage } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -138,13 +138,6 @@ export function CheckoutPage() {
   const idempotencyKeyRef = useRef<string>("");
   if (!idempotencyKeyRef.current) idempotencyKeyRef.current = uuidv4();
 
-  // Regenerate the key whenever the cart composition changes so a new set of
-  // items gets a fresh idempotency key rather than reusing the previous one.
-  useEffect(() => {
-    idempotencyKeyRef.current = uuidv4();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartItems.map((i) => i.productId).join(",")]);
-
   // Server-side preview of totals — best effort. UI falls back to local sum if unavailable.
   const calcQuery = useQuery({
     queryKey: [
@@ -267,7 +260,6 @@ export function CheckoutPage() {
   }
 
   const handlePlaceOrder = async () => {
-    if (isProcessing) return;
     setIsProcessing(true);
     try {
       const selectedAddress = addresses[selectedAddressIndex];
@@ -324,10 +316,7 @@ export function CheckoutPage() {
               ? t("checkout.payment.initFailedPrefix", { message: err.message })
               : t("checkout.payment.initFailedShort"),
           );
-          // Payment init failed — redirect to order detail so buyer can retry later.
-          setPlacedOrderId(order.id);
-          navigate(`/orders/${order.id}`);
-          return;
+          // Fall through to success screen — order exists; buyer can pay later.
         }
       } else if (selectedPaymentId === "COD") {
         try {
@@ -363,9 +352,14 @@ export function CheckoutPage() {
 
   const handleNext = () => {
     if (step === "address") {
-      if (addresses.length === 0 || !addresses[selectedAddressIndex]) {
-        toast.error(t("checkout.address.missingValidation"));
-        if (addresses.length === 0) void navigate("/profile");
+      if (addresses.length === 0) {
+        toast.error(t("checkout.address.missingValidation"), {
+          description: t("checkout.address.addAddressHint"),
+          action: {
+            label: t("checkout.address.openProfile"),
+            onClick: () => window.open("/profile", "_blank"),
+          },
+        });
         return;
       }
       setStep("shipping");
@@ -452,11 +446,9 @@ export function CheckoutPage() {
               <div className="flex flex-col items-center">
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
-                  onClick={() => { if (isDone) setStep(s.id); }}
                   style={{
                     background: isDone ? "#00BFB3" : isActive ? "#FF6200" : "#e5e7eb",
                     color: isDone || isActive ? "white" : "#9ca3af",
-                    cursor: isDone ? "pointer" : "default",
                   }}
                 >
                   {isDone ? <IconCircleCheck size={18} /> : <s.icon size={18} />}

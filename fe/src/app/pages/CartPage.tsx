@@ -102,24 +102,7 @@ export function CartPage() {
     );
   }
 
-  if (!authenticated) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-24 text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <IconShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
-          <h2 className="text-2xl font-bold text-muted-foreground mb-3">{t("cart.loginPromptTitle")}</h2>
-          <p className="text-muted-foreground mb-8">{t("cart.loginPromptSub")}</p>
-          <button
-            onClick={() => login("/cart")}
-            className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2"
-            style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
-          >
-            <IconLogin size={16} /> {t("auth.login")}
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
+  // Guests see their localStorage cart — no login wall here.
 
   if (isLoading) {
     return (
@@ -376,12 +359,29 @@ export function CartPage() {
               </div>
             </div>
 
+            {!authenticated ? (
+              <p className="text-xs text-muted-foreground mt-5 mb-2 text-center">
+                {t("cart.guestNote")}
+              </p>
+            ) : null}
             <button
-              onClick={() => navigate("/checkout")}
-              className="w-full mt-5 py-4 rounded-xl text-white font-bold text-base shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
+              onClick={() => (authenticated ? navigate("/checkout") : login("/checkout"))}
+              className="w-full mt-2 py-4 rounded-xl text-white font-bold text-base shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              style={{
+                background: authenticated
+                  ? "linear-gradient(135deg, #FF6200, #ff8a40)"
+                  : "linear-gradient(135deg, #00BFB3, #009990)",
+              }}
             >
-              {t("cart.proceedCheckout")} <IconChevronRight size={18} />
+              {authenticated ? (
+                <>
+                  {t("cart.proceedCheckout")} <IconChevronRight size={18} />
+                </>
+              ) : (
+                <>
+                  <IconLogin size={18} /> {t("cart.loginToCheckout")}
+                </>
+              )}
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-2" aria-hidden="true">
