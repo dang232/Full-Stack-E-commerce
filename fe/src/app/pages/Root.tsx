@@ -22,6 +22,7 @@ function Navbar() {
   const { user, isLoggedIn, logout, isDark, toggleTheme } = useVNShop();
   const { itemCount: cartCount } = useCart();
   const { ids: wishlist } = useWishlist();
+  const config = useAppConfig();
   const [searchQ, setSearchQ] = useState("");
   const { suggestions } = useSearchSuggestions(searchQ);
   const [menuOpen, setMenuOpen] = useState(false);
