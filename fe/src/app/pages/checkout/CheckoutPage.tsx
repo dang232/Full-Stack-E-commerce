@@ -367,8 +367,12 @@ export function CheckoutPage() {
                   },
                   idempotencyKeyRef.current,
                 );
-          window.location.href = init.redirectUrl;
-          return;
+          if (init.redirectUrl) {
+            window.location.href = init.redirectUrl;
+            return;
+          }
+          // Gateway didn't return a redirect URL — payment creation failed silently.
+          toast.error(t("checkout.payment.initFailedShort"));
         } catch (err) {
           toast.error(
             err instanceof ApiError

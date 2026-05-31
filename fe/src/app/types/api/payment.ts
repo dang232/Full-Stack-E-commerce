@@ -3,7 +3,7 @@ import { z } from "zod";
 export const initiatePaymentSchema = z
   .object({
     orderId: z.string(),
-    redirectUrl: z.string().url(),
+    redirectUrl: z.string().url().nullable(),
     transactionId: z.string().optional(),
   })
   .passthrough();
