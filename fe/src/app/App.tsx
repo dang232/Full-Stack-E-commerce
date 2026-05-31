@@ -25,7 +25,22 @@ export default function App() {
       <VNShopProvider>
         <BackgroundEffects />
         <RouterProvider router={router} />
-        <Toaster position="top-center" richColors expand={false} />
+        <Toaster
+          position="top-center"
+          expand={false}
+          toastOptions={{
+            className: "!rounded-xl !shadow-lg !border !border-border !font-medium",
+            style: { fontFamily: "'Be Vietnam Pro', sans-serif" },
+            classNames: {
+              info: "!bg-white dark:!bg-[#0F3460] !text-foreground !border-[#EE4D2D]/20",
+              success: "!bg-white dark:!bg-[#0F3460] !text-foreground !border-green-200 dark:!border-green-800",
+              error: "!bg-white dark:!bg-[#0F3460] !text-foreground !border-red-200 dark:!border-red-800",
+              warning: "!bg-white dark:!bg-[#0F3460] !text-foreground !border-amber-200 dark:!border-amber-800",
+              actionButton: "!bg-[#EE4D2D] !text-white !rounded-lg !font-semibold !text-xs !px-3 !py-1.5",
+              cancelButton: "!bg-muted !text-muted-foreground !rounded-lg !font-medium !text-xs",
+            },
+          }}
+        />
       </VNShopProvider>
     </ErrorBoundary>
   );
