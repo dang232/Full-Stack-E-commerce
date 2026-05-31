@@ -231,6 +231,7 @@ export function CartPage() {
                           <div className="flex items-center border border-border rounded-lg overflow-hidden">
                             <button
                               onClick={() => onUpdate(item.productId, item.quantity - 1)}
+                              aria-label="Decrease quantity"
                               className="w-8 h-8 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
                             >
                               <IconMinus size={13} />
@@ -240,6 +241,7 @@ export function CartPage() {
                             </span>
                             <button
                               onClick={() => onUpdate(item.productId, item.quantity + 1)}
+                              aria-label="Increase quantity"
                               className="w-8 h-8 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
                             >
                               <IconPlus size={13} />
@@ -259,6 +261,7 @@ export function CartPage() {
                       </div>
                       <button
                         onClick={() => onRemove(item.productId)}
+                        aria-label={`Remove ${item.name ?? "item"} from cart`}
                         className="p-2 h-fit rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors shrink-0"
                       >
                         <IconTrash size={16} />
@@ -302,24 +305,26 @@ export function CartPage() {
                 {couponMutation.isPending ? t("cart.couponApplying") : t("cart.couponApply")}
               </button>
             </div>
-            {couponError ? <p className="text-xs text-red-500 mt-1.5">{couponError}</p> : null}
-            {appliedCoupon ? (
-              <div
-                className="mt-2 flex items-center justify-between px-3 py-2 rounded-lg text-sm"
-                style={{ background: "rgba(0,191,179,0.08)" }}
-              >
-                <span style={{ color: "#00BFB3" }}>
-                  {t("cart.couponApplied", { code: appliedCoupon })}
-                  {couponDiscount > 0 ? ` · -${formatPrice(couponDiscount)}` : ""}
-                </span>
-                <button
-                  onClick={handleRemoveCoupon}
-                  className="text-muted-foreground hover:text-red-400 text-xs"
+            <div aria-live="polite" aria-atomic="true">
+              {couponError ? <p className="text-xs text-red-500 mt-1.5">{couponError}</p> : null}
+              {appliedCoupon ? (
+                <div
+                  className="mt-2 flex items-center justify-between px-3 py-2 rounded-lg text-sm"
+                  style={{ background: "rgba(0,191,179,0.08)" }}
                 >
-                  {t("cart.couponRemove")}
-                </button>
-              </div>
-            ) : null}
+                  <span style={{ color: "#00BFB3" }}>
+                    {t("cart.couponApplied", { code: appliedCoupon })}
+                    {couponDiscount > 0 ? ` · -${formatPrice(couponDiscount)}` : ""}
+                  </span>
+                  <button
+                    onClick={handleRemoveCoupon}
+                    className="text-muted-foreground hover:text-red-400 text-xs"
+                  >
+                    {t("cart.couponRemove")}
+                  </button>
+                </div>
+              ) : null}
+            </div>
             <p className="text-[11px] text-muted-foreground mt-3">{t("cart.couponHint")}</p>
           </div>
 

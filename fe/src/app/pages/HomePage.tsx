@@ -150,7 +150,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
         </button>
         {/* Add to cart overlay */}
         <button
-          className="absolute bottom-0 left-0 right-0 py-2 text-white text-xs font-semibold translate-y-full group-hover:translate-y-0 [@media(hover:none)]:translate-y-0 transition-transform duration-300"
+          className="absolute bottom-0 left-0 right-0 py-2 text-white text-xs font-semibold translate-y-full group-hover:translate-y-0 group-focus-within:translate-y-0 [@media(hover:none)]:translate-y-0 transition-transform duration-300"
           style={{ background: "rgba(0,191,179,0.95)", backdropFilter: "blur(4px)" }}
           onClick={(e) => {
             e.stopPropagation();

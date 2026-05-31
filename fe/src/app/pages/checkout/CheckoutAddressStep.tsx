@@ -46,49 +46,53 @@ export function CheckoutAddressStep({
           </div>
         </div>
       ) : null}
-      {addresses.map((addr, i) => (
-        <button
-          // eslint-disable-next-line react/no-array-index-key -- address list has no stable id; index is the address position
-          key={i}
-          onClick={() => setSelectedAddressIndex(i)}
-          className="w-full p-4 rounded-2xl border-2 text-left transition-all"
-          style={{
-            borderColor: selectedAddressIndex === i ? "#00BFB3" : "#e5e7eb",
-            background: selectedAddressIndex === i ? "rgba(0,191,179,0.04)" : "white",
-          }}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-foreground">{buyerName}</span>
-                {addr.phone ? (
-                  <>
-                    <span className="text-muted-foreground text-sm">|</span>
-                    <span className="text-muted-foreground text-sm">{addr.phone}</span>
-                  </>
-                ) : null}
-                {addr.isDefault ? (
-                  <span
-                    className="px-1.5 py-0.5 rounded text-xs font-medium border"
-                    style={{ borderColor: "#FF6200", color: "#FF6200" }}
-                  >
-                    {t("checkout.address.isDefaultBadge")}
-                  </span>
+      <div role="radiogroup" aria-label="Delivery address" className="space-y-4">
+        {addresses.map((addr, i) => (
+          <button
+            // eslint-disable-next-line react/no-array-index-key -- address list has no stable id; index is the address position
+            key={i}
+            role="radio"
+            aria-checked={selectedAddressIndex === i}
+            onClick={() => setSelectedAddressIndex(i)}
+            className="w-full p-4 rounded-2xl border-2 text-left transition-all"
+            style={{
+              borderColor: selectedAddressIndex === i ? "#00BFB3" : "#e5e7eb",
+              background: selectedAddressIndex === i ? "rgba(0,191,179,0.04)" : "white",
+            }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-foreground">{buyerName}</span>
+                  {addr.phone ? (
+                    <>
+                      <span className="text-muted-foreground text-sm">|</span>
+                      <span className="text-muted-foreground text-sm">{addr.phone}</span>
+                    </>
+                  ) : null}
+                  {addr.isDefault ? (
+                    <span
+                      className="px-1.5 py-0.5 rounded text-xs font-medium border"
+                      style={{ borderColor: "#FF6200", color: "#FF6200" }}
+                    >
+                      {t("checkout.address.isDefaultBadge")}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-sm text-muted-foreground">{formatAddressLine(addr)}</p>
+              </div>
+              <div
+                className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all"
+                style={{ borderColor: selectedAddressIndex === i ? "#00BFB3" : "#d1d5db" }}
+              >
+                {selectedAddressIndex === i ? (
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#00BFB3" }} />
                 ) : null}
               </div>
-              <p className="text-sm text-muted-foreground">{formatAddressLine(addr)}</p>
             </div>
-            <div
-              className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all"
-              style={{ borderColor: selectedAddressIndex === i ? "#00BFB3" : "#d1d5db" }}
-            >
-              {selectedAddressIndex === i ? (
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#00BFB3" }} />
-              ) : null}
-            </div>
-          </div>
-        </button>
-      ))}
+          </button>
+        ))}
+      </div>
       <button
         onClick={() => navigate("/profile")}
         className="w-full py-3 rounded-2xl border-2 border-dashed border-border flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors bg-card"

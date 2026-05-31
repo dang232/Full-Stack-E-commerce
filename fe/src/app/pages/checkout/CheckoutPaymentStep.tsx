@@ -19,10 +19,12 @@ export function CheckoutPaymentStep({
   return (
     <div>
       <h2 className="font-bold text-foreground text-lg mb-4">{t("checkout.payment.header")}</h2>
-      <div className="space-y-3">
+      <div role="radiogroup" aria-label="Payment method" className="space-y-3">
         {paymentOptions.map((method) => (
           <button
             key={method.id}
+            role="radio"
+            aria-checked={selectedPaymentId === method.id}
             onClick={() => setSelectedPaymentId(method.id)}
             className="w-full p-4 rounded-2xl border-2 text-left transition-all bg-card"
             style={{
