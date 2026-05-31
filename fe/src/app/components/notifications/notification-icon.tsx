@@ -1,7 +1,7 @@
 import {
   IconShoppingCart,
   IconTruck,
-  IconPackageCheck,
+  IconPackage,
   IconX,
   IconCreditCard,
   IconReceiptRefund,
@@ -23,7 +23,7 @@ const ICON_MAP: Record<
   ORDER_CREATED: IconShoppingCart,
   ORDER_CANCELLED: IconX,
   ORDER_SHIPPED: IconTruck,
-  ORDER_DELIVERED: IconPackageCheck,
+  ORDER_DELIVERED: IconPackage,
   PAYMENT_COMPLETED: IconCreditCard,
   PAYMENT_REFUNDED: IconReceiptRefund,
   SELLER_NEW_ORDER: IconBuildingStore,
