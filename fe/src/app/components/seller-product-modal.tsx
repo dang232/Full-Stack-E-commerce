@@ -1,6 +1,7 @@
 import { IconPhoto, IconLoader2, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { ApiError } from "../lib/api";
@@ -54,7 +55,8 @@ async function uploadOne(file: File, productId: string): Promise<string> {
     body: file,
   });
   if (!putRes.ok) {
-    throw new Error(`Upload thất bại (HTTP ${putRes.status})`);
+    // Status code surfaced via i18n in the caller
+    throw new Error(`HTTP_${putRes.status}`);
   }
 
   const activated = await sellerProductImageActivate(productId, { key });
@@ -79,6 +81,7 @@ function SellerProductModalBody({
   product: Product | null;
 }) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEdit = !!product;
 
@@ -123,7 +126,7 @@ function SellerProductModalBody({
     if (!files || files.length === 0) return;
     const slotsLeft = MAX_IMAGES - totalImageCount;
     if (slotsLeft <= 0) {
-      toast.info(`Tối đa ${MAX_IMAGES} ảnh / sản phẩm`);
+      toast.info(t("seller.productModal.maxImagesReached", { max: MAX_IMAGES }));
       return;
     }
 
@@ -132,11 +135,16 @@ function SellerProductModalBody({
       .slice(0, slotsLeft)
       .forEach((file) => {
         if (!ACCEPTED_TYPES.test(file.type)) {
-          toast.error(`${file.name}: Chỉ chấp nhận JPG, PNG, hoặc WebP`);
+          toast.error(t("seller.productModal.invalidType", { name: file.name }));
           return;
         }
         if (file.size > MAX_IMAGE_BYTES) {
-          toast.error(`${file.name}: Vượt quá ${MAX_IMAGE_BYTES / (1024 * 1024)}MB`);
+          toast.error(
+            t("seller.productModal.fileTooLarge", {
+              name: file.name,
+              maxMb: MAX_IMAGE_BYTES / (1024 * 1024),
+            }),
+          );
           return;
         }
         accepted.push({
@@ -218,8 +226,14 @@ function SellerProductModalBody({
               ? first.reason.message
               : first.reason instanceof Error
                 ? first.reason.message
-                : "Một số ảnh tải lên thất bại";
-          toast.error(`${failed.length}/${staged.length} ảnh tải lên thất bại: ${message}`);
+                : t("seller.productModal.someUploadsFailed");
+          toast.error(
+            t("seller.productModal.uploadPartialFail", {
+              failed: failed.length,
+              total: staged.length,
+              message,
+            }),
+          );
         }
       }
 
@@ -245,7 +259,7 @@ function SellerProductModalBody({
     onSuccess: ({ id, isNew }) => {
       void qc.invalidateQueries({ queryKey: ["catalog", "products"] });
       void qc.invalidateQueries({ queryKey: ["catalog", "products", "detail", id] });
-      toast.success(isNew ? "Đã đăng sản phẩm" : "Đã cập nhật sản phẩm");
+      toast.success(isNew ? t("seller.productModal.saveOk") : t("seller.productModal.updateOk"));
       onClose();
     },
     onError: (err) =>
@@ -255,28 +269,28 @@ function SellerProductModalBody({
           : err instanceof Error
             ? err.message
             : isEdit
-              ? "Không thể cập nhật sản phẩm"
-              : "Không thể đăng sản phẩm",
+              ? t("seller.productModal.updateErr")
+              : t("seller.productModal.saveErr"),
       ),
     onSettled: () => setPhase("idle"),
   });
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      toast.error("Vui lòng nhập tên sản phẩm");
+      toast.error(t("seller.productModal.validationName"));
       return;
     }
     const priceNum = parsePriceInput(price);
     if (priceNum <= 0) {
-      toast.error("Giá sản phẩm phải lớn hơn 0");
+      toast.error(t("seller.productModal.validationPrice"));
       return;
     }
     if (originalPrice && parsePriceInput(originalPrice) < priceNum) {
-      toast.error("Giá gốc phải lớn hơn hoặc bằng giá bán");
+      toast.error(t("seller.productModal.validationOriginalPrice"));
       return;
     }
     if (parsePriceInput(stock) < 0) {
-      toast.error("Tồn kho không hợp lệ");
+      toast.error(t("seller.productModal.validationStock"));
       return;
     }
     saveMutation.mutate();
@@ -287,13 +301,13 @@ function SellerProductModalBody({
   const submitLabel = (() => {
     switch (phase) {
       case "creating":
-        return "Đang tạo sản phẩm...";
+        return t("seller.productModal.phaseCreating");
       case "uploading":
-        return `Đang tải ${staged.length} ảnh...`;
+        return t("seller.productModal.phaseUploading", { count: staged.length });
       case "finalising":
-        return "Đang lưu...";
+        return t("seller.productModal.phaseFinalising");
       default:
-        return isEdit ? "Lưu thay đổi" : "Đăng sản phẩm";
+        return isEdit ? t("seller.productModal.save") : t("seller.productModal.publish");
     }
   })();
 
@@ -304,7 +318,7 @@ function SellerProductModalBody({
       dismissDisabled={isBusy}
       size="lg"
       scrollable
-      title={isEdit ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
+      title={isEdit ? t("seller.productModal.titleEdit") : t("seller.productModal.titleAdd")}
       footer={
         <>
           <button
@@ -313,7 +327,7 @@ function SellerProductModalBody({
             disabled={isBusy}
             className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-muted-foreground disabled:opacity-50"
           >
-            Huỷ
+            {t("seller.productModal.cancel")}
           </button>
           <button
             type="button"
@@ -338,7 +352,7 @@ function SellerProductModalBody({
       <div className="space-y-5">
         <div>
           <label className="block text-sm font-semibold text-foreground mb-2">
-            Ảnh sản phẩm{" "}
+            {t("seller.productModal.imagesLabel")}{" "}
             <span className="text-muted-foreground font-normal">
               ({totalImageCount}/{MAX_IMAGES})
             </span>
@@ -355,7 +369,7 @@ function SellerProductModalBody({
                   onClick={() => removeExistingImage(url)}
                   disabled={isBusy}
                   className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-card disabled:opacity-50"
-                  aria-label="Xoá ảnh"
+                  aria-label={t("seller.productModal.removeImage")}
                 >
                   <IconTrash size={12} className="text-red-500" />
                 </button>
@@ -377,7 +391,7 @@ function SellerProductModalBody({
                   onClick={() => removeStaged(s.id)}
                   disabled={isBusy}
                   className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center hover:bg-card disabled:opacity-50"
-                  aria-label="Bỏ ảnh"
+                  aria-label={t("seller.productModal.removeImageStaged")}
                 >
                   <IconTrash size={12} className="text-red-500" />
                 </button>
@@ -391,7 +405,7 @@ function SellerProductModalBody({
                 className="aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors disabled:opacity-50"
               >
                 <IconPhoto size={20} />
-                <span className="text-[11px] font-medium">Thêm ảnh</span>
+                <span className="text-[11px] font-medium">{t("seller.productModal.addImage")}</span>
               </button>
             ) : null}
           </div>
@@ -407,8 +421,10 @@ function SellerProductModalBody({
             }}
           />
           <p className="text-[11px] text-muted-foreground mt-2">
-            JPG, PNG, hoặc WebP. Tối đa {MAX_IMAGE_BYTES / (1024 * 1024)}MB mỗi ảnh, {MAX_IMAGES}{" "}
-            ảnh / sản phẩm. Ảnh sẽ được tải lên khi bạn nhấn Lưu.
+            {t("seller.productModal.imageHint", {
+              maxMb: MAX_IMAGE_BYTES / (1024 * 1024),
+              maxCount: MAX_IMAGES,
+            })}
           </p>
         </div>
 
@@ -417,13 +433,13 @@ function SellerProductModalBody({
             htmlFor="seller-product-name"
             className="block text-sm font-semibold text-foreground mb-1.5"
           >
-            Tên sản phẩm
+            {t("seller.productModal.nameLabel")}
           </label>
           <input
             id="seller-product-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="VD: Tai nghe Sony WH-1000XM5"
+            placeholder={t("seller.productModal.namePlaceholder")}
             className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3]"
             disabled={isBusy}
           />
@@ -434,14 +450,14 @@ function SellerProductModalBody({
             htmlFor="seller-product-description"
             className="block text-sm font-semibold text-foreground mb-1.5"
           >
-            Mô tả
+            {t("seller.productModal.descriptionLabel")}
           </label>
           <textarea
             id="seller-product-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            placeholder="Mô tả chi tiết sản phẩm..."
+            placeholder={t("seller.productModal.descriptionPlaceholder")}
             className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none"
             disabled={isBusy}
           />
@@ -453,7 +469,7 @@ function SellerProductModalBody({
               htmlFor="seller-product-price"
               className="block text-sm font-semibold text-foreground mb-1.5"
             >
-              Giá bán (VND)
+              {t("seller.productModal.priceLabel")}
             </label>
             <input
               id="seller-product-price"
@@ -470,7 +486,7 @@ function SellerProductModalBody({
               htmlFor="seller-product-original-price"
               className="block text-sm font-semibold text-foreground mb-1.5"
             >
-              Giá gốc (tuỳ chọn)
+              {t("seller.productModal.originalPriceLabel")}
             </label>
             <input
               id="seller-product-original-price"
@@ -490,7 +506,7 @@ function SellerProductModalBody({
               htmlFor="seller-product-stock"
               className="block text-sm font-semibold text-foreground mb-1.5"
             >
-              Tồn kho
+              {t("seller.productModal.stockLabel")}
             </label>
             <input
               id="seller-product-stock"
@@ -507,7 +523,7 @@ function SellerProductModalBody({
               htmlFor="seller-product-category"
               className="block text-sm font-semibold text-foreground mb-1.5"
             >
-              Danh mục
+              {t("seller.productModal.categoryLabel")}
             </label>
             <input
               id="seller-product-category"

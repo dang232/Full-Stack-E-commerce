@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useMemo, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
@@ -967,8 +966,7 @@ function AppBanner() {
       <div
         className="absolute right-0 top-0 bottom-0 w-64 opacity-10"
         style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=300&q=50)",
+          backgroundImage: "",
           backgroundSize: "cover",
         }}
       />
@@ -1096,12 +1094,9 @@ function UserWidget() {
         <p className="text-white/70 text-xs mb-3">{t("home.voucherSub")}</p>
         <button
           className="bg-white/20 rounded-xl px-3 py-2 text-center border border-white/20 cursor-pointer hover:bg-white/30 transition-colors"
-          onClick={() => {
-            void navigator.clipboard.writeText("VNSHOP50");
-            toast.success("Coupon code copied!");
-          }}
+          onClick={() => navigate("/coupons")}
         >
-          <span className="font-black text-xl tracking-[0.2em]">VNSHOP50</span>
+          <span className="font-semibold text-sm">{t("home.viewCoupons")}</span>
         </button>
         <p className="text-white/50 text-xs mt-2 text-center">{t("home.copyHint")}</p>
       </div>

@@ -2,7 +2,7 @@
 
 **Persona:** buyer
 **Verdict:** FAIL
-**Generated:** 2026-05-30T17:16:14.972Z
+**Generated:** 2026-05-31T12:20:23.091Z
 
 ## Business outcomes verified
 

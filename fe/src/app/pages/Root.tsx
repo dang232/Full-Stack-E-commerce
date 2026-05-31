@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "../components/language-switcher";
 import { NotificationBell } from "../components/notification-bell";
 import { SearchAutocomplete } from "../components/search-autocomplete";
 import { useVNShop } from "../components/vnshop-context";
+import { useAppConfig } from "../hooks/use-app-config";
 import { useCart } from "../hooks/use-cart";
 import { useSearchSuggestions } from "../hooks/use-search-suggestions";
 import { useWishlist } from "../hooks/use-wishlist";
@@ -166,10 +167,10 @@ function Navbar() {
                 className="text-white font-bold text-xl tracking-tight"
                 style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
               >
-                VNShop
+                {config.brand.name}
               </span>
               <div className="text-white/60 text-[9px] leading-none tracking-widest">
-                MARKETPLACE
+                {config.brand.tagline}
               </div>
             </div>
           </button>
@@ -421,6 +422,7 @@ export function Root() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const config = useAppConfig();
 
   // Back-office routes get a thin console chrome instead of the
   // storefront Navbar (search, categories, wishlist, cart) — those
@@ -489,7 +491,7 @@ export function Root() {
               {/* Column 2: About VNShop */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#222222] dark:text-[#E8E8E8] mb-4">
-                  About VNShop
+                  About {config.brand.name}
                 </h4>
                 <ul className="space-y-2.5">
                   {[
@@ -517,7 +519,7 @@ export function Root() {
                   {t("footer.paymentShipping")}
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {["VNPay", "MoMo", "COD", "Visa", "Mastercard"].map((method) => (
+                  {config.payment.providers.map((method) => (
                     <span
                       key={method}
                       className="px-2 py-1 rounded border border-[#E0E0E0] dark:border-[#333] bg-white dark:bg-[#252540] text-[#757575] text-xs font-medium"
@@ -535,10 +537,10 @@ export function Root() {
                 </h4>
                 <div className="flex flex-col gap-2.5">
                   {[
-                    { key: "fb", label: "Facebook", href: "https://facebook.com" },
-                    { key: "ig", label: "Instagram", href: "https://instagram.com" },
-                    { key: "tw", label: "Twitter / X", href: "https://x.com" },
-                    { key: "yt", label: "YouTube", href: "https://youtube.com" },
+                    { key: "fb", label: "Facebook", href: config.social.facebook },
+                    { key: "ig", label: "Instagram", href: config.social.instagram },
+                    { key: "tw", label: "Twitter / X", href: config.social.twitter },
+                    { key: "yt", label: "YouTube", href: config.social.youtube },
                   ].map((s) => (
                     <a
                       key={s.key}
@@ -563,7 +565,7 @@ export function Root() {
               {/* Column 5: VNShop App */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#222222] dark:text-[#E8E8E8] mb-4">
-                  VNShop App
+                  {config.brand.name} App
                 </h4>
                 <div
                   aria-hidden="true"

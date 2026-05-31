@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useAuth } from "../hooks/use-auth";
+import { useAppConfig } from "../hooks/use-app-config";
 import { useCart } from "../hooks/use-cart";
 import { ApiError } from "../lib/api";
 import { validateCouponCode } from "../lib/api/endpoints/coupons";
@@ -18,6 +19,7 @@ import type { CartItem } from "../types/api";
 export function CartPage() {
   const navigate = useNavigate();
   const { ready, authenticated, login } = useAuth();
+  const config = useAppConfig();
   const { items, itemCount, totalAmount, isLoading, error, updateItem, removeItem } = useCart();
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
@@ -390,7 +392,7 @@ export function CartPage() {
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-2" aria-hidden="true">
-              {["VNPay", "MoMo", "ZaloPay", "Visa"].map((method) => (
+              {config.payment.providers.map((method) => (
                 <div
                   key={method}
                   className="px-2 py-1 bg-muted rounded text-[10px] font-medium text-muted-foreground"

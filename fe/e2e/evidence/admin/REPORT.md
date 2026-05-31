@@ -2,7 +2,7 @@
 
 **Verdict:** PASS
 **Steps:** 9 / 9 passed
-**Generated:** 2026-05-30T17:16:26.683Z
+**Generated:** 2026-05-31T12:20:36.362Z
 
 ## Steps
 
@@ -22,13 +22,13 @@
 
 ![Open Coupons tab](screenshots/04-open-coupons-tab.png)
 
-### 05. Create FIXED coupon WORKDAY381235 round-trips — PASS
+### 05. Create FIXED coupon WORKDAY30049 round-trips — PASS
 
-![Create FIXED coupon WORKDAY381235 round-trips](screenshots/05-create-fixed-coupon-workday381235-round-trips.png)
+![Create FIXED coupon WORKDAY30049 round-trips](screenshots/05-create-fixed-coupon-workday30049-round-trips.png)
 
-### 06. Deactivate coupon WORKDAY381235 flips to Paused — PASS
+### 06. Deactivate coupon WORKDAY30049 flips to Paused — PASS
 
-![Deactivate coupon WORKDAY381235 flips to Paused](screenshots/06-deactivate-coupon-workday381235-flips-to-paused.png)
+![Deactivate coupon WORKDAY30049 flips to Paused](screenshots/06-deactivate-coupon-workday30049-flips-to-paused.png)
 
 ### 07. Disputes tab parses — PASS
 
