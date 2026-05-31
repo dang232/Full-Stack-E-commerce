@@ -1,6 +1,7 @@
 import { IconBell } from "@tabler/icons-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import { useAuth } from "../hooks/use-auth";
@@ -8,44 +9,48 @@ import { useNotifications } from "../hooks/use-notifications";
 import type { Notification } from "../types/api/notification";
 import { NotificationIcon } from "./notifications/notification-icon";
 
-function relativeTime(iso?: string | null): string {
+function relativeTime(iso: string | null | undefined, t: (key: string, opts?: Record<string, unknown>) => string): string {
   if (!iso) return "";
   const then = Date.parse(iso);
   if (Number.isNaN(then)) return "";
   const diffMs = Date.now() - then;
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return "vừa xong";
-  if (minutes < 60) return `${minutes} phút trước`;
+  if (minutes < 1) return t("notificationBell.justNow");
+  if (minutes < 60) return t("notificationBell.minutesAgo", { m: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} giờ trước`;
+  if (hours < 24) return t("notificationBell.hoursAgo", { h: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} ngày trước`;
+  if (days < 7) return t("notificationBell.daysAgo", { d: days });
   return new Date(then).toLocaleDateString("vi-VN");
 }
 
-function dateGroup(iso: string): string {
+function dateGroup(iso: string, t: (key: string) => string): string {
   const d = new Date(iso);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today.getTime() - 86_400_000);
-  if (d >= today) return "Hôm nay";
-  if (d >= yesterday) return "Hôm qua";
-  return "Trước đó";
+  if (d >= today) return t("notificationBell.today");
+  if (d >= yesterday) return t("notificationBell.yesterday");
+  return t("notificationBell.earlier");
 }
 
-function groupByDate(items: Notification[]): { label: string; items: Notification[] }[] {
+function groupByDate(items: Notification[], t: (key: string) => string): { label: string; items: Notification[] }[] {
   const groups: Record<string, Notification[]> = {};
   for (const item of items) {
-    const key = dateGroup(item.createdAt);
+    const key = dateGroup(item.createdAt, t);
     (groups[key] ??= []).push(item);
   }
-  return ["Hôm nay", "Hôm qua", "Trước đó"]
+  const todayLabel = t("notificationBell.today");
+  const yesterdayLabel = t("notificationBell.yesterday");
+  const earlierLabel = t("notificationBell.earlier");
+  return [todayLabel, yesterdayLabel, earlierLabel]
     .filter((k) => groups[k]?.length)
     .map((label) => ({ label, items: groups[label] }));
 }
 
 export function NotificationBell() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { authenticated } = useAuth();
   const { items, unreadCount, isLoading, markRead, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
@@ -100,7 +105,7 @@ export function NotificationBell() {
 
   // Show only top 10, already sorted by createdAt DESC from the API
   const displayed = items.slice(0, 10);
-  const groups = groupByDate(displayed);
+  const groups = groupByDate(displayed, t);
 
   return (
     <div ref={containerRef} className="relative">
@@ -113,8 +118,8 @@ export function NotificationBell() {
           setOpen((v) => !v);
         }}
         className="relative p-2 text-white rounded-lg hover:bg-white/10 transition-colors"
-        title="Thông báo"
-        aria-label="Thông báo"
+        title={t("notificationBell.title")}
+        aria-label={t("notificationBell.title")}
         aria-expanded={open}
         aria-haspopup="menu"
       >
@@ -141,14 +146,14 @@ export function NotificationBell() {
           >
             {/* Header */}
             <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-              <h3 className="font-semibold text-sm text-foreground">Thông báo</h3>
+              <h3 className="font-semibold text-sm text-foreground">{t("notificationBell.title")}</h3>
               {unreadCount > 0 ? (
                 <button
                   onClick={() => markAllRead()}
                   className="text-[11px] font-medium hover:underline"
                   style={{ color: "#00BFB3" }}
                 >
-                  Đánh dấu tất cả đã đọc
+                  {t("notificationBell.markAllRead")}
                 </button>
               ) : null}
             </div>
@@ -156,13 +161,13 @@ export function NotificationBell() {
             {/* Content */}
             <div className="max-h-96 overflow-y-auto">
               {isLoading ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground text-center">Đang tải...</p>
+                <p className="px-4 py-6 text-sm text-muted-foreground text-center">{t("notificationBell.loading")}</p>
               ) : null}
 
               {!isLoading && groups.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <IconBell size={32} className="mx-auto mb-3 text-muted-foreground/30" />
-                  <p className="text-sm text-muted-foreground">Chưa có thông báo nào</p>
+                  <p className="text-sm text-muted-foreground">{t("notificationBell.empty")}</p>
                 </div>
               ) : null}
 
@@ -207,7 +212,7 @@ export function NotificationBell() {
                               </p>
                             ) : null}
                             <p className="text-[11px] text-muted-foreground mt-1">
-                              {relativeTime(n.createdAt)}
+                              {relativeTime(n.createdAt, t)}
                             </p>
                           </div>
                         </button>
@@ -227,7 +232,7 @@ export function NotificationBell() {
                 className="text-xs font-medium"
                 style={{ color: "#00BFB3" }}
               >
-                Xem tất cả thông báo
+                {t("notificationBell.viewAll")}
               </button>
             </div>
           </motion.div>

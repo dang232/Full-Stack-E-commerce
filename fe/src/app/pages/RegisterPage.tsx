@@ -22,6 +22,7 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [pwFocused, setPwFocused] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -240,6 +241,8 @@ export function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setPwFocused(true)}
+                  onBlur={() => setPwFocused(false)}
                   className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
                 />
                 <button
@@ -251,6 +254,11 @@ export function RegisterPage() {
                   {showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                 </button>
               </div>
+              {pwFocused ? (
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  {t("register.form.passwordHint")}
+                </p>
+              ) : null}
             </div>
 
             <div>

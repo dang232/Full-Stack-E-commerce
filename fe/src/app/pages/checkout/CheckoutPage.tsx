@@ -1,7 +1,7 @@
 import { IconArrowLeft, IconCircleCheck, IconCreditCard, IconLogin, IconPackage } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -109,16 +109,75 @@ export function CheckoutPage() {
       );
   }, [paymentQuery.data]);
 
-  const [step, setStep] = useState<Step>("address");
-  const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
+  const [step, setStep] = useState<Step>(() => {
+    try {
+      const raw = sessionStorage.getItem("vnshop:checkout-state");
+      if (raw) {
+        const s = (JSON.parse(raw) as Record<string, unknown>).step;
+        if (typeof s === "string") return s as Step;
+      }
+    } catch { /* ignore */ }
+    return "address";
+  });
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(() => {
+    try {
+      const raw = sessionStorage.getItem("vnshop:checkout-state");
+      if (raw) {
+        const v = (JSON.parse(raw) as Record<string, unknown>).selectedAddressIndex;
+        if (typeof v === "number") return v;
+      }
+    } catch { /* ignore */ }
+    return 0;
+  });
   // The user's explicit shipping pick. Empty string means "use default" — we resolve
   // to the first available option at render time, so we never need an effect to
   // mirror server-provided defaults into local state.
-  const [shippingChoice, setShippingChoice] = useState<string>("");
+  const [shippingChoice, setShippingChoice] = useState<string>(() => {
+    try {
+      const raw = sessionStorage.getItem("vnshop:checkout-state");
+      if (raw) {
+        const v = (JSON.parse(raw) as Record<string, unknown>).shippingChoice;
+        if (typeof v === "string") return v;
+      }
+    } catch { /* ignore */ }
+    return "";
+  });
   const selectedShippingId = shippingChoice || shippingOptions[0]?.id || "";
-  const [selectedPaymentId, setSelectedPaymentId] = useState<PaymentOption["id"]>("VNPAY");
-  const [note, setNote] = useState("");
+  const [selectedPaymentId, setSelectedPaymentId] = useState<PaymentOption["id"]>(() => {
+    try {
+      const raw = sessionStorage.getItem("vnshop:checkout-state");
+      if (raw) {
+        const v = (JSON.parse(raw) as Record<string, unknown>).selectedPaymentId;
+        if (typeof v === "string") return v as PaymentOption["id"];
+      }
+    } catch { /* ignore */ }
+    return "VNPAY";
+  });
+  const [note, setNote] = useState<string>(() => {
+    try {
+      const raw = sessionStorage.getItem("vnshop:checkout-state");
+      if (raw) {
+        const v = (JSON.parse(raw) as Record<string, unknown>).note;
+        if (typeof v === "string") return v;
+      }
+    } catch { /* ignore */ }
+    return "";
+  });
   const [couponInput, setCouponInput] = useState<string>("");
+
+  // Persist checkout progress so a page refresh doesn't lose the user's place.
+  useEffect(() => {
+    if (step === "success") {
+      try { sessionStorage.removeItem("vnshop:checkout-state"); } catch { /* ignore */ }
+      return;
+    }
+    try {
+      sessionStorage.setItem(
+        "vnshop:checkout-state",
+        JSON.stringify({ step, selectedAddressIndex, shippingChoice, selectedPaymentId, note }),
+      );
+    } catch { /* ignore */ }
+  }, [step, selectedAddressIndex, shippingChoice, selectedPaymentId, note]);
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [showCouponPicker, setShowCouponPicker] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);

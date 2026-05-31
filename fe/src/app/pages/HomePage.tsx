@@ -1,7 +1,7 @@
-import { IconChevronRight, IconStar, IconBolt, IconTruck, IconShield, IconRefresh, IconHeadphones, IconTrendingUp, IconAward, IconSparkles, IconGift, IconRosetteDiscountCheck, IconPackage, IconDeviceMobile, IconShirt, IconBallFootball, IconBrandApple, IconBrandGooglePlay, IconUserCircle, IconBrush } from "@tabler/icons-react";
+import { IconChevronRight, IconChevronLeft, IconStar, IconBolt, IconTruck, IconShield, IconRefresh, IconHeadphones, IconTrendingUp, IconAward, IconSparkles, IconGift, IconRosetteDiscountCheck, IconPackage, IconDeviceMobile, IconShirt, IconBallFootball, IconBrandApple, IconBrandGooglePlay, IconUserCircle, IconBrush } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
-import { useState, useMemo, type ReactNode } from "react";
+import { useState, useMemo, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -392,8 +392,17 @@ function FlashSaleSection() {
 function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const scrollRef = useRef<HTMLDivElement>(null);
   return (
-    <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+    <div className="relative">
+      <button
+        onClick={() => scrollRef.current?.scrollBy({ left: -300, behavior: "smooth" })}
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center z-10 hidden md:flex"
+        aria-label="Scroll left"
+      >
+        <IconChevronLeft size={16} />
+      </button>
+      <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide md:px-8">
       {items.map(({ campaign: c, product, isLoading: productLoading, isError }, i) => {
         const discount = pctOff(c.originalPrice, c.salePrice);
         const remaining = c.stockRemaining;
@@ -477,6 +486,14 @@ function FlashSaleStrip({ items }: { items: FlashSaleItem[] }) {
           </motion.button>
         );
       })}
+      </div>
+      <button
+        onClick={() => scrollRef.current?.scrollBy({ left: 300, behavior: "smooth" })}
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center z-10 hidden md:flex"
+        aria-label="Scroll right"
+      >
+        <IconChevronRight size={16} />
+      </button>
     </div>
   );
 }

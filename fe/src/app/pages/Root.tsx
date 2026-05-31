@@ -121,18 +121,22 @@ function Navbar() {
             </span>
           </div>
           <div className="flex items-center gap-5">
-            <button
-              onClick={() => navigate("/seller")}
-              className="flex items-center gap-1 hover:text-white transition-colors"
-            >
-              <IconBuildingStore size={11} /> {t("nav.sellerChannel")}
-            </button>
-            <button
-              onClick={() => navigate("/admin")}
-              className="flex items-center gap-1 hover:text-white transition-colors"
-            >
-              <IconLayoutDashboard size={11} /> {t("nav.admin")}
-            </button>
+            {(!user || user.role === "seller" || user.role === "admin") ? (
+              <button
+                onClick={() => navigate("/seller")}
+                className="flex items-center gap-1 hover:text-white transition-colors"
+              >
+                <IconBuildingStore size={11} /> {t("nav.sellerChannel")}
+              </button>
+            ) : null}
+            {user?.role === "admin" ? (
+              <button
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-1 hover:text-white transition-colors"
+              >
+                <IconLayoutDashboard size={11} /> {t("nav.admin")}
+              </button>
+            ) : null}
             <span className="w-px h-3 bg-white/20" />
             <button
               onClick={toggleTheme}
@@ -394,6 +398,17 @@ function Navbar() {
                   {item.label}
                 </button>
               ))}
+              <div className="flex items-center gap-2 px-3 py-2.5">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white transition-colors"
+                >
+                  {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
+                  {isDark ? t("nav.light") : t("nav.dark")}
+                </button>
+                <span className="w-px h-4 bg-white/20 mx-1" />
+                <LanguageSwitcher />
+              </div>
             </div>
           </motion.div>
         ) : null}

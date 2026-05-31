@@ -375,6 +375,7 @@
       "emailLabel": "Email",
       "phoneLabel": "Phone (optional, +84...)",
       "passwordLabel": "Password",
+      "passwordHint": "Min 8 characters, 1 uppercase, 1 number",
       "confirmLabel": "Confirm password",
       "submit": "Create account",
       "submitting": "Creating account...",
@@ -975,6 +976,20 @@
     "cancelErr": "Couldn't cancel order",
     "noReviewableProduct": "No reviewable product found",
     "noSellerForChat": "This order has no specific seller."
+  },
+  "notificationBell": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "loading": "Loading...",
+    "empty": "No notifications yet",
+    "viewAll": "View all notifications",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "earlier": "Earlier",
+    "justNow": "just now",
+    "minutesAgo": "{{m}} min ago",
+    "hoursAgo": "{{h}} hr ago",
+    "daysAgo": "{{d}} days ago"
   },
   "common": {
     "loading": "Loading..."

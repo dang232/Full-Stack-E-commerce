@@ -375,6 +375,7 @@
       "emailLabel": "Email",
       "phoneLabel": "Số điện thoại (tùy chọn, +84...)",
       "passwordLabel": "Mật khẩu",
+      "passwordHint": "Tối thiểu 8 ký tự, 1 chữ hoa, 1 chữ số",
       "confirmLabel": "Xác nhận mật khẩu",
       "submit": "Tạo tài khoản",
       "submitting": "Đang tạo tài khoản...",
@@ -975,6 +976,20 @@
     "cancelErr": "Không thể huỷ đơn hàng",
     "noReviewableProduct": "Không tìm thấy sản phẩm để đánh giá",
     "noSellerForChat": "Đơn hàng này không gắn với người bán cụ thể."
+  },
+  "notificationBell": {
+    "title": "Thông báo",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "loading": "Đang tải...",
+    "empty": "Chưa có thông báo nào",
+    "viewAll": "Xem tất cả thông báo",
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "earlier": "Trước đó",
+    "justNow": "vừa xong",
+    "minutesAgo": "{{m}} phút trước",
+    "hoursAgo": "{{h}} giờ trước",
+    "daysAgo": "{{d}} ngày trước"
   },
   "common": {
     "loading": "Đang tải..."
