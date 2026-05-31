@@ -66,6 +66,9 @@ const NotificationPreferencesPage = lazy(() =>
     default: m.NotificationPreferencesPage,
   })),
 );
+const NotFoundPage = lazy(() =>
+  import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })),
+);
 
 const Fallback = () =>
   createElement(
@@ -132,6 +135,7 @@ export const router = createBrowserRouter([
         void queryClient.prefetchQuery(sellerProductsOptions(id));
         return null;
       }},
+      { path: "*", element: lazyRoute(createElement(NotFoundPage)) },
     ],
   },
 ]);
