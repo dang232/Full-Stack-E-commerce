@@ -120,7 +120,7 @@ export function CartPage() {
         <button
           onClick={() => navigate("/")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
-          style={{ background: "#00BFB3" }}
+          style={{ background: "#EE4D2D" }}
         >
           {t("cart.backToHome")}
         </button>
@@ -138,7 +138,7 @@ export function CartPage() {
           <button
             onClick={() => navigate("/")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+            style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
           >
             {t("cart.continueShopping")}
           </button>
@@ -190,7 +190,7 @@ export function CartPage() {
               >
                 <div
                   className="flex items-center gap-3 px-5 py-3.5 border-b border-border"
-                  style={{ background: "rgba(0,191,179,0.04)" }}
+                  style={{ background: "rgba(238,77,45,0.04)" }}
                 >
                   <span className="font-semibold text-foreground text-sm">{group.sellerName}</span>
                   <span className="ml-auto text-xs text-muted-foreground flex items-center gap-1">
@@ -276,7 +276,7 @@ export function CartPage() {
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-2 text-sm font-medium"
-            style={{ color: "#00BFB3" }}
+            style={{ color: "#EE4D2D" }}
           >
             <IconArrowLeft size={16} /> {t("cart.continueShopping")}
           </button>
@@ -294,7 +294,7 @@ export function CartPage() {
                 onChange={(e) => setCoupon(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
                 placeholder={t("cart.couponPlaceholder")}
-                className="flex-1 px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] uppercase tracking-wider"
+                className="flex-1 px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#EE4D2D] uppercase tracking-wider"
               />
               <button
                 onClick={handleApplyCoupon}
@@ -310,9 +310,9 @@ export function CartPage() {
               {appliedCoupon ? (
                 <div
                   className="mt-2 flex items-center justify-between px-3 py-2 rounded-lg text-sm"
-                  style={{ background: "rgba(0,191,179,0.08)" }}
+                  style={{ background: "rgba(238,77,45,0.08)" }}
                 >
-                  <span style={{ color: "#00BFB3" }}>
+                  <span style={{ color: "#EE4D2D" }}>
                     {t("cart.couponApplied", { code: appliedCoupon })}
                     {couponDiscount > 0 ? ` · -${formatPrice(couponDiscount)}` : ""}
                   </span>
@@ -338,7 +338,7 @@ export function CartPage() {
               {couponDiscount > 0 ? (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("cart.voucherDiscount")}</span>
-                  <span className="font-medium" style={{ color: "#00BFB3" }}>
+                  <span className="font-medium" style={{ color: "#EE4D2D" }}>
                     -{formatPrice(couponDiscount)}
                   </span>
                 </div>
@@ -356,7 +356,7 @@ export function CartPage() {
                     {formatPrice(finalTotal)}
                   </span>
                   {couponDiscount > 0 ? (
-                    <p className="text-xs" style={{ color: "#00BFB3" }}>
+                    <p className="text-xs" style={{ color: "#EE4D2D" }}>
                       {t("cart.savings", { amount: formatPrice(couponDiscount) })}
                     </p>
                   ) : null}
@@ -375,7 +375,7 @@ export function CartPage() {
               style={{
                 background: authenticated
                   ? "linear-gradient(135deg, #FF6200, #ff8a40)"
-                  : "linear-gradient(135deg, #00BFB3, #009990)",
+                  : "linear-gradient(135deg, #EE4D2D, #FF6633)",
               }}
             >
               {authenticated ? (
@@ -402,7 +402,7 @@ export function CartPage() {
           </div>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-            <IconShield size={14} style={{ color: "#00BFB3" }} />
+            <IconShield size={14} style={{ color: "#EE4D2D" }} />
             <span>{t("cart.sslNotice")}</span>
           </div>
         </div>

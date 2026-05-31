@@ -82,7 +82,7 @@ function ProductListItem({ product }: { product: Product }) {
           {product.shippingFee === 0 ? (
             <span
               className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ background: "rgba(0,191,179,0.1)", color: "#00BFB3" }}
+              style={{ background: "rgba(238,77,45,0.1)", color: "#EE4D2D" }}
             >
               <IconTruck size={10} /> {t("search.freeShippingTag")}
             </span>
@@ -126,7 +126,7 @@ function ProductListItem({ product }: { product: Product }) {
         </div>
         <button
           className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors"
-          style={{ background: "#00BFB3" }}
+          style={{ background: "#EE4D2D" }}
           onClick={(e) => {
             e.stopPropagation();
             addToCart(product);
@@ -202,7 +202,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
         </button>
         <button
           className="absolute bottom-0 inset-x-0 py-2 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 translate-y-full group-hover:translate-y-0 transition-all duration-200"
-          style={{ background: "rgba(0,191,179,0.92)" }}
+          style={{ background: "rgba(238,77,45,0.92)" }}
           onClick={(e) => {
             e.stopPropagation();
             addToCart(product);
@@ -239,7 +239,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
             ) : null}
           </div>
           {product.shippingFee === 0 ? (
-            <span className="text-[10px] font-medium" style={{ color: "#00BFB3" }}>
+            <span className="text-[10px] font-medium" style={{ color: "#EE4D2D" }}>
               Free ship
             </span>
           ) : null}
@@ -465,7 +465,7 @@ export function SearchPage() {
         <button
           type="submit"
           className="px-6 py-3 rounded-xl text-white font-semibold text-sm"
-          style={{ background: "#00BFB3" }}
+          style={{ background: "#EE4D2D" }}
         >
           {t("search.submit")}
         </button>
@@ -478,7 +478,7 @@ export function SearchPage() {
           className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
           style={
             !selectedCat
-              ? { background: "#00BFB3", color: "#fff" }
+              ? { background: "#EE4D2D", color: "#fff" }
               : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
           }
         >
@@ -491,7 +491,7 @@ export function SearchPage() {
             className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
             style={
               selectedCat === cat.id
-                ? { background: "#00BFB3", color: "#fff" }
+                ? { background: "#EE4D2D", color: "#fff" }
                 : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
             }
           >
@@ -531,14 +531,14 @@ export function SearchPage() {
                   key={opt.v}
                   onClick={() => setSortBy(opt.v)}
                   className="w-full text-left text-sm py-1.5 flex items-center gap-2"
-                  style={{ color: sortBy === opt.v ? "#00BFB3" : "#4b5563" }}
+                  style={{ color: sortBy === opt.v ? "#EE4D2D" : "#4b5563" }}
                 >
                   <div
                     className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
-                    style={{ borderColor: sortBy === opt.v ? "#00BFB3" : "#d1d5db" }}
+                    style={{ borderColor: sortBy === opt.v ? "#EE4D2D" : "#d1d5db" }}
                   >
                     {sortBy === opt.v ? (
-                      <div className="w-2 h-2 rounded-full" style={{ background: "#00BFB3" }} />
+                      <div className="w-2 h-2 rounded-full" style={{ background: "#EE4D2D" }} />
                     ) : null}
                   </div>
                   {opt.l}
@@ -555,14 +555,14 @@ export function SearchPage() {
                   onChange={(e) => setPriceMin(e.target.value)}
                   placeholder={t("search.priceFrom")}
                   type="number"
-                  className="flex-1 px-3 py-2 border border-border rounded-lg text-xs outline-none focus:border-[#00BFB3]"
+                  className="flex-1 px-3 py-2 border border-border rounded-lg text-xs outline-none focus:border-[#EE4D2D]"
                 />
                 <input
                   value={priceMax}
                   onChange={(e) => setPriceMax(e.target.value)}
                   placeholder={t("search.priceTo")}
                   type="number"
-                  className="flex-1 px-3 py-2 border border-border rounded-lg text-xs outline-none focus:border-[#00BFB3]"
+                  className="flex-1 px-3 py-2 border border-border rounded-lg text-xs outline-none focus:border-[#EE4D2D]"
                 />
               </div>
               {[
@@ -580,11 +580,11 @@ export function SearchPage() {
                   className="mt-1 mr-1 px-2.5 py-1 rounded-full text-xs border transition-colors"
                   style={{
                     borderColor:
-                      priceMin === range.min && priceMax === range.max ? "#00BFB3" : "#e5e7eb",
-                    color: priceMin === range.min && priceMax === range.max ? "#00BFB3" : "#6b7280",
+                      priceMin === range.min && priceMax === range.max ? "#EE4D2D" : "#e5e7eb",
+                    color: priceMin === range.min && priceMax === range.max ? "#EE4D2D" : "#6b7280",
                     background:
                       priceMin === range.min && priceMax === range.max
-                        ? "rgba(0,191,179,0.08)"
+                        ? "rgba(238,77,45,0.08)"
                         : "transparent",
                   }}
                 >
@@ -601,7 +601,7 @@ export function SearchPage() {
                   key={r}
                   onClick={() => setMinRating(minRating === r ? 0 : r)}
                   className="w-full flex items-center gap-2 py-1.5 text-sm"
-                  style={{ color: minRating === r ? "#00BFB3" : "#4b5563" }}
+                  style={{ color: minRating === r ? "#EE4D2D" : "#4b5563" }}
                 >
                   <div className="flex">
                     {Array.from({ length: 5 }).map((_, i) => (
@@ -626,7 +626,7 @@ export function SearchPage() {
               >
                 <div
                   className="w-10 h-5 rounded-full flex items-center transition-all duration-200 px-0.5"
-                  style={{ background: freeShipOnly ? "#00BFB3" : "#d1d5db" }}
+                  style={{ background: freeShipOnly ? "#EE4D2D" : "#d1d5db" }}
                 >
                   <div
                     className="w-4 h-4 rounded-full bg-card shadow transition-transform duration-200"
@@ -692,7 +692,7 @@ export function SearchPage() {
                   onClick={() => setViewMode("grid")}
                   className="p-2.5 transition-colors"
                   style={{
-                    background: viewMode === "grid" ? "#00BFB3" : "transparent",
+                    background: viewMode === "grid" ? "#EE4D2D" : "transparent",
                     color: viewMode === "grid" ? "white" : "#6b7280",
                   }}
                 >
@@ -702,7 +702,7 @@ export function SearchPage() {
                   onClick={() => setViewMode("list")}
                   className="p-2.5 transition-colors"
                   style={{
-                    background: viewMode === "list" ? "#00BFB3" : "transparent",
+                    background: viewMode === "list" ? "#EE4D2D" : "transparent",
                     color: viewMode === "list" ? "white" : "#6b7280",
                   }}
                 >
@@ -729,7 +729,7 @@ export function SearchPage() {
               {selectedCat ? (
                 <span
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
-                  style={{ background: "#00BFB3" }}
+                  style={{ background: "#EE4D2D" }}
                 >
                   {(() => {
                     const cat = categories.find((c) => c.id === selectedCat);
@@ -743,7 +743,7 @@ export function SearchPage() {
               {selectedBrand ? (
                 <span
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
-                  style={{ background: "#00BFB3" }}
+                  style={{ background: "#EE4D2D" }}
                 >
                   {selectedBrand}
                   <button onClick={() => setSelectedBrand("")}>
@@ -754,7 +754,7 @@ export function SearchPage() {
               {priceMin || priceMax ? (
                 <span
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
-                  style={{ background: "#00BFB3" }}
+                  style={{ background: "#EE4D2D" }}
                 >
                   {priceMin ? `${priceMin}k` : "0"} – {priceMax ? `${priceMax}k` : "∞"}
                   <button
@@ -770,7 +770,7 @@ export function SearchPage() {
               {minRating > 0 ? (
                 <span
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
-                  style={{ background: "#00BFB3" }}
+                  style={{ background: "#EE4D2D" }}
                 >
                   {t("search.ratingAtLeast", { r: minRating })}
                   <button onClick={() => setMinRating(0)}>
@@ -781,7 +781,7 @@ export function SearchPage() {
               {freeShipOnly ? (
                 <span
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white"
-                  style={{ background: "#00BFB3" }}
+                  style={{ background: "#EE4D2D" }}
                 >
                   {t("search.freeShipping")}
                   <button onClick={() => setFreeShipOnly(false)}>
@@ -801,7 +801,7 @@ export function SearchPage() {
               <button
                 onClick={clearFilters}
                 className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold"
-                style={{ background: "#00BFB3" }}
+                style={{ background: "#EE4D2D" }}
               >
                 {t("search.emptyClear")}
               </button>
@@ -825,8 +825,8 @@ export function SearchPage() {
             <div className="mt-8 text-center">
               <button
                 onClick={() => setPageSize((s) => s + 20)}
-                className="px-8 py-3 rounded-full border-2 text-sm font-semibold transition-all hover:text-white hover:bg-[#00BFB3]"
-                style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
+                className="px-8 py-3 rounded-full border-2 text-sm font-semibold transition-all hover:text-white hover:bg-[#EE4D2D]"
+                style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
               >
                 {t("search.loadMore", { count: Math.min(20, remaining) })}
               </button>

@@ -35,7 +35,7 @@ function SectionHeader({
 }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const color = accent === "teal" ? "#00BFB3" : "#FF6200";
+  const color = accent === "teal" ? "#EE4D2D" : "#FF6200";
   const cta = ctaLabel ?? t("home.viewAll");
   return (
     <div className="flex items-end justify-between mb-6">
@@ -190,6 +190,20 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
   );
 }
 
+// ─── Product Card Skeleton ─────────────────────────────────────────────────────
+function ProductCardSkeleton() {
+  return (
+    <div className="rounded-[4px] overflow-hidden bg-card border border-border">
+      <div className="aspect-square bg-muted animate-pulse" />
+      <div className="p-2 space-y-2">
+        <div className="h-4 bg-muted rounded animate-pulse w-full" />
+        <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+        <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+      </div>
+    </div>
+  );
+}
+
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 function ComingSoonCard({
   icon,
@@ -218,7 +232,7 @@ function HeroSection() {
   return (
     <div
       className="relative overflow-hidden rounded-3xl text-white shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)]"
-      style={{ background: "linear-gradient(135deg, #006B65 0%, #009990 50%, #00BFB3 100%)" }}
+      style={{ background: "linear-gradient(135deg, #EE4D2D 0%, #FF6633 50%, #FF8A65 100%)" }}
     >
       <div
         className="absolute -right-24 -top-24 w-72 h-72 rounded-full opacity-20"
@@ -247,7 +261,7 @@ function HeroSection() {
           <button
             onClick={() => navigate("/search")}
             className="px-6 py-3 rounded-2xl font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center gap-2"
-            style={{ background: "linear-gradient(135deg, #FF6200 0%, #FF8C00 100%)" }}
+            style={{ background: "white", color: "#EE4D2D" }}
           >
             {t("home.hero.ctaShop")} <IconChevronRight size={16} />
           </button>
@@ -533,9 +547,9 @@ function CategoriesSection() {
 function TrustBar() {
   const { t } = useTranslation();
   const items = [
-    { icon: IconTruck, textKey: "trust.freeShipping", subKey: "trust.freeShippingSub", color: "#00BFB3" },
-    { icon: IconShield, textKey: "trust.authentic", subKey: "trust.authenticSub", color: "#3B82F6" },
-    { icon: IconRefresh, textKey: "trust.returns", subKey: "trust.returnsSub", color: "#10B981" },
+    { icon: IconTruck, textKey: "trust.freeShipping", subKey: "trust.freeShippingSub", color: "#EE4D2D" },
+    { icon: IconShield, textKey: "trust.authentic", subKey: "trust.authenticSub", color: "#FF6633" },
+    { icon: IconRefresh, textKey: "trust.returns", subKey: "trust.returnsSub", color: "#26AA99" },
     { icon: IconHeadphones, textKey: "trust.support247", subKey: "trust.support247Sub", color: "#F59E0B" },
   ];
   return (
@@ -656,7 +670,7 @@ function SellerShowcase() {
           <button
             onClick={() => navigate("/search")}
             className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "#00BFB3" }}
+            style={{ background: "#EE4D2D" }}
           >
             {t("home.sellersSection.emptyCta")} <IconChevronRight size={14} />
           </button>
@@ -748,10 +762,10 @@ function ProductsSection() {
       <div className="flex items-end justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <IconSparkles size={18} style={{ color: "#00BFB3" }} />
+            <IconSparkles size={18} style={{ color: "#EE4D2D" }} />
             <span
               className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "#00BFB3" }}
+              style={{ color: "#EE4D2D" }}
             >
               {t("home.forYou")}
             </span>
@@ -767,7 +781,7 @@ function ProductsSection() {
         <button
           onClick={() => navigate("/search")}
           className="group flex items-center gap-1.5 text-sm font-semibold transition-all px-3 py-1.5 rounded-full hover:bg-muted"
-          style={{ color: "#00BFB3" }}
+          style={{ color: "#EE4D2D" }}
         >
           {t("home.viewAll")}{" "}
           <IconChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
@@ -782,12 +796,12 @@ function ProductsSection() {
             onClick={() => setActiveTab(tab.id)}
             className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
               activeTab === tab.id
-                ? "text-white shadow-[0_4px_12px_rgba(0,191,179,0.35)]"
+                ? "text-white shadow-[0_4px_12px_rgba(238,77,45,0.35)]"
                 : "bg-card text-muted-foreground border border-border"
             }`}
             style={
               activeTab === tab.id
-                ? { background: "#00BFB3" }
+                ? { background: "#EE4D2D" }
                 : undefined
             }
           >
@@ -803,7 +817,7 @@ function ProductsSection() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
             // eslint-disable-next-line react/no-array-index-key -- skeleton placeholder
-            <div key={i} className="rounded-2xl bg-muted animate-pulse aspect-[3/4]" />
+            <ProductCardSkeleton key={i} />
           ))}
         </div>
       ) : productsError ? (
@@ -824,9 +838,9 @@ function ProductsSection() {
         <button
           onClick={() => navigate("/search")}
           className="px-8 py-3 rounded-full font-semibold text-sm border-2 transition-all hover:text-white hover:shadow-lg"
-          style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
+          style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#00BFB3";
+            e.currentTarget.style.background = "#EE4D2D";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = "transparent";
@@ -898,7 +912,7 @@ function Bestsellers() {
               className="w-12 h-12 rounded-lg object-cover shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground line-clamp-2 leading-tight group-hover:text-[#00BFB3] transition-colors">
+              <p className="text-xs font-medium text-foreground line-clamp-2 leading-tight group-hover:text-[#EE4D2D] transition-colors">
                 {p.name}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -931,7 +945,7 @@ function AppBanner() {
   return (
     <div
       className="rounded-2xl overflow-hidden relative"
-      style={{ background: "linear-gradient(135deg, #00BFB3 0%, #009990 100%)", minHeight: 120 }}
+      style={{ background: "linear-gradient(135deg, #EE4D2D 0%, #FF6633 100%)", minHeight: 120 }}
     >
       <div
         className="absolute right-0 top-0 bottom-0 w-64 opacity-10"
@@ -958,14 +972,14 @@ function AppBanner() {
           <button
             onClick={() => comingSoon("Mobile app")}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
-            style={{ color: "#009990" }}
+            style={{ color: "#EE4D2D" }}
           >
             <IconBrandApple size={18} stroke={2} /> {t("home.appStore")}
           </button>
           <button
             onClick={() => comingSoon("Mobile app")}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
-            style={{ color: "#009990" }}
+            style={{ color: "#EE4D2D" }}
           >
             <IconBrandGooglePlay size={18} stroke={2} /> {t("home.googlePlay")}
           </button>
@@ -989,7 +1003,7 @@ function UserWidget() {
             <div className="flex items-center gap-3 mb-4">
               <div
                 className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold"
-                style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+                style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
               >
                 {user.name.charAt(0)}
               </div>
@@ -1000,7 +1014,7 @@ function UserWidget() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: t("home.userStats.cart"), value: cartCount, color: "#00BFB3", path: "/cart" },
+                { label: t("home.userStats.cart"), value: cartCount, color: "#EE4D2D", path: "/cart" },
                 { label: t("home.userStats.wishlist"), value: wishlist.length, color: "#FF6200", path: "/wishlist" },
                 { label: t("home.userStats.orders"), value: "—", color: "#3B82F6", path: "/orders" },
                 { label: t("home.userStats.vouchers"), value: "—", color: "#10B981", path: "/profile" },
@@ -1023,9 +1037,9 @@ function UserWidget() {
           <div className="text-center py-2">
             <div
               className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-              style={{ background: "rgba(0, 191, 179, 0.12)" }}
+              style={{ background: "rgba(238, 77, 45, 0.12)" }}
             >
-              <IconUserCircle size={32} stroke={1.75} style={{ color: "#00BFB3" }} />
+              <IconUserCircle size={32} stroke={1.75} style={{ color: "#EE4D2D" }} />
             </div>
             <p className="font-semibold text-foreground mb-1">{t("home.greetingTitle")}</p>
             <p className="text-xs text-muted-foreground mb-4">{t("home.greetingSubtitle")}</p>
@@ -1033,14 +1047,14 @@ function UserWidget() {
               <button
                 onClick={() => navigate("/login")}
                 className="flex-1 py-2 rounded-xl text-sm font-semibold text-white"
-                style={{ background: "#00BFB3" }}
+                style={{ background: "#EE4D2D" }}
               >
                 {t("home.signIn")}
               </button>
               <button
                 onClick={() => navigate("/login")}
                 className="flex-1 py-2 rounded-xl text-sm font-semibold border"
-                style={{ color: "#00BFB3", borderColor: "#00BFB3" }}
+                style={{ color: "#EE4D2D", borderColor: "#EE4D2D" }}
               >
                 {t("home.signUp")}
               </button>

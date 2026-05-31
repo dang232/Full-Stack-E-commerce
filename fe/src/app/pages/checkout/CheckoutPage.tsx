@@ -227,7 +227,7 @@ export function CheckoutPage() {
         <button
           onClick={() => login("/checkout")}
           className="px-8 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
-          style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+          style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
         >
           <IconLogin size={16} /> {t("auth.login")}
         </button>
@@ -251,7 +251,7 @@ export function CheckoutPage() {
         <button
           onClick={() => navigate("/")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
-          style={{ background: "#00BFB3" }}
+          style={{ background: "#EE4D2D" }}
         >
           {t("checkout.continueShopping")}
         </button>
@@ -447,7 +447,7 @@ export function CheckoutPage() {
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
                   style={{
-                    background: isDone ? "#00BFB3" : isActive ? "#FF6200" : "#e5e7eb",
+                    background: isDone ? "#EE4D2D" : isActive ? "#FF6200" : "#e5e7eb",
                     color: isDone || isActive ? "white" : "#9ca3af",
                   }}
                 >
@@ -455,7 +455,7 @@ export function CheckoutPage() {
                 </div>
                 <span
                   className={`text-xs mt-1 font-medium ${
-                    isActive ? "text-foreground" : isDone ? "text-[#00BFB3]" : "text-muted-foreground"
+                    isActive ? "text-foreground" : isDone ? "text-[#EE4D2D]" : "text-muted-foreground"
                   }`}
                 >
                   {t(s.labelKey)}
@@ -464,7 +464,7 @@ export function CheckoutPage() {
               {i < STEPS.length - 1 ? (
                 <div
                   className="w-16 sm:w-24 h-0.5 mb-5 mx-1 transition-colors"
-                  style={{ background: isDone ? "#00BFB3" : "#e5e7eb" }}
+                  style={{ background: isDone ? "#EE4D2D" : "#e5e7eb" }}
                 />
               ) : null}
             </div>

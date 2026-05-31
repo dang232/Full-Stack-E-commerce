@@ -90,7 +90,7 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
           ) : (
             <span
               className="text-lg font-black text-white w-full h-full flex items-center justify-center"
-              style={{ background: "#00BFB3" }}
+              style={{ background: "#EE4D2D" }}
             >
               {initial}
             </span>
@@ -111,7 +111,7 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
         <Link
           to={`/sellers/${seller.id}`}
           className="shrink-0 px-4 py-2 rounded-xl text-sm font-semibold border transition-all hover:bg-muted"
-          style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
+          style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
         >
           {t("sellerDetail.visitShop")}
         </Link>
@@ -289,7 +289,7 @@ export function ProductPage() {
                 key={img}
                 onClick={() => setImageIdx(i)}
                 className="shrink-0 w-18 h-18 w-[72px] h-[72px] rounded-xl overflow-hidden border-2 transition-colors"
-                style={{ borderColor: i === imageIdx ? "#00BFB3" : "#e5e7eb" }}
+                style={{ borderColor: i === imageIdx ? "#EE4D2D" : "#e5e7eb" }}
               >
                 <ImageWithFallback src={img} alt="" className="w-full h-full object-cover" />
               </button>
@@ -357,7 +357,7 @@ export function ProductPage() {
           <div
             className="rounded-2xl p-5"
             style={{
-              background: "linear-gradient(135deg, rgba(0,191,179,0.06), rgba(255,98,0,0.04))",
+              background: "linear-gradient(135deg, rgba(238,77,45,0.06), rgba(255,98,0,0.04))",
             }}
           >
             <div className="flex items-end gap-3 mb-2">
@@ -379,7 +379,7 @@ export function ProductPage() {
               ) : null}
             </div>
             {savings > 0 ? (
-              <p className="text-sm font-medium" style={{ color: "#00BFB3" }}>
+              <p className="text-sm font-medium" style={{ color: "#EE4D2D" }}>
                 {t("product.savings", { amount: formatPrice(savings) })}
               </p>
             ) : null}
@@ -398,9 +398,9 @@ export function ProductPage() {
                     onClick={() => setSelectedColor(color)}
                     className="px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all"
                     style={{
-                      borderColor: selectedColor === color ? "#00BFB3" : "#e5e7eb",
-                      background: selectedColor === color ? "rgba(0,191,179,0.08)" : "transparent",
-                      color: selectedColor === color ? "#00BFB3" : "#374151",
+                      borderColor: selectedColor === color ? "#EE4D2D" : "#e5e7eb",
+                      background: selectedColor === color ? "rgba(238,77,45,0.08)" : "transparent",
+                      color: selectedColor === color ? "#EE4D2D" : "#374151",
                     }}
                   >
                     {color}
@@ -419,7 +419,7 @@ export function ProductPage() {
                 </p>
                 <button
                   className="text-xs font-medium underline"
-                  style={{ color: "#00BFB3" }}
+                  style={{ color: "#EE4D2D" }}
                   onClick={() => comingSoon("Size guide")}
                 >
                   {t("product.sizeGuide")}
@@ -432,9 +432,9 @@ export function ProductPage() {
                     onClick={() => setSelectedSize(size)}
                     className="w-12 h-10 rounded-lg border-2 text-sm font-medium transition-all"
                     style={{
-                      borderColor: selectedSize === size ? "#00BFB3" : "#e5e7eb",
-                      background: selectedSize === size ? "rgba(0,191,179,0.08)" : "transparent",
-                      color: selectedSize === size ? "#00BFB3" : "#374151",
+                      borderColor: selectedSize === size ? "#EE4D2D" : "#e5e7eb",
+                      background: selectedSize === size ? "rgba(238,77,45,0.08)" : "transparent",
+                      color: selectedSize === size ? "#EE4D2D" : "#374151",
                     }}
                   >
                     {size}
@@ -481,15 +481,15 @@ export function ProductPage() {
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
-              className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition-all hover:bg-[rgba(0,191,179,0.06)]"
-              style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
+              className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition-all hover:bg-[rgba(238,77,45,0.06)]"
+              style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
             >
               {t("product.addToCart")}
             </button>
             <button
               onClick={handleBuyNow}
               className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white shadow-lg hover:opacity-90 transition-opacity"
-              style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
+              style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
             >
               {t("product.buyNow")}
             </button>
@@ -521,7 +521,7 @@ export function ProductPage() {
                 key={item.text}
                 className="flex flex-col items-center text-center p-3 rounded-xl bg-muted"
               >
-                <item.icon size={20} className="mb-1.5" style={{ color: "#00BFB3" }} />
+                <item.icon size={20} className="mb-1.5" style={{ color: "#EE4D2D" }} />
                 <p className="text-xs font-semibold text-foreground">{item.text}</p>
                 <p className="text-[10px] text-muted-foreground">{item.sub}</p>
               </div>
@@ -544,8 +544,8 @@ export function ProductPage() {
               onClick={() => setActiveTab(tab)}
               className="flex-1 py-4 text-sm font-semibold transition-colors"
               style={{
-                color: activeTab === tab ? "#00BFB3" : "#6b7280",
-                borderBottom: activeTab === tab ? "2px solid #00BFB3" : "2px solid transparent",
+                color: activeTab === tab ? "#EE4D2D" : "#6b7280",
+                borderBottom: activeTab === tab ? "2px solid #EE4D2D" : "2px solid transparent",
               }}
             >
               {tab === "desc"
@@ -676,13 +676,13 @@ export function ProductPage() {
                     onChange={(e) => setReviewDraft((d) => ({ ...d, comment: e.target.value }))}
                     rows={3}
                     placeholder={t("product.reviews.placeholder")}
-                    className="w-full px-3 py-2 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-card"
+                    className="w-full px-3 py-2 border border-border rounded-xl text-sm outline-none focus:border-[#EE4D2D] resize-none bg-card"
                   />
                   <button
                     onClick={() => submitReview.mutate(reviewDraft)}
                     disabled={submitReview.isPending || reviewDraft.comment.trim().length === 0}
                     className="mt-3 px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
-                    style={{ background: "#00BFB3" }}
+                    style={{ background: "#EE4D2D" }}
                   >
                     {submitReview.isPending
                       ? t("product.reviews.submitting")
@@ -693,7 +693,7 @@ export function ProductPage() {
                 <button
                   onClick={() => login(`/product/${id}`)}
                   className="text-sm font-medium"
-                  style={{ color: "#00BFB3" }}
+                  style={{ color: "#EE4D2D" }}
                 >
                   {t("product.reviews.loginToWrite")}
                 </button>
@@ -771,13 +771,13 @@ export function ProductPage() {
                     onChange={(e) => setQuestionDraft(e.target.value)}
                     rows={3}
                     placeholder={t("product.qa.placeholder")}
-                    className="w-full px-3 py-2 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-card"
+                    className="w-full px-3 py-2 border border-border rounded-xl text-sm outline-none focus:border-[#EE4D2D] resize-none bg-card"
                   />
                   <button
                     onClick={() => submitQuestion.mutate(questionDraft.trim())}
                     disabled={submitQuestion.isPending || questionDraft.trim().length === 0}
                     className="mt-3 px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
-                    style={{ background: "#00BFB3" }}
+                    style={{ background: "#EE4D2D" }}
                   >
                     {submitQuestion.isPending ? t("product.qa.submitting") : t("product.qa.submit")}
                   </button>
@@ -786,7 +786,7 @@ export function ProductPage() {
                 <button
                   onClick={() => login(`/product/${id}`)}
                   className="text-sm font-medium"
-                  style={{ color: "#00BFB3" }}
+                  style={{ color: "#EE4D2D" }}
                 >
                   {t("product.qa.loginToAsk")}
                 </button>
@@ -805,7 +805,7 @@ export function ProductPage() {
                         {q.question}
                       </p>
                       {q.answer ? (
-                        <p className="mt-2 text-sm text-muted-foreground pl-3 border-l-2 border-teal-400">
+                        <p className="mt-2 text-sm text-muted-foreground pl-3 border-l-2 border-[#EE4D2D]">
                           {t("product.qa.aPrefix")}
                           {q.answer}
                         </p>

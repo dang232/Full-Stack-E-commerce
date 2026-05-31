@@ -209,7 +209,7 @@ export function ProfilePage() {
         <button
           onClick={() => navigate("/login?next=%2Fprofile")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
-          style={{ background: "#00BFB3" }}
+          style={{ background: "#EE4D2D" }}
         >
           {t("auth.login")}
         </button>
@@ -239,7 +239,7 @@ export function ProfilePage() {
               ) : (
                 <div
                   className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto"
-                  style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+                  style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
                 >
                   {displayName.charAt(0).toUpperCase()}
                 </div>
@@ -262,7 +262,7 @@ export function ProfilePage() {
                     : t("profile.avatar.uploadCta")
                 }
                 className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow disabled:opacity-50"
-                style={{ background: "#00BFB3" }}
+                style={{ background: "#EE4D2D" }}
               >
                 <IconCamera size={13} color="white" />
               </button>
@@ -284,9 +284,9 @@ export function ProfilePage() {
               >
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(0,191,179,0.1)" }}
+                  style={{ background: "rgba(238,77,45,0.1)" }}
                 >
-                  <item.icon size={18} style={{ color: "#00BFB3" }} />
+                  <item.icon size={18} style={{ color: "#EE4D2D" }} />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">{item.label}</p>
@@ -313,9 +313,9 @@ export function ProfilePage() {
                 onClick={() => setActiveTab(tab.id)}
                 className="flex items-center gap-2 px-5 py-4 text-sm font-medium transition-colors whitespace-nowrap shrink-0"
                 style={{
-                  color: activeTab === tab.id ? "#00BFB3" : "#6b7280",
+                  color: activeTab === tab.id ? "#EE4D2D" : "#6b7280",
                   borderBottom:
-                    activeTab === tab.id ? "2px solid #00BFB3" : "2px solid transparent",
+                    activeTab === tab.id ? "2px solid #EE4D2D" : "2px solid transparent",
                   opacity: tab.id === "payment" ? 0.5 : 1,
                   cursor: tab.id === "payment" ? "not-allowed" : "pointer",
                 }}
@@ -343,7 +343,7 @@ export function ProfilePage() {
                         onClick={() => updateProfileMutation.mutate()}
                         disabled={updateProfileMutation.isPending}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white disabled:opacity-50"
-                        style={{ background: "#00BFB3" }}
+                        style={{ background: "#EE4D2D" }}
                       >
                         <IconDeviceFloppy size={14} />
                         {updateProfileMutation.isPending
@@ -355,7 +355,7 @@ export function ProfilePage() {
                     <button
                       onClick={beginEditing}
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border"
-                      style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
+                      style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
                     >
                       <IconEdit size={14} /> {t("profile.info.edit")}
                     </button>
@@ -394,7 +394,7 @@ export function ProfilePage() {
                           onChange={(e) =>
                             setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))
                           }
-                          className="w-full px-4 py-3 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] transition-colors"
+                          className="w-full px-4 py-3 border border-border rounded-xl text-sm outline-none focus:border-[#EE4D2D] transition-colors"
                         />
                       ) : (
                         <div className="px-4 py-3 rounded-xl text-sm text-foreground bg-muted">
@@ -421,7 +421,7 @@ export function ProfilePage() {
                   <button
                     onClick={() => setShowAddForm((v) => !v)}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white"
-                    style={{ background: "#00BFB3" }}
+                    style={{ background: "#EE4D2D" }}
                   >
                     <IconPlus size={14} />{" "}
                     {showAddForm
@@ -454,7 +454,7 @@ export function ProfilePage() {
                           onChange={(e) =>
                             setNewAddress((prev) => ({ ...prev, [field.key]: e.target.value }))
                           }
-                          className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-[#00BFB3]"
+                          className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-[#EE4D2D]"
                         />
                       </div>
                     ))}
@@ -547,7 +547,7 @@ export function ProfilePage() {
                           }}
                           disabled={setDefaultMutation.isPending}
                           className="mt-3 text-xs font-medium disabled:opacity-50"
-                          style={{ color: "#00BFB3" }}
+                          style={{ color: "#EE4D2D" }}
                         >
                           {t("profile.addresses.setDefault")}
                         </button>
@@ -580,7 +580,7 @@ export function ProfilePage() {
                     window.open(`${url}/realms/${realm}/account`, "_blank", "noopener");
                   }}
                   className="px-4 py-2.5 rounded-xl text-white text-sm font-semibold"
-                  style={{ background: "#00BFB3" }}
+                  style={{ background: "#EE4D2D" }}
                 >
                   {t("profile.security.openKeycloak")}
                 </button>

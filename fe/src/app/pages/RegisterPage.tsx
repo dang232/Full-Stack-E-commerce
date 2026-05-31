@@ -95,7 +95,7 @@ export function RegisterPage() {
       {/* Brand panel — same shell as LoginPage so the two pages feel like a pair. */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden lg:sticky lg:top-0 lg:max-h-screen"
-        style={{ background: "linear-gradient(135deg, #00BFB3 0%, #009990 50%, #006b65 100%)" }}
+        style={{ background: "linear-gradient(135deg, #EE4D2D 0%, #FF6633 50%, #CC3311 100%)" }}
       >
         <div
           className="absolute -top-20 -left-20 w-64 h-64 rounded-full opacity-20 bg-card pointer-events-none"
@@ -148,7 +148,7 @@ export function RegisterPage() {
           <div className="flex items-center gap-3 mb-8 lg:hidden">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: "#00BFB3" }}
+              style={{ background: "#EE4D2D" }}
             >
               <IconSparkles size={20} color="white" />
             </div>
@@ -178,7 +178,7 @@ export function RegisterPage() {
                   required
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
                 />
               </div>
               <div>
@@ -192,7 +192,7 @@ export function RegisterPage() {
                   required
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
                 />
               </div>
             </div>
@@ -209,7 +209,7 @@ export function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 aria-describedby={error ? "register-error" : undefined}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
               />
             </div>
 
@@ -224,7 +224,7 @@ export function RegisterPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+84..."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
               />
             </div>
 
@@ -240,7 +240,7 @@ export function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
+                  className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
                 />
                 <button
                   type="button"
@@ -264,7 +264,7 @@ export function RegisterPage() {
                 required
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
               />
             </div>
 
@@ -283,7 +283,7 @@ export function RegisterPage() {
               type="submit"
               disabled={!ready || submitting}
               className="w-full py-3 rounded-xl text-white font-bold text-base shadow-lg hover:opacity-90 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+              style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
             >
               {submitting ? (
                 <>
@@ -303,7 +303,7 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => navigate(`/login?next=${encodeURIComponent(next)}`)}
-              className="font-semibold text-[#00BFB3] hover:underline"
+              className="font-semibold text-[#EE4D2D] hover:underline"
             >
               {t("register.signIn")}
             </button>

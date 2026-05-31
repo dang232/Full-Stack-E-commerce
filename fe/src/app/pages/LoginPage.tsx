@@ -73,7 +73,7 @@ export function LoginPage() {
           <div className="flex items-center gap-3 mb-8 lg:hidden">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: "#00BFB3" }}
+              style={{ background: "#EE4D2D" }}
             >
               <IconSparkles size={20} color="white" />
             </div>
@@ -104,7 +104,7 @@ export function LoginPage() {
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder={t("login.form.identifierPlaceholder")}
                 aria-describedby={error ? "login-error" : undefined}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
               />
             </div>
 
@@ -121,7 +121,7 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t("login.form.passwordPlaceholder")}
-                  className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
+                  className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-border text-sm outline-none focus:border-[#EE4D2D] focus:ring-2 focus:ring-[#EE4D2D]/20 bg-card"
                 />
                 <button
                   type="button"
@@ -149,7 +149,7 @@ export function LoginPage() {
               <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
                 <input
                   type="checkbox"
-                  className="rounded border-gray-300 text-[#00BFB3] focus:ring-[#00BFB3]"
+                  className="rounded border-gray-300 text-[#EE4D2D] focus:ring-[#EE4D2D]"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
@@ -158,7 +158,7 @@ export function LoginPage() {
               <button
                 type="button"
                 onClick={() => void navigate("/password-reset")}
-                className="font-medium text-[#00BFB3] hover:underline"
+                className="font-medium text-[#EE4D2D] hover:underline"
               >
                 {t("login.form.forgot")}
               </button>
@@ -168,7 +168,7 @@ export function LoginPage() {
               type="submit"
               disabled={!ready || submitting}
               className="w-full py-3 rounded-xl text-white font-bold text-base shadow-lg hover:opacity-90 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+              style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
             >
               {submitting ? (
                 <>
@@ -188,7 +188,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => navigate(`/register?next=${encodeURIComponent(next)}`)}
-              className="font-semibold text-[#00BFB3] hover:underline"
+              className="font-semibold text-[#EE4D2D] hover:underline"
             >
               {t("login.form.signUp")}
             </button>
@@ -210,7 +210,7 @@ function BrandPanel({ trustItems, t }: BrandPanelProps) {
   return (
     <div
       className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden lg:sticky lg:top-0 lg:max-h-screen"
-      style={{ background: "linear-gradient(135deg, #00BFB3 0%, #009990 50%, #006b65 100%)" }}
+      style={{ background: "linear-gradient(135deg, #EE4D2D 0%, #FF6633 50%, #CC3311 100%)" }}
     >
       <div
         className="absolute -top-20 -left-20 w-64 h-64 rounded-full opacity-20 bg-card pointer-events-none"

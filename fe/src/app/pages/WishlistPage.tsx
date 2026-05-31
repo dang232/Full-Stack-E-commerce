@@ -113,7 +113,7 @@ export function WishlistPage() {
           <button
             onClick={() => navigate("/")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(135deg, #00BFB3, #009990)" }}
+            style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
           >
             {t("wishlist.discover")}
           </button>
@@ -225,7 +225,7 @@ export function WishlistPage() {
                       <button
                         onClick={() => handleAddToCart(id)}
                         className="w-full py-2 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
-                        style={{ background: "#00BFB3" }}
+                        style={{ background: "#EE4D2D" }}
                       >
                         <IconShoppingCart size={13} /> {t("wishlist.addToCart")}
                       </button>
