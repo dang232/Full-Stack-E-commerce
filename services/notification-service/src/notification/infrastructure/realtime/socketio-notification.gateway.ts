@@ -18,6 +18,11 @@ import {
   NotificationRepository,
   NOTIFICATION_REPOSITORY,
 } from '../../domain/port/outbound/notification.repository';
+import {
+  NotificationPreferencesRepository,
+  NOTIFICATION_PREFERENCES_REPOSITORY,
+} from '../../domain/port/outbound/notification-preferences.repository';
+import { NotificationChannel } from '../../domain/model/notification-preferences';
 import { DeliveryStatusValue } from '../../domain/model/delivery-status';
 
 @WebSocketGateway({
@@ -44,6 +49,8 @@ export class SocketioNotificationGateway
     private readonly connectionRegistry: ConnectionRegistryPort,
     @Inject(NOTIFICATION_REPOSITORY)
     private readonly notificationRepo: NotificationRepository,
+    @Inject(NOTIFICATION_PREFERENCES_REPOSITORY)
+    private readonly preferencesRepo: NotificationPreferencesRepository,
   ) {
     const jwkSetUri = this.configService.get<string>(
       'KEYCLOAK_JWK_SET_URI',
@@ -86,7 +93,17 @@ export class SocketioNotificationGateway
         const notifications = await this.notificationRepo.findByIds(offlineIds);
 
         if (notifications.length > 0) {
-          client.emit('notification:catch-up', notifications);
+          // Filter out notifications whose type has IN_APP disabled in current preferences
+          const preferences = await this.preferencesRepo.findByUserId(userId);
+          const filtered = preferences
+            ? notifications.filter((n) =>
+                preferences.isChannelEnabled(n.type, NotificationChannel.IN_APP),
+              )
+            : notifications;
+
+          if (filtered.length > 0) {
+            client.emit('notification:catch-up', filtered);
+          }
         }
       }
 

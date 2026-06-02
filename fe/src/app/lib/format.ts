@@ -42,7 +42,7 @@ function relativeTimeFormatter(locale: string): Intl.RelativeTimeFormat {
  */
 export function formatRelativeTime(
   value: string | number | Date | null | undefined,
-  locale: string = "vi-VN",
+  locale = "vi-VN",
 ): string {
   if (value === null || value === undefined || value === "") return "";
   const d = value instanceof Date ? value : new Date(value);

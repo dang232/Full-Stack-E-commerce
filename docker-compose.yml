@@ -855,6 +855,7 @@ services:
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
 
   monitoring-service-v2:
+    profiles: ["apps"]
     build: ./services/monitoring-service-v2
     container_name: vnshop-monitoring
     ports:

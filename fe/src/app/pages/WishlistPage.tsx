@@ -11,9 +11,9 @@ import { toast } from "sonner";
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useAuth } from "../hooks/use-auth";
 import { useCart } from "../hooks/use-cart";
+import { productDetailOptions } from "../hooks/use-products";
 import { useWishlist } from "../hooks/use-wishlist";
 import { ApiError } from "../lib/api";
-import { productById } from "../lib/api/endpoints/products";
 import { formatPrice } from "../lib/format";
 
 export function WishlistPage() {
@@ -27,8 +27,7 @@ export function WishlistPage() {
 
   const queries = useQueries({
     queries: wishlist.ids.map((id) => ({
-      queryKey: ["catalog", "products", "detail", id],
-      queryFn: () => productById(id),
+      ...productDetailOptions(id),
       retry: false,
       staleTime: 5 * 60_000,
     })),

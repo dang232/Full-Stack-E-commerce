@@ -6,6 +6,7 @@ import { io, Socket as ClientSocket } from 'socket.io-client';
 import { SocketioNotificationGateway } from '../socketio-notification.gateway';
 import { CONNECTION_REGISTRY_PORT } from '../../../domain/port/outbound/connection-registry.port';
 import { NOTIFICATION_REPOSITORY } from '../../../domain/port/outbound/notification.repository';
+import { NOTIFICATION_PREFERENCES_REPOSITORY } from '../../../domain/port/outbound/notification-preferences.repository';
 
 // Mock jsonwebtoken to bypass JWKS verification in tests
 jest.mock('jsonwebtoken', () => ({
@@ -53,6 +54,11 @@ describe('SocketioNotificationGateway', () => {
     markAllReadForUser: jest.fn(),
   };
 
+  const mockPrefsRepo = {
+    findByUserId: jest.fn().mockResolvedValue(null),
+    save: jest.fn().mockResolvedValue(undefined),
+  };
+
   const mockConfig = {
     get: jest
       .fn()
@@ -67,6 +73,7 @@ describe('SocketioNotificationGateway', () => {
         SocketioNotificationGateway,
         { provide: CONNECTION_REGISTRY_PORT, useValue: mockRegistry },
         { provide: NOTIFICATION_REPOSITORY, useValue: mockRepo },
+        { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
         { provide: ConfigService, useValue: mockConfig },
       ],
     }).compile();

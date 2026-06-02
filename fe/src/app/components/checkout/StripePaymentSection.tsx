@@ -13,7 +13,7 @@ interface Props {
 }
 
 const STRIPE_ENABLED = import.meta.env.VITE_STRIPE_ENABLED === "true";
-const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "";
+const PUBLISHABLE_KEY: string = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "";
 
 const stripePromise: Promise<Stripe | null> | null = PUBLISHABLE_KEY
   ? loadStripe(PUBLISHABLE_KEY)
@@ -113,7 +113,9 @@ function StripeForm({ orderId, onCompleted }: { orderId: string; onCompleted: ()
       } catch {
         // ignore transient failures
       }
-      window.setTimeout(tick, 2000);
+      window.setTimeout(() => {
+        void tick();
+      }, 2000);
     };
     void tick();
   };

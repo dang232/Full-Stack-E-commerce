@@ -1,25 +1,25 @@
 import {
-  IconShoppingCart,
-  IconTruck,
-  IconPackage,
-  IconX,
-  IconCreditCard,
-  IconReceiptRefund,
+  IconArrowBack,
+  IconBell,
   IconBuildingStore,
   IconCircleCheck,
   IconCircleX,
+  IconCreditCard,
   IconMessage,
-  IconArrowBack,
+  IconPackage,
+  IconReceiptRefund,
+  IconShoppingCart,
+  IconTruck,
   IconWallet,
-  IconBell,
+  IconX,
+  type Icon,
 } from "@tabler/icons-react";
 
 import type { NotificationType } from "../../types/api/notification";
 
-const ICON_MAP: Record<
-  NotificationType,
-  React.ComponentType<{ size?: number; className?: string }>
-> = {
+type TablerIcon = React.ForwardRefExoticComponent<React.ComponentPropsWithoutRef<Icon> & React.RefAttributes<Icon>>;
+
+const ICON_MAP: Record<NotificationType, TablerIcon> = {
   ORDER_CREATED: IconShoppingCart,
   ORDER_CANCELLED: IconX,
   ORDER_SHIPPED: IconTruck,

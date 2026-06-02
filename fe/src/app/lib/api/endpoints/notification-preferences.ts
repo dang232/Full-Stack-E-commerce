@@ -1,6 +1,5 @@
 import {
   notificationPreferencesSchema,
-  type NotificationPreferences,
   type TypePreference,
 } from "../../../types/api/notification-preferences";
 import { api } from "../client";

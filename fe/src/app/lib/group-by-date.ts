@@ -37,7 +37,7 @@ function monthFormatter(locale: string): Intl.DateTimeFormat {
 export function groupByDate<T>(
   items: T[],
   dateAccessor: (item: T) => string | number | Date | null | undefined,
-  locale: string = "vi-VN",
+  locale = "vi-VN",
 ): DateSection<T>[] {
   const now = new Date();
   const todayStart = startOfDay(now);

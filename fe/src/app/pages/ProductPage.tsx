@@ -192,7 +192,7 @@ export function ProductPage() {
     void navigate("/checkout");
   };
 
-  const images = product.images.length > 0 ? product.images : [product.image];
+  const images = product.images && product.images.length > 0 ? product.images : [product.image];
   const savings = product.originalPrice ? product.originalPrice - product.price : 0;
 
   return (
@@ -219,17 +219,7 @@ export function ProductPage() {
           <div
             className="relative bg-card rounded-2xl overflow-hidden shadow-sm"
             style={{ aspectRatio: "1" }}
-            tabIndex={0}
             aria-label="Product image gallery"
-            onKeyDown={(e) => {
-              if (e.key === "ArrowLeft") {
-                e.preventDefault();
-                setImageIdx((i) => (i - 1 + images.length) % images.length);
-              } else if (e.key === "ArrowRight") {
-                e.preventDefault();
-                setImageIdx((i) => (i + 1) % images.length);
-              }
-            }}
           >
             <AnimatePresence mode="wait">
               <motion.img
@@ -577,7 +567,7 @@ export function ProductPage() {
                   </div>
                 ))}
               </div>
-              {product.tags.length > 0 ? (
+              {product.tags && product.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {product.tags.map((tag) => (
                     <span
@@ -636,9 +626,7 @@ export function ProductPage() {
 
               {/* Empty-state card — leads the tab when no reviews exist
                   so the form below it is the obvious next action. */}
-              {!liveReviewsQuery.isLoading &&
-              liveReviewsQuery.data &&
-              liveReviewsQuery.data.length === 0 ? (
+              {!liveReviewsQuery.isLoading && liveReviewsQuery.data?.length === 0 ? (
                 <div className="py-6 text-center rounded-2xl border border-dashed border-border">
                   <IconMessage size={36} className="mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm font-semibold text-foreground">

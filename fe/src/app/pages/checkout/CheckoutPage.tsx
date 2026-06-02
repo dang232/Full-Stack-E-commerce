@@ -332,7 +332,7 @@ export function CheckoutPage() {
           items: cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
           shippingAddress: {
             street: selectedAddress.street,
-            ward: selectedAddress.ward,
+            ward: selectedAddress.ward ?? undefined,
             district: selectedAddress.district ?? "",
             city: selectedAddress.city,
           },

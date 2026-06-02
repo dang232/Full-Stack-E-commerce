@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
+import { io, type Socket } from "socket.io-client";
 
 import { showNotificationToast } from "../components/notification-toast";
 import { notificationSchema, type Notification } from "../types/api/notification";
@@ -17,6 +17,15 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 const NOTIFICATIONS_KEY = ["notifications", "list"] as const;
 const UNREAD_KEY = ["notifications", "unread-count"] as const;
 const NOTIFICATION_THREADS_KEY = ["notifications", "threads"] as const;
+
+interface CachedNotificationPage {
+  content?: Notification[];
+  items?: Notification[];
+}
+
+interface CachedUnreadCount {
+  count: number;
+}
 
 /**
  * Real-time notification delivery via socket.io.
@@ -68,17 +77,17 @@ export function useNotificationSocket(): void {
         socket.emit("notification:ack", { ids: [notification.id] });
 
         // Update notifications list cache
-        qc.setQueryData(NOTIFICATIONS_KEY, (prev: any) => {
+        qc.setQueryData<CachedNotificationPage>(NOTIFICATIONS_KEY, (prev) => {
           if (!prev) return prev;
           const content = prev.content ?? prev.items ?? [];
-          if (content.some((n: Notification) => n.id === notification.id)) return prev;
+          if (content.some((n) => n.id === notification.id)) return prev;
           return { ...prev, content: [notification, ...content] };
         });
 
         // Increment unread count
-        qc.setQueryData(UNREAD_KEY, (prev: any) => {
+        qc.setQueryData<CachedUnreadCount>(UNREAD_KEY, (prev) => {
           if (!prev) return { count: 1 };
-          return { ...prev, count: (prev.count ?? 0) + 1 };
+          return { ...prev, count: prev.count + 1 };
         });
 
         // Invalidate threads (will refetch on next access)
@@ -92,10 +101,10 @@ export function useNotificationSocket(): void {
 
       socket.on("notification:catch-up", (raws: unknown[]) => {
         if (!Array.isArray(raws)) return;
-        const notifications = raws
-          .map((r) => notificationSchema.safeParse(r))
-          .filter((r) => r.success)
-          .map((r) => r.data!);
+        const notifications = raws.flatMap((r) => {
+          const result = notificationSchema.safeParse(r);
+          return result.success ? [result.data] : [];
+        });
 
         if (notifications.length === 0) return;
 
@@ -103,10 +112,10 @@ export function useNotificationSocket(): void {
         socket.emit("notification:ack", { ids: notifications.map((n) => n.id) });
 
         // Merge into cache
-        qc.setQueryData(NOTIFICATIONS_KEY, (prev: any) => {
+        qc.setQueryData<CachedNotificationPage>(NOTIFICATIONS_KEY, (prev) => {
           if (!prev) return prev;
           const content = prev.content ?? prev.items ?? [];
-          const existingIds = new Set(content.map((n: Notification) => n.id));
+          const existingIds = new Set(content.map((n) => n.id));
           const fresh = notifications.filter((n) => !existingIds.has(n.id));
           if (fresh.length === 0) return prev;
           return { ...prev, content: [...fresh, ...content] };

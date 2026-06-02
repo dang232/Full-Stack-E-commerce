@@ -1,6 +1,6 @@
 import { IconChevronRight, IconChevronLeft, IconStar, IconBolt, IconTruck, IconShield, IconRefresh, IconHeadphones, IconTrendingUp, IconAward, IconSparkles, IconGift, IconRosetteDiscountCheck, IconPackage, IconDeviceMobile, IconShirt, IconBallFootball, IconBrandApple, IconBrandGooglePlay, IconUserCircle, IconBrush } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { useState, useMemo, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";

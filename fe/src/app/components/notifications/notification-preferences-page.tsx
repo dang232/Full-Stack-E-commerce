@@ -1,5 +1,5 @@
-import { IconBellCog, IconMail, IconBell, IconBellOff } from "@tabler/icons-react";
-import { useState, useEffect } from "react";
+import { IconBell, IconBellCog, IconBellOff, IconMail } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 
 import { useNotificationPreferences } from "../../hooks/use-notification-preferences";
 import type { TypePreference, NotificationChannel } from "../../types/api/notification-preferences";
@@ -77,6 +77,7 @@ export function NotificationPreferencesPage() {
           <div className="h-8 bg-muted rounded w-48" />
           <div className="h-4 bg-muted rounded w-64" />
           {Array.from({ length: 6 }).map((_, i) => (
+            // eslint-disable-next-line react/no-array-index-key -- loading skeleton placeholders have no stable identity
             <div key={i} className="h-16 bg-muted rounded" />
           ))}
         </div>
@@ -92,7 +93,7 @@ export function NotificationPreferencesPage() {
           <IconBellCog size={24} className="text-foreground" />
           <h1 className="text-xl font-semibold text-foreground">Cài đặt thông báo</h1>
         </div>
-        {dirty && (
+        {dirty ? (
           <button
             onClick={handleSave}
             disabled={isUpdating}
@@ -101,7 +102,7 @@ export function NotificationPreferencesPage() {
           >
             {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
           </button>
-        )}
+        ) : null}
       </div>
 
       {/* Global mute toggle */}

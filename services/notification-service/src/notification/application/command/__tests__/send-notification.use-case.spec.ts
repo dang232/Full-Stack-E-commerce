@@ -2,14 +2,23 @@ import { Test } from '@nestjs/testing';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SendNotificationUseCase } from '../send-notification.use-case';
 import { NOTIFICATION_REPOSITORY } from '../../../domain/port/outbound/notification.repository';
+import { NOTIFICATION_PREFERENCES_REPOSITORY } from '../../../domain/port/outbound/notification-preferences.repository';
 import { DEDUPLICATION_PORT } from '../../../domain/port/outbound/deduplication.port';
 import { NotificationType } from '../../../domain/model/notification-type.enum';
+import {
+  NotificationChannel,
+  NotificationPreferences,
+} from '../../../domain/model/notification-preferences';
 
 describe('SendNotificationUseCase', () => {
   let useCase: SendNotificationUseCase;
   const mockRepo = {
     save: jest.fn().mockResolvedValue(undefined),
     findByIdempotencyKey: jest.fn(),
+  };
+  const mockPrefsRepo = {
+    findByUserId: jest.fn().mockResolvedValue(null),
+    save: jest.fn(),
   };
   const mockDedup = {
     isDuplicate: jest.fn().mockResolvedValue(false),
@@ -24,6 +33,7 @@ describe('SendNotificationUseCase', () => {
       providers: [
         SendNotificationUseCase,
         { provide: NOTIFICATION_REPOSITORY, useValue: mockRepo },
+        { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
         { provide: DEDUPLICATION_PORT, useValue: mockDedup },
         { provide: EventEmitter2, useValue: mockEmitter },
       ],
@@ -97,8 +107,64 @@ describe('SendNotificationUseCase', () => {
       threadTitle: 'Đơn hàng #ORD-001',
     });
 
-    expect(result.thread).not.toBeNull();
-    expect(result.thread!.threadId).toBe('order:ORD-001');
-    expect(result.thread!.threadTitle).toBe('Đơn hàng #ORD-001');
+    expect(result!.thread).not.toBeNull();
+    expect(result!.thread!.threadId).toBe('order:ORD-001');
+    expect(result!.thread!.threadTitle).toBe('Đơn hàng #ORD-001');
+  });
+
+  it('short-circuits when all channels are disabled for the notification type', async () => {
+    const prefs = NotificationPreferences.createDefault('user-1');
+    prefs.setTypeChannels(NotificationType.ORDER_CREATED, []);
+    mockPrefsRepo.findByUserId.mockResolvedValue(prefs);
+
+    const result = await useCase.execute({
+      userId: 'user-1',
+      type: NotificationType.ORDER_CREATED,
+      title: 'Suppressed',
+      body: 'Should not persist',
+    });
+
+    expect(result).toBeNull();
+    expect(mockRepo.save).not.toHaveBeenCalled();
+    expect(mockEmitter.emit).not.toHaveBeenCalled();
+  });
+
+  it('short-circuits when user is globally muted', async () => {
+    const prefs = NotificationPreferences.createDefault('user-1');
+    prefs.setMuted(true);
+    mockPrefsRepo.findByUserId.mockResolvedValue(prefs);
+
+    const result = await useCase.execute({
+      userId: 'user-1',
+      type: NotificationType.ORDER_CREATED,
+      title: 'Muted',
+      body: 'Should not persist',
+    });
+
+    expect(result).toBeNull();
+    expect(mockRepo.save).not.toHaveBeenCalled();
+    expect(mockEmitter.emit).not.toHaveBeenCalled();
+  });
+
+  it('persists but emits with suppressedChannels when only some channels are disabled', async () => {
+    const prefs = NotificationPreferences.createDefault('user-1');
+    prefs.setTypeChannels(NotificationType.ORDER_CREATED, [NotificationChannel.IN_APP]);
+    mockPrefsRepo.findByUserId.mockResolvedValue(prefs);
+
+    const result = await useCase.execute({
+      userId: 'user-1',
+      type: NotificationType.ORDER_CREATED,
+      title: 'Partial',
+      body: 'Only in-app',
+    });
+
+    expect(result).not.toBeNull();
+    expect(mockRepo.save).toHaveBeenCalled();
+    expect(mockEmitter.emit).toHaveBeenCalledWith(
+      'notification.created',
+      expect.objectContaining({
+        suppressedChannels: [NotificationChannel.EMAIL],
+      }),
+    );
   });
 });

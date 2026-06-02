@@ -50,7 +50,11 @@ export function VietQrPaymentSection({
       } catch {
         // ignore transient
       }
-      if (!cancelled) window.setTimeout(tick, 5000);
+      if (!cancelled) {
+        window.setTimeout(() => {
+          void tick();
+        }, 5000);
+      }
     };
     void tick();
     return () => {

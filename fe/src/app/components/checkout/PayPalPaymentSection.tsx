@@ -11,7 +11,7 @@ interface Props {
 }
 
 const PAYPAL_ENABLED = import.meta.env.VITE_PAYPAL_ENABLED === "true";
-const CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID ?? "";
+const CLIENT_ID: string = import.meta.env.VITE_PAYPAL_CLIENT_ID ?? "";
 
 export function PayPalPaymentSection({
   orderId,
@@ -36,16 +36,24 @@ export function PayPalPaymentSection({
         <PayPalButtons
           createOrder={async () => {
             const res = await paypalCreate({ orderId }, idempotencyKey);
+            if (!res.payment.paymentId) {
+              throw new Error("missing payment id");
+            }
             setPaymentId(res.payment.paymentId);
             return res.paypalOrderId;
           }}
           onApprove={async (data) => {
+            const paypalOrderId = typeof data.orderID === "string" ? data.orderID : "";
             if (!paymentId) {
               setError("missing payment id");
               return;
             }
+            if (!paypalOrderId) {
+              setError("missing PayPal order id");
+              return;
+            }
             try {
-              await paypalCapture(paymentId, data.orderID);
+              await paypalCapture(paymentId, paypalOrderId);
               onCompleted();
             } catch (err) {
               const msg = err instanceof Error ? err.message : "capture failed";

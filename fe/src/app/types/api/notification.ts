@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { pageSchema } from "./shared";
 
 export const notificationTypeSchema = z.enum([

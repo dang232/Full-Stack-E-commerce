@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { api } from "../lib/api";
-
 export interface AppConfig {
   brand: {
     name: string;
@@ -76,7 +74,7 @@ async function fetchConfig(): Promise<AppConfig> {
   try {
     const res = await fetch(`${CONFIG_URL}/api/config`);
     if (!res.ok) throw new Error(`Config fetch failed: ${res.status}`);
-    return await res.json();
+    return (await res.json()) as AppConfig;
   } catch {
     // Fallback to defaults if config service is unavailable
     return DEFAULT_CONFIG;

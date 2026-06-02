@@ -3,6 +3,7 @@ import { NotificationCreatedHandler } from '../notification-created.handler';
 import { NOTIFICATION_REPOSITORY } from '../../../domain/port/outbound/notification.repository';
 import { REALTIME_CHANNEL_PORT } from '../../../domain/port/outbound/realtime-channel.port';
 import { CONNECTION_REGISTRY_PORT } from '../../../domain/port/outbound/connection-registry.port';
+import { NOTIFICATION_PREFERENCES_REPOSITORY } from '../../../domain/port/outbound/notification-preferences.repository';
 import { Notification } from '../../../domain/model/notification';
 import { NotificationType } from '../../../domain/model/notification-type.enum';
 import { NotificationCreatedEvent } from '../../../domain/event/notification-created.event';
@@ -21,6 +22,10 @@ describe('NotificationCreatedHandler', () => {
     isOnline: jest.fn(),
     enqueueOffline: jest.fn().mockResolvedValue(undefined),
   };
+  const mockPrefsRepo = {
+    findByUserId: jest.fn().mockResolvedValue(null),
+    save: jest.fn().mockResolvedValue(undefined),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -30,6 +35,7 @@ describe('NotificationCreatedHandler', () => {
         { provide: NOTIFICATION_REPOSITORY, useValue: mockRepo },
         { provide: REALTIME_CHANNEL_PORT, useValue: mockChannel },
         { provide: CONNECTION_REGISTRY_PORT, useValue: mockRegistry },
+        { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
       ],
     }).compile();
     handler = module.get(NotificationCreatedHandler);

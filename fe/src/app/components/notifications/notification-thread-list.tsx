@@ -1,10 +1,10 @@
+import { IconInbox } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
-import { IconInbox } from "@tabler/icons-react";
 
 import { listThreads } from "../../lib/api/endpoints/notifications";
-import { NotificationThread } from "./notification-thread";
 import { NotificationPagination } from "./notification-pagination";
+import { NotificationThread } from "./notification-thread";
 
 interface NotificationThreadListProps {
   onMarkRead: (id: string) => void;
@@ -24,7 +24,7 @@ export function NotificationThreadList({ onMarkRead }: NotificationThreadListPro
     return (
       <div className="space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-14 rounded-xl bg-muted animate-pulse" />
+          <div key={`notification-thread-skeleton-${i}`} className="h-14 rounded-xl bg-muted animate-pulse" />
         ))}
       </div>
     );
@@ -45,8 +45,8 @@ export function NotificationThreadList({ onMarkRead }: NotificationThreadListPro
         <NotificationThread key={thread.threadId} thread={thread} onMarkRead={onMarkRead} />
       ))}
       <NotificationPagination
-        totalPages={data.totalPages}
-        currentPage={data.number}
+        totalPages={data.totalPages ?? 0}
+        currentPage={data.number ?? 0}
       />
     </div>
   );

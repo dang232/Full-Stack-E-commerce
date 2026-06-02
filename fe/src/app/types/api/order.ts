@@ -127,7 +127,7 @@ export const orderSchema = z
     // same derivation function with a single-element subStatus array. For the
     // detail endpoint it derives from sub-orders. Either way the output is
     // one of the UI status values.
-    const rawStatus = raw.status as string | undefined;
+    const rawStatus = raw.status;
     const isUiStatus = (
       ["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"] as const
     ).includes(rawStatus as never);

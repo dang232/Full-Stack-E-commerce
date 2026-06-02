@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- showNotificationToast is paired with its render component for Sonner custom toasts */
 import { toast } from "sonner";
 
 import type { Notification } from "../types/api/notification";
@@ -42,13 +43,7 @@ export function showNotificationToast(
   navigate: (path: string) => void,
 ): void {
   toast.custom(
-    (id) => (
-      <NotificationToast
-        notification={notification}
-        toastId={id}
-        onNavigate={navigate}
-      />
-    ),
+    (id) => <NotificationToast notification={notification} toastId={id} onNavigate={navigate} />,
     { duration: 5000, position: "top-right" },
   );
 }

@@ -1,5 +1,5 @@
-import { useSearchParams } from "react-router";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { useSearchParams } from "react-router";
 
 interface NotificationPaginationProps {
   totalPages: number;

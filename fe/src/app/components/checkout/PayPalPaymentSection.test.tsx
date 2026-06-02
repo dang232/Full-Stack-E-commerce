@@ -3,6 +3,8 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const noop = () => undefined;
+
 const paypalCreateMock = vi.fn();
 const paypalCaptureMock = vi.fn();
 vi.mock("../../lib/api/endpoints/payment", () => ({
@@ -52,8 +54,8 @@ beforeEach(() => {
   captured.createOrder = undefined;
   captured.onApprove = undefined;
   captured.onError = undefined;
-  import.meta.env.VITE_PAYPAL_ENABLED = "true";
-  import.meta.env.VITE_PAYPAL_CLIENT_ID = "sb-test-client-id";
+  vi.stubEnv("VITE_PAYPAL_ENABLED", "true");
+  vi.stubEnv("VITE_PAYPAL_CLIENT_ID", "sb-test-client-id");
 });
 
 afterEach(() => {
@@ -71,7 +73,7 @@ describe("PayPalPaymentSection", () => {
     const Wrapper = makeWrapper();
     render(
       <Wrapper>
-        <PayPalPaymentSection orderId="ORDER-1" idempotencyKey="idem-1" onCompleted={() => {}} />
+        <PayPalPaymentSection orderId="ORDER-1" idempotencyKey="idem-1" onCompleted={noop} />
       </Wrapper>,
     );
     await waitFor(() => expect(captured.createOrder).toBeDefined());

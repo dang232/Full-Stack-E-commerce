@@ -23,6 +23,7 @@ export const PAYMENT_METHOD_VALUES = [
 export const paymentStatusSchema = z
   .object({
     orderId: z.string(),
+    paymentId: z.string().optional(),
     status: z.enum(PAYMENT_STATUS_VALUES),
     paidAt: z.string().nullable().optional(),
     method: z.enum(PAYMENT_METHOD_VALUES).optional(),

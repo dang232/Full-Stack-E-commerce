@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 
-import type { Notification, NotificationType } from "../../types/api/notification";
+import type { Notification } from "../../types/api/notification";
 import { NotificationIcon } from "./notification-icon";
 
 function relativeTime(iso: string): string {
@@ -40,7 +40,7 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
       }`}
     >
       <div className="mt-0.5 shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-muted">
-        <NotificationIcon type={notification.type as NotificationType} size={16} />
+        <NotificationIcon type={notification.type} size={16} />
       </div>
       <div className="min-w-0 flex-1">
         <p

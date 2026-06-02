@@ -1,6 +1,7 @@
 import { IconBell } from "@tabler/icons-react";
-import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+
+import { AnimatePresence, motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 

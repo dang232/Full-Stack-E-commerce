@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { getThreadNotifications } from "../../lib/api/endpoints/notifications";
 import type { NotificationThread as ThreadType } from "../../types/api/notification";
@@ -29,21 +29,21 @@ export function NotificationThread({ thread, onMarkRead }: NotificationThreadPro
         <div className="flex items-center gap-2">
           {expanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
           <span className="text-sm font-medium text-foreground">{thread.threadTitle}</span>
-          {thread.unreadCount > 0 && (
+          {thread.unreadCount > 0 ? (
             <span className="rounded-full bg-[#EF4444] px-1.5 py-0.5 text-[10px] font-bold text-white">
               {thread.unreadCount}
             </span>
-          )}
+          ) : null}
         </div>
         <span className="text-xs text-muted-foreground">{thread.totalCount} thông báo</span>
       </button>
-      {expanded && items.length > 0 && (
+      {expanded && items.length > 0 ? (
         <div className="border-t border-border divide-y divide-border">
           {items.map((n) => (
             <NotificationItem key={n.id} notification={n} onMarkRead={onMarkRead} />
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
