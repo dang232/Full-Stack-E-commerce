@@ -7,7 +7,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=coupon_svc
     username: vnshop
-    password: vnshop123
+    password: ${DB_PASSWORD:vnshop123}
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,3 +15,4 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:vnshop123}

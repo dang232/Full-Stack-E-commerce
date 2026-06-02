@@ -12,7 +12,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5435/vnshop_order?currentSchema=order_svc
     username: vnshop
-    password: vnshop
+    password: ${DB_PASSWORD:vnshop}
   flyway:
     enabled: true
     schemas: order_svc
@@ -35,6 +35,7 @@ spring:
     redis:
       host: localhost
       port: 6379
+      password: ${REDIS_PASSWORD:vnshop123}
   security:
     oauth2:
       resourceserver:

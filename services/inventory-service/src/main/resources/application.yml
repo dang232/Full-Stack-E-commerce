@@ -12,11 +12,12 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5437/vnshop_inventory?currentSchema=inventory_svc
     username: vnshop
-    password: vnshop
+    password: ${DB_PASSWORD:vnshop}
   data:
     redis:
       host: localhost
       port: 6379
+      password: ${REDIS_PASSWORD:vnshop123}
   flyway:
     enabled: true
     schemas: inventory_svc

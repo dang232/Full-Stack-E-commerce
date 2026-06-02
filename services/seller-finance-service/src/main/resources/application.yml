@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=seller_finance_svc
     username: vnshop
-    password: vnshop
+    password: ${DB_PASSWORD:vnshop}
   flyway:
     enabled: true
     schemas: seller_finance_svc

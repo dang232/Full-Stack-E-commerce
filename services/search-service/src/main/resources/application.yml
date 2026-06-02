@@ -14,7 +14,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5438/vnshop_search?currentSchema=search_svc
     username: vnshop
-    password: vnshop
+    password: ${DB_PASSWORD:vnshop}
   flyway:
     enabled: true
     schemas: search_svc

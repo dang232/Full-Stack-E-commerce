@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/vnshop?currentSchema=recommendations_svc
     username: vnshop
-    password: vnshop123
+    password: ${DB_PASSWORD:vnshop123}
   jpa:
     hibernate:
       ddl-auto: validate
