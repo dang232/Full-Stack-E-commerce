@@ -1,8 +1,10 @@
 package com.vnshop.productservice.domain.review;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 public class Review {
@@ -15,11 +17,13 @@ public class Review {
     private final List<String> images;
     private final boolean verifiedPurchase;
     private final int helpfulVotes;
+    private final Set<String> helpfulVoterIds;
     private final ReviewStatus status;
     private final Instant createdAt;
 
     public Review(UUID reviewId, String productId, String buyerId, String orderId, int rating, String text,
-            List<String> images, boolean verifiedPurchase, int helpfulVotes, ReviewStatus status, Instant createdAt) {
+            List<String> images, boolean verifiedPurchase, int helpfulVotes, Set<String> helpfulVoterIds,
+            ReviewStatus status, Instant createdAt) {
         this.reviewId = Objects.requireNonNull(reviewId, "reviewId is required");
         this.productId = requireNonBlank(productId, "productId");
         this.buyerId = requireNonBlank(buyerId, "buyerId");
@@ -34,6 +38,7 @@ public class Review {
         this.images = List.copyOf(requireImageLimit(images));
         this.verifiedPurchase = verifiedPurchase;
         this.helpfulVotes = requireNonNegative(helpfulVotes, "helpfulVotes");
+        this.helpfulVoterIds = helpfulVoterIds == null ? Set.of() : Set.copyOf(helpfulVoterIds);
         this.status = Objects.requireNonNull(status, "status is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
     }
@@ -41,17 +46,27 @@ public class Review {
     public static Review pending(String productId, String buyerId, String orderId, int rating, String text,
             List<String> images, boolean verifiedPurchase) {
         return new Review(UUID.randomUUID(), productId, buyerId, orderId, rating, text, images,
-                verifiedPurchase, 0, ReviewStatus.PENDING, Instant.now());
+                verifiedPurchase, 0, Set.of(), ReviewStatus.PENDING, Instant.now());
     }
 
     public Review withStatus(ReviewStatus nextStatus) {
         return new Review(reviewId, productId, buyerId, orderId, rating, text, images, verifiedPurchase,
-                helpfulVotes, nextStatus, createdAt);
+                helpfulVotes, helpfulVoterIds, nextStatus, createdAt);
     }
 
-    public Review withHelpfulVote() {
+    /**
+     * Records a helpful vote from the given user. If the user already voted,
+     * returns this instance unchanged (idempotent).
+     */
+    public Review withHelpfulVote(String voterId) {
+        Objects.requireNonNull(voterId, "voterId is required");
+        if (helpfulVoterIds.contains(voterId)) {
+            return this;
+        }
+        Set<String> newVoterIds = new HashSet<>(helpfulVoterIds);
+        newVoterIds.add(voterId);
         return new Review(reviewId, productId, buyerId, orderId, rating, text, images, verifiedPurchase,
-                helpfulVotes + 1, status, createdAt);
+                helpfulVotes + 1, newVoterIds, status, createdAt);
     }
 
     public UUID reviewId() {
@@ -88,6 +103,10 @@ public class Review {
 
     public int helpfulVotes() {
         return helpfulVotes;
+    }
+
+    public Set<String> helpfulVoterIds() {
+        return helpfulVoterIds;
     }
 
     public ReviewStatus status() {

@@ -95,8 +95,9 @@ public class UseCaseConfig {
     }
 
     @Bean
-    AnswerQuestionUseCase answerQuestionUseCase(ReviewRepositoryPort reviewRepositoryPort) {
-        return new AnswerQuestionUseCase(reviewRepositoryPort);
+    AnswerQuestionUseCase answerQuestionUseCase(ReviewRepositoryPort reviewRepositoryPort,
+            ProductRepositoryPort productRepositoryPort) {
+        return new AnswerQuestionUseCase(reviewRepositoryPort, productRepositoryPort);
     }
 
     @Bean

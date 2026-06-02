@@ -161,8 +161,11 @@ public class PaymentController {
                 request.orderId(), JwtPrincipalUtil.currentUserId(),
                 PaymentMethodInput.PAYPAL, idempotencyKey));
         PayPalGateway.PayPalOrder order = gateway.createOrder(payment);
+        // Persist PayPal order ID as transactionRef so the capture endpoint can
+        // verify the client-supplied paypalOrderId matches what was created.
+        Payment withRef = payment.withResult(payment.status(), order.paypalOrderId());
         // Persist FX details so they survive for dispute support / audit.
-        Payment enriched = payment.withFxDetails(
+        Payment enriched = withRef.withFxDetails(
                 order.externalAmount(), order.externalCurrency(), order.fxRate(), Instant.now());
         paymentRepository.save(enriched);
         return ApiResponse.ok(PayPalCreateResponse.of(
@@ -211,6 +214,13 @@ public class PaymentController {
                 || !existing.buyerId().equals(caller)) {
             throw new com.vnshop.paymentservice.application.OrderAccessDeniedException(
                     "not authorized to capture this payment");
+        }
+        // Verify the client-supplied paypalOrderId matches the one stored at
+        // creation time. Prevents a buyer from capturing a cheap PayPal order
+        // against an expensive internal payment record.
+        if (existing.transactionRef() == null || !existing.transactionRef().equals(paypalOrderId)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "PayPal order ID mismatch");
         }
         // Dedup keyed off paypalOrderId via PaymentCallbackLogStore — matches
         // the Stripe webhook pattern. A double-tap from the FE (refresh,

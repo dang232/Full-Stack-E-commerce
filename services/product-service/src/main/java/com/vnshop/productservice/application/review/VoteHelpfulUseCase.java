@@ -13,9 +13,15 @@ public class VoteHelpfulUseCase {
         this.reviewRepositoryPort = Objects.requireNonNull(reviewRepositoryPort, "reviewRepositoryPort is required");
     }
 
-    public Review vote(UUID reviewId) {
+    public Review vote(UUID reviewId, String voterId) {
+        Objects.requireNonNull(voterId, "voterId is required");
         Review review = reviewRepositoryPort.findReviewById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("review not found: " + reviewId));
-        return reviewRepositoryPort.save(review.withHelpfulVote());
+        Review updated = review.withHelpfulVote(voterId);
+        if (updated == review) {
+            // User already voted — return as-is without a redundant save.
+            return review;
+        }
+        return reviewRepositoryPort.save(updated);
     }
 }

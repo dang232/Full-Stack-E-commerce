@@ -70,7 +70,8 @@ public class ReviewController {
 
     @PutMapping("/{id}/helpful")
     public ApiResponse<ReviewResponse> voteHelpful(@PathVariable UUID id) {
-        return ApiResponse.ok(ReviewResponse.fromDomain(voteHelpfulUseCase.vote(id)));
+        String voterId = JwtPrincipalUtil.currentUserId();
+        return ApiResponse.ok(ReviewResponse.fromDomain(voteHelpfulUseCase.vote(id, voterId)));
     }
 }
 

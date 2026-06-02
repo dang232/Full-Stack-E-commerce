@@ -16,7 +16,9 @@ import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -57,6 +59,11 @@ public class ReviewJpaEntity extends BaseJpaEntity {
     @Column(name = "helpful_votes", nullable = false)
     private int helpfulVotes;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(schema = "product_svc", name = "review_helpful_voters", joinColumns = @JoinColumn(name = "review_id"))
+    @Column(name = "voter_id", nullable = false, length = 64)
+    private Set<String> helpfulVoterIds = new HashSet<>();
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)
     private ReviewStatus status;
@@ -76,12 +83,13 @@ public class ReviewJpaEntity extends BaseJpaEntity {
         entity.images = new ArrayList<>(review.images());
         entity.verifiedPurchase = review.verifiedPurchase();
         entity.helpfulVotes = review.helpfulVotes();
+        entity.helpfulVoterIds = new HashSet<>(review.helpfulVoterIds());
         entity.status = review.status();
         return entity;
     }
 
     public Review toDomain() {
         return new Review(reviewId, productId, buyerId, orderId, rating, text, images, verifiedPurchase,
-                helpfulVotes, status, getCreatedAt());
+                helpfulVotes, helpfulVoterIds, status, getCreatedAt());
     }
 }

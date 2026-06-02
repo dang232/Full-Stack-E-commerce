@@ -1,6 +1,7 @@
 package com.vnshop.orderservice;
 
 import com.vnshop.orderservice.application.InvoiceUseCase;
+import com.vnshop.orderservice.application.ViewOrderUseCase;
 import com.vnshop.orderservice.domain.InvoiceAccessDeniedException;
 import com.vnshop.orderservice.infrastructure.web.ApiExceptionHandler;
 import com.vnshop.orderservice.infrastructure.web.InvoiceController;
@@ -32,10 +33,11 @@ class InvoiceControllerTest {
     @Test
     void unrelatedBuyerRequestingAnotherBuyerInvoiceReturnsForbidden() throws Exception {
         InvoiceUseCase useCase = mock(InvoiceUseCase.class);
+        ViewOrderUseCase viewOrderUseCase = mock(ViewOrderUseCase.class);
         UUID invoiceId = UUID.fromString("00000000-0000-0000-0000-000000000010");
         when(useCase.signedDownloadUrl(eq(invoiceId), argThat(requester -> "buyer-b".equals(requester.buyerId()))))
                 .thenThrow(new InvoiceAccessDeniedException("invoice access denied: " + invoiceId));
-        MockMvc mvc = MockMvcBuilders.standaloneSetup(new InvoiceController(useCase))
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(new InvoiceController(useCase, viewOrderUseCase))
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
         Jwt jwt = Jwt.withTokenValue("token")

@@ -69,7 +69,7 @@ class ReviewImageUploadServiceTest {
     void activateRejectsRequestFromWrongBuyerWithAccessDenied() {
         UUID reviewId = UUID.randomUUID();
         Review seeded = new Review(reviewId, "product-1", "buyer-1", "order-1", 5,
-                "great", List.of(), true, 0, ReviewStatus.PENDING, java.time.Instant.now());
+                "great", List.of(), true, 0, java.util.Set.of(), ReviewStatus.PENDING, java.time.Instant.now());
         reviewRepository.save(seeded);
 
         assertThatThrownBy(() -> service.activate(
@@ -85,7 +85,7 @@ class ReviewImageUploadServiceTest {
     void activateRejectsObjectKeyForDifferentReviewWithAccessDenied() {
         UUID reviewId = UUID.randomUUID();
         Review seeded = new Review(reviewId, "product-1", "buyer-1", "order-1", 5,
-                "great", List.of(), true, 0, ReviewStatus.PENDING, java.time.Instant.now());
+                "great", List.of(), true, 0, java.util.Set.of(), ReviewStatus.PENDING, java.time.Instant.now());
         reviewRepository.save(seeded);
 
         assertThatThrownBy(() -> service.activate(

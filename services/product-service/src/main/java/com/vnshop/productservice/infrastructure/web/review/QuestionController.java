@@ -46,6 +46,7 @@ public class QuestionController {
 
     @PutMapping("/{id}/answer")
     public ApiResponse<QuestionResponse> answer(@PathVariable UUID id, @Valid @RequestBody AnswerQuestionRequest request) {
-        return ApiResponse.ok(QuestionResponse.fromDomain(answerQuestionUseCase.answer(id, request.answer())));
+        String sellerId = com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil.currentSellerId();
+        return ApiResponse.ok(QuestionResponse.fromDomain(answerQuestionUseCase.answer(id, sellerId, request.answer())));
     }
 }
