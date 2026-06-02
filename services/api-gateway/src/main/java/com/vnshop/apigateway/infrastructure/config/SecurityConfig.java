@@ -92,6 +92,7 @@ public class SecurityConfig {
                 // downstream messaging-service verifies the token itself via
                 // WsJwtVerifier before binding the socket to a user.
                 .pathMatchers("/ws/messaging").permitAll()
+                .pathMatchers("/actuator/health", "/actuator/info").permitAll()
                 .pathMatchers("/admin/**").hasRole("ADMIN")
                 .pathMatchers("/seller/**", "/sellers/me/**").hasRole("SELLER")
                 .anyExchange().authenticated()
