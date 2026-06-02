@@ -93,12 +93,18 @@ public class SecurityConfig {
                 // WsJwtVerifier before binding the socket to a user.
                 .pathMatchers("/ws/messaging").permitAll()
                 .pathMatchers("/admin/**").hasRole("ADMIN")
+                .pathMatchers("/seller/**", "/sellers/me/**").hasRole("SELLER")
                 .anyExchange().authenticated()
             )
             // The SPA acquires tokens directly from Keycloak (PKCE) and sends them as Bearer.
             // No oauth2Login (no client registration) — gateway is purely a JWT-validating proxy.
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+            )
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.mode(org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter.Mode.DENY))
+                .contentTypeOptions(org.springframework.security.config.Customizer.withDefaults())
+                .cache(org.springframework.security.config.Customizer.withDefaults())
             )
             .build();
     }

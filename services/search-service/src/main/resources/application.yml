@@ -5,6 +5,10 @@ spring:
   threads:
     virtual:
       enabled: true
+  data:
+    web:
+      pageable:
+        max-page-size: 50
   application:
     name: search-service
   datasource:

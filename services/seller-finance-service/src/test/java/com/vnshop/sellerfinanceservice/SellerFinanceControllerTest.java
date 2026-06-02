@@ -65,7 +65,7 @@ class SellerFinanceControllerTest {
                 Instant.now(),
                 Instant.now().plusSeconds(300),
                 Map.of("alg", "none"),
-                Map.of("sub", SELLER_ID)
+                Map.of("sub", SELLER_ID, "realm_access", Map.of("roles", List.of("ADMIN", "SELLER")))
         );
         when(jwtDecoder.decode("token")).thenReturn(jwt);
     }

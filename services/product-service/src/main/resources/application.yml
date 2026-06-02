@@ -12,6 +12,9 @@ spring:
     username: vnshop
     password: vnshop
   data:
+    web:
+      pageable:
+        max-page-size: 50
     redis:
       host: localhost
       port: 6379
@@ -42,8 +45,10 @@ spring:
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: ${SWAGGER_ENABLED:false}
   swagger-ui:
     path: /swagger-ui.html
+    enabled: ${SWAGGER_ENABLED:false}
 
 management:
   endpoints:

@@ -124,7 +124,7 @@ public class RouteConfig {
             // bearer token; the controller in user-service proxies to Keycloak's
             // Admin API to create the user, then materialises the buyer profile.
             .route("auth", route -> route.path("/auth/**")
-                .filters(filters -> resilient(filters, "user-service"))
+                .filters(filters -> rateLimited(filters, "user-service", redisRateLimiter, userKeyResolver))
                 .uri(userServiceUri))
             .route("cart", route -> route.path("/cart/**")
                 .filters(filters -> resilient(filters, "cart-service"))

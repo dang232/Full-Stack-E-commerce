@@ -67,13 +67,15 @@ keycloak:
     base-url: ${KEYCLOAK_ADMIN_BASE_URL:http://keycloak:8080}
     realm: ${KEYCLOAK_ADMIN_REALM:vnshop}
     client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:vnshop-admin-api}
-    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:vnshop-admin-api-secret}
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:}
 
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: ${SWAGGER_ENABLED:false}
   swagger-ui:
     path: /swagger-ui.html
+    enabled: ${SWAGGER_ENABLED:false}
 
 management:
   endpoints:

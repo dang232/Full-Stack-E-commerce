@@ -4,6 +4,7 @@ import com.vnshop.userservice.application.NoSessionException;
 import com.vnshop.userservice.application.RefreshTokenRejectedException;
 import com.vnshop.userservice.domain.SellerNotFoundException;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class ApiExceptionHandler {
     @ExceptionHandler(SellerNotFoundException.class)
@@ -58,6 +60,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> internal(Exception exception) {
-        return ApiResponse.error(exception.getMessage(), "internal_error");
+        log.error("Unhandled exception", exception);
+        return ApiResponse.error("An unexpected error occurred", "internal_error");
     }
 }
