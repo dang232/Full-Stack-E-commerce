@@ -156,6 +156,9 @@ export class NotificationRestController {
       body: 'This is a test notification.',
       metadata: { source: 'manual-test' },
     });
+    if (!notification) {
+      return { suppressed: true, message: 'All channels disabled for this type' };
+    }
     return NotificationResponseDto.from(notification);
   }
 }

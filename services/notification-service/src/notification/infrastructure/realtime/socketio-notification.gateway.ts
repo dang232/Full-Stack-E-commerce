@@ -11,17 +11,17 @@ import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import jwksRsa from 'jwks-rsa';
 import {
-  ConnectionRegistryPort,
   CONNECTION_REGISTRY_PORT,
 } from '../../domain/port/outbound/connection-registry.port';
+import type { ConnectionRegistryPort } from '../../domain/port/outbound/connection-registry.port';
 import {
-  NotificationRepository,
   NOTIFICATION_REPOSITORY,
 } from '../../domain/port/outbound/notification.repository';
+import type { NotificationRepository } from '../../domain/port/outbound/notification.repository';
 import {
-  NotificationPreferencesRepository,
   NOTIFICATION_PREFERENCES_REPOSITORY,
 } from '../../domain/port/outbound/notification-preferences.repository';
+import type { NotificationPreferencesRepository } from '../../domain/port/outbound/notification-preferences.repository';
 import { NotificationChannel } from '../../domain/model/notification-preferences';
 import { DeliveryStatusValue } from '../../domain/model/delivery-status';
 
