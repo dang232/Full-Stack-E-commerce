@@ -617,7 +617,7 @@ services:
         condition: service_healthy
     environment:
       MONGO_URI: mongodb://vnshop:vnshop123@mongo:27017/notification_db?authSource=admin
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-vnshop123}@redis:6379
       PORT: 8087
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: always_on
