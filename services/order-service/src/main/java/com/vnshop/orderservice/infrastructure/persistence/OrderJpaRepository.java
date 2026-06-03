@@ -28,7 +28,7 @@ public class OrderJpaRepository implements OrderRepositoryPort {
 
     @Override
     public Optional<Order> findById(UUID orderId) {
-        return springDataRepository.findById(orderId).map(OrderJpaEntity::toDomain);
+        return springDataRepository.findByIdWithGraph(orderId).map(OrderJpaEntity::toDomain);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class OrderJpaRepository implements OrderRepositoryPort {
 
     @Override
     public Optional<Order> findByIdempotencyKey(String idempotencyKey) {
-        return springDataRepository.findByIdempotencyKey(idempotencyKey).map(OrderJpaEntity::toDomain);
+        return springDataRepository.findByIdempotencyKeyWithGraph(idempotencyKey).map(OrderJpaEntity::toDomain);
     }
 
     @Override

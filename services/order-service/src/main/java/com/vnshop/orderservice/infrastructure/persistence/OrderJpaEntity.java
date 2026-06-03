@@ -95,7 +95,7 @@ public class OrderJpaEntity extends BaseJpaEntity {
     @Column(name = "fx_rate_at")
     private Instant fxRateAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<SubOrderJpaEntity> subOrders = new ArrayList<>();
 
     protected OrderJpaEntity() {

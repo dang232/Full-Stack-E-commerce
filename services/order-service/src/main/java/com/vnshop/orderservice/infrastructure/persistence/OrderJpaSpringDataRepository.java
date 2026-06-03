@@ -18,6 +18,29 @@ public interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEnti
 
     List<OrderJpaEntity> findByBuyerId(String buyerId);
 
+    @Query("""
+        SELECT DISTINCT o FROM OrderJpaEntity o
+        LEFT JOIN FETCH o.subOrders s
+        LEFT JOIN FETCH s.items
+        WHERE o.id = :orderId
+        """)
+    Optional<OrderJpaEntity> findByIdWithGraph(@Param("orderId") UUID orderId);
+
+    @Query("""
+        SELECT DISTINCT o FROM OrderJpaEntity o
+        LEFT JOIN FETCH o.subOrders
+        WHERE o.id = :orderId
+        """)
+    Optional<OrderJpaEntity> findByIdWithSubOrders(@Param("orderId") UUID orderId);
+
+    @Query("""
+        SELECT DISTINCT o FROM OrderJpaEntity o
+        LEFT JOIN FETCH o.subOrders s
+        LEFT JOIN FETCH s.items
+        WHERE o.idempotencyKey = :key
+        """)
+    Optional<OrderJpaEntity> findByIdempotencyKeyWithGraph(@Param("key") String key);
+
     @Query("select subOrder.order.id from SubOrderJpaEntity subOrder where subOrder.id = :subOrderId")
     Optional<UUID> findOrderIdBySubOrderId(@Param("subOrderId") Long subOrderId);
 

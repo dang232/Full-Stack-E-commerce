@@ -68,7 +68,7 @@ public class SubOrderJpaEntity extends BaseJpaEntity {
     @Column(name = "commission_tier", nullable = false)
     private CommissionTier commissionTier = CommissionTier.STANDARD;
 
-    @OneToMany(mappedBy = "subOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "subOrder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItemJpaEntity> items = new ArrayList<>();
 
     protected SubOrderJpaEntity() {
