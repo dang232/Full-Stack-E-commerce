@@ -15,6 +15,13 @@ spring:
     url: jdbc:postgresql://localhost:5438/vnshop_search?currentSchema=search_svc
     username: vnshop
     password: ${DB_PASSWORD:vnshop}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 3
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: search-svc-pool
   flyway:
     enabled: true
     schemas: search_svc

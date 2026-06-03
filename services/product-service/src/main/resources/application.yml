@@ -11,6 +11,13 @@ spring:
     url: jdbc:postgresql://localhost:5434/vnshop_product?currentSchema=product_svc
     username: vnshop
     password: ${DB_PASSWORD:vnshop}
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: product-svc-pool
   data:
     web:
       pageable:

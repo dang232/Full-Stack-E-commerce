@@ -13,6 +13,13 @@ spring:
     url: jdbc:postgresql://localhost:5436/vnshop_payment?currentSchema=payment_svc
     username: vnshop
     password: ${DB_PASSWORD:vnshop}
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: payment-svc-pool
   flyway:
     enabled: true
     schemas: payment_svc
