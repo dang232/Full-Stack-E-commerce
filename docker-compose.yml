@@ -190,7 +190,7 @@ services:
   redis:
     image: redis:8.6-alpine
     container_name: vnshop-redis
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru", "--requirepass", "${REDIS_PASSWORD:-vnshop123}"]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "volatile-lru", "--requirepass", "${REDIS_PASSWORD:-vnshop123}"]
     ports:
       - "6379:6379"
     volumes:
@@ -311,7 +311,9 @@ services:
     container_name: vnshop-elasticsearch
     environment:
       discovery.type: single-node
-      xpack.security.enabled: "false"
+      xpack.security.enabled: "true"
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-vnshop-es-dev-password}
+      xpack.security.http.ssl.enabled: "false"
       ES_JAVA_OPTS: -Xms512m -Xmx512m
     ports:
       - "9200:9200"

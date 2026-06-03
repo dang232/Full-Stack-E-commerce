@@ -28,6 +28,10 @@ spring:
       security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
       sasl.mechanism: PLAIN
       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-search}" password="${KAFKA_SASL_PASSWORD:search-secret-change-me}";
+  elasticsearch:
+    uris: http://${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}
+    username: elastic
+    password: ${ELASTIC_PASSWORD:vnshop-es-dev-password}
   security:
     oauth2:
       resourceserver:
