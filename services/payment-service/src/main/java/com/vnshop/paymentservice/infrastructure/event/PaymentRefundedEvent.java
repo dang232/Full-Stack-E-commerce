@@ -23,5 +23,6 @@ public record PaymentRefundedEvent(
         String status,
         BigDecimal amount,
         String currency,
-        String commissionTier) {
+        String commissionTier,
+        String sagaId) {
 }

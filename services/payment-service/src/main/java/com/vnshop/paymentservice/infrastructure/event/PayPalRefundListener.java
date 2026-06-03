@@ -82,6 +82,7 @@ public class PayPalRefundListener {
         String amountRaw = text(payload, "amount");
         String currency = text(payload, "currency");
         String commissionTier = text(payload, "commissionTier");
+        String sagaId = text(payload, "sagaId");
         if (orderId == null || orderId.isBlank() || returnId == null || returnId.isBlank() || amountRaw == null) {
             LOGGER.warn("paypal-refund skipping malformed event returnId={} orderId={} amount={}",
                     returnId, orderId, amountRaw);
@@ -117,11 +118,12 @@ public class PayPalRefundListener {
         LOGGER.info("paypal-refund-issued orderId={} returnId={} captureId={} refundId={} status={}",
                 orderId, returnId, captureId, refund.refundId(), refund.status());
 
-        publishRefunded(payment, returnId, sellerId, commissionTier, refund, vndAmount, currency);
+        publishRefunded(payment, returnId, sellerId, commissionTier, refund, vndAmount, currency, sagaId);
     }
 
     private void publishRefunded(Payment payment, String returnId, String sellerId, String commissionTier,
-                                  PayPalGateway.PayPalRefund refund, BigDecimal vndAmount, String currency) {
+                                  PayPalGateway.PayPalRefund refund, BigDecimal vndAmount, String currency,
+                                  String sagaId) {
         KafkaTemplate<String, Object> kafkaTemplate = kafkaTemplateProvider.getIfAvailable();
         if (kafkaTemplate == null) {
             LOGGER.warn("paypal-refund cannot publish payment.refunded — KafkaTemplate not available. orderId={} returnId={}",
@@ -139,7 +141,8 @@ public class PayPalRefundListener {
                 refund.status(),
                 vndAmount,
                 currency != null ? currency : "VND",
-                commissionTier != null ? commissionTier : "STANDARD");
+                commissionTier != null ? commissionTier : "STANDARD",
+                sagaId);
         kafkaTemplate.send(REFUNDED_TOPIC, payment.orderId(), event);
     }
 
