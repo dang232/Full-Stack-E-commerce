@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class RefundRequestPublisherAdapter implements RefundRequestPort {
     private static final Logger LOGGER = LoggerFactory.getLogger(RefundRequestPublisherAdapter.class);
-    private static final String EVENT_TYPE = "payment.refund_requested";
+    private static final String EVENT_TYPE = "PAYMENT_REFUND_REQUESTED";
 
     private final OutboxEventRepository repository;
     private final ObjectMapper objectMapper;

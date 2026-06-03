@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(name = "payment.paypal.enabled", havingValue = "true")
 public class PayPalRefundListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(PayPalRefundListener.class);
-    static final String REFUND_REQUESTED_TOPIC = "payment.refund_requested";
+    static final String REFUND_REQUESTED_TOPIC = "payment.refund.requested";
     static final String REFUNDED_TOPIC = "payment.refunded";
 
     private final PaymentRepositoryPort paymentRepository;
