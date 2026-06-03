@@ -1,11 +1,11 @@
 grpc:
   client:
     inventory:
-      host: localhost
-      port: 9093
+      host: ${GRPC_CLIENT_INVENTORY_HOST:localhost}
+      port: ${GRPC_CLIENT_INVENTORY_PORT:9093}
     payment:
-      host: localhost
-      port: 9094
+      host: ${GRPC_CLIENT_PAYMENT_HOST:localhost}
+      port: ${GRPC_CLIENT_PAYMENT_PORT:9094}
     shipping:
-      host: localhost
-      port: 9095
+      host: ${GRPC_CLIENT_SHIPPING_HOST:localhost}
+      port: ${GRPC_CLIENT_SHIPPING_PORT:9095}
