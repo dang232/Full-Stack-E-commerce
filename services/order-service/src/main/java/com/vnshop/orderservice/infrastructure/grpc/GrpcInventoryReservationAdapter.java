@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @ConditionalOnBean(InventoryServiceGrpc.InventoryServiceBlockingStub.class)
@@ -51,7 +52,9 @@ public class GrpcInventoryReservationAdapter implements InventoryReservationPort
 
         LOGGER.info("Sending reserve request for order {} with {} items", orderId, protoItems.size());
         try {
-            ReserveResponse response = inventoryStub.reserve(request);
+            ReserveResponse response = inventoryStub
+                    .withDeadlineAfter(5, TimeUnit.SECONDS)
+                    .reserve(request);
             if (!response.getSuccess()) {
                 throw new RuntimeException("Inventory reservation failed for order " + orderId);
             }
@@ -72,7 +75,9 @@ public class GrpcInventoryReservationAdapter implements InventoryReservationPort
 
         LOGGER.info("Sending release request for order {}", orderId);
         try {
-            ReleaseResponse response = inventoryStub.release(request);
+            ReleaseResponse response = inventoryStub
+                    .withDeadlineAfter(5, TimeUnit.SECONDS)
+                    .release(request);
             if (!response.getSuccess()) {
                 throw new RuntimeException("Inventory release failed for order " + orderId);
             }

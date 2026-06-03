@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.TimeUnit;
+
 @Component
 @ConditionalOnBean(PaymentServiceGrpc.PaymentServiceBlockingStub.class)
 public class GrpcPaymentRequestAdapter implements PaymentRequestPort {
@@ -36,7 +38,9 @@ public class GrpcPaymentRequestAdapter implements PaymentRequestPort {
             .build();
 
         try {
-            var response = paymentStub.requestPayment(request);
+            var response = paymentStub
+                .withDeadlineAfter(10, TimeUnit.SECONDS)
+                .requestPayment(request);
             log.info("Payment requested: orderId={}, paymentId={}, status={}",
                 orderId, response.getPaymentId(), response.getStatus());
         } catch (StatusRuntimeException e) {

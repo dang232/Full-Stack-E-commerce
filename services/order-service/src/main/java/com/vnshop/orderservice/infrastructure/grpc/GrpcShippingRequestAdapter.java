@@ -7,10 +7,13 @@ import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import com.vnshop.proto.shipping.ShippingServiceGrpc;
 import com.vnshop.proto.shipping.ShippingRequest;
 import com.vnshop.proto.shipping.ShippingResponse;
+import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 @Component
 @ConditionalOnBean(ShippingServiceGrpc.ShippingServiceBlockingStub.class)
@@ -37,13 +40,21 @@ public class GrpcShippingRequestAdapter implements ShippingRequestPort {
                         .build())
                 .build();
 
-        ShippingResponse response = shippingStub.requestShipping(request);
+        try {
+            ShippingResponse response = shippingStub
+                    .withDeadlineAfter(5, TimeUnit.SECONDS)
+                    .requestShipping(request);
 
-        if (!response.getSuccess()) {
-            LOGGER.warn("Shipping request failed for order {} seller {}", orderId, subOrder.sellerId());
-        } else {
-            LOGGER.info("Shipping request submitted for order {} seller {} — {} label(s)",
-                    orderId, subOrder.sellerId(), response.getLabelsCount());
+            if (!response.getSuccess()) {
+                LOGGER.warn("Shipping request failed for order {} seller {}", orderId, subOrder.sellerId());
+            } else {
+                LOGGER.info("Shipping request submitted for order {} seller {} — {} label(s)",
+                        orderId, subOrder.sellerId(), response.getLabelsCount());
+            }
+        } catch (StatusRuntimeException e) {
+            LOGGER.error("gRPC shipping request failed: orderId={}, code={}, message={}",
+                    orderId, e.getStatus().getCode(), e.getStatus().getDescription(), e);
+            throw new RuntimeException("Shipping request failed for order " + orderId, e);
         }
     }
 
