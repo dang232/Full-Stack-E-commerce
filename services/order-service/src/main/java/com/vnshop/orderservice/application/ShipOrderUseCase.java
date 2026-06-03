@@ -8,6 +8,8 @@ import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.vnshop.orderservice.infrastructure.audit.Audited;
+
 public class ShipOrderUseCase {
     private final OrderRepositoryPort orderRepository;
     private final OrderEventPublisherPort orderEventPublisherPort;
@@ -17,6 +19,7 @@ public class ShipOrderUseCase {
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
     }
 
+    @Audited(action = "SHIP_ORDER", resourceType = "Order")
     public Order ship(ShipOrderCommand command) {
         requireNonBlank(command.carrier(), "carrier");
         requireNonBlank(command.trackingNumber(), "trackingNumber");

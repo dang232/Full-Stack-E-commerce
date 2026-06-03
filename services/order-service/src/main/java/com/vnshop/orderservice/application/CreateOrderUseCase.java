@@ -20,6 +20,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.vnshop.orderservice.infrastructure.audit.Audited;
+
 public class CreateOrderUseCase {
     private final OrderRepositoryPort orderRepository;
     private final InventoryReservationPort inventoryReservationPort;
@@ -47,6 +49,7 @@ public class CreateOrderUseCase {
         this.cartRepositoryPort = Objects.requireNonNull(cartRepositoryPort, "cartRepositoryPort is required");
     }
 
+    @Audited(action = "CREATE_ORDER", resourceType = "Order")
     public Order create(CreateOrderCommand command) {
         requireNonBlank(command.buyerId(), "buyerId");
         requireNonBlank(command.idempotencyKey(), "idempotencyKey");
