@@ -105,6 +105,10 @@ public class SagaOrchestrator {
                 "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"COMPLETE\"}")
         ));
 
+        // Persist terminal COMPLETED state
+        SagaState completed = new SagaState(current.sagaId(), current.orderId(), SagaStatus.COMPLETED, current.createdAt(), Instant.now());
+        sagaStateRepository.save(completed);
+
         LOG.info("Saga {} completed for order {}", sagaId, current.orderId());
     }
 

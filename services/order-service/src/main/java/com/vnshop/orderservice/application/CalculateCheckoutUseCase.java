@@ -39,7 +39,13 @@ public class CalculateCheckoutUseCase {
     public CheckoutBreakdown calculate(String cartId) {
         CartSnapshot cart = cartRepositoryPort.findByCartId(cartId);
         BigDecimal itemsTotal = cart.items().stream()
-                .map(CartItemSnapshot::total)
+                .map(item -> {
+                    BigDecimal authoritativePrice = productCatalogPort.findByProductId(item.productId())
+                            .flatMap(p -> p.findVariant(item.variantSku()))
+                            .map(v -> v.unitPrice().amount())
+                            .orElse(item.unitPrice()); // fallback to cart price if product/variant not found
+                    return authoritativePrice.multiply(BigDecimal.valueOf(item.quantity()));
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         return summarize(itemsTotal, NO_DISCOUNT);
     }

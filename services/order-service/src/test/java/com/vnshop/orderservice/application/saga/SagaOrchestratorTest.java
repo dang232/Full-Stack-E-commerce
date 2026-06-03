@@ -39,7 +39,7 @@ class SagaOrchestratorTest {
     }
 
     @Test
-    void happyPath_allStepsComplete_sagaReachesSHIPPING_CREATED() {
+    void happyPath_allStepsComplete_sagaReachesCOMPLETED() {
         SagaState started = orchestrator.startOrderSaga("order-1");
         String sagaId = started.sagaId();
 
@@ -53,9 +53,27 @@ class SagaOrchestratorTest {
 
         orchestrator.onShippingCreated(sagaId);
         SagaState afterShipping = sagaStateRepo.findBySagaId(sagaId).orElseThrow();
-        assertThat(afterShipping.currentStep()).isEqualTo(SagaStatus.SHIPPING_CREATED);
+        assertThat(afterShipping.currentStep()).isEqualTo(SagaStatus.COMPLETED);
 
+        // 4 outbox events: SAGA_STARTED, SAGA_STEP_COMPLETED x2, SAGA_COMPLETED
         assertThat(outboxEventRepo.events).hasSize(4);
+    }
+
+    @Test
+    void onShippingCreated_persistsCOMPLETEDstateAfterOutboxEvent() {
+        SagaState started = orchestrator.startOrderSaga("order-1");
+        String sagaId = started.sagaId();
+
+        orchestrator.onShippingCreated(sagaId);
+
+        SagaState finalState = sagaStateRepo.findBySagaId(sagaId).orElseThrow();
+        assertThat(finalState.currentStep()).isEqualTo(SagaStatus.COMPLETED);
+
+        OutboxEventJpaEntity completedEvent = outboxEventRepo.events.stream()
+                .filter(e -> "SAGA_COMPLETED".equals(e.getEventType()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(completedEvent.getPayload()).contains("\"step\":\"COMPLETE\"");
     }
 
     @Test

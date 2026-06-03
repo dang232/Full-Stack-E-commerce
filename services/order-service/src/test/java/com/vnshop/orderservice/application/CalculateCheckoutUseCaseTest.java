@@ -44,6 +44,10 @@ class CalculateCheckoutUseCaseTest {
 
     @Test
     void cartSnapshotPathSumsLineTotalsAndAddsStandardShipping() {
+        catalog.add(new CatalogProduct("p1", "seller-A", "Item 1",
+                List.of(new CatalogProduct.Variant("sku1", new Money(new BigDecimal("100000"), "VND"))), ""));
+        catalog.add(new CatalogProduct("p2", "seller-A", "Item 2",
+                List.of(new CatalogProduct.Variant("sku2", new Money(new BigDecimal("250000"), "VND"))), ""));
         cart.set("cart-1", new CartSnapshot("cart-1", List.of(
                 new CartItemSnapshot("p1", "sku1", "Item 1", 2, new BigDecimal("100000")),
                 new CartItemSnapshot("p2", "sku2", "Item 2", 1, new BigDecimal("250000")))));
@@ -54,6 +58,21 @@ class CalculateCheckoutUseCaseTest {
         assertThat(breakdown.shippingEstimate()).isEqualByComparingTo("30000");
         assertThat(breakdown.discount()).isEqualByComparingTo("0");
         assertThat(breakdown.finalAmount()).isEqualByComparingTo("480000");
+    }
+
+    @Test
+    void cartSnapshotPathResolvesAuthoritativePricesFromCatalog() {
+        // Cart holds a stale unit price of 100000 but catalog now says 150000.
+        catalog.add(new CatalogProduct("p1", "seller-A", "Item 1",
+                List.of(new CatalogProduct.Variant("sku1", new Money(new BigDecimal("150000"), "VND"))), ""));
+        cart.set("cart-stale", new CartSnapshot("cart-stale", List.of(
+                new CartItemSnapshot("p1", "sku1", "Item 1", 2, new BigDecimal("100000")))));
+
+        CheckoutBreakdown breakdown = useCase.calculate("cart-stale");
+
+        // 150000 (catalog price) * 2 + 30000 shipping = 330000; stale cart price is ignored.
+        assertThat(breakdown.itemsTotal()).isEqualByComparingTo("300000");
+        assertThat(breakdown.finalAmount()).isEqualByComparingTo("330000");
     }
 
     @Test
