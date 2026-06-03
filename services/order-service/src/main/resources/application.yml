@@ -42,6 +42,10 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: false
+    listener:
+      observation-enabled: true
+    template:
+      observation-enabled: true
   data:
     web:
       pageable:

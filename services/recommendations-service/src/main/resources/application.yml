@@ -40,6 +40,10 @@ spring:
       auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      observation-enabled: true
+    template:
+      observation-enabled: true
 
 vnshop:
   recommendations:
