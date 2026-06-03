@@ -248,9 +248,19 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD:-admin-secret-change-me}
+      KAFKA_ORDER_PASSWORD: ${KAFKA_ORDER_PASSWORD:-order-secret-change-me}
+      KAFKA_PAYMENT_PASSWORD: ${KAFKA_PAYMENT_PASSWORD:-payment-secret-change-me}
+      KAFKA_INVENTORY_PASSWORD: ${KAFKA_INVENTORY_PASSWORD:-inventory-secret-change-me}
+      KAFKA_PRODUCT_PASSWORD: ${KAFKA_PRODUCT_PASSWORD:-product-secret-change-me}
+      KAFKA_SHIPPING_PASSWORD: ${KAFKA_SHIPPING_PASSWORD:-shipping-secret-change-me}
+      KAFKA_FINANCE_PASSWORD: ${KAFKA_FINANCE_PASSWORD:-finance-secret-change-me}
+      KAFKA_SEARCH_PASSWORD: ${KAFKA_SEARCH_PASSWORD:-search-secret-change-me}
+      KAFKA_RECOMMENDATIONS_PASSWORD: ${KAFKA_RECOMMENDATIONS_PASSWORD:-recommendations-secret-change-me}
+    entrypoint: ["/bin/sh", "-c", "envsubst < /etc/kafka/kafka_server_jaas.conf.template > /etc/kafka/kafka_server_jaas.conf && exec /etc/confluent/docker/run"]
     volumes:
       - kafka-data:/var/lib/kafka/data
-      - ./infra/kafka/kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+      - ./infra/kafka/kafka_server_jaas.conf.template:/etc/kafka/kafka_server_jaas.conf.template:ro
     healthcheck:
       test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1"]
       interval: 15s
@@ -267,7 +277,6 @@ services:
       KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD:-admin-secret-change-me}
     volumes:
       - ./infra/scripts/init-kafka-topics.sh:/init-kafka-topics.sh:ro
-      - ./infra/kafka/kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf:ro
     command: ["bash", "/init-kafka-topics.sh"]
     restart: "no"
 
