@@ -35,3 +35,9 @@
 # Kafka JAAS rendered config (contains secrets)
 infra/kafka/kafka_server_jaas.conf
 !infra/kafka/kafka_server_jaas.conf.template
+
+# Kafka SSL certs (generated per-environment, never commit)
+infra/kafka/certs/*.jks
+infra/kafka/certs/*.pem
+infra/kafka/certs/*.csr
+infra/kafka/certs/*.srl
