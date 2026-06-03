@@ -17,6 +17,10 @@ spring:
     default-schema: seller_finance_svc
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    properties:
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
+      sasl.mechanism: PLAIN
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-finance}" password="${KAFKA_SASL_PASSWORD:finance-secret-change-me}";
   security:
     oauth2:
       resourceserver:
