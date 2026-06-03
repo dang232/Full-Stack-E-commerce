@@ -9,7 +9,11 @@ import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.retrytopic.DltStrategy;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +37,13 @@ public class PaymentRefundedListener {
         this.objectMapper = objectMapper;
     }
 
+    @RetryableTopic(
+            attempts = "3",
+            backoff = @Backoff(delay = 1000, multiplier = 2.0, maxDelay = 10000),
+            dltStrategy = DltStrategy.FAIL_ON_ERROR,
+            dltTopicSuffix = ".DLT",
+            retryTopicSuffix = ".retry"
+    )
     @KafkaListener(topics = "payment.refunded", groupId = "order-service-refund")
     @Transactional
     public void onPaymentRefunded(String eventJson) {
@@ -86,5 +97,10 @@ public class PaymentRefundedListener {
     private static String text(JsonNode node, String fieldName) {
         JsonNode value = node.path(fieldName);
         return value.isMissingNode() || value.isNull() ? null : value.asText();
+    }
+
+    @DltHandler
+    public void handleDlt(String message) {
+        LOGGER.error("Message sent to DLT after retries exhausted: {}", message);
     }
 }

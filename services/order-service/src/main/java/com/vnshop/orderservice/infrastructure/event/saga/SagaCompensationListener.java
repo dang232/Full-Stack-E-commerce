@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.orderservice.application.saga.SagaOrchestrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.retrytopic.DltStrategy;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
 /**
@@ -29,6 +33,13 @@ public class SagaCompensationListener {
         this.objectMapper = objectMapper;
     }
 
+    @RetryableTopic(
+            attempts = "4",
+            backoff = @Backoff(delay = 2000, multiplier = 2.0, maxDelay = 30000),
+            dltStrategy = DltStrategy.FAIL_ON_ERROR,
+            dltTopicSuffix = ".DLT",
+            retryTopicSuffix = ".retry"
+    )
     @KafkaListener(
             topics = {"inventory.released", "payment.refunded", "shipping.cancelled"},
             groupId = "order-service-saga-compensation"
@@ -59,5 +70,10 @@ public class SagaCompensationListener {
     private static String text(JsonNode node, String fieldName) {
         JsonNode value = node.path(fieldName);
         return value.isMissingNode() ? null : value.asText();
+    }
+
+    @DltHandler
+    public void handleDlt(String message) {
+        LOG.error("CRITICAL: Saga compensation message sent to DLT — manual intervention required: {}", message);
     }
 }
