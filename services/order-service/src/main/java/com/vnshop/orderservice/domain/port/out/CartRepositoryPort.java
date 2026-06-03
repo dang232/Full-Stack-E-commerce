@@ -4,4 +4,5 @@ import com.vnshop.orderservice.domain.checkout.CartSnapshot;
 
 public interface CartRepositoryPort {
     CartSnapshot findByCartId(String cartId);
+    void clearCart(String userId);
 }

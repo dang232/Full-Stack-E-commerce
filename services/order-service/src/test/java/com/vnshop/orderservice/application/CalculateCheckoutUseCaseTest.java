@@ -227,6 +227,8 @@ class CalculateCheckoutUseCaseTest {
         @Override public CartSnapshot findByCartId(String cartId) {
             return carts.getOrDefault(cartId, new CartSnapshot(cartId, List.of()));
         }
+
+        @Override public void clearCart(String userId) {}
     }
 
     private static final class FakeProductCatalog implements ProductCatalogPort {

@@ -16,6 +16,7 @@ import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
 import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
+import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,7 @@ class CheckoutOrderUseCaseTest {
     private final RecordingPayment payment = new RecordingPayment();
     private final RecordingShipping shipping = new RecordingShipping();
     private final RecordingOrderEvents events = new RecordingOrderEvents();
+    private final FakeCartRepository cart = new FakeCartRepository();
     private final CommissionTierLookupPort tierLookup = new CommissionTierLookupPort() {
         @Override
         public CommissionTier findBySellerId(String sellerId) { return CommissionTier.STANDARD; }
@@ -53,7 +55,7 @@ class CheckoutOrderUseCaseTest {
     };
 
     private CheckoutOrderUseCase newUseCase() {
-        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup);
+        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup, cart);
         return new CheckoutOrderUseCase(catalog, createOrderUseCase);
     }
 
@@ -222,5 +224,10 @@ class CheckoutOrderUseCaseTest {
         @Override public void publishOrderCreated(Order order) {}
         @Override public void publishOrderUpdated(Order order) {}
         @Override public void publishOrderPaid(Order order) {}
+    }
+
+    private static final class FakeCartRepository implements CartRepositoryPort {
+        @Override public com.vnshop.orderservice.domain.checkout.CartSnapshot findByCartId(String cartId) { return new com.vnshop.orderservice.domain.checkout.CartSnapshot(cartId, List.of()); }
+        @Override public void clearCart(String userId) {}
     }
 }

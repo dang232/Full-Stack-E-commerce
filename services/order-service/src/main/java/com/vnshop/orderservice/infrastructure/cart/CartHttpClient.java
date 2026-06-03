@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.infrastructure.cart;
 
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 
@@ -27,4 +28,7 @@ public interface CartHttpClient {
      */
     @GetExchange("/cart")
     String getCart(@RequestHeader("x-user-id") String userId);
+
+    @DeleteExchange("/cart")
+    void clearCart(@RequestHeader("x-user-id") String userId);
 }

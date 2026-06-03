@@ -10,6 +10,8 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
@@ -17,6 +19,8 @@ import org.springframework.web.client.RestClientResponseException;
 
 @Component
 public class CartServiceAdapter implements CartRepositoryPort {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CartServiceAdapter.class);
 
     private final CartHttpClient cartHttpClient;
     private final ObjectMapper objectMapper;
@@ -38,6 +42,15 @@ public class CartServiceAdapter implements CartRepositoryPort {
         } catch (CallNotPermittedException e) {
             throw new CartUnavailableException(
                     "Cart service circuit breaker is OPEN — refusing call until recovery window elapses", e);
+        }
+    }
+
+    @Override
+    public void clearCart(String userId) {
+        try {
+            cartHttpClient.clearCart(userId);
+        } catch (Exception e) {
+            LOG.warn("Failed to clear cart for user {} — non-fatal, cart will expire via TTL", userId, e);
         }
     }
 

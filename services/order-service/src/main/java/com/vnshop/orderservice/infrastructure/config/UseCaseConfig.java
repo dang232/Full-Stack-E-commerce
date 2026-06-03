@@ -67,9 +67,10 @@ public class UseCaseConfig {
             PaymentRequestPort paymentRequestPort,
             ShippingRequestPort shippingRequestPort,
             OrderEventPublisherPort orderEventPublisherPort,
-            CommissionTierLookupPort commissionTierLookupPort
+            CommissionTierLookupPort commissionTierLookupPort,
+            CartRepositoryPort cartRepositoryPort
     ) {
-        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort);
+        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort);
     }
 
     @Bean

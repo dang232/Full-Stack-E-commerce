@@ -11,6 +11,7 @@ import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
+import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ public class CreateOrderUseCase {
     private final ShippingRequestPort shippingRequestPort;
     private final OrderEventPublisherPort orderEventPublisherPort;
     private final CommissionTierLookupPort commissionTierLookupPort;
+    private final CartRepositoryPort cartRepositoryPort;
 
     public CreateOrderUseCase(
             OrderRepositoryPort orderRepository,
@@ -33,7 +35,8 @@ public class CreateOrderUseCase {
             PaymentRequestPort paymentRequestPort,
             ShippingRequestPort shippingRequestPort,
             OrderEventPublisherPort orderEventPublisherPort,
-            CommissionTierLookupPort commissionTierLookupPort
+            CommissionTierLookupPort commissionTierLookupPort,
+            CartRepositoryPort cartRepositoryPort
     ) {
         this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository is required");
         this.inventoryReservationPort = Objects.requireNonNull(inventoryReservationPort, "inventoryReservationPort is required");
@@ -41,6 +44,7 @@ public class CreateOrderUseCase {
         this.shippingRequestPort = Objects.requireNonNull(shippingRequestPort, "shippingRequestPort is required");
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
         this.commissionTierLookupPort = Objects.requireNonNull(commissionTierLookupPort, "commissionTierLookupPort is required");
+        this.cartRepositoryPort = Objects.requireNonNull(cartRepositoryPort, "cartRepositoryPort is required");
     }
 
     public Order create(CreateOrderCommand command) {
@@ -72,6 +76,7 @@ public class CreateOrderUseCase {
             }
             Order savedOrder = orderRepository.save(order);
             orderEventPublisherPort.publishOrderCreated(savedOrder);
+            cartRepositoryPort.clearCart(buyerId);
             return savedOrder;
         } catch (RuntimeException failure) {
             compensate(order.id(), inventoryReserved, paymentRequested);
