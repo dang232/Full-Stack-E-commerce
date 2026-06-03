@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.vnshop.orderservice.infrastructure.audit.Audited;
+import com.vnshop.orderservice.infrastructure.metrics.OrderMetrics;
 
 public class CreateOrderUseCase {
     private final OrderRepositoryPort orderRepository;
@@ -30,6 +31,7 @@ public class CreateOrderUseCase {
     private final OrderEventPublisherPort orderEventPublisherPort;
     private final CommissionTierLookupPort commissionTierLookupPort;
     private final CartRepositoryPort cartRepositoryPort;
+    private final OrderMetrics orderMetrics;
 
     public CreateOrderUseCase(
             OrderRepositoryPort orderRepository,
@@ -38,7 +40,8 @@ public class CreateOrderUseCase {
             ShippingRequestPort shippingRequestPort,
             OrderEventPublisherPort orderEventPublisherPort,
             CommissionTierLookupPort commissionTierLookupPort,
-            CartRepositoryPort cartRepositoryPort
+            CartRepositoryPort cartRepositoryPort,
+            OrderMetrics orderMetrics
     ) {
         this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository is required");
         this.inventoryReservationPort = Objects.requireNonNull(inventoryReservationPort, "inventoryReservationPort is required");
@@ -47,6 +50,7 @@ public class CreateOrderUseCase {
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
         this.commissionTierLookupPort = Objects.requireNonNull(commissionTierLookupPort, "commissionTierLookupPort is required");
         this.cartRepositoryPort = Objects.requireNonNull(cartRepositoryPort, "cartRepositoryPort is required");
+        this.orderMetrics = Objects.requireNonNull(orderMetrics, "orderMetrics is required");
     }
 
     @Audited(action = "CREATE_ORDER", resourceType = "Order")
@@ -63,6 +67,7 @@ public class CreateOrderUseCase {
     }
 
     private Order createNewOrder(String buyerId, Address shippingAddress, List<OrderItem> items, String idempotencyKey) {
+        var timerSample = orderMetrics.startTimer();
         List<OrderItem> itemSnapshot = List.copyOf(items);
         List<SubOrder> subOrders = splitBySeller(itemSnapshot);
         Order order = new Order(UUID.randomUUID(), buyerId, shippingAddress, subOrders, idempotencyKey);
@@ -80,8 +85,12 @@ public class CreateOrderUseCase {
             Order savedOrder = orderRepository.save(order);
             orderEventPublisherPort.publishOrderCreated(savedOrder);
             cartRepositoryPort.clearCart(buyerId);
+            orderMetrics.recordOrderCreated();
+            orderMetrics.stopTimer(timerSample);
             return savedOrder;
         } catch (RuntimeException failure) {
+            orderMetrics.recordOrderCreationFailed();
+            orderMetrics.stopTimer(timerSample);
             compensate(order.id(), inventoryReserved, paymentRequested);
             throw failure;
         }
