@@ -31,6 +31,15 @@ public class PaymentCallbackOutboxJpaRepository implements PaymentCallbackOutbox
     }
 
     @Override
+    public List<PaymentCallbackOutboxRecord> findRetryable(int limit) {
+        return springDataRepository
+                .findRetryable(Instant.now(), PageRequest.of(0, limit))
+                .stream()
+                .map(PaymentCallbackOutboxJpaEntity::toRecord)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public void markPublished(Long id) {
         springDataRepository.findById(id).ifPresent(entity -> {
@@ -38,6 +47,18 @@ public class PaymentCallbackOutboxJpaRepository implements PaymentCallbackOutbox
                 entity.markPublished(Instant.now());
                 springDataRepository.save(entity);
             }
+        });
+    }
+
+    @Override
+    @Transactional
+    public void recordFailure(Long id, int attemptCount, String error, Instant nextAttemptAt, boolean dead) {
+        springDataRepository.findById(id).ifPresent(entity -> {
+            entity.setAttemptCount(attemptCount);
+            entity.setLastError(error);
+            entity.setNextAttemptAt(nextAttemptAt);
+            entity.setDead(dead);
+            springDataRepository.save(entity);
         });
     }
 }

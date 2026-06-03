@@ -70,6 +70,18 @@ public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
     @Column(name = "fx_rate_at")
     private Instant fxRateAt;
 
+    @Column(name = "attempt_count", nullable = false)
+    private int attemptCount = 0;
+
+    @Column(name = "next_attempt_at")
+    private Instant nextAttemptAt;
+
+    @Column(name = "last_error", columnDefinition = "text")
+    private String lastError;
+
+    @Column(name = "dead", nullable = false)
+    private boolean dead = false;
+
     protected PaymentCallbackOutboxJpaEntity() {
     }
 
@@ -91,6 +103,7 @@ public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
         entity.externalCurrency = record.externalCurrency();
         entity.fxRate = record.fxRate();
         entity.fxRateAt = record.fxRateAt();
+        entity.attemptCount = record.attemptCount();
         return entity;
     }
 
@@ -98,7 +111,7 @@ public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
         return new PaymentCallbackOutboxRecord(
                 id, provider, paymentId, orderId, transactionRef, status, amount, currency,
                 callbackId, callbackEventId, payloadHash, getCreatedAt(), publishedAt,
-                externalAmount, externalCurrency, fxRate, fxRateAt);
+                externalAmount, externalCurrency, fxRate, fxRateAt, attemptCount);
     }
 
     boolean isPublished() {

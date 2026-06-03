@@ -3,6 +3,7 @@ package com.vnshop.paymentservice.infrastructure.event;
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackOutbox;
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackOutboxRecord;
 import jakarta.annotation.PostConstruct;
+import java.time.Instant;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +24,16 @@ import org.springframework.stereotype.Service;
  * goes through {@code PaymentPromotionService}) writes an outbox row inside the
  * promote transaction. Without this relay those rows accumulate forever and
  * order-service never learns the payment completed.
+ *
+ * <p>Failed deliveries are retried with exponential backoff (2^n seconds, capped
+ * at 300 s). After {@value #MAX_ATTEMPTS} attempts the row is marked dead and
+ * a DEAD-letter log is emitted for investigation.
  */
 @Service
 public class PaymentCallbackOutboxRelay {
     private static final Logger LOGGER = LoggerFactory.getLogger(PaymentCallbackOutboxRelay.class);
     static final String TOPIC = "payment.completed";
+    private static final int MAX_ATTEMPTS = 8;
 
     private final PaymentCallbackOutbox outbox;
     private final ObjectProvider<KafkaTemplate<String, Object>> kafkaTemplateProvider;
@@ -55,7 +61,7 @@ public class PaymentCallbackOutboxRelay {
         if (kafkaTemplate == null) {
             return;
         }
-        List<PaymentCallbackOutboxRecord> pending = outbox.findUnpublished(batchSize);
+        List<PaymentCallbackOutboxRecord> pending = outbox.findRetryable(batchSize);
         for (PaymentCallbackOutboxRecord record : pending) {
             publish(kafkaTemplate, record);
         }
@@ -82,8 +88,20 @@ public class PaymentCallbackOutboxRelay {
             LOGGER.debug("payment-callback-outbox published id={} provider={} orderId={}",
                     record.id(), record.provider(), record.orderId());
         } catch (RuntimeException e) {
-            LOGGER.warn("payment-callback-outbox publish failed id={} provider={} orderId={}: {}",
-                    record.id(), record.provider(), record.orderId(), e.getMessage());
+            int attempts = record.attemptCount() + 1;
+            boolean isDead = attempts >= MAX_ATTEMPTS;
+            long backoffSeconds = Math.min((long) Math.pow(2, attempts), 300);
+            Instant nextAttempt = isDead ? null : Instant.now().plusSeconds(backoffSeconds);
+
+            outbox.recordFailure(record.id(), attempts, e.getMessage(), nextAttempt, isDead);
+
+            if (isDead) {
+                LOGGER.error("payment-callback-outbox DEAD after {} attempts: id={} orderId={} error={}",
+                        attempts, record.id(), record.orderId(), e.getMessage());
+            } else {
+                LOGGER.warn("payment-callback-outbox retry scheduled: id={} attempt={} nextIn={}s",
+                        record.id(), attempts, backoffSeconds);
+            }
         }
     }
 }

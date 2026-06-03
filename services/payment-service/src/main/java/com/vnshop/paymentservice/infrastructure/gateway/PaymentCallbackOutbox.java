@@ -1,5 +1,6 @@
 package com.vnshop.paymentservice.infrastructure.gateway;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface PaymentCallbackOutbox {
@@ -12,8 +13,20 @@ public interface PaymentCallbackOutbox {
     List<PaymentCallbackOutboxRecord> findUnpublished(int limit);
 
     /**
+     * Returns up to {@code limit} rows eligible for (re-)delivery: not dead, not yet
+     * published, and whose {@code next_attempt_at} is in the past (or null).
+     */
+    List<PaymentCallbackOutboxRecord> findRetryable(int limit);
+
+    /**
      * Stamps {@code published_at = now()} on the row with the given id, idempotently
      * (no-op if already published or absent).
      */
     void markPublished(Long id);
+
+    /**
+     * Records a failed delivery attempt. Sets attempt_count, last_error, next_attempt_at
+     * and the dead flag. Pass {@code nextAttemptAt = null} when {@code dead = true}.
+     */
+    void recordFailure(Long id, int attemptCount, String error, Instant nextAttemptAt, boolean dead);
 }
