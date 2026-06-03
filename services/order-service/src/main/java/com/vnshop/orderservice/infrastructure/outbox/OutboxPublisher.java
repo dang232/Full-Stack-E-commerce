@@ -54,9 +54,9 @@ public class OutboxPublisher {
             return;
         }
 
-        List<OutboxEventJpaEntity> events = repository.findDuePendingEvents(
+        List<OutboxEventJpaEntity> events = repository.findAndLockPendingEvents(
                 Instant.now(),
-                PageRequest.of(0, batchSize)
+                batchSize
         );
         for (OutboxEventJpaEntity event : events) {
             publishEvent(kafkaTemplate, event);

@@ -24,4 +24,8 @@ public class OutboxEventRepository {
                 pageable
         );
     }
+
+    public List<OutboxEventJpaEntity> findAndLockPendingEvents(Instant now, int batchSize) {
+        return springDataRepository.findAndLockPendingEvents(now, batchSize);
+    }
 }
