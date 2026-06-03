@@ -1,27 +1,23 @@
-#!/usr/bin/env bash
-# Pre-create Kafka topics that services declare as @MessagePattern consumers
-# at startup. NestJS's KafkaJS client refuses to start the consumer if the
-# topic is missing — even with `KAFKA_AUTO_CREATE_TOPICS_ENABLE=true` on the
-# broker, because consumer-side metadata refresh races topic auto-creation
-# and the consumer crashes before the auto-create finishes.
-#
-# Idempotent: kafka-topics --create --if-not-exists is a no-op when the
-# topic already exists. For partition bumps on existing topics, run with
-# BUMP_PARTITIONS=1 to use --alter --partitions; this only ever adds
-# partitions, never removes them.
-#
-# Run after `docker compose up -d` and before the first messaging request:
-#   bash infra/scripts/init-kafka-topics.sh
-#   BUMP_PARTITIONS=1 bash infra/scripts/init-kafka-topics.sh   # one-shot to widen existing topics
+#!/bin/bash
+set -e
 
-set -euo pipefail
+BROKER="kafka:9092"
+ADMIN_CONFIG="/tmp/admin.properties"
 
-KAFKA_CONTAINER="${KAFKA_CONTAINER:-vnshop-kafka}"
-BOOTSTRAP="${KAFKA_BOOTSTRAP:-localhost:9092}"
+# Create admin client config for SASL authentication
+cat > $ADMIN_CONFIG <<EOF
+security.protocol=SASL_PLAINTEXT
+sasl.mechanism=PLAIN
+sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="${KAFKA_ADMIN_PASSWORD:-admin-secret-change-me}";
+EOF
 
-# Topics needed at boot. order.* topics get 3 partitions so the
-# OrderProjectionListener's concurrency=3 setting actually parallelises
-# within each topic, not just across topics. Each entry is "name:partitions".
+echo "Waiting for Kafka to be ready..."
+until kafka-broker-api-versions --bootstrap-server $BROKER --command-config $ADMIN_CONFIG > /dev/null 2>&1; do
+  sleep 2
+done
+echo "Kafka is ready."
+
+# --- Create Topics ---
 TOPICS=(
   "messaging.message.sent:1"
   "product-events:1"
@@ -37,30 +33,63 @@ TOPICS=(
   "shipping.cancelled:1"
 )
 
-echo "==> ensuring kafka topics exist via ${KAFKA_CONTAINER}"
 for entry in "${TOPICS[@]}"; do
-  topic="${entry%%:*}"
-  partitions="${entry##*:}"
-  docker exec "${KAFKA_CONTAINER}" \
-    kafka-topics --bootstrap-server "${BOOTSTRAP}" \
-    --create --if-not-exists \
-    --topic "${topic}" --partitions "${partitions}" --replication-factor 1 \
-    >/dev/null
-  echo "  + ${topic} (partitions=${partitions})"
-
-  if [[ "${BUMP_PARTITIONS:-0}" == "1" ]]; then
-    current=$(docker exec "${KAFKA_CONTAINER}" \
-      kafka-topics --bootstrap-server "${BOOTSTRAP}" --describe --topic "${topic}" \
-      | head -1 | grep -oE 'PartitionCount: [0-9]+' | awk '{print $2}')
-    if [[ -n "${current}" && "${current}" -lt "${partitions}" ]]; then
-      docker exec "${KAFKA_CONTAINER}" \
-        kafka-topics --bootstrap-server "${BOOTSTRAP}" \
-        --alter --topic "${topic}" --partitions "${partitions}" \
-        >/dev/null
-      echo "    ↳ bumped ${topic} ${current} → ${partitions} partitions"
-    fi
-  fi
+  IFS=':' read -r topic partitions <<< "$entry"
+  kafka-topics --bootstrap-server $BROKER --command-config $ADMIN_CONFIG \
+    --create --if-not-exists --topic "$topic" --partitions "$partitions" --replication-factor 1
 done
+echo "All topics created."
 
-echo "==> done. Existing topics:"
-docker exec "${KAFKA_CONTAINER}" kafka-topics --bootstrap-server "${BOOTSTRAP}" --list
+# --- Configure ACLs ---
+ACL="kafka-acls --bootstrap-server $BROKER --command-config $ADMIN_CONFIG"
+
+# order-service (svc-order): produces order.*, payment.refund.requested
+$ACL --add --allow-principal User:svc-order --operation Write --topic order --resource-pattern-type prefixed
+$ACL --add --allow-principal User:svc-order --operation Write --topic payment.refund.requested
+# order-service: consumes payment.completed, payment.refunded, inventory.released, shipping.cancelled
+$ACL --add --allow-principal User:svc-order --operation Read --topic payment.completed
+$ACL --add --allow-principal User:svc-order --operation Read --topic payment.refunded
+$ACL --add --allow-principal User:svc-order --operation Read --topic inventory.released
+$ACL --add --allow-principal User:svc-order --operation Read --topic shipping.cancelled
+# order-service: also reads its own order.* topics for projection
+$ACL --add --allow-principal User:svc-order --operation Read --topic order --resource-pattern-type prefixed
+# order-service consumer groups
+$ACL --add --allow-principal User:svc-order --operation Read --group order-service-payment
+$ACL --add --allow-principal User:svc-order --operation Read --group order-service-refund
+$ACL --add --allow-principal User:svc-order --operation Read --group order-service-projection
+$ACL --add --allow-principal User:svc-order --operation Read --group order-service-finance
+$ACL --add --allow-principal User:svc-order --operation Read --group order-service-saga-compensation
+
+# payment-service (svc-payment): produces payment.completed, payment.refunded
+$ACL --add --allow-principal User:svc-payment --operation Write --topic payment.completed
+$ACL --add --allow-principal User:svc-payment --operation Write --topic payment.refunded
+# payment-service: consumes payment.refund.requested
+$ACL --add --allow-principal User:svc-payment --operation Read --topic payment.refund.requested
+$ACL --add --allow-principal User:svc-payment --operation Read --group payment-service-paypal-refund
+
+# inventory-service (svc-inventory): produces inventory.released
+$ACL --add --allow-principal User:svc-inventory --operation Write --topic inventory.released
+
+# product-service (svc-product): produces product-events
+$ACL --add --allow-principal User:svc-product --operation Write --topic product-events
+
+# shipping-service (svc-shipping): produces shipping.cancelled
+$ACL --add --allow-principal User:svc-shipping --operation Write --topic shipping.cancelled
+
+# seller-finance-service (svc-finance): consumes order.created, order.paid, payment.refunded
+$ACL --add --allow-principal User:svc-finance --operation Read --topic order.created
+$ACL --add --allow-principal User:svc-finance --operation Read --topic order.paid
+$ACL --add --allow-principal User:svc-finance --operation Read --topic payment.refunded
+$ACL --add --allow-principal User:svc-finance --operation Read --group seller-finance-service
+$ACL --add --allow-principal User:svc-finance --operation Read --group seller-finance-service-refund
+
+# search-service (svc-search): consumes product-events
+$ACL --add --allow-principal User:svc-search --operation Read --topic product-events
+$ACL --add --allow-principal User:svc-search --operation Read --group search-service
+
+# recommendations-service (svc-recommendations): consumes order.created
+$ACL --add --allow-principal User:svc-recommendations --operation Read --topic order.created
+$ACL --add --allow-principal User:svc-recommendations --operation Read --group recommendations-service
+
+echo "All ACLs configured."
+rm -f $ADMIN_CONFIG

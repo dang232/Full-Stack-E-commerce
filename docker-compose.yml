@@ -257,6 +257,20 @@ services:
       timeout: 10s
       retries: 10
 
+  init-kafka:
+    image: confluentinc/cp-kafka:8.2.0
+    container_name: vnshop-init-kafka
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD:-admin-secret-change-me}
+    volumes:
+      - ./infra/scripts/init-kafka-topics.sh:/init-kafka-topics.sh:ro
+      - ./infra/kafka/kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf:ro
+    command: ["bash", "/init-kafka-topics.sh"]
+    restart: "no"
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.6
     container_name: vnshop-keycloak
