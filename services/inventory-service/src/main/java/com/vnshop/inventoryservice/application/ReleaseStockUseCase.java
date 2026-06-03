@@ -2,6 +2,7 @@ package com.vnshop.inventoryservice.application;
 
 import com.vnshop.inventoryservice.domain.StockReservation;
 import com.vnshop.inventoryservice.domain.port.out.StockReservationPort;
+import com.vnshop.inventoryservice.infrastructure.event.InventoryEventPublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
@@ -19,14 +20,16 @@ public class ReleaseStockUseCase {
 
     private final StockReservationPort port;
     private final Clock clock;
+    private final InventoryEventPublisher eventPublisher;
 
-    public ReleaseStockUseCase(StockReservationPort port) {
-        this(port, Clock.systemUTC());
+    public ReleaseStockUseCase(StockReservationPort port, InventoryEventPublisher eventPublisher) {
+        this(port, Clock.systemUTC(), eventPublisher);
     }
 
-    ReleaseStockUseCase(StockReservationPort port, Clock clock) {
+    ReleaseStockUseCase(StockReservationPort port, Clock clock, InventoryEventPublisher eventPublisher) {
         this.port = port;
         this.clock = clock;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -42,11 +45,17 @@ public class ReleaseStockUseCase {
         }
 
         Instant now = clock.instant();
+        List<InventoryEventPublisher.ReleasedItem> releasedItems = active.stream()
+                .map(r -> new InventoryEventPublisher.ReleasedItem(r.productId(), r.quantity()))
+                .toList();
+
         for (StockReservation reservation : active) {
             port.increment(reservation.productId(), reservation.quantity());
             port.markReleased(reservation.released(now));
         }
         log.info("Released {} reservations for orderId={}", active.size(), orderId);
+
+        eventPublisher.publishReleased(orderId, null, releasedItems);
         return true;
     }
 }

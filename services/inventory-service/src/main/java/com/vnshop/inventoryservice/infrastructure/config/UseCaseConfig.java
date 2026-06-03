@@ -7,6 +7,7 @@ import com.vnshop.inventoryservice.application.ReserveStockUseCase;
 import com.vnshop.inventoryservice.domain.port.out.FlashSaleCampaignPort;
 import com.vnshop.inventoryservice.domain.port.out.FlashSaleReservationPort;
 import com.vnshop.inventoryservice.domain.port.out.StockReservationPort;
+import com.vnshop.inventoryservice.infrastructure.event.InventoryEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,7 +31,7 @@ public class UseCaseConfig {
     }
 
     @Bean
-    ReleaseStockUseCase releaseStockUseCase(StockReservationPort port) {
-        return new ReleaseStockUseCase(port);
+    ReleaseStockUseCase releaseStockUseCase(StockReservationPort port, InventoryEventPublisher eventPublisher) {
+        return new ReleaseStockUseCase(port, eventPublisher);
     }
 }

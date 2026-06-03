@@ -6,6 +6,7 @@ import com.vnshop.inventoryservice.application.ReserveStockUseCase.ReserveStockR
 import com.vnshop.inventoryservice.domain.StockReservation;
 import com.vnshop.inventoryservice.domain.port.out.StockReservationPort;
 import com.vnshop.inventoryservice.domain.port.out.StockReservationPort.DecrementOutcome;
+import com.vnshop.inventoryservice.infrastructure.event.InventoryEventPublisher;
 import com.vnshop.proto.inventory.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -22,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class GrpcInventoryServerTest {
     private Server server;
@@ -33,7 +35,7 @@ class GrpcInventoryServerTest {
     void setUp() throws IOException {
         port = new InMemoryStockReservationPort();
         ReserveStockUseCase reserveUseCase = new ReserveStockUseCase(port);
-        ReleaseStockUseCase releaseUseCase = new ReleaseStockUseCase(port);
+        ReleaseStockUseCase releaseUseCase = new ReleaseStockUseCase(port, mock(InventoryEventPublisher.class));
         GrpcInventoryServer service = new GrpcInventoryServer(reserveUseCase, releaseUseCase);
         service.port = 0; // random port
         server = ServerBuilder.forPort(0).addService(service).build().start();

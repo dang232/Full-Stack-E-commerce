@@ -1,11 +1,13 @@
 package com.vnshop.inventoryservice.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import com.vnshop.inventoryservice.application.ReserveStockUseCase.ReserveItem;
 import com.vnshop.inventoryservice.application.ReserveStockUseCase.ReserveStockResult;
 import com.vnshop.inventoryservice.domain.StockReservation;
 import com.vnshop.inventoryservice.domain.port.out.StockReservationPort;
+import com.vnshop.inventoryservice.infrastructure.event.InventoryEventPublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -83,7 +85,7 @@ class ReserveStockUseCaseTest {
     @Test
     void releaseIsIdempotentWhenNoReservations() {
         InMemoryStockReservationPort port = new InMemoryStockReservationPort();
-        ReleaseStockUseCase useCase = new ReleaseStockUseCase(port, fixedClock);
+        ReleaseStockUseCase useCase = new ReleaseStockUseCase(port, fixedClock, mock(InventoryEventPublisher.class));
 
         boolean ok = useCase.release("ord-unknown");
 
@@ -95,7 +97,7 @@ class ReserveStockUseCaseTest {
         InMemoryStockReservationPort port = new InMemoryStockReservationPort();
         port.seed("prod-1", 5);
         ReserveStockUseCase reserve = new ReserveStockUseCase(port, fixedClock);
-        ReleaseStockUseCase release = new ReleaseStockUseCase(port, fixedClock);
+        ReleaseStockUseCase release = new ReleaseStockUseCase(port, fixedClock, mock(InventoryEventPublisher.class));
         reserve.reserve("ord-4", List.of(new ReserveItem("prod-1", "default", 2)));
 
         boolean ok = release.release("ord-4");
