@@ -24,11 +24,17 @@ BOOTSTRAP="${KAFKA_BOOTSTRAP:-localhost:9092}"
 # within each topic, not just across topics. Each entry is "name:partitions".
 TOPICS=(
   "messaging.message.sent:1"
+  "product-events:1"
   "order.created:3"
   "order.updated:3"
   "order.paid:3"
   "order.shipped:3"
   "order.cancelled:3"
+  "payment.completed:1"
+  "payment.refund.requested:1"
+  "payment.refunded:1"
+  "inventory.released:1"
+  "shipping.cancelled:1"
 )
 
 echo "==> ensuring kafka topics exist via ${KAFKA_CONTAINER}"
