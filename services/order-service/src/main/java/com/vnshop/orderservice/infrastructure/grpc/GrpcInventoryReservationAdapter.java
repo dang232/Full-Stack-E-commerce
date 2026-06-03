@@ -7,6 +7,8 @@ import com.vnshop.proto.inventory.ReleaseRequest;
 import com.vnshop.proto.inventory.ReleaseResponse;
 import com.vnshop.proto.inventory.ReserveRequest;
 import com.vnshop.proto.inventory.ReserveResponse;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +26,13 @@ public class GrpcInventoryReservationAdapter implements InventoryReservationPort
     private static final Logger LOGGER = LoggerFactory.getLogger(GrpcInventoryReservationAdapter.class);
 
     private final InventoryServiceGrpc.InventoryServiceBlockingStub inventoryStub;
+    private final CircuitBreaker circuitBreaker;
 
-    public GrpcInventoryReservationAdapter(InventoryServiceGrpc.InventoryServiceBlockingStub inventoryStub) {
+    public GrpcInventoryReservationAdapter(
+            InventoryServiceGrpc.InventoryServiceBlockingStub inventoryStub,
+            CircuitBreaker inventoryCircuitBreaker) {
         this.inventoryStub = Objects.requireNonNull(inventoryStub, "inventoryStub is required");
+        this.circuitBreaker = Objects.requireNonNull(inventoryCircuitBreaker, "inventoryCircuitBreaker is required");
     }
 
     @Override
@@ -52,13 +58,17 @@ public class GrpcInventoryReservationAdapter implements InventoryReservationPort
 
         LOGGER.info("Sending reserve request for order {} with {} items", orderId, protoItems.size());
         try {
-            ReserveResponse response = inventoryStub
-                    .withDeadlineAfter(5, TimeUnit.SECONDS)
-                    .reserve(request);
+            ReserveResponse response = circuitBreaker.executeSupplier(() ->
+                    inventoryStub
+                            .withDeadlineAfter(5, TimeUnit.SECONDS)
+                            .reserve(request));
             if (!response.getSuccess()) {
                 throw new RuntimeException("Inventory reservation failed for order " + orderId);
             }
             LOGGER.info("Inventory reserved for order {}: {} items", orderId, response.getReservedItems());
+        } catch (CallNotPermittedException e) {
+            LOGGER.error("Circuit breaker OPEN for inventory-service: {}", e.getMessage());
+            throw new RuntimeException("Inventory service unavailable (circuit open)", e);
         } catch (StatusRuntimeException e) {
             LOGGER.error("gRPC reserve call failed for order {}: {}", orderId, e.getMessage(), e);
             throw new RuntimeException("Inventory reservation failed for order " + orderId, e);
@@ -75,13 +85,17 @@ public class GrpcInventoryReservationAdapter implements InventoryReservationPort
 
         LOGGER.info("Sending release request for order {}", orderId);
         try {
-            ReleaseResponse response = inventoryStub
-                    .withDeadlineAfter(5, TimeUnit.SECONDS)
-                    .release(request);
+            ReleaseResponse response = circuitBreaker.executeSupplier(() ->
+                    inventoryStub
+                            .withDeadlineAfter(5, TimeUnit.SECONDS)
+                            .release(request));
             if (!response.getSuccess()) {
                 throw new RuntimeException("Inventory release failed for order " + orderId);
             }
             LOGGER.info("Inventory released for order {}", orderId);
+        } catch (CallNotPermittedException e) {
+            LOGGER.error("Circuit breaker OPEN for inventory-service: {}", e.getMessage());
+            throw new RuntimeException("Inventory service unavailable (circuit open)", e);
         } catch (StatusRuntimeException e) {
             LOGGER.error("gRPC release call failed for order {}: {}", orderId, e.getMessage(), e);
             throw new RuntimeException("Inventory release failed for order " + orderId, e);

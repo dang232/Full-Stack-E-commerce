@@ -4,12 +4,15 @@ import com.vnshop.orderservice.domain.Money;
 import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
 import com.vnshop.proto.payment.PaymentRequest;
 import com.vnshop.proto.payment.PaymentServiceGrpc;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -19,9 +22,13 @@ public class GrpcPaymentRequestAdapter implements PaymentRequestPort {
     private static final Logger log = LoggerFactory.getLogger(GrpcPaymentRequestAdapter.class);
 
     private final PaymentServiceGrpc.PaymentServiceBlockingStub paymentStub;
+    private final CircuitBreaker circuitBreaker;
 
-    public GrpcPaymentRequestAdapter(PaymentServiceGrpc.PaymentServiceBlockingStub paymentStub) {
-        this.paymentStub = paymentStub;
+    public GrpcPaymentRequestAdapter(
+            PaymentServiceGrpc.PaymentServiceBlockingStub paymentStub,
+            CircuitBreaker paymentCircuitBreaker) {
+        this.paymentStub = Objects.requireNonNull(paymentStub, "paymentStub is required");
+        this.circuitBreaker = Objects.requireNonNull(paymentCircuitBreaker, "paymentCircuitBreaker is required");
     }
 
     @Override
@@ -38,11 +45,15 @@ public class GrpcPaymentRequestAdapter implements PaymentRequestPort {
             .build();
 
         try {
-            var response = paymentStub
-                .withDeadlineAfter(10, TimeUnit.SECONDS)
-                .requestPayment(request);
+            var response = circuitBreaker.executeSupplier(() ->
+                paymentStub
+                    .withDeadlineAfter(10, TimeUnit.SECONDS)
+                    .requestPayment(request));
             log.info("Payment requested: orderId={}, paymentId={}, status={}",
                 orderId, response.getPaymentId(), response.getStatus());
+        } catch (CallNotPermittedException e) {
+            log.error("Circuit breaker OPEN for payment-service: {}", e.getMessage());
+            throw new PaymentRequestFailedException("Payment service unavailable (circuit open)", e);
         } catch (StatusRuntimeException e) {
             log.error("gRPC payment request failed: orderId={}, code={}, message={}",
                 orderId, e.getStatus().getCode(), e.getStatus().getDescription(), e);
