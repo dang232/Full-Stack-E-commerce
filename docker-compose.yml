@@ -292,6 +292,8 @@ services:
       KC_HOSTNAME: http://localhost:8085
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
       KC_HOSTNAME_STRICT: "false"
+      KEYCLOAK_GATEWAY_CLIENT_SECRET: ${KEYCLOAK_GATEWAY_CLIENT_SECRET:-vnshop-gateway-secret-dev}
+      KEYCLOAK_ADMIN_API_CLIENT_SECRET: ${KEYCLOAK_ADMIN_API_CLIENT_SECRET:-vnshop-admin-api-secret-dev}
     ports:
       - "8085:8080"
     volumes:

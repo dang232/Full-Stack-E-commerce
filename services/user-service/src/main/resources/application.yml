@@ -67,7 +67,7 @@ keycloak:
     base-url: ${KEYCLOAK_ADMIN_BASE_URL:http://keycloak:8080}
     realm: ${KEYCLOAK_ADMIN_REALM:vnshop}
     client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:vnshop-admin-api}
-    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:}
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:vnshop-admin-api-secret-dev}
 
 springdoc:
   api-docs:
