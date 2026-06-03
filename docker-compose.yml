@@ -510,6 +510,9 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_SASL_USERNAME: svc-product
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_PRODUCT_PASSWORD:-product-secret-change-me}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
@@ -549,6 +552,9 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_SASL_USERNAME: svc-inventory
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_INVENTORY_PASSWORD:-inventory-secret-change-me}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
@@ -622,6 +628,9 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_SASL_USERNAME: svc-search
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SEARCH_PASSWORD:-search-secret-change-me}
 
   notification-service:
     profiles: ["apps"]
@@ -700,6 +709,9 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_SASL_USERNAME: svc-finance
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_FINANCE_PASSWORD:-finance-secret-change-me}
 
   recommendations-service:
     profiles: ["apps"]
@@ -719,6 +731,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       PRODUCT_SERVICE_URL: http://product-service:8082
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_SASL_USERNAME: svc-recommendations
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_RECOMMENDATIONS_PASSWORD:-recommendations-secret-change-me}
 
   order-service:
     profiles: ["apps"]
@@ -757,6 +772,9 @@ services:
       VNSHOP_INVOICE_STORAGE_ACCESS_KEY: ${INVOICE_STORAGE_ACCESS_KEY:-vnshop}
       VNSHOP_INVOICE_STORAGE_SECRET_KEY: ${INVOICE_STORAGE_SECRET_KEY:-vnshop123}
       VNSHOP_INVOICE_STORAGE_PATH_STYLE_ACCESS: ${INVOICE_STORAGE_PATH_STYLE:-true}
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_SASL_USERNAME: svc-order
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_ORDER_PASSWORD:-order-secret-change-me}
       GRPC_CLIENT_INVENTORY_HOST: inventory-service
       GRPC_CLIENT_INVENTORY_PORT: 9093
       GRPC_CLIENT_PAYMENT_HOST: payment-service
@@ -818,6 +836,10 @@ services:
       SEPAY_ENABLED: ${SEPAY_ENABLED:-false}
       # FX provider for Stripe/PayPal (USD conversion).
       FX_FALLBACK_RATE: ${FX_FALLBACK_RATE:-25500}
+      # Kafka SASL/PLAIN credentials for payment-service.
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_SASL_USERNAME: svc-payment
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_PAYMENT_PASSWORD:-payment-secret-change-me}
 
   shipping-service:
     profiles: ["apps"]
@@ -841,6 +863,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: vnshop123
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      KAFKA_SASL_USERNAME: svc-shipping
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SHIPPING_PASSWORD:-shipping-secret-change-me}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
