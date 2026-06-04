@@ -110,6 +110,18 @@ public class UserJpaRepository implements UserRepositoryPort {
                 .getSingleResult();
     }
 
+    @Override
+    @Transactional
+    public void anonymize(String keycloakId) {
+        findBuyerEntityByKeycloakId(keycloakId).ifPresent(entity -> {
+            entity.setName("[REDACTED]");
+            entity.setPhone(null);
+            entity.setAvatarUrl(null);
+            entity.getAddresses().clear();
+            entityManager.merge(entity);
+        });
+    }
+
     private Optional<BuyerProfileJpaEntity> findBuyerEntityByKeycloakId(String keycloakId) {
         return entityManager.createQuery(
                         "select buyer from BuyerProfileJpaEntity buyer left join fetch buyer.addresses where buyer.keycloakId = :keycloakId",

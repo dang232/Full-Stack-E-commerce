@@ -31,6 +31,11 @@ TOPICS=(
   "payment.refunded:6"
   "inventory.released:6"
   "shipping.cancelled:6"
+  # GDPR topics
+  "gdpr.export-requested:1"
+  "gdpr.export-fragment:3"
+  "gdpr.deletion-requested:1"
+  "gdpr.deletion-completed:3"
 )
 
 for entry in "${TOPICS[@]}"; do
@@ -90,6 +95,34 @@ $ACL --add --allow-principal User:svc-search --operation Read --group search-ser
 # recommendations-service (svc-recommendations): consumes order.created
 $ACL --add --allow-principal User:svc-recommendations --operation Read --topic order.created
 $ACL --add --allow-principal User:svc-recommendations --operation Read --group recommendations-service
+
+# user-service: produces gdpr.export-requested / gdpr.deletion-requested; consumes gdpr.export-fragment
+$ACL --add --allow-principal User:svc-user --operation Write --topic gdpr.export-requested
+$ACL --add --allow-principal User:svc-user --operation Write --topic gdpr.deletion-requested
+$ACL --add --allow-principal User:svc-user --operation Read --topic gdpr.export-fragment
+$ACL --add --allow-principal User:svc-user --operation Read --topic gdpr.deletion-completed
+$ACL --add --allow-principal User:svc-user --operation Read --group user-service-gdpr-export
+
+# order-service: consumes gdpr.*-requested; produces gdpr.export-fragment / gdpr.deletion-completed
+$ACL --add --allow-principal User:svc-order --operation Read --topic gdpr.export-requested
+$ACL --add --allow-principal User:svc-order --operation Read --topic gdpr.deletion-requested
+$ACL --add --allow-principal User:svc-order --operation Write --topic gdpr.export-fragment
+$ACL --add --allow-principal User:svc-order --operation Write --topic gdpr.deletion-completed
+$ACL --add --allow-principal User:svc-order --operation Read --group order-service-gdpr
+
+# payment-service: consumes gdpr.*-requested; produces gdpr.export-fragment / gdpr.deletion-completed
+$ACL --add --allow-principal User:svc-payment --operation Read --topic gdpr.export-requested
+$ACL --add --allow-principal User:svc-payment --operation Read --topic gdpr.deletion-requested
+$ACL --add --allow-principal User:svc-payment --operation Write --topic gdpr.export-fragment
+$ACL --add --allow-principal User:svc-payment --operation Write --topic gdpr.deletion-completed
+$ACL --add --allow-principal User:svc-payment --operation Read --group payment-service-gdpr
+
+# shipping-service: consumes gdpr.*-requested; produces gdpr.export-fragment / gdpr.deletion-completed
+$ACL --add --allow-principal User:svc-shipping --operation Read --topic gdpr.export-requested
+$ACL --add --allow-principal User:svc-shipping --operation Read --topic gdpr.deletion-requested
+$ACL --add --allow-principal User:svc-shipping --operation Write --topic gdpr.export-fragment
+$ACL --add --allow-principal User:svc-shipping --operation Write --topic gdpr.deletion-completed
+$ACL --add --allow-principal User:svc-shipping --operation Read --group shipping-service-gdpr
 
 echo "All ACLs configured."
 rm -f $ADMIN_CONFIG

@@ -29,4 +29,10 @@ public interface UserRepositoryPort {
     List<SellerProfile> findApprovedSellers(int page, int size);
 
     long countApprovedSellers();
+
+    /**
+     * Anonymizes PII fields for the buyer with the given Keycloak id.
+     * Called as part of the GDPR right-to-erasure flow.
+     */
+    void anonymize(String keycloakId);
 }
