@@ -201,6 +201,64 @@ services:
       timeout: 5s
       retries: 5
 
+  redis-master:
+    image: redis:8.6-alpine
+    container_name: vnshop-redis-master
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "volatile-lru", "--requirepass", "${REDIS_PASSWORD:-vnshop123}", "--masterauth", "${REDIS_PASSWORD:-vnshop123}"]
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-master-data:/data
+    profiles: ["ha"]
+
+  redis-replica-1:
+    image: redis:8.6-alpine
+    container_name: vnshop-redis-replica-1
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-vnshop123}", "--masterauth", "${REDIS_PASSWORD:-vnshop123}", "--replicaof", "redis-master", "6379"]
+    depends_on:
+      - redis-master
+    profiles: ["ha"]
+
+  redis-replica-2:
+    image: redis:8.6-alpine
+    container_name: vnshop-redis-replica-2
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-vnshop123}", "--masterauth", "${REDIS_PASSWORD:-vnshop123}", "--replicaof", "redis-master", "6379"]
+    depends_on:
+      - redis-master
+    profiles: ["ha"]
+
+  redis-sentinel-1:
+    image: redis:8.6-alpine
+    container_name: vnshop-redis-sentinel-1
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
+    volumes:
+      - ./infra/redis/sentinel.conf:/etc/redis/sentinel.conf:ro
+    depends_on:
+      - redis-master
+    ports:
+      - "26379:26379"
+    profiles: ["ha"]
+
+  redis-sentinel-2:
+    image: redis:8.6-alpine
+    container_name: vnshop-redis-sentinel-2
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
+    volumes:
+      - ./infra/redis/sentinel.conf:/etc/redis/sentinel.conf:ro
+    depends_on:
+      - redis-master
+    profiles: ["ha"]
+
+  redis-sentinel-3:
+    image: redis:8.6-alpine
+    container_name: vnshop-redis-sentinel-3
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
+    volumes:
+      - ./infra/redis/sentinel.conf:/etc/redis/sentinel.conf:ro
+    depends_on:
+      - redis-master
+    profiles: ["ha"]
+
   mongo:
     image: mongo:7.0
     container_name: vnshop-mongo
@@ -1041,6 +1099,40 @@ services:
       timeout: 10s
       retries: 3
 
+  postgres-unleash:
+    image: postgres:16-alpine
+    container_name: vnshop-postgres-unleash
+    environment:
+      POSTGRES_USER: unleash
+      POSTGRES_PASSWORD: ${UNLEASH_DB_PASSWORD:-unleash123}
+      POSTGRES_DB: unleash
+    volumes:
+      - unleash-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unleash"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  unleash:
+    image: unleashorg/unleash-server:6.1
+    container_name: vnshop-unleash
+    ports:
+      - "4242:4242"
+    environment:
+      DATABASE_URL: postgres://unleash:${UNLEASH_DB_PASSWORD:-unleash123}@postgres-unleash:5432/unleash
+      DATABASE_SSL: "false"
+      INIT_ADMIN_API_TOKENS: "*:*.unleash-insecure-admin-api-token"
+      INIT_CLIENT_API_TOKENS: "default:development.unleash-insecure-client-token"
+    depends_on:
+      postgres-unleash:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4242/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
 volumes:
   postgres-legacy-data:
   postgres-keycloak-data:
@@ -1052,6 +1144,7 @@ volumes:
   postgres-search-data:
   postgres-shipping-data:
   redis-data:
+  redis-master-data:
   kafka-data:
   elasticsearch-data:
   minio-data:
@@ -1060,3 +1153,4 @@ volumes:
   prometheus-data:
   grafana-data:
   loki-data:
+  unleash-db-data:
