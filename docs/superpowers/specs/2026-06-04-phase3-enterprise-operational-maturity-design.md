@@ -61,10 +61,11 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
 
 **Implementation:**
 - Document: `docs/sli-slo.md` defining per-service:
-  - Availability: % of non-5xx responses (target: 99.5%)
-  - Latency: p99 < 500ms for reads, < 2s for writes
-  - Throughput: minimum requests/sec baseline per service
+  - Availability: % of non-5xx responses (initial target: 99.5% — adjust after 2-week baseline measurement)
+  - Latency: p99 < 500ms for reads, < 2s for writes (initial targets — calibrate against observed p99 after baseline window)
+  - Throughput: minimum requests/sec baseline per service (measured, not guessed)
   - Error budget: 0.5% over 30-day rolling window
+  - **Baseline phase:** first 2 weeks after deployment, SLO alerts in warning-only mode to establish real baselines before enforcing
 - Prometheus recording rules: `infra/prometheus/slo-rules.yml`
   - `slo:http_requests:error_ratio_30d` per service
   - `slo:http_requests:latency_p99` per service
@@ -87,7 +88,7 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
   2. `build-push` — matrix over changed services:
      - Java: `docker/build-push-action` with Dockerfile from each service
      - Node: same action, Node Dockerfiles
-     - Multi-arch: linux/amd64 + linux/arm64
+     - Architecture: linux/amd64 only (arm64 not needed for current deployment targets)
      - Tags: `ghcr.io/<owner>/vnshop-<service>:sha-<short>`, `:latest`, `:v<date>`
   3. `update-manifests` — update image tags in `infra/k8s/overlays/staging/kustomization.yaml`
 - Secrets required: `GITHUB_TOKEN` (automatic for GHCR)
@@ -112,6 +113,10 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
   - `enhanced-search` — A/B test for search algorithm
   - `seller-analytics-v2` — seller dashboard feature gate
 - K8s: Deployment + Service + ConfigMap in `infra/k8s/base/services/unleash/`
+- Decision criteria doc: `docs/feature-flag-guidelines.md`
+  - When to flag vs. when to branch (flags for runtime toggles, branches for incomplete features)
+  - Flag lifecycle: create → enable → remove (max 30-day active lifespan)
+  - Flag naming conventions and ownership
 
 ---
 
@@ -136,17 +141,19 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
 
 ### C2. Redis Sentinel HA
 
-**Scope:** Replace single Redis instance with Sentinel-managed cluster.
+**Scope:** Replace single Redis instance with Sentinel-managed cluster (behind Docker Compose profile).
 
 **Implementation:**
-- Docker Compose services:
+- Docker Compose services (under `--profile ha`; default dev stays single Redis):
   - `redis-master` — primary node (port 6379)
   - `redis-replica-1`, `redis-replica-2` — read replicas
   - `redis-sentinel-1`, `redis-sentinel-2`, `redis-sentinel-3` — sentinels (port 26379)
+- Default dev profile: single `redis` container (existing behavior, no change)
 - Sentinel config: `infra/redis/sentinel.conf` (quorum=2, down-after=5000ms, failover-timeout=10000ms)
 - Spring Boot config change for cart-service (primary Redis consumer):
-  - `spring.data.redis.sentinel.master=mymaster`
+  - `spring.data.redis.sentinel.master=mymaster` (active under `prod`/`ha` profile)
   - `spring.data.redis.sentinel.nodes=redis-sentinel-1:26379,...`
+  - Default profile keeps `spring.data.redis.host=redis` for single-node dev
 - K8s: StatefulSet for Redis + Sentinel, headless Service for discovery
 - Health check: sentinel `PING` + master reachability
 
@@ -163,6 +170,13 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
   - `shipping.events`: 3 → 6 partitions
 - Update `infra/scripts/init-kafka-topics.sh` with new partition counts for fresh environments
 - Consumer group rebalance considerations documented in script comments
+- **Consumer concurrency updates** (required to utilize new partitions):
+  - product-service consumers: `spring.kafka.listener.concurrency=12`
+  - order-service consumers: `spring.kafka.listener.concurrency=6`
+  - payment-service consumers: `spring.kafka.listener.concurrency=6`
+  - inventory-service consumers: `spring.kafka.listener.concurrency=6`
+  - shipping-service consumers: `spring.kafka.listener.concurrency=6`
+  - K8s: document HPA targets for consumer pods (scale based on consumer lag metric)
 - Note: key-based partitioning maintained (order-id, payment-id) — no message reordering issues within a partition
 
 ### C4. Inter-service mTLS (Istio)
@@ -181,7 +195,12 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
   - `virtual-services.yaml` — retry + timeout policies matching existing Resilience4j config
 - Namespace label: `istio-injection=enabled`
 - Note: Template only — requires Istio control plane installed on target cluster
-- Documentation: `infra/k8s/base/istio/README.md` with setup instructions
+- **Staleness risk mitigation:**
+  - `authorization-policies.yaml` encodes the service call graph; it WILL drift as services evolve
+  - CI validation: add a `buf`-style call-graph linter that parses proto imports + Spring `@FeignClient`/gRPC stubs and validates against the authorization policy YAML
+  - Script: `infra/scripts/validate-istio-call-graph.sh` — fails CI if a new service-to-service call exists without a matching policy entry
+  - Alternative fallback: if Istio is never adopted, these manifests should be archived or deleted after 6 months of inactivity
+- Documentation: `infra/k8s/base/istio/README.md` with setup instructions + maintenance cadence
 
 ---
 
@@ -189,23 +208,31 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
 
 ### D1. GDPR Right-to-Deletion + Data Export
 
-**Scope:** API endpoints for PII export and deletion across 5 services.
+**Scope:** API endpoints for PII export and deletion across 5 services, using async saga pattern.
 
 **PII-holding services:** user-service, order-service, payment-service, notification-service, shipping-service
 
 **Implementation:**
-- New endpoints on `api-gateway` (routes to user-service orchestration):
-  - `GET /api/v1/gdpr/export/{userId}` — aggregates PII from all 5 services into JSON ZIP
+- New endpoints on `api-gateway` (routes to user-service):
+  - `POST /api/v1/gdpr/export/{userId}` — initiates async export, returns request ID
+  - `GET /api/v1/gdpr/export/{userId}/status/{requestId}` — poll for completion, download when ready
   - `DELETE /api/v1/gdpr/delete/{userId}` — initiates cascading deletion
-- user-service orchestration:
-  - Export: calls each service's internal `/internal/gdpr/export/{userId}` endpoint, merges into single response
-  - Delete: publishes `gdpr.deletion-requested` Kafka event with userId
+- **Export (async saga — no synchronous fan-out):**
+  - user-service publishes `gdpr.export-requested` Kafka event with `{userId, requestId}`
+  - Each PII-holding service consumes event, produces its data fragment, publishes `gdpr.export-fragment` event with `{requestId, serviceName, payload}`
+  - user-service aggregates fragments; marks export complete when all 5 fragments arrive (or timeout after 60s with partial result + warning)
+  - Final export: JSON ZIP stored temporarily (TTL 24h), download URL returned via status endpoint
+  - If a service is down, export completes with available fragments + explicit "missing: shipping-service" note — no full failure on partial unavailability
+- **Delete (async event-driven — already async):**
+  - Publishes `gdpr.deletion-requested` Kafka event with userId
   - Each service consumes event and anonymizes/deletes user data:
     - user-service: delete profile, anonymize username to `deleted-<hash>`
     - order-service: anonymize addresses, keep order records for accounting (7yr retention)
     - payment-service: delete payment method references
     - notification-service: delete notification history
     - shipping-service: anonymize delivery addresses on completed shipments
+  - Each service publishes `gdpr.deletion-completed` confirmation event
+  - user-service tracks completion; alerts on timeout (service didn't confirm within 5 min)
 - Audit trail: every export/deletion logged with timestamp + operator
 - Rate limiting: 1 export request per user per hour
 - Requires admin or self-service (user can only export/delete own data)
@@ -217,7 +244,7 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
 **Implementation:**
 - Update `infra/keycloak/vnshop-realm.json`:
   - Required action `CONFIGURE_TOTP` for roles: `admin`, `seller`
-  - OTP policy: TOTP, SHA1, 6 digits, 30s period
+  - OTP policy: TOTP, SHA1, 6 digits, 30s period (SHA1 is acceptable per RFC 6238 — TOTP standard; SHA256/512 have no security benefit for 6-digit codes and break some authenticator apps)
   - Conditional OTP: required for admin/seller, optional for buyers
 - Update `infra/keycloak/vnshop-realm-prod.json` with same config
 - No service code changes — Keycloak handles MFA challenge in login flow
@@ -254,20 +281,29 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
 - Test class: `ArchitectureRulesTest.java` in each service's test directory
 - CI integration: runs with existing `mvn test` — fails the build on violation
 
-### D5. Contract Tests (Spring Cloud Contract)
+### D5. Contract Tests (buf + Pact)
 
-**Scope:** Consumer-driven contracts on 3 critical gRPC/REST interfaces.
+**Scope:** Consumer-driven contracts on 3 critical gRPC interfaces using tools designed for proto-based services.
+
+**Tooling rationale:** Spring Cloud Contract's gRPC support is immature and requires workarounds. Instead:
+- `buf breaking` — proto schema compatibility (detects breaking changes in .proto files)
+- Pact (pact-jvm) — behavioral contract testing for gRPC interactions
 
 **Implementation:**
-- Dependency: `spring-cloud-contract-verifier` (producer side), `spring-cloud-contract-stub-runner` (consumer side)
-- Contracts defined for:
-  1. **order-service → inventory-service** (gRPC: ReserveStock, ReleaseStock)
-  2. **order-service → payment-service** (gRPC: CreatePayment, CapturePayment)
-  3. **order-service → shipping-service** (gRPC: CreateShipment, GetShipmentStatus)
-- Contract DSL files in producer's `src/test/resources/contracts/`
-- Producer verification: auto-generated tests validate producer honors contract
-- Consumer stubs: published to local Maven repo, consumed in order-service integration tests
-- CI: contract tests run as part of `mvn verify`
+- **Proto compatibility (buf):**
+  - `buf.yaml` + `buf.gen.yaml` in `proto/` directory
+  - CI step: `buf breaking --against .git#branch=main` on every PR
+  - Catches: removed fields, changed field types, renamed services/methods
+- **Behavioral contracts (Pact):**
+  - Dependency: `au.com.dius.pact:provider` + `au.com.dius.pact:consumer` in relevant POMs
+  - Contracts defined for:
+    1. **order-service → inventory-service** (gRPC: ReserveStock, ReleaseStock)
+    2. **order-service → payment-service** (gRPC: CreatePayment, CapturePayment)
+    3. **order-service → shipping-service** (gRPC: CreateShipment, GetShipmentStatus)
+  - Consumer side (order-service): Pact mock gRPC server, generates pact files
+  - Provider side (inventory/payment/shipping): Pact provider verification tests replay consumer expectations against real implementation
+  - Pact files stored in `pacts/` directory (committed to repo — no Pact Broker needed initially)
+- CI: `buf breaking` in lint step, Pact verification in `mvn verify`
 
 ### D6. Terraform Infrastructure as Code
 
@@ -287,6 +323,7 @@ Phases 1 & 2 delivered security hardening (secrets externalization, SASL/SSL, au
   - `environments/prod/main.tf` — prod environment (multi-AZ, larger instances)
   - `variables.tf`, `outputs.tf`, `providers.tf`, `backend.tf` (S3 state backend template)
 - State: S3 backend config templated (bucket name as variable)
+- **State locking:** DynamoDB table (`vnshop-terraform-locks`) for state locking — prevents concurrent `terraform apply` from corrupting state. Table defined in `modules/state-backend/` (bootstrap module, applied manually once)
 - No credentials committed — uses `AWS_PROFILE` or IAM roles
 - `.terraform.lock.hcl` gitignored, provider versions pinned in `versions.tf`
 
