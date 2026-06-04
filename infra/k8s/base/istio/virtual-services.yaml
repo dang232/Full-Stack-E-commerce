@@ -1,0 +1,170 @@
+# VirtualServices — retry and timeout policies matching Resilience4j defaults
+#
+# Timeout : 5 s total
+# Retries : 3 attempts, 2 s per-try timeout
+# retryOn : 5xx, reset (connection reset), connect-failure
+#
+# gRPC services (inventory, payment, shipping) use the same policy;
+# Istio applies HTTP/2 framing automatically for gRPC.
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: user-service
+  namespace: vnshop
+spec:
+  hosts:
+    - user-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: user-service.vnshop.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: product-service
+  namespace: vnshop
+spec:
+  hosts:
+    - product-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: product-service.vnshop.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: inventory-service
+  namespace: vnshop
+spec:
+  hosts:
+    - inventory-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: inventory-service.vnshop.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: cart-service
+  namespace: vnshop
+spec:
+  hosts:
+    - cart-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: cart-service.vnshop.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: search-service
+  namespace: vnshop
+spec:
+  hosts:
+    - search-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: search-service.vnshop.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: notification-service
+  namespace: vnshop
+spec:
+  hosts:
+    - notification-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: notification-service.vnshop.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: order-service
+  namespace: vnshop
+spec:
+  hosts:
+    - order-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: order-service.vnshop.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: payment-service
+  namespace: vnshop
+spec:
+  hosts:
+    - payment-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: payment-service.vnshop.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: shipping-service
+  namespace: vnshop
+spec:
+  hosts:
+    - shipping-service.vnshop.svc.cluster.local
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure
+      route:
+        - destination:
+            host: shipping-service.vnshop.svc.cluster.local

@@ -1,0 +1,173 @@
+# AuthorizationPolicies — deny-all baseline then explicit allow rules
+#
+# Call graph covered:
+#   api-gateway   -> all services          (HTTP, port 8081-8093)
+#   order-service -> inventory-service     (gRPC, port 9093)
+#   order-service -> payment-service       (gRPC, port 9094)
+#   order-service -> shipping-service      (gRPC, port 9095)
+#
+# Kafka callbacks (payment-service -> order-service) are async via broker
+# and do NOT traverse the mesh directly; no AuthorizationPolicy needed.
+#
+# NOTE: Service accounts below assume per-service accounts are created.
+# Currently the repo uses a shared "vnshop-workload" SA.
+# Create dedicated SAs (vnshop-api-gateway, vnshop-order-service) before
+# tightening these policies in production.
+
+# 1. Deny all inbound traffic by default (no source, no operation = deny)
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: vnshop
+spec: {}
+
+# 2. api-gateway is allowed to reach every other service
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway-to-user-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: user-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway-to-product-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: product-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway-to-inventory-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: inventory-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+              - cluster.local/ns/vnshop/sa/vnshop-order-service
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway-to-cart-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: cart-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway-to-search-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: search-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway-to-notification-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: notification-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway-to-order-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-to-payment-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: payment-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+              - cluster.local/ns/vnshop/sa/vnshop-order-service
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-to-shipping-service
+  namespace: vnshop
+spec:
+  selector:
+    matchLabels:
+      app: shipping-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/vnshop/sa/vnshop-api-gateway
+              - cluster.local/ns/vnshop/sa/vnshop-order-service
