@@ -106,6 +106,18 @@ public class SecurityConfig {
                 .frameOptions(frame -> frame.mode(org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter.Mode.DENY))
                 .contentTypeOptions(org.springframework.security.config.Customizer.withDefaults())
                 .cache(org.springframework.security.config.Customizer.withDefaults())
+                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "default-src 'self'; " +
+                    "script-src 'self' https://js.stripe.com https://www.paypal.com; " +
+                    "style-src 'self' 'unsafe-inline'; " +
+                    "img-src 'self' data: https://*.r2.dev; " +
+                    "connect-src 'self' https://api.stripe.com https://www.paypal.com; " +
+                    "frame-src https://js.stripe.com https://www.paypal.com; " +
+                    "object-src 'none'; " +
+                    "base-uri 'self'"
+                ))
+                .referrerPolicy(referrer -> referrer.policy(
+                    org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
             )
             .build();
     }
