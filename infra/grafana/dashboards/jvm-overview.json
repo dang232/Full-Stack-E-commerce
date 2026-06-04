@@ -1,0 +1,116 @@
+{
+  "uid": "vnshop-jvm-overview",
+  "title": "VNShop JVM Overview",
+  "description": "Heap usage, GC time, threads, HikariCP connection pools",
+  "tags": ["vnshop", "jvm", "spring"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "label": "Datasource",
+        "hide": 0,
+        "refresh": 1,
+        "current": {}
+      },
+      {
+        "name": "job",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "label": "Service",
+        "query": "label_values(jvm_memory_used_bytes, job)",
+        "hide": 0,
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Heap Used vs Max",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "sum by (job) (jvm_memory_used_bytes{job=~\"$job\",area=\"heap\"})",
+          "legendFormat": "used {{job}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (jvm_memory_max_bytes{job=~\"$job\",area=\"heap\"})",
+          "legendFormat": "max {{job}}",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "custom": { "lineWidth": 2, "fillOpacity": 10 } }
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "GC Pause Time Rate",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "sum by (job, action) (rate(jvm_gc_pause_seconds_sum{job=~\"$job\"}[5m]))",
+          "legendFormat": "{{job}} {{action}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s", "custom": { "lineWidth": 2, "fillOpacity": 5 } }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "JVM Live Threads",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads{job=~\"$job\"}",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 5 } }
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "HikariCP Active Connections",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "hikaricp_connections_active{job=~\"$job\"}",
+          "legendFormat": "active {{job}} {{pool}}",
+          "refId": "A"
+        },
+        {
+          "expr": "hikaricp_connections_max{job=~\"$job\"}",
+          "legendFormat": "max {{job}} {{pool}}",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 5 } }
+      }
+    }
+  ]
+}

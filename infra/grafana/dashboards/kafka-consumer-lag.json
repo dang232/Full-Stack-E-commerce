@@ -1,0 +1,100 @@
+{
+  "uid": "vnshop-kafka-lag",
+  "title": "VNShop Kafka Consumer Lag",
+  "description": "Consumer group lag, partition offsets, records consumed rate",
+  "tags": ["vnshop", "kafka"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "label": "Datasource",
+        "hide": 0,
+        "refresh": 1,
+        "current": {}
+      },
+      {
+        "name": "consumer_group",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "label": "Consumer Group",
+        "query": "label_values(kafka_consumer_fetch_manager_records_lag_max, kafka_consumer_group_id)",
+        "hide": 0,
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Max Consumer Lag by Group",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "max by (kafka_consumer_group_id, topic) (kafka_consumer_fetch_manager_records_lag_max{kafka_consumer_group_id=~\"$consumer_group\"})",
+          "legendFormat": "{{kafka_consumer_group_id}} / {{topic}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1000 },
+              { "color": "red", "value": 10000 }
+            ]
+          },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Records Consumed Rate (records/s)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "sum by (kafka_consumer_group_id) (rate(kafka_consumer_fetch_manager_records_consumed_total{kafka_consumer_group_id=~\"$consumer_group\"}[5m]))",
+          "legendFormat": "{{kafka_consumer_group_id}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 5 } }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Bytes Consumed Rate (bytes/s)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "targets": [
+        {
+          "expr": "sum by (kafka_consumer_group_id) (rate(kafka_consumer_fetch_manager_bytes_consumed_total{kafka_consumer_group_id=~\"$consumer_group\"}[5m]))",
+          "legendFormat": "{{kafka_consumer_group_id}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "Bps", "custom": { "lineWidth": 2, "fillOpacity": 5 } }
+      }
+    }
+  ]
+}
