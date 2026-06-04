@@ -1,0 +1,12 @@
+# Install cert-manager via:
+# kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.0/cert-manager.yaml
+# The resources below assume cert-manager is already installed.
+#
+# cert-manager manages TLS certificates automatically via Let's Encrypt (ACME).
+# After applying the ClusterIssuers in this directory, annotate Ingress resources
+# with: cert-manager.io/cluster-issuer: "letsencrypt-staging" (or letsencrypt-prod)
+# and cert-manager will provision and renew certificates automatically.
+#
+# Verify installation:
+#   kubectl get pods -n cert-manager
+#   kubectl get clusterissuers
