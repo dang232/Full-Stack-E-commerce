@@ -182,6 +182,14 @@
 			<version>1.3.0</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Contract Testing - Consumer -->
+		<dependency>
+			<groupId>au.com.dius.pact.consumer</groupId>
+			<artifactId>junit5</artifactId>
+			<version>4.6.14</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
