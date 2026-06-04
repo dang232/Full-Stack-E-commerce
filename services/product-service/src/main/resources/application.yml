@@ -34,7 +34,7 @@ spring:
       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-product}" password="${KAFKA_SASL_PASSWORD:product-secret-change-me}";
       ssl.truststore.location: ${KAFKA_SSL_TRUSTSTORE_LOCATION:/etc/kafka/secrets/kafka.truststore.jks}
       ssl.truststore.password: ${KAFKA_SSL_TRUSTSTORE_PASSWORD:kafka-ssl-dev-password}
-      ssl.endpoint.identification.algorithm: ""
+      ssl.endpoint.identification.algorithm: https
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       # ProductEvent is a domain record; JsonSerializer turns it into bytes on

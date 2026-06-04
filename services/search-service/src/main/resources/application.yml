@@ -37,7 +37,7 @@ spring:
       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-search}" password="${KAFKA_SASL_PASSWORD:search-secret-change-me}";
       ssl.truststore.location: ${KAFKA_SSL_TRUSTSTORE_LOCATION:/etc/kafka/secrets/kafka.truststore.jks}
       ssl.truststore.password: ${KAFKA_SSL_TRUSTSTORE_PASSWORD:kafka-ssl-dev-password}
-      ssl.endpoint.identification.algorithm: ""
+      ssl.endpoint.identification.algorithm: https
     listener:
       observation-enabled: true
     template:
