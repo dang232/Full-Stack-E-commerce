@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: vnshop
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5432:5432"
     volumes:
@@ -26,7 +26,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_keycloak
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     volumes:
       - postgres-keycloak-data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -43,7 +43,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_user
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5433:5432"
     volumes:
@@ -62,7 +62,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_product
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5434:5432"
     volumes:
@@ -81,7 +81,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_order
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5435:5432"
     volumes:
@@ -100,7 +100,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_payment
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5436:5432"
     volumes:
@@ -119,7 +119,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_inventory
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5437:5432"
     volumes:
@@ -138,7 +138,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_search
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5438:5432"
     volumes:
@@ -157,7 +157,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_shipping
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: vnshop123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5439:5432"
     volumes:
@@ -175,7 +175,7 @@ services:
     environment:
       POSTGRES_DB: monitoring
       POSTGRES_USER: monitoring
-      POSTGRES_PASSWORD: monitoring
+      POSTGRES_PASSWORD: ${MONITORING_DB_PASSWORD:-changeme}
     ports:
       - "5440:5432"
     volumes:
@@ -267,7 +267,7 @@ services:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: vnshop
-      MONGO_INITDB_ROOT_PASSWORD: vnshop123
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
       MONGO_INITDB_DATABASE: notification_db
     volumes:
       - mongo-data:/data/db
@@ -357,7 +357,7 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/vnshop_keycloak
       KC_DB_SCHEMA: keycloak
       KC_DB_USERNAME: vnshop
-      KC_DB_PASSWORD: vnshop123
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       # Exposes /health/{started,live,ready} on management port 9000 (per Keycloak 26 docs).
       # The image has no curl/wget, so the healthcheck below uses bash's /dev/tcp.
       KC_HEALTH_ENABLED: "true"
@@ -617,7 +617,7 @@ services:
       SERVER_PORT: 8081
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/vnshop_user?currentSchema=user_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -654,7 +654,7 @@ services:
       SERVER_PORT: 8082
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/vnshop_product?currentSchema=product_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -698,7 +698,7 @@ services:
       SERVER_PORT: 8083
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-inventory:5432/vnshop_inventory?currentSchema=inventory_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -776,7 +776,7 @@ services:
       SERVER_PORT: 8086
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-search:5432/vnshop_search?currentSchema=search_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -802,7 +802,7 @@ services:
       kafka:
         condition: service_healthy
     environment:
-      MONGO_URI: mongodb://vnshop:vnshop123@mongo:27017/notification_db?authSource=admin
+      MONGO_URI: mongodb://vnshop:${MONGO_ROOT_PASSWORD:-changeme}@mongo:27017/notification_db?authSource=admin
       REDIS_URL: redis://:${REDIS_PASSWORD:-vnshop123}@redis:6379
       PORT: 8087
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
@@ -834,7 +834,7 @@ services:
       SERVER_PORT: 8088
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=coupon_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -859,7 +859,7 @@ services:
       SERVER_PORT: 8090
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=seller_finance_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -886,7 +886,7 @@ services:
       SERVER_PORT: 8094
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=recommendations_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       PRODUCT_SERVICE_URL: http://product-service:8082
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
@@ -914,7 +914,7 @@ services:
       SERVER_PORT: 8091
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/vnshop_order?currentSchema=order_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -963,7 +963,7 @@ services:
       SERVER_PORT: 8092
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/vnshop_payment?currentSchema=payment_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -1024,7 +1024,7 @@ services:
       SERVER_PORT: 8093
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-shipping:5432/vnshop_shipping?currentSchema=shipping_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: vnshop123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
@@ -1062,9 +1062,9 @@ services:
       DB_HOST: postgres-legacy
       DB_PORT: 5432
       DB_USERNAME: vnshop
-      DB_PASSWORD: vnshop123
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       DB_DATABASE: vnshop
-      DATABASE_URL: postgresql://vnshop:vnshop123@postgres-legacy:5432/vnshop?currentSchema=messaging_svc
+      DATABASE_URL: postgresql://vnshop:${POSTGRES_PASSWORD:-changeme}@postgres-legacy:5432/vnshop?currentSchema=messaging_svc
       PORT: 8095
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: always_on
@@ -1086,7 +1086,7 @@ services:
       TIMESCALE_PORT: 5432
       TIMESCALE_DB: monitoring
       TIMESCALE_USER: monitoring
-      TIMESCALE_PASSWORD: monitoring
+      TIMESCALE_PASSWORD: ${MONITORING_DB_PASSWORD:-changeme}
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       CORS_ORIGINS: http://localhost:8096,http://localhost:3000,http://localhost:5173
