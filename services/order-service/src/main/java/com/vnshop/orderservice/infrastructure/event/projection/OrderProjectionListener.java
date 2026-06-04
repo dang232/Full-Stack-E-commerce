@@ -35,7 +35,7 @@ public class OrderProjectionListener {
     @KafkaListener(
             topics = {"order.created", "order.updated", "order.paid", "order.shipped", "order.cancelled"},
             groupId = "order-service-projection",
-            concurrency = "3"
+            concurrency = "6"
     )
     public void onOrderEvent(String eventJson) {
         JsonNode envelope = readTree(eventJson);

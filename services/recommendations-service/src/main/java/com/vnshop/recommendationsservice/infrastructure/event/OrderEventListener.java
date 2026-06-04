@@ -48,7 +48,7 @@ public class OrderEventListener {
             dltTopicSuffix = ".DLT",
             retryTopicSuffix = ".retry"
     )
-    @KafkaListener(topics = "order.created", groupId = "recommendations-service")
+    @KafkaListener(topics = "order.created", groupId = "recommendations-service", concurrency = "6")
     public void onOrderCreated(String eventJson) {
         try {
             JsonNode envelope = objectMapper.readTree(eventJson);

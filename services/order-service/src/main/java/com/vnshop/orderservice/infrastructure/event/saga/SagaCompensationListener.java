@@ -42,7 +42,8 @@ public class SagaCompensationListener {
     )
     @KafkaListener(
             topics = {"inventory.released", "payment.refunded", "shipping.cancelled"},
-            groupId = "order-service-saga-compensation"
+            groupId = "order-service-saga-compensation",
+            concurrency = "6"
     )
     public void onCompensationConfirmed(String eventJson,
                                         @org.springframework.messaging.handler.annotation.Header(name = "kafka_receivedTopic", required = false) String topic) {

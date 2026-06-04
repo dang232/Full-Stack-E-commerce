@@ -56,7 +56,7 @@ public class PaymentCompletedListener {
             dltTopicSuffix = ".DLT",
             retryTopicSuffix = ".retry"
     )
-    @KafkaListener(topics = "payment.completed", groupId = "order-service-payment")
+    @KafkaListener(topics = "payment.completed", groupId = "order-service-payment", concurrency = "6")
     @Transactional
     public void onPaymentCompleted(String eventJson) {
         JsonNode payload = readTree(eventJson);

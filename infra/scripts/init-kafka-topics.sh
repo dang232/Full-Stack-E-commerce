@@ -20,17 +20,17 @@ echo "Kafka is ready."
 # --- Create Topics ---
 TOPICS=(
   "messaging.message.sent:1"
-  "product-events:1"
-  "order.created:3"
-  "order.updated:3"
-  "order.paid:3"
-  "order.shipped:3"
-  "order.cancelled:3"
-  "payment.completed:1"
-  "payment.refund.requested:1"
-  "payment.refunded:1"
-  "inventory.released:1"
-  "shipping.cancelled:1"
+  "product-events:12"
+  "order.created:6"
+  "order.updated:6"
+  "order.paid:6"
+  "order.shipped:6"
+  "order.cancelled:6"
+  "payment.completed:6"
+  "payment.refund.requested:6"
+  "payment.refunded:6"
+  "inventory.released:6"
+  "shipping.cancelled:6"
 )
 
 for entry in "${TOPICS[@]}"; do

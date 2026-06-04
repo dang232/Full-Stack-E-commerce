@@ -39,7 +39,7 @@ public class ProductEventConsumer {
             retryTopicSuffix = ".retry"
     )
     @Transactional
-    @KafkaListener(topics = "product-events", groupId = "search-service")
+    @KafkaListener(topics = "product-events", groupId = "search-service", concurrency = "12")
     public void consume(ProductEvent event) {
         String eventId = event.deduplicationId();
         if (processedEventRepository.existsById(eventId)) {

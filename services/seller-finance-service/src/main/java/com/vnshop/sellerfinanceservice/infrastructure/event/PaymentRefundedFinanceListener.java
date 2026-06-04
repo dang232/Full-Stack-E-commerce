@@ -55,7 +55,7 @@ public class PaymentRefundedFinanceListener {
             dltTopicSuffix = ".DLT",
             retryTopicSuffix = ".retry"
     )
-    @KafkaListener(topics = "payment.refunded", groupId = "seller-finance-service-refund")
+    @KafkaListener(topics = "payment.refunded", groupId = "seller-finance-service-refund", concurrency = "6")
     @Transactional
     public void onPaymentRefunded(String eventJson) {
         JsonNode payload = readTree(eventJson);

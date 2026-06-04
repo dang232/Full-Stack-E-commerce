@@ -77,7 +77,7 @@ public class PayPalRefundListener {
             dltTopicSuffix = ".DLT",
             retryTopicSuffix = ".retry"
     )
-    @KafkaListener(topics = REFUND_REQUESTED_TOPIC, groupId = "payment-service-paypal-refund")
+    @KafkaListener(topics = REFUND_REQUESTED_TOPIC, groupId = "payment-service-paypal-refund", concurrency = "6")
     public void onRefundRequested(String eventJson) {
         JsonNode envelope = readTree(eventJson);
         // Order-service writes the event through its outbox — the wire shape is

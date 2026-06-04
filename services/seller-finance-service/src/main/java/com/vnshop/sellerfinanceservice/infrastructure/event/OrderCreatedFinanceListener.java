@@ -34,7 +34,7 @@ public class OrderCreatedFinanceListener {
             dltTopicSuffix = ".DLT",
             retryTopicSuffix = ".retry"
     )
-    @KafkaListener(topics = {"order.created", "order.paid"}, groupId = "seller-finance-service")
+    @KafkaListener(topics = {"order.created", "order.paid"}, groupId = "seller-finance-service", concurrency = "6")
     public void onOrderEvent(String eventJson) {
         JsonNode envelope = readTree(eventJson);
         String eventType = text(envelope, "eventType");
