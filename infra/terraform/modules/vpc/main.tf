@@ -43,21 +43,21 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_eip" "nat" {
-  count  = var.enable_nat_gateway ? 1 : 0
+  count  = var.enable_nat_gateway ? 3 : 0
   domain = "vpc"
 
   tags = {
-    Name = "${var.project}-${var.environment}-nat-eip"
+    Name = "${var.project}-${var.environment}-nat-eip-${count.index + 1}"
   }
 }
 
 resource "aws_nat_gateway" "main" {
-  count         = var.enable_nat_gateway ? 1 : 0
-  allocation_id = aws_eip.nat[0].id
-  subnet_id     = aws_subnet.public[0].id
+  count         = var.enable_nat_gateway ? 3 : 0
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name = "${var.project}-${var.environment}-nat"
+    Name = "${var.project}-${var.environment}-nat-${count.index + 1}"
   }
 
   depends_on = [aws_internet_gateway.main]
@@ -77,18 +77,19 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table" "private" {
+  count  = var.enable_nat_gateway ? 3 : 1
   vpc_id = aws_vpc.main.id
 
   dynamic "route" {
     for_each = var.enable_nat_gateway ? [1] : []
     content {
       cidr_block     = "0.0.0.0/0"
-      nat_gateway_id = aws_nat_gateway.main[0].id
+      nat_gateway_id = aws_nat_gateway.main[count.index].id
     }
   }
 
   tags = {
-    Name = "${var.project}-${var.environment}-private-rt"
+    Name = "${var.project}-${var.environment}-private-rt-${count.index + 1}"
   }
 }
 
@@ -101,5 +102,5 @@ resource "aws_route_table_association" "public" {
 resource "aws_route_table_association" "private" {
   count          = 3
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.private[var.enable_nat_gateway ? count.index : 0].id
 }
