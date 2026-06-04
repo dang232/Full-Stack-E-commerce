@@ -41,3 +41,10 @@ infra/kafka/certs/*.jks
 infra/kafka/certs/*.pem
 infra/kafka/certs/*.csr
 infra/kafka/certs/*.srl
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform.lock.hcl
