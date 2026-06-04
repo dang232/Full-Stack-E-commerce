@@ -43,6 +43,15 @@
         "description": "Platform operations role for seller approval, order audit, and finance audit operations",
         "composite": false,
         "clientRole": false
+      },
+      {
+        "name": "MFA-REQUIRED",
+        "description": "Composite role requiring TOTP MFA; includes ADMIN and SELLER",
+        "composite": true,
+        "composites": {
+          "realm": ["ADMIN", "SELLER"]
+        },
+        "clientRole": false
       }
     ]
   },
@@ -311,7 +320,8 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["SELLER"]
+      "realmRoles": ["SELLER"],
+      "requiredActions": ["CONFIGURE_TOTP"]
     },
     {
       "username": "admin1",
@@ -327,7 +337,8 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["ADMIN"]
+      "realmRoles": ["ADMIN"],
+      "requiredActions": ["CONFIGURE_TOTP"]
     }
   ],
   "clientScopes": [
@@ -368,7 +379,99 @@
   "otpPolicyPeriod": 30,
   "internationalizationEnabled": false,
   "supportedLocales": [],
-  "browserFlow": "browser",
+  "requiredActions": [
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 10,
+      "config": {}
+    }
+  ],
+  "authenticationFlows": [
+    {
+      "alias": "browser-conditional-otp",
+      "description": "Browser flow with conditional OTP for admin/seller",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": true,
+          "requirement": "ALTERNATIVE",
+          "priority": 30,
+          "flowAlias": "browser-conditional-otp forms",
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "browser-conditional-otp forms",
+      "description": "Username/password + conditional OTP",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-username-password-form",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 20,
+          "flowAlias": "browser-conditional-otp OTP",
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "browser-conditional-otp OTP",
+      "description": "OTP required for admin/seller roles",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-role",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "authenticatorConfig": "admin-seller-role-condition",
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "auth-otp-form",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "userSetupAllowed": false
+        }
+      ]
+    }
+  ],
+  "authenticatorConfig": [
+    {
+      "alias": "admin-seller-role-condition",
+      "config": {
+        "conditionUserRole": "MFA-REQUIRED",
+        "negate": "false"
+      }
+    }
+  ],
+  "browserFlow": "browser-conditional-otp",
   "registrationFlow": "registration",
   "directGrantFlow": "direct grant"
 }
