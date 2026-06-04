@@ -8,7 +8,7 @@ import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.vnshop.orderservice.infrastructure.audit.Audited;
+import com.vnshop.orderservice.domain.annotation.Audited;
 
 public class ShipOrderUseCase {
     private final OrderRepositoryPort orderRepository;

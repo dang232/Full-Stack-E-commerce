@@ -1,10 +1,9 @@
 package com.vnshop.orderservice.application.saga;
 
+import com.vnshop.orderservice.domain.port.out.OutboxPort;
 import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
 import com.vnshop.orderservice.domain.saga.SagaState;
 import com.vnshop.orderservice.domain.saga.SagaStatus;
-import com.vnshop.orderservice.infrastructure.outbox.OutboxEventJpaEntity;
-import com.vnshop.orderservice.infrastructure.outbox.OutboxEventRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,13 +16,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SagaOrchestratorTest {
     private SagaOrchestrator orchestrator;
     private InMemorySagaStateRepository sagaStateRepo;
-    private InMemoryOutboxEventRepository outboxEventRepo;
+    private InMemoryOutboxPort outboxPort;
 
     @BeforeEach
     void setUp() {
         sagaStateRepo = new InMemorySagaStateRepository();
-        outboxEventRepo = new InMemoryOutboxEventRepository();
-        orchestrator = new SagaOrchestrator(sagaStateRepo, outboxEventRepo, 1_000);
+        outboxPort = new InMemoryOutboxPort();
+        orchestrator = new SagaOrchestrator(sagaStateRepo, outboxPort, 1_000);
     }
 
     @Test
@@ -35,7 +34,7 @@ class SagaOrchestratorTest {
         assertThat(saga.sagaId()).isNotBlank();
         assertThat(saga.createdAt()).isNotNull();
         assertThat(sagaStateRepo.stored).isNotNull();
-        assertThat(outboxEventRepo.lastSaved.getEventType()).isEqualTo("SAGA_STARTED");
+        assertThat(outboxPort.lastEvent().eventType()).isEqualTo("SAGA_STARTED");
     }
 
     @Test
@@ -56,7 +55,7 @@ class SagaOrchestratorTest {
         assertThat(afterShipping.currentStep()).isEqualTo(SagaStatus.COMPLETED);
 
         // 4 outbox events: SAGA_STARTED, SAGA_STEP_COMPLETED x2, SAGA_COMPLETED
-        assertThat(outboxEventRepo.events).hasSize(4);
+        assertThat(outboxPort.events).hasSize(4);
     }
 
     @Test
@@ -69,11 +68,11 @@ class SagaOrchestratorTest {
         SagaState finalState = sagaStateRepo.findBySagaId(sagaId).orElseThrow();
         assertThat(finalState.currentStep()).isEqualTo(SagaStatus.COMPLETED);
 
-        OutboxEventJpaEntity completedEvent = outboxEventRepo.events.stream()
-                .filter(e -> "SAGA_COMPLETED".equals(e.getEventType()))
+        InMemoryOutboxPort.PublishedEvent completedEvent = outboxPort.events.stream()
+                .filter(e -> "SAGA_COMPLETED".equals(e.eventType()))
                 .findFirst()
                 .orElseThrow();
-        assertThat(completedEvent.getPayload()).contains("\"step\":\"COMPLETE\"");
+        assertThat(completedEvent.payload()).contains("\"step\":\"COMPLETE\"");
     }
 
     @Test
@@ -85,9 +84,9 @@ class SagaOrchestratorTest {
 
         SagaState result = sagaStateRepo.findBySagaId(sagaId).orElseThrow();
         assertThat(result.currentStep()).isEqualTo(SagaStatus.COMPENSATING);
-        OutboxEventJpaEntity last = outboxEventRepo.events.get(outboxEventRepo.events.size() - 1);
-        assertThat(last.getEventType()).isEqualTo("SAGA_COMPENSATING");
-        assertThat(last.getPayload()).contains("\"failedStep\":\"PAYMENT_CHARGE\"");
+        InMemoryOutboxPort.PublishedEvent last = outboxPort.events.get(outboxPort.events.size() - 1);
+        assertThat(last.eventType()).isEqualTo("SAGA_COMPENSATING");
+        assertThat(last.payload()).contains("\"failedStep\":\"PAYMENT_CHARGE\"");
     }
 
     @Test
@@ -100,9 +99,9 @@ class SagaOrchestratorTest {
 
         SagaState result = sagaStateRepo.findBySagaId("saga-1").orElseThrow();
         assertThat(result.currentStep()).isEqualTo(SagaStatus.FAILED);
-        OutboxEventJpaEntity last = outboxEventRepo.events.get(outboxEventRepo.events.size() - 1);
-        assertThat(last.getEventType()).isEqualTo("SAGA_FAILED");
-        assertThat(last.getPayload()).contains("\"reason\":\"COMPENSATION_TIMEOUT\"");
+        InMemoryOutboxPort.PublishedEvent last = outboxPort.events.get(outboxPort.events.size() - 1);
+        assertThat(last.eventType()).isEqualTo("SAGA_FAILED");
+        assertThat(last.payload()).contains("\"reason\":\"COMPENSATION_TIMEOUT\"");
     }
 
     @Test
@@ -115,7 +114,7 @@ class SagaOrchestratorTest {
 
         SagaState result = sagaStateRepo.findBySagaId("saga-1").orElseThrow();
         assertThat(result.currentStep()).isEqualTo(SagaStatus.COMPENSATING);
-        assertThat(outboxEventRepo.events).isEmpty();
+        assertThat(outboxPort.events).isEmpty();
     }
 
     @Test
@@ -164,19 +163,18 @@ class SagaOrchestratorTest {
         }
     }
 
-    static class InMemoryOutboxEventRepository extends OutboxEventRepository {
-        OutboxEventJpaEntity lastSaved;
-        List<OutboxEventJpaEntity> events = new ArrayList<>();
+    static class InMemoryOutboxPort implements OutboxPort {
+        record PublishedEvent(String aggregateType, String aggregateId, String eventType, String payload) {}
 
-        InMemoryOutboxEventRepository() {
-            super(null);
-        }
+        List<PublishedEvent> events = new ArrayList<>();
 
         @Override
-        public OutboxEventJpaEntity save(OutboxEventJpaEntity event) {
-            this.lastSaved = event;
-            this.events.add(event);
-            return event;
+        public void publish(String aggregateType, String aggregateId, String eventType, String payload) {
+            events.add(new PublishedEvent(aggregateType, aggregateId, eventType, payload));
+        }
+
+        PublishedEvent lastEvent() {
+            return events.get(events.size() - 1);
         }
     }
 }

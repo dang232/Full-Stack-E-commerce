@@ -38,6 +38,7 @@ import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
 import com.vnshop.orderservice.domain.port.out.InvoicePdfRendererPort;
 import com.vnshop.orderservice.domain.port.out.InvoiceRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.InvoiceStoragePort;
+import com.vnshop.orderservice.domain.port.out.MetricsPort;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
@@ -68,9 +69,10 @@ public class UseCaseConfig {
             ShippingRequestPort shippingRequestPort,
             OrderEventPublisherPort orderEventPublisherPort,
             CommissionTierLookupPort commissionTierLookupPort,
-            CartRepositoryPort cartRepositoryPort
+            CartRepositoryPort cartRepositoryPort,
+            MetricsPort metricsPort
     ) {
-        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort);
+        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort, metricsPort);
     }
 
     @Bean

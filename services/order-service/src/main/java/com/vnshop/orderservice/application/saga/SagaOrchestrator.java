@@ -1,11 +1,9 @@
 package com.vnshop.orderservice.application.saga;
 
+import com.vnshop.orderservice.domain.port.out.OutboxPort;
 import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
 import com.vnshop.orderservice.domain.saga.SagaState;
 import com.vnshop.orderservice.domain.saga.SagaStatus;
-import com.vnshop.orderservice.infrastructure.outbox.OutboxEvent;
-import com.vnshop.orderservice.infrastructure.outbox.OutboxEventJpaEntity;
-import com.vnshop.orderservice.infrastructure.outbox.OutboxEventRepository;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,16 +20,16 @@ public class SagaOrchestrator {
     private static final String AGGREGATE_TYPE = "SAGA";
 
     private final SagaStateRepository sagaStateRepository;
-    private final OutboxEventRepository outboxEventRepository;
+    private final OutboxPort outboxPort;
     private final long compensationTimeoutMs;
 
     public SagaOrchestrator(
             SagaStateRepository sagaStateRepository,
-            OutboxEventRepository outboxEventRepository,
+            OutboxPort outboxPort,
             @Value("${saga.compensation-timeout-ms:300000}") long compensationTimeoutMs
     ) {
         this.sagaStateRepository = sagaStateRepository;
-        this.outboxEventRepository = outboxEventRepository;
+        this.outboxPort = outboxPort;
         this.compensationTimeoutMs = compensationTimeoutMs;
     }
 
@@ -42,10 +40,8 @@ public class SagaOrchestrator {
         SagaState sagaState = new SagaState(sagaId, orderId, SagaStatus.STARTED, now, now);
         SagaState saved = sagaStateRepository.save(sagaState);
 
-        outboxEventRepository.save(OutboxEventJpaEntity.fromDomain(
-            OutboxEvent.pending(AGGREGATE_TYPE, sagaId, "SAGA_STARTED",
-                "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"INVENTORY_RESERVE\"}")
-        ));
+        outboxPort.publish(AGGREGATE_TYPE, sagaId, "SAGA_STARTED",
+            "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"INVENTORY_RESERVE\"}");
 
         LOG.info("Saga {} started for order {}", sagaId, orderId);
         return saved;
@@ -62,10 +58,8 @@ public class SagaOrchestrator {
         SagaState updated = new SagaState(current.sagaId(), current.orderId(), SagaStatus.INVENTORY_RESERVED, current.createdAt(), Instant.now());
         sagaStateRepository.save(updated);
 
-        outboxEventRepository.save(OutboxEventJpaEntity.fromDomain(
-            OutboxEvent.pending(AGGREGATE_TYPE, sagaId, "SAGA_STEP_COMPLETED",
-                "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"PAYMENT_CHARGE\"}")
-        ));
+        outboxPort.publish(AGGREGATE_TYPE, sagaId, "SAGA_STEP_COMPLETED",
+            "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"PAYMENT_CHARGE\"}");
 
         LOG.info("Saga {} step: INVENTORY_RESERVED -> PAYMENT_CHARGED", sagaId);
     }
@@ -81,10 +75,8 @@ public class SagaOrchestrator {
         SagaState updated = new SagaState(current.sagaId(), current.orderId(), SagaStatus.PAYMENT_CHARGED, current.createdAt(), Instant.now());
         sagaStateRepository.save(updated);
 
-        outboxEventRepository.save(OutboxEventJpaEntity.fromDomain(
-            OutboxEvent.pending(AGGREGATE_TYPE, sagaId, "SAGA_STEP_COMPLETED",
-                "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"SHIPPING_CREATE\"}")
-        ));
+        outboxPort.publish(AGGREGATE_TYPE, sagaId, "SAGA_STEP_COMPLETED",
+            "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"SHIPPING_CREATE\"}");
 
         LOG.info("Saga {} step: PAYMENT_CHARGED -> SHIPPING_CREATED", sagaId);
     }
@@ -100,10 +92,8 @@ public class SagaOrchestrator {
         SagaState updated = new SagaState(current.sagaId(), current.orderId(), SagaStatus.SHIPPING_CREATED, current.createdAt(), Instant.now());
         sagaStateRepository.save(updated);
 
-        outboxEventRepository.save(OutboxEventJpaEntity.fromDomain(
-            OutboxEvent.pending(AGGREGATE_TYPE, sagaId, "SAGA_COMPLETED",
-                "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"COMPLETE\"}")
-        ));
+        outboxPort.publish(AGGREGATE_TYPE, sagaId, "SAGA_COMPLETED",
+            "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"step\":\"COMPLETE\"}");
 
         // Persist terminal COMPLETED state
         SagaState completed = new SagaState(current.sagaId(), current.orderId(), SagaStatus.COMPLETED, current.createdAt(), Instant.now());
@@ -123,10 +113,8 @@ public class SagaOrchestrator {
         SagaState compensating = new SagaState(current.sagaId(), current.orderId(), SagaStatus.COMPENSATING, current.createdAt(), Instant.now());
         sagaStateRepository.save(compensating);
 
-        outboxEventRepository.save(OutboxEventJpaEntity.fromDomain(
-            OutboxEvent.pending(AGGREGATE_TYPE, sagaId, "SAGA_COMPENSATING",
-                "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"failedStep\":\"" + failedStep + "\"}")
-        ));
+        outboxPort.publish(AGGREGATE_TYPE, sagaId, "SAGA_COMPENSATING",
+            "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"failedStep\":\"" + failedStep + "\"}");
 
         LOG.warn("Saga {} compensation requested at step: {}", sagaId, failedStep);
     }
@@ -168,10 +156,8 @@ public class SagaOrchestrator {
         SagaState failed = new SagaState(current.sagaId(), current.orderId(), SagaStatus.FAILED, current.createdAt(), Instant.now());
         sagaStateRepository.save(failed);
 
-        outboxEventRepository.save(OutboxEventJpaEntity.fromDomain(
-                OutboxEvent.pending(AGGREGATE_TYPE, current.sagaId(), "SAGA_FAILED",
-                        "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + current.sagaId() + "\",\"reason\":\"" + reason + "\"}")
-        ));
+        outboxPort.publish(AGGREGATE_TYPE, current.sagaId(), "SAGA_FAILED",
+            "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + current.sagaId() + "\",\"reason\":\"" + reason + "\"}");
 
         LOG.error("Saga {} marked FAILED after compensation timeout", current.sagaId());
     }
