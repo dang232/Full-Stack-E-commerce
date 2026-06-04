@@ -19,6 +19,7 @@ import com.vnshop.paymentservice.infrastructure.gateway.VnpayCallbackService;
 import com.vnshop.paymentservice.infrastructure.paypal.PayPalGateway;
 import com.vnshop.paymentservice.infrastructure.stripe.StripeGateway;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,6 +73,7 @@ public class PaymentController {
         this.callbackLogStore = callbackLogStore;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/cod/confirm")
     public ApiResponse<PaymentResponse> confirmCod(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
@@ -80,6 +82,7 @@ public class PaymentController {
         return ApiResponse.ok(PaymentResponse.fromDomain(processPaymentUseCase.process(new ProcessPaymentCommand(request.orderId(), JwtPrincipalUtil.currentUserId(), PaymentMethodInput.COD, idempotencyKey))));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/vnpay/create")
     public ApiResponse<PaymentResponse> createVnpay(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
@@ -100,6 +103,7 @@ public class PaymentController {
         return ApiResponse.ok(new VnpayReturnResponse(verification.validSignature(), verification.status().name(), verification.paymentId(), verification.transactionNo()));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/momo/create")
     public ApiResponse<PaymentResponse> createMomo(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
@@ -122,6 +126,7 @@ public class PaymentController {
      * {@link AdminVietQrController} so the gateway's /admin/vietqr/** route
      * resolves cleanly without colliding with the /payment class prefix).
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/vietqr/create")
     public ApiResponse<VietQrCreateResponse> createVietQr(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
@@ -150,6 +155,7 @@ public class PaymentController {
      * {@code POST /payment/paypal/capture/{paypalOrderId}} so the FE flow stays
      * synchronous (no webhook needed for sandbox).
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/paypal/create")
     public ApiResponse<PayPalCreateResponse> createPayPal(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,
@@ -190,6 +196,7 @@ public class PaymentController {
      * metadata is technically possible but would need a {@code findByExternalRef}
      * query — not worth adding for a path the FE already knows.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/paypal/capture/{paymentId}/{paypalOrderId}")
     public ApiResponse<PaymentResponse> capturePayPal(
             @PathVariable String paymentId,
@@ -260,6 +267,7 @@ public class PaymentController {
                 duplicateReplay);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/status/{orderId}")
     public ApiResponse<PaymentResponse> status(@PathVariable String orderId) {
         // Pt13 follow-up IDOR fix: any authenticated buyer could probe
@@ -277,6 +285,7 @@ public class PaymentController {
      * to render the embedded card form. Webhook completion arrives separately
      * at {@code POST /payment/stripe/webhook}.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/stripe/create")
     public ApiResponse<StripeCreateResponse> createStripe(
             @RequestHeader(name = IDEMPOTENCY_KEY_HEADER, required = false) String idempotencyKey,

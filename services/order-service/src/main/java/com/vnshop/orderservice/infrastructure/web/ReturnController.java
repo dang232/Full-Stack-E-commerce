@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/returns")
 public class ReturnController {
@@ -44,35 +46,41 @@ public class ReturnController {
         this.listReturnsUseCase = listReturnsUseCase;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ApiResponse<ReturnResponse> request(@Valid @RequestBody RequestReturnRequest request) {
         return ApiResponse.ok(ReturnResponse.fromDomain(requestReturnUseCase.request(JwtPrincipalUtil.currentUserId(), request.subOrderId(), request.reason())));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public ApiResponse<List<ReturnResponse>> list() {
         return ApiResponse.ok(listReturnsUseCase.listByBuyerId(JwtPrincipalUtil.currentUserId()).stream()
                 .map(ReturnResponse::fromDomain).toList());
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @PostMapping("/{returnId}/approve")
     public ApiResponse<ReturnResponse> approve(@PathVariable UUID returnId) {
         return ApiResponse.ok(ReturnResponse.fromDomain(
                 approveReturnUseCase.approve(returnId, JwtPrincipalUtil.currentSellerId())));
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @PostMapping("/{returnId}/reject")
     public ApiResponse<ReturnResponse> reject(@PathVariable UUID returnId) {
         return ApiResponse.ok(ReturnResponse.fromDomain(
                 rejectReturnUseCase.reject(returnId, JwtPrincipalUtil.currentSellerId())));
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @PostMapping("/{returnId}/complete")
     public ApiResponse<ReturnResponse> complete(@PathVariable UUID returnId) {
         return ApiResponse.ok(ReturnResponse.fromDomain(
                 completeReturnUseCase.complete(returnId, JwtPrincipalUtil.currentSellerId())));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{returnId}/disputes")
     public ApiResponse<DisputeResponse> dispute(@PathVariable UUID returnId, @Valid @RequestBody DisputeRequest request) {
         return ApiResponse.ok(DisputeResponse.fromDomain(

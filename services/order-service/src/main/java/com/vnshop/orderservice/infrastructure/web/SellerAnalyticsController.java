@@ -6,6 +6,7 @@ import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,7 @@ public class SellerAnalyticsController {
         this.getSellerRevenueUseCase = getSellerRevenueUseCase;
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @GetMapping("/revenue")
     public ApiResponse<List<SellerRevenuePointResponse>> revenue(
             @RequestParam(name = "days", required = false, defaultValue = "" + DEFAULT_DAYS)

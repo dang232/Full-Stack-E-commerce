@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/seller/orders")
 public class SellerOrderController {
@@ -37,6 +39,7 @@ public class SellerOrderController {
         this.shipOrderUseCase = shipOrderUseCase;
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @GetMapping("/pending")
     public ApiResponse<List<OrderResponse>> pending() {
         return ApiResponse.ok(listPendingOrdersUseCase.listPendingBySeller(JwtPrincipalUtil.currentSellerId()).stream()
@@ -44,18 +47,21 @@ public class SellerOrderController {
                 .toList());
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @PutMapping("/{subOrderId}/accept")
     public ApiResponse<OrderResponse> accept(@PathVariable Long subOrderId) {
         String orderId = listPendingOrdersUseCase.orderIdFromSubOrderId(subOrderId);
         return ApiResponse.ok(OrderResponse.fromDomain(acceptOrderUseCase.accept(UUID.fromString(orderId), JwtPrincipalUtil.currentSellerId())));
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @PutMapping("/{subOrderId}/reject")
     public ApiResponse<OrderResponse> reject(@PathVariable Long subOrderId) {
         String orderId = listPendingOrdersUseCase.orderIdFromSubOrderId(subOrderId);
         return ApiResponse.ok(OrderResponse.fromDomain(rejectOrderUseCase.reject(UUID.fromString(orderId), JwtPrincipalUtil.currentSellerId())));
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @PutMapping("/{subOrderId}/ship")
     public ApiResponse<OrderResponse> ship(
             @PathVariable Long subOrderId,

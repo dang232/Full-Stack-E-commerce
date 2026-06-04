@@ -17,6 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.net.URI;
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/invoices")
 public class InvoiceController {
@@ -30,6 +32,7 @@ public class InvoiceController {
         this.viewOrderUseCase = viewOrderUseCase;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/orders/{orderId}/sub-orders/{subOrderId}")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<InvoiceResponse> generate(@PathVariable String orderId, @PathVariable Long subOrderId) {
@@ -51,6 +54,7 @@ public class InvoiceController {
         return ApiResponse.ok(InvoiceResponse.fromDomain(invoiceUseCase.generate(orderUuid, subOrderId)));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{invoiceId}/download-url")
     public ApiResponse<DownloadUrlResponse> downloadUrl(@PathVariable UUID invoiceId) {
         URI url = invoiceUseCase.signedDownloadUrl(invoiceId, requester());

@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
@@ -42,6 +44,7 @@ public class OrderController {
         this.viewOrderUseCase = viewOrderUseCase;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<OrderResponse> checkout(
@@ -55,6 +58,7 @@ public class OrderController {
                 idempotencyKey))));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public ApiResponse<Page<OrderListItemResponse>> list(
             @RequestParam(name = "status", required = false) String status,
@@ -66,12 +70,14 @@ public class OrderController {
         );
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
     public ApiResponse<OrderResponse> get(@PathVariable UUID id) {
         return ApiResponse.ok(OrderResponse.fromDomain(
                 viewOrderUseCase.viewForBuyer(id, JwtPrincipalUtil.currentUserId())));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{id}/cancel")
     public ApiResponse<OrderResponse> cancel(@PathVariable UUID id) {
         return ApiResponse.ok(OrderResponse.fromDomain(cancelOrderUseCase.cancel(new CancelOrderCommand(id, JwtPrincipalUtil.currentUserId()))));

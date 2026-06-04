@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/admin/disputes")
 public class AdminDisputeController {
@@ -25,6 +27,7 @@ public class AdminDisputeController {
         this.listOpenDisputesUseCase = listOpenDisputesUseCase;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/open")
     public ApiResponse<List<DisputeResponse>> open() {
         return ApiResponse.ok(listOpenDisputesUseCase.listOpen().stream()
@@ -32,6 +35,7 @@ public class AdminDisputeController {
                 .toList());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{disputeId}/resolve")
     public ApiResponse<DisputeResponse> resolve(@PathVariable UUID disputeId, @Valid @RequestBody ResolveDisputeRequest request) {
         return ApiResponse.ok(DisputeResponse.fromDomain(

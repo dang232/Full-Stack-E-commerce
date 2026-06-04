@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -73,6 +74,7 @@ public class CheckoutController {
      * anonymous caller has no cart to fetch. Use {@code POST /checkout/calculate}
      * for unauthenticated "buy now" previews.
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/calculate-from-cart")
     public ApiResponse<CheckoutBreakdownResponse> calculateFromCart() {
         // Cart-service identifies carts by x-user-id header, so userId IS the cart key.

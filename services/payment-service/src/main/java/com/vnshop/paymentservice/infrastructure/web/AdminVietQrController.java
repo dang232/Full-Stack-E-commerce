@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 /**
  * Admin-only manual confirmation for VietQR payments. Sits on
  * {@code /admin/vietqr/**} (separate from {@link PaymentController}'s
@@ -40,6 +42,7 @@ public class AdminVietQrController {
         this.promotionService = promotionService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/confirm/{paymentId}")
     public ApiResponse<PaymentResponse> confirm(
             @PathVariable String paymentId,
