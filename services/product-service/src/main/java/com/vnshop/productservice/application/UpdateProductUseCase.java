@@ -6,6 +6,7 @@ import com.vnshop.productservice.domain.ProductImage;
 import com.vnshop.productservice.domain.ProductVariant;
 import com.vnshop.productservice.domain.port.out.ProductEventPublisherPort;
 import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
+import com.vnshop.productservice.infrastructure.sanitization.HtmlSanitizer;
 
 import java.util.List;
 import java.util.Map;
@@ -15,10 +16,14 @@ import java.util.UUID;
 public class UpdateProductUseCase {
     private final ProductRepositoryPort productRepositoryPort;
     private final ProductEventPublisherPort productEventPublisherPort;
+    private final HtmlSanitizer htmlSanitizer;
 
-    public UpdateProductUseCase(ProductRepositoryPort productRepositoryPort, ProductEventPublisherPort productEventPublisherPort) {
+    public UpdateProductUseCase(ProductRepositoryPort productRepositoryPort,
+                                ProductEventPublisherPort productEventPublisherPort,
+                                HtmlSanitizer htmlSanitizer) {
         this.productRepositoryPort = Objects.requireNonNull(productRepositoryPort, "productRepositoryPort is required");
         this.productEventPublisherPort = Objects.requireNonNull(productEventPublisherPort, "productEventPublisherPort is required");
+        this.htmlSanitizer = Objects.requireNonNull(htmlSanitizer, "htmlSanitizer is required");
     }
 
     public ProductResponse update(
@@ -36,7 +41,7 @@ public class UpdateProductUseCase {
         if (!existing.sellerId().equals(sellerId)) {
             throw new IllegalArgumentException("product does not belong to seller");
         }
-        Product updated = new Product(productId, sellerId, name, description, categoryId, brand, variants, images);
+        Product updated = new Product(productId, sellerId, name, htmlSanitizer.sanitize(description), categoryId, brand, variants, images);
         if (existing.status().name().equals("ACTIVE")) {
             updated.publish();
         } else if (existing.status().name().equals("INACTIVE")) {

@@ -4,6 +4,8 @@ import com.vnshop.productservice.domain.Product;
 import com.vnshop.productservice.domain.ProductEvent;
 import com.vnshop.productservice.domain.port.out.ProductEventPublisherPort;
 import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
+import com.vnshop.productservice.infrastructure.sanitization.HtmlSanitizer;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -11,10 +13,14 @@ import java.util.UUID;
 public class CreateProductUseCase {
     private final ProductRepositoryPort productRepositoryPort;
     private final ProductEventPublisherPort productEventPublisherPort;
+    private final HtmlSanitizer htmlSanitizer;
 
-    public CreateProductUseCase(ProductRepositoryPort productRepositoryPort, ProductEventPublisherPort productEventPublisherPort) {
+    public CreateProductUseCase(ProductRepositoryPort productRepositoryPort,
+                                ProductEventPublisherPort productEventPublisherPort,
+                                HtmlSanitizer htmlSanitizer) {
         this.productRepositoryPort = Objects.requireNonNull(productRepositoryPort, "productRepositoryPort is required");
         this.productEventPublisherPort = Objects.requireNonNull(productEventPublisherPort, "productEventPublisherPort is required");
+        this.htmlSanitizer = Objects.requireNonNull(htmlSanitizer, "htmlSanitizer is required");
     }
 
     public ProductResponse create(CreateProductCommand command) {
@@ -22,7 +28,7 @@ public class CreateProductUseCase {
                 UUID.randomUUID(),
                 command.sellerId(),
                 command.name(),
-                command.description(),
+                htmlSanitizer.sanitize(command.description()),
                 command.categoryId(),
                 command.brand(),
                 command.variants(),
