@@ -557,6 +557,7 @@ export function CheckoutPage() {
                 setSelectedAddressIndex={setSelectedAddressIndex}
                 buyerName={buyerName}
                 isLoading={profileQuery.isLoading}
+                refetchAddresses={profileQuery.refetch}
               />
             ) : null}
 
