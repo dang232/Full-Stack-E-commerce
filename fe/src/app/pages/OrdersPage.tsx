@@ -378,6 +378,8 @@ function OrderCard({
             <span className="text-xs font-bold text-foreground font-mono">{order.id}</span>
           </div>
           <div
+            aria-live="polite"
+            aria-atomic="true"
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
             style={{ background: config.bg, color: config.color }}
           >
