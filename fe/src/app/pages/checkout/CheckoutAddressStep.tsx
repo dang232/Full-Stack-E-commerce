@@ -88,8 +88,7 @@ export function CheckoutAddressStep({
       <div role="radiogroup" aria-label="Delivery address" className="space-y-4">
         {addresses.map((addr, i) => (
           <button
-            // eslint-disable-next-line react/no-array-index-key -- address list has no stable id; index is the address position
-            key={i}
+            key={`${addr.street}|${addr.city}|${String(i)}`}
             role="radio"
             aria-checked={selectedAddressIndex === i}
             onClick={() => setSelectedAddressIndex(i)}

@@ -495,8 +495,7 @@ export function ProfilePage() {
 
                 <div className="space-y-3">
                   {addresses.map((addr, i) => (
-                    // eslint-disable-next-line react/no-array-index-key -- address list has no stable id; index is the address position
-                    <div key={i} className="border border-border rounded-2xl p-4">
+                    <div key={`${addr.street}|${addr.city}|${String(i)}`} className="border border-border rounded-2xl p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1">

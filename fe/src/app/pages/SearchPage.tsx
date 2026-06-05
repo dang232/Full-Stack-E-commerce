@@ -27,13 +27,13 @@ function ProductListItem({ product }: { product: Product }) {
       aria-label={t("search.viewDetailsAria", { name: product.name })}
       className="flex gap-4 bg-card rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
       onClick={() => {
-        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+        sessionStorage.setItem(getScrollKey(), String(window.scrollY));
         void navigate(`/product/${product.id}`);
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+          sessionStorage.setItem(getScrollKey(), String(window.scrollY));
           void navigate(`/product/${product.id}`);
         }
       }}
@@ -153,13 +153,13 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
       aria-label={product.name}
       className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer group"
       onClick={() => {
-        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+        sessionStorage.setItem(getScrollKey(), String(window.scrollY));
         void navigate(`/product/${product.id}`);
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
+          sessionStorage.setItem(getScrollKey(), String(window.scrollY));
           void navigate(`/product/${product.id}`);
         }
       }}
@@ -249,7 +249,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
   );
 }
 
-const SCROLL_KEY = "vnshop:search-scroll";
+const getScrollKey = () => `scroll:${window.location.pathname}${window.location.search}`;
 
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -296,10 +296,11 @@ export function SearchPage() {
 
   // Restore scroll position when returning from a product page.
   useEffect(() => {
-    const saved = sessionStorage.getItem(SCROLL_KEY);
+    const key = getScrollKey();
+    const saved = sessionStorage.getItem(key);
     if (saved) {
-      window.scrollTo(0, parseInt(saved, 10));
-      sessionStorage.removeItem(SCROLL_KEY);
+      requestAnimationFrame(() => window.scrollTo(0, parseInt(saved, 10)));
+      sessionStorage.removeItem(key);
     }
   }, []);
 
