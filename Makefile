@@ -1,0 +1,93 @@
+.PHONY: up down restart rebuild logs logs-all test-order test-payment test-cart test-fe test-e2e test-all build-java compile-order seed migrate psql certs clean status help
+
+# ─── Stack Management ─────────────────────────────────────
+up: ## Start full stack
+	docker compose --profile apps up -d
+
+up-minimal: ## Start gateway + order-service + infra only
+	docker compose up -d postgres-order kafka redis keycloak elasticsearch api-gateway order-service
+
+down: ## Stop all containers
+	docker compose --profile apps down
+
+restart: ## Restart a specific service (usage: make restart s=order-service)
+	docker compose restart $(s)
+
+rebuild: ## Rebuild and restart a service (usage: make rebuild s=order-service)
+	docker compose up -d --build $(s)
+
+# ─── Logs ─────────────────────────────────────────────────
+logs: ## Tail logs for a service (usage: make logs s=order-service)
+	docker compose logs -f --tail=100 $(s)
+
+logs-all: ## Tail all service logs
+	docker compose logs -f --tail=50
+
+# ─── Testing ──────────────────────────────────────────────
+test-order: ## Run order-service tests
+	cd services/order-service && ./mvnw test -q
+
+test-payment: ## Run payment-service tests
+	cd services/payment-service && ./mvnw test -q
+
+test-cart: ## Run cart-service tests
+	cd services/cart-service && npm test
+
+test-fe: ## Run frontend tests
+	cd fe && npm test
+
+test-e2e: ## Run Playwright E2E tests
+	cd fe && npx playwright test
+
+test-all: ## Run all unit tests (Java + Node)
+	@echo "=== Java services ==="
+	cd services/order-service && ./mvnw test -q
+	cd services/payment-service && ./mvnw test -q
+	cd services/product-service && ./mvnw test -q
+	@echo "=== Node services ==="
+	cd services/cart-service && npm test
+	@echo "=== Frontend ==="
+	cd fe && npm test
+
+# ─── Build ────────────────────────────────────────────────
+build-java: ## Build all Java services (skip tests)
+	cd services/order-service && ./mvnw package -DskipTests -q
+	cd services/payment-service && ./mvnw package -DskipTests -q
+	cd services/product-service && ./mvnw package -DskipTests -q
+
+compile-order: ## Quick compile check for order-service
+	cd services/order-service && ./mvnw compile -q
+
+# ─── Database ─────────────────────────────────────────────
+seed: ## Run Kafka topic creation script
+	docker compose exec kafka bash /opt/scripts/init-kafka-topics.sh
+
+migrate: ## Trigger Flyway migrations (restart services)
+	docker compose --profile apps restart
+
+psql: ## Connect to order-service database
+	docker compose exec postgres-order psql -U vnshop -d order_svc
+
+# ─── Utilities ────────────────────────────────────────────
+certs: ## Generate Kafka SSL certificates
+	cd infra/kafka/certs && bash generate-certs.sh
+
+clean: ## Remove all containers, volumes, and build artifacts
+	docker compose --profile apps down -v
+	cd services/order-service && ./mvnw clean -q 2>/dev/null || true
+
+status: ## Show running containers and their health
+	docker compose ps
+
+# ─── Performance ──────────────────────────────────────────
+perf-flash: ## Run k6 flash-sale load test
+	k6 run infra/k6/scenarios/flash-sale-load.js
+
+perf-search: ## Run k6 search autocomplete test
+	k6 run infra/k6/scenarios/search-autocomplete.js
+
+# ─── Help ─────────────────────────────────────────────────
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+.DEFAULT_GOAL := help
