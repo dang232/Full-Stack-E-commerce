@@ -227,6 +227,21 @@ export function ProductPage() {
             className="relative bg-card rounded-2xl overflow-hidden shadow-sm"
             style={{ aspectRatio: "1" }}
             aria-label="Product image gallery"
+            role="region"
+            tabIndex={images.length > 1 ? 0 : undefined}
+            onKeyDown={
+              images.length > 1
+                ? (e) => {
+                    if (e.key === "ArrowLeft") {
+                      e.preventDefault();
+                      setImageIdx((i) => (i - 1 + images.length) % images.length);
+                    } else if (e.key === "ArrowRight") {
+                      e.preventDefault();
+                      setImageIdx((i) => (i + 1) % images.length);
+                    }
+                  }
+                : undefined
+            }
           >
             <AnimatePresence mode="wait">
               <motion.img

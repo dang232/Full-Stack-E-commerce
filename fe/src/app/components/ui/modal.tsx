@@ -1,6 +1,6 @@
 import { IconX } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
-import { type ReactNode, type MouseEvent, useId } from "react";
+import { type ReactNode, type MouseEvent, useId, useRef, useEffect } from "react";
 
 import { useEscapeKey } from "../../hooks/use-escape-key";
 import { modalBackdropBg } from "../../lib/ui/theme";
@@ -61,6 +61,48 @@ export function Modal({
 }: ModalProps) {
   useEscapeKey(open && !dismissDisabled, onClose);
   const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<Element | null>(null);
+
+  // Save the element that opened the modal so we can return focus on close.
+  useEffect(() => {
+    if (open) {
+      triggerRef.current = document.activeElement;
+      // Move focus into the panel on the next frame after animation starts.
+      requestAnimationFrame(() => {
+        const first = panelRef.current?.querySelector<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+        );
+        first?.focus();
+      });
+    } else {
+      (triggerRef.current as HTMLElement | null)?.focus();
+    }
+  }, [open]);
+
+  // Focus trap: keep Tab/Shift+Tab cycling within the panel.
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab" || !panelRef.current) return;
+    const focusable = Array.from(
+      panelRef.current.querySelectorAll<HTMLElement>(
+        "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
+      ),
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
 
   const handleBackdrop = (e: MouseEvent<HTMLDivElement>) => {
     if (dismissDisabled) return;
@@ -85,12 +127,14 @@ export function Modal({
           role="presentation"
         >
           <motion.div
+            ref={panelRef}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.18 }}
             className={panelClass}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleKeyDown}
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}

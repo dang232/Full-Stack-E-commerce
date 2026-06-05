@@ -179,7 +179,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
           </span>
         ) : null}
         <button
-          className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 hover-show transition-opacity"
+          className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 focus:opacity-100 hover-show transition-opacity"
           style={{
             background: loved ? "#FF6200" : "rgba(255,255,255,0.9)",
             color: loved ? "white" : "#6b7280",
@@ -201,7 +201,7 @@ function ProductGridCard({ product, index }: { product: Product; index: number }
           </svg>
         </button>
         <button
-          className="absolute bottom-0 inset-x-0 py-2 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 hover-show translate-y-full group-hover:translate-y-0 hover-show-translate transition-all duration-200"
+          className="absolute bottom-0 inset-x-0 py-2 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 focus:opacity-100 hover-show translate-y-full group-hover:translate-y-0 focus:translate-y-0 hover-show-translate transition-all duration-200"
           style={{ background: "rgba(238,77,45,0.92)" }}
           onClick={(e) => {
             e.stopPropagation();
