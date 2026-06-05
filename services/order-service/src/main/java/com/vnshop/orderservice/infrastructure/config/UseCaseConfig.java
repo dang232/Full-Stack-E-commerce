@@ -51,6 +51,7 @@ import com.vnshop.orderservice.application.finance.ListPayoutsUseCase;
 import com.vnshop.orderservice.application.finance.ProcessPayoutUseCase;
 import com.vnshop.orderservice.application.finance.RequestPayoutUseCase;
 import com.vnshop.orderservice.application.finance.ViewWalletUseCase;
+import com.vnshop.orderservice.application.saga.SagaOrchestrator;
 import com.vnshop.orderservice.domain.finance.CommissionCalculator;
 import com.vnshop.orderservice.domain.finance.port.out.PayoutRepositoryPort;
 import com.vnshop.orderservice.domain.finance.port.out.SellerTransactionRepositoryPort;
@@ -70,9 +71,10 @@ public class UseCaseConfig {
             OrderEventPublisherPort orderEventPublisherPort,
             CommissionTierLookupPort commissionTierLookupPort,
             CartRepositoryPort cartRepositoryPort,
-            MetricsPort metricsPort
+            MetricsPort metricsPort,
+            SagaOrchestrator sagaOrchestrator
     ) {
-        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort, metricsPort);
+        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort, metricsPort, sagaOrchestrator);
     }
 
     @Bean

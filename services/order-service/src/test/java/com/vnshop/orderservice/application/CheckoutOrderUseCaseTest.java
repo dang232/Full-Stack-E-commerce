@@ -18,6 +18,11 @@ import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
 import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
+import com.vnshop.orderservice.application.saga.SagaOrchestrator;
+import com.vnshop.orderservice.domain.port.out.MetricsPort;
+import com.vnshop.orderservice.domain.port.out.OutboxPort;
+import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
+import com.vnshop.orderservice.domain.saga.SagaState;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -54,8 +59,11 @@ class CheckoutOrderUseCaseTest {
         }
     };
 
+    private final MetricsPort noopMetrics = new NoopMetrics();
+
     private CheckoutOrderUseCase newUseCase() {
-        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup, cart);
+        SagaOrchestrator sagaOrchestrator = new SagaOrchestrator(new NoopSagaStateRepository(), new NoopOutboxPort(), 1_000);
+        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup, cart, noopMetrics, sagaOrchestrator);
         return new CheckoutOrderUseCase(catalog, createOrderUseCase);
     }
 
@@ -229,5 +237,24 @@ class CheckoutOrderUseCaseTest {
     private static final class FakeCartRepository implements CartRepositoryPort {
         @Override public com.vnshop.orderservice.domain.checkout.CartSnapshot findByCartId(String cartId) { return new com.vnshop.orderservice.domain.checkout.CartSnapshot(cartId, List.of()); }
         @Override public void clearCart(String userId) {}
+    }
+
+    private static final class NoopMetrics implements MetricsPort {
+        @Override public Object startTimer() { return new Object(); }
+        @Override public void stopTimer(Object timerSample) {}
+        @Override public void recordOrderCreated() {}
+        @Override public void recordOrderCancelled() {}
+        @Override public void recordOrderCreationFailed() {}
+    }
+
+    private static final class NoopSagaStateRepository implements SagaStateRepository {
+        @Override public SagaState save(SagaState s) { return s; }
+        @Override public java.util.Optional<SagaState> findBySagaId(String id) { return java.util.Optional.empty(); }
+        @Override public java.util.Optional<SagaState> findByOrderId(String id) { return java.util.Optional.empty(); }
+        @Override public java.util.List<SagaState> findCompensatingUpdatedBefore(java.time.Instant cutoff) { return java.util.List.of(); }
+    }
+
+    private static final class NoopOutboxPort implements OutboxPort {
+        @Override public void publish(String aggregateType, String aggregateId, String eventType, String payload) {}
     }
 }

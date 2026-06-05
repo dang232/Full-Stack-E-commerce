@@ -13,11 +13,13 @@ import com.vnshop.orderservice.domain.port.out.PaymentRequestPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.MetricsPort;
+import com.vnshop.orderservice.application.saga.SagaOrchestrator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,6 +32,7 @@ public class CreateOrderUseCase {
     private final CommissionTierLookupPort commissionTierLookupPort;
     private final CartRepositoryPort cartRepositoryPort;
     private final MetricsPort metricsPort;
+    private final SagaOrchestrator sagaOrchestrator;
 
     public CreateOrderUseCase(
             OrderRepositoryPort orderRepository,
@@ -39,7 +42,8 @@ public class CreateOrderUseCase {
             OrderEventPublisherPort orderEventPublisherPort,
             CommissionTierLookupPort commissionTierLookupPort,
             CartRepositoryPort cartRepositoryPort,
-            MetricsPort metricsPort
+            MetricsPort metricsPort,
+            SagaOrchestrator sagaOrchestrator
     ) {
         this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository is required");
         this.inventoryReservationPort = Objects.requireNonNull(inventoryReservationPort, "inventoryReservationPort is required");
@@ -49,6 +53,7 @@ public class CreateOrderUseCase {
         this.commissionTierLookupPort = Objects.requireNonNull(commissionTierLookupPort, "commissionTierLookupPort is required");
         this.cartRepositoryPort = Objects.requireNonNull(cartRepositoryPort, "cartRepositoryPort is required");
         this.metricsPort = Objects.requireNonNull(metricsPort, "metricsPort is required");
+        this.sagaOrchestrator = Objects.requireNonNull(sagaOrchestrator, "sagaOrchestrator is required");
     }
 
     public Order create(CreateOrderCommand command) {
@@ -69,28 +74,45 @@ public class CreateOrderUseCase {
         List<SubOrder> subOrders = splitBySeller(itemSnapshot);
         Order order = new Order(UUID.randomUUID(), buyerId, shippingAddress, subOrders, idempotencyKey);
 
-        boolean inventoryReserved = false;
-        boolean paymentRequested = false;
+        String sagaId = UUID.randomUUID().toString();
+        sagaOrchestrator.start(sagaId, order.id().toString());
+
         try {
             inventoryReservationPort.reserve(order.id().toString(), itemSnapshot);
-            inventoryReserved = true;
+            sagaOrchestrator.stepCompleted(sagaId, "INVENTORY");
+
             paymentRequestPort.requestPayment(order.id().toString(), order.paymentMethod(), order.finalAmount());
-            paymentRequested = true;
+            sagaOrchestrator.stepCompleted(sagaId, "PAYMENT");
+
             for (SubOrder subOrder : order.subOrders()) {
                 shippingRequestPort.requestShipping(order.id().toString(), subOrder, shippingAddress);
             }
+            sagaOrchestrator.stepCompleted(sagaId, "SHIPPING");
+
             Order savedOrder = orderRepository.save(order);
             orderEventPublisherPort.publishOrderCreated(savedOrder);
             cartRepositoryPort.clearCart(buyerId);
             metricsPort.recordOrderCreated();
             metricsPort.stopTimer(timerSample);
+            sagaOrchestrator.complete(sagaId);
             return savedOrder;
         } catch (RuntimeException failure) {
             metricsPort.recordOrderCreationFailed();
             metricsPort.stopTimer(timerSample);
-            compensate(order.id(), inventoryReserved, paymentRequested);
+            String failedStep = determineFailedStep(sagaId);
+            sagaOrchestrator.compensate(sagaId, failedStep);
             throw failure;
         }
+    }
+
+    private String determineFailedStep(String sagaId) {
+        return sagaOrchestrator.getLastCompletedStep(sagaId)
+                .map(step -> switch (step) {
+                    case "INVENTORY" -> "PAYMENT";
+                    case "PAYMENT" -> "SHIPPING";
+                    default -> "INVENTORY";
+                })
+                .orElse("INVENTORY");
     }
 
     private List<SubOrder> splitBySeller(List<OrderItem> items) {
@@ -104,15 +126,6 @@ public class CreateOrderUseCase {
             subOrders.add(new SubOrder(entry.getKey(), entry.getValue(), tier));
         }
         return List.copyOf(subOrders);
-    }
-
-    private void compensate(UUID orderId, boolean inventoryReserved, boolean paymentRequested) {
-        if (inventoryReserved) {
-            inventoryReservationPort.release(orderId.toString());
-        }
-        if (paymentRequested) {
-            orderRepository.findById(orderId).ifPresent(Order::markPaymentFailed);
-        }
     }
 
     private static void requireNonBlank(String value, String fieldName) {
