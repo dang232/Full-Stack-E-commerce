@@ -308,7 +308,7 @@ export function CartPage() {
               </button>
             </div>
             <div aria-live="polite" aria-atomic="true">
-              {couponError ? <p className="text-xs text-red-500 mt-1.5">{couponError}</p> : null}
+              {couponError ? <p className="text-xs text-red-600 dark:text-red-400 mt-1.5">{couponError}</p> : null}
               {appliedCoupon ? (
                 <div
                   className="mt-2 flex items-center justify-between px-3 py-2 rounded-lg text-sm"

@@ -119,7 +119,7 @@ export function CheckoutSummary({
                     </p>
                   ) : null}
                   {couponsQuery.error instanceof ApiError ? (
-                    <p className="text-xs text-red-500 px-2 py-1">
+                    <p className="text-xs text-red-600 dark:text-red-400 px-2 py-1">
                       {t("checkout.summary.couponLoadFail", {
                         message: couponsQuery.error.message,
                       })}

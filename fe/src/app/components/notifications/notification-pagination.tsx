@@ -25,7 +25,7 @@ export function NotificationPagination({ totalPages, currentPage }: Notification
         onClick={() => goTo(currentPage - 1)}
         disabled={currentPage <= 0}
         aria-label="Previous page"
-        className="rounded-lg p-2 hover:bg-muted disabled:opacity-30 transition-colors"
+        className="rounded-lg p-2 hover:bg-muted disabled:opacity-60 transition-colors"
       >
         <IconChevronLeft size={16} />
       </button>
@@ -36,7 +36,7 @@ export function NotificationPagination({ totalPages, currentPage }: Notification
         onClick={() => goTo(currentPage + 1)}
         disabled={currentPage >= totalPages - 1}
         aria-label="Next page"
-        className="rounded-lg p-2 hover:bg-muted disabled:opacity-30 transition-colors"
+        className="rounded-lg p-2 hover:bg-muted disabled:opacity-60 transition-colors"
       >
         <IconChevronRight size={16} />
       </button>

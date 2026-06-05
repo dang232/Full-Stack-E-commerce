@@ -100,7 +100,7 @@ export function SellersApproval() {
         <p className="text-sm text-muted-foreground">{t("admin.sellers.loading")}</p>
       ) : null}
       {sellersQuery.error instanceof ApiError ? (
-        <p className="text-sm text-red-500">{sellersQuery.error.message}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{sellersQuery.error.message}</p>
       ) : null}
       {!sellersQuery.isLoading && filtered.length === 0 ? (
         <div className="bg-card rounded-2xl p-8 text-center shadow-sm">

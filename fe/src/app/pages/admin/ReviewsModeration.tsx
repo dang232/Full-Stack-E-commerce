@@ -70,7 +70,7 @@ export function ReviewsModeration() {
         <p className="text-sm text-muted-foreground">{t("admin.reviewsModeration.loading")}</p>
       ) : null}
       {reviewsQuery.error instanceof ApiError ? (
-        <p className="text-sm text-red-500">{reviewsQuery.error.message}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{reviewsQuery.error.message}</p>
       ) : null}
       {!reviewsQuery.isLoading && reviews.length === 0 ? (
         <div className="bg-card rounded-2xl p-8 text-center shadow-sm">

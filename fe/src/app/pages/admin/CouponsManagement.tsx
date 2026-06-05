@@ -71,7 +71,7 @@ export function CouponsManagement() {
         <p className="text-sm text-muted-foreground">{t("admin.coupons.loading")}</p>
       ) : null}
       {couponsQuery.error instanceof ApiError ? (
-        <p className="text-sm text-red-500">{couponsQuery.error.message}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{couponsQuery.error.message}</p>
       ) : null}
 
       <div className="bg-card rounded-2xl shadow-sm overflow-hidden">

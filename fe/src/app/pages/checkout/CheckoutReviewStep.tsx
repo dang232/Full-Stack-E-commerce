@@ -64,7 +64,7 @@ export function CheckoutReviewStep({
             </p>
           </div>
         ) : (
-          <p className="text-sm text-red-500">{t("checkout.review.noAddress")}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{t("checkout.review.noAddress")}</p>
         )}
       </div>
 
