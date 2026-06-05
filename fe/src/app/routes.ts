@@ -2,6 +2,7 @@ import { createElement, lazy, Suspense, type ReactNode } from "react";
 import { createBrowserRouter } from "react-router";
 
 import { ErrorBoundary } from "./components/error-boundary";
+import { PageSkeleton, ProductDetailSkeleton } from "./components/ui/page-skeleton";
 import { myOrdersOptions } from "./hooks/use-orders";
 import { productDetailOptions } from "./hooks/use-products";
 import { profileOptions } from "./hooks/use-profile";
@@ -70,21 +71,20 @@ const NotFoundPage = lazy(() =>
   import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })),
 );
 
-const Fallback = () =>
-  createElement(
-    "div",
-    { className: "max-w-7xl mx-auto px-4 py-24 text-center text-sm text-gray-500" },
-    "Đang tải...",
-  );
-
 /* eslint-disable react/no-children-prop -- createElement passes children via props by design */
 const lazyRoute = (el: ReactNode) =>
-  createElement(Suspense, { fallback: createElement(Fallback) }, el);
+  createElement(Suspense, { fallback: createElement(PageSkeleton) }, el);
 const suspenseWithBoundary = (el: ReactNode) =>
   createElement(
     ErrorBoundary,
     null,
-    createElement(Suspense, { fallback: createElement(Fallback) }, el),
+    createElement(Suspense, { fallback: createElement(PageSkeleton) }, el),
+  );
+const suspenseWithDetailBoundary = (el: ReactNode) =>
+  createElement(
+    ErrorBoundary,
+    null,
+    createElement(Suspense, { fallback: createElement(ProductDetailSkeleton) }, el),
   );
 const guarded = (el: ReactNode) => createElement(RequireAuth, { children: lazyRoute(el) });
 const guardedWithBoundary = (el: ReactNode) =>
@@ -102,7 +102,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: lazyRoute(createElement(HomePage)) },
       { path: "search", element: lazyRoute(createElement(SearchPage)) },
-      { path: "product/:id", element: suspenseWithBoundary(createElement(ProductPage)), loader: ({ params }) => {
+      { path: "product/:id", element: suspenseWithDetailBoundary(createElement(ProductPage)), loader: ({ params }) => {
         const id = params.id ?? "";
         // Prefetch in parallel — loader doesn't block render, just primes the cache.
         void queryClient.prefetchQuery(productDetailOptions(id));
@@ -129,7 +129,7 @@ export const router = createBrowserRouter([
       { path: "messages", element: guarded(createElement(MessagesPage)) },
       { path: "notifications", element: guarded(createElement(NotificationsPage)) },
       { path: "notifications/preferences", element: guarded(createElement(NotificationPreferencesPage)) },
-      { path: "sellers/:id", element: suspenseWithBoundary(createElement(SellerDetailPage)), loader: ({ params }) => {
+      { path: "sellers/:id", element: suspenseWithDetailBoundary(createElement(SellerDetailPage)), loader: ({ params }) => {
         const id = params.id ?? "";
         void queryClient.prefetchQuery(sellerDetailOptions(id));
         void queryClient.prefetchQuery(sellerProductsOptions(id));

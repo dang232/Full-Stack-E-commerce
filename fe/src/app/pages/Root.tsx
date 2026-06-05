@@ -1,6 +1,6 @@
 import { IconShoppingCart, IconHeart, IconBell, IconSun, IconMoon, IconMenu2, IconX, IconHome, IconPackage, IconUser, IconLogout, IconSettings, IconBuildingStore, IconLayoutDashboard, IconChevronDown, IconSparkles, IconPhone, IconMapPin, IconTag, IconHeadphones, IconPalette } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate, useLocation } from "react-router";
 
@@ -9,6 +9,7 @@ import { ConsoleChrome } from "../components/console-chrome";
 import { LanguageSwitcher } from "../components/language-switcher";
 import { NotificationBell } from "../components/notification-bell";
 import { SearchAutocomplete } from "../components/search-autocomplete";
+import { LiveRegion } from "../components/ui/live-region";
 import { useVNShop } from "../components/vnshop-context";
 import { useAppConfig } from "../hooks/use-app-config";
 import { useCart } from "../hooks/use-cart";
@@ -31,6 +32,21 @@ function Navbar() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const [cartAnnouncement, setCartAnnouncement] = useState("");
+  const isMounted = useRef(false);
+
+  // Announce cart count changes to screen readers, but not on initial mount
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    if (cartCount === 0) {
+      setCartAnnouncement(t("cart.empty"));
+    } else {
+      setCartAnnouncement(t("cart.itemCount", { count: cartCount }));
+    }
+  }, [cartCount, t]);
 
   const closeUserMenu = useCallback(() => {
     setUserMenuOpen(false);
