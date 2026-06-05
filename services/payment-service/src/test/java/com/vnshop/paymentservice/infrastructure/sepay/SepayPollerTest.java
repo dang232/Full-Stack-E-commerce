@@ -213,7 +213,16 @@ class SepayPollerTest {
         }
 
         @Override
+        public List<PaymentCallbackOutboxRecord> findRetryable(int limit) {
+            return List.of();
+        }
+
+        @Override
         public void markPublished(Long id) {
+        }
+
+        @Override
+        public void recordFailure(Long id, int attemptCount, String error, java.time.Instant nextAttemptAt, boolean dead) {
         }
     }
 }

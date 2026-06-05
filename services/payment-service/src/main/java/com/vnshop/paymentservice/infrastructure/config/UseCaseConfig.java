@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.paymentservice.application.GetPaymentStatusUseCase;
 import com.vnshop.paymentservice.application.HandleVnpayIpnUseCase;
 import com.vnshop.paymentservice.application.ProcessPaymentUseCase;
+import com.vnshop.paymentservice.application.RefundPaymentUseCase;
 import com.vnshop.paymentservice.application.ledger.LedgerService;
 import com.vnshop.paymentservice.domain.port.out.LedgerRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.OrderCatalogPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentGatewayPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentIdempotencyKeyRepositoryPort;
 import com.vnshop.paymentservice.domain.port.out.PaymentRepositoryPort;
+import com.vnshop.paymentservice.domain.port.out.RefundGatewayPort;
 import com.vnshop.paymentservice.infrastructure.fx.FxProperties;
 import com.vnshop.paymentservice.infrastructure.gateway.MomoProperties;
 import com.vnshop.paymentservice.infrastructure.gateway.VnpayProperties;
@@ -22,6 +24,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestClient;
+
+import java.util.List;
 
 @Configuration
 @EnableConfigurationProperties({
@@ -66,6 +70,14 @@ public class UseCaseConfig {
     @Bean
     HandleVnpayIpnUseCase handleVnpayIpnUseCase(PaymentRepositoryPort paymentRepositoryPort, LedgerService ledgerService) {
         return new HandleVnpayIpnUseCase(paymentRepositoryPort, ledgerService);
+    }
+
+    @Bean
+    RefundPaymentUseCase refundPaymentUseCase(
+            PaymentRepositoryPort paymentRepositoryPort,
+            List<RefundGatewayPort> refundGateways
+    ) {
+        return new RefundPaymentUseCase(paymentRepositoryPort, refundGateways);
     }
 
     /**

@@ -123,4 +123,12 @@ public class PaymentCallbackOutboxJpaEntity extends BaseJpaEntity {
             this.publishedAt = at;
         }
     }
+
+    // Explicit setters for fields used by PaymentCallbackOutboxJpaRepository.recordFailure().
+    // Lombok @Setter generates these, but explicit declarations ensure they are always present
+    // regardless of annotation-processor ordering.
+    void setAttemptCount(int attemptCount) { this.attemptCount = attemptCount; }
+    void setLastError(String lastError) { this.lastError = lastError; }
+    void setNextAttemptAt(Instant nextAttemptAt) { this.nextAttemptAt = nextAttemptAt; }
+    void setDead(boolean dead) { this.dead = dead; }
 }

@@ -112,7 +112,7 @@ class PaymentCallbackOutboxRelayTest {
             rows.put(id, new PaymentCallbackOutboxRecord(
                     id, provider, UUID.randomUUID(), orderId, "ref-" + id, "COMPLETED",
                     new BigDecimal("10000"), "VND", UUID.randomUUID(), "evt-" + id, "hash-" + id,
-                    Instant.now(), null, null, null, null, null));
+                    Instant.now(), null, null, null, null, null, 0));
         }
 
         @Override
@@ -138,6 +138,24 @@ class PaymentCallbackOutboxRelayTest {
         @Override
         public void markPublished(Long id) {
             publishedIds.add(id);
+        }
+
+        @Override
+        public List<PaymentCallbackOutboxRecord> findRetryable(int limit) {
+            List<PaymentCallbackOutboxRecord> result = new ArrayList<>();
+            for (PaymentCallbackOutboxRecord record : rows.values()) {
+                if (record.publishedAt() == null && !publishedIds.contains(record.id())) {
+                    result.add(record);
+                    if (result.size() == limit) {
+                        break;
+                    }
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public void recordFailure(Long id, int attemptCount, String error, java.time.Instant nextAttemptAt, boolean dead) {
         }
     }
 }
