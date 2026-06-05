@@ -19,6 +19,7 @@ import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
 import { formatPrice } from "../lib/format";
 import { comingSoon } from "../lib/ui/coming-soon";
+import { usePageMeta } from "../../utils/meta-tags";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {
   return (
@@ -184,6 +185,12 @@ export function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"desc" | "reviews" | "qa">("desc");
   const loved = isWishlisted(product.id);
+
+  usePageMeta({
+    title: product.name,
+    description: product.description?.slice(0, 160) ?? `${product.name} - Mua ngay tại VNShop`,
+    image: product.images?.[0] ?? product.image,
+  });
 
   const variant = { color: selectedColor || undefined, size: selectedSize || undefined };
   const handleAddToCart = () => addToCart(product, quantity, variant);

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /seller/
+Sitemap: https://vnshop.vn/sitemap.xml
