@@ -334,6 +334,33 @@
 					<argLine>@{argLine} -XX:+EnableDynamicAgentLoading</argLine>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.pitest</groupId>
+				<artifactId>pitest-maven</artifactId>
+				<version>1.17.1</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.pitest</groupId>
+						<artifactId>pitest-junit5-plugin</artifactId>
+						<version>1.2.1</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<targetClasses>
+						<param>com.vnshop.orderservice.domain.*</param>
+						<param>com.vnshop.orderservice.application.*</param>
+					</targetClasses>
+					<targetTests>
+						<param>com.vnshop.orderservice.*Test</param>
+					</targetTests>
+					<mutationThreshold>60</mutationThreshold>
+					<outputFormats>
+						<format>HTML</format>
+						<format>XML</format>
+					</outputFormats>
+					<timestampedReports>false</timestampedReports>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
