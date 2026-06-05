@@ -92,7 +92,7 @@ function ThreadList({
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-sm text-foreground truncate">
-                    {`User ${thread.otherPartyId.slice(0, 8)}`}
+                    {thread.otherPartyUsername ?? `User ${thread.otherPartyId.slice(0, 8)}`}
                   </span>
                   <span className="text-[11px] text-muted-foreground shrink-0">
                     {relativeTime(thread.lastMessageAt)}

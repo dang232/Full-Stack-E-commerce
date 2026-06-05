@@ -24,6 +24,8 @@ export function PayoutsQueue() {
   const [tab, setTab] = useState<Tab>("pending");
   const [failFor, setFailFor] = useState<string | null>(null);
   const [completeFor, setCompleteFor] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [failProcessingId, setFailProcessingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
 
@@ -44,6 +46,7 @@ export function PayoutsQueue() {
 
   const complete = useMutation({
     mutationFn: (id: string) => adminCompletePayout(id),
+    onMutate: (id) => setProcessingId(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
       toast.success(t("admin.payouts.completeOk"));
@@ -59,10 +62,12 @@ export function PayoutsQueue() {
       void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
       setCompleteFor(null);
     },
+    onSettled: () => setProcessingId(null),
   });
 
   const fail = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) => adminFailPayout(id, { reason }),
+    onMutate: ({ id }) => setFailProcessingId(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "payouts"] });
       toast.success(t("admin.payouts.failOk"));
@@ -70,6 +75,7 @@ export function PayoutsQueue() {
     },
     onError: (err) =>
       toast.error(err instanceof ApiError ? err.message : t("admin.payouts.updateErr")),
+    onSettled: () => setFailProcessingId(null),
   });
 
   const activeQuery = tab === "pending" ? pendingQuery : completedQuery;
@@ -231,8 +237,8 @@ export function PayoutsQueue() {
                           p={p}
                           onComplete={() => setCompleteFor(p.id)}
                           onFail={() => setFailFor(p.id)}
-                          activeCompleteId={complete.isPending ? completeFor : null}
-                          activeFailId={fail.isPending ? failFor : null}
+                          activeCompleteId={processingId}
+                          activeFailId={failProcessingId}
                         />
                       ) : (
                         <CompletedPayoutRow key={p.id} p={p} />
@@ -247,8 +253,8 @@ export function PayoutsQueue() {
                       p={p}
                       onComplete={() => setCompleteFor(p.id)}
                       onFail={() => setFailFor(p.id)}
-                      activeCompleteId={complete.isPending ? completeFor : null}
-                      activeFailId={fail.isPending ? failFor : null}
+                      activeCompleteId={processingId}
+                      activeFailId={failProcessingId}
                     />
                   ) : (
                     <CompletedPayoutRow key={p.id} p={p} />

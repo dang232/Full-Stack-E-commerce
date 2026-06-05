@@ -9,6 +9,7 @@ export const messageThreadSummarySchema = z
     buyerId: z.string(),
     sellerId: z.string(),
     otherPartyId: z.string(),
+    otherPartyUsername: z.string().nullable().optional(),
     productId: z.string().nullable().optional(),
     lastMessageAt: z.string(),
     lastMessageBody: z.string().nullable().optional(),
