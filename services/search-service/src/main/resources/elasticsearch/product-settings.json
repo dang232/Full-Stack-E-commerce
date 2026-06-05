@@ -1,0 +1,17 @@
+{
+  "analysis": {
+    "analyzer": {
+      "vietnamese_analyzer": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "filter": ["lowercase", "asciifolding", "vietnamese_stop"]
+      }
+    },
+    "filter": {
+      "vietnamese_stop": {
+        "type": "stop",
+        "stopwords": ["và", "của", "là", "có", "cho", "với", "các", "này", "được", "trong", "từ", "một", "không"]
+      }
+    }
+  }
+}
