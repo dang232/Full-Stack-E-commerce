@@ -406,6 +406,22 @@
 					<timestampedReports>false</timestampedReports>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>4.8.6.6</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>High</threshold>
+					<failOnError>true</failOnError>
+				</configuration>
+				<executions>
+					<execution>
+						<goals><goal>check</goal></goals>
+						<phase>verify</phase>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
