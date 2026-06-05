@@ -136,3 +136,39 @@ jobs:
           git add infra/k8s/overlays/staging/
           git diff --staged --quiet || git commit -m "ci: update staging image tags to sha-$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-7)"
           git push
+
+  smoke-test:
+    needs: [update-manifests]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Wait for rollout
+        run: |
+          echo "Waiting 60s for staging deployment to stabilize..."
+          sleep 60
+
+      - name: Health check gateway
+        run: |
+          GATEWAY_URL="${{ vars.STAGING_GATEWAY_URL || 'http://staging.vnshop.vn' }}"
+          echo "Checking $GATEWAY_URL..."
+
+          # Gateway health
+          curl -sf "${GATEWAY_URL}/actuator/health" --max-time 10 || exit 1
+          echo "✓ Gateway healthy"
+
+          # Products endpoint
+          curl -sf "${GATEWAY_URL}/products?size=1" --max-time 10 | jq -e '.success == true' || exit 1
+          echo "✓ Products responding"
+
+          # Search endpoint
+          curl -sf "${GATEWAY_URL}/search?q=test" --max-time 10 | jq -e '.success == true' || exit 1
+          echo "✓ Search responding"
+
+          echo "All smoke tests passed ✓"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d '{"text":"⚠️ Staging smoke tests FAILED after deploy. Check CD workflow."}' || true
