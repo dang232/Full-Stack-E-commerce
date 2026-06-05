@@ -93,6 +93,7 @@ export function SearchAutocomplete({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="flex-1 px-4 py-2.5 text-sm bg-card text-foreground outline-none placeholder:text-muted-foreground"
+          aria-label="Search products"
           role="combobox"
           aria-expanded={showDropdown}
           aria-controls={listboxId}

@@ -536,6 +536,7 @@ export function ProductPage() {
           {(["desc", "reviews", "qa"] as const).map((tab) => (
             <button
               key={tab}
+              id={`product-tab-${tab}`}
               role="tab"
               aria-selected={activeTab === tab}
               onClick={() => setActiveTab(tab)}
@@ -554,7 +555,7 @@ export function ProductPage() {
           ))}
         </div>
 
-        <div role="tabpanel" className="p-6">
+        <div role="tabpanel" aria-labelledby={`product-tab-${activeTab}`} className="p-6">
           {activeTab === "desc" ? (
             <div className="space-y-4">
               <p className="text-foreground leading-relaxed">{product.description}</p>

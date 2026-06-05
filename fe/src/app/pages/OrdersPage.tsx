@@ -595,6 +595,7 @@ export function OrdersPage() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            id={`orders-tab-${tab.id}`}
             role="tab"
             aria-selected={activeTab === tab.id}
             onClick={() => {
@@ -613,7 +614,7 @@ export function OrdersPage() {
         ))}
       </div>
 
-      <div className="space-y-4">
+      <div role="tabpanel" aria-labelledby={`orders-tab-${activeTab}`} className="space-y-4">
         {filtered.length > 0
           ? filtered.map((entry) => (
               <OrderCard
@@ -635,7 +636,7 @@ export function OrdersPage() {
       </div>
 
       {(ordersQuery.data?.totalPages ?? 0) > 1 ? (
-        <div className="flex items-center justify-center gap-3 mt-6">
+        <nav aria-label="Pagination" className="flex items-center justify-center gap-3 mt-6">
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={ordersQuery.data?.first ?? true}
@@ -643,7 +644,7 @@ export function OrdersPage() {
           >
             {t("common.prev")}
           </button>
-          <span className="text-sm text-muted-foreground">
+          <span aria-current="page" className="text-sm text-muted-foreground">
             {(ordersQuery.data?.page ?? page) + 1} / {ordersQuery.data?.totalPages ?? 1}
           </span>
           <button
@@ -653,7 +654,7 @@ export function OrdersPage() {
           >
             {t("common.next")}
           </button>
-        </div>
+        </nav>
       ) : null}
     </div>
   );

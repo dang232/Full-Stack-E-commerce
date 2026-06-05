@@ -564,6 +564,7 @@ export function Root() {
                       href={s.href}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={s.label}
                       className="flex items-center gap-2 text-sm text-[#757575] hover:text-[#EE4D2D] transition-colors"
                     >
                       <span

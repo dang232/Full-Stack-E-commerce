@@ -1,6 +1,6 @@
 import { IconX } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
-import { type ReactNode, type MouseEvent } from "react";
+import { type ReactNode, type MouseEvent, useId } from "react";
 
 import { useEscapeKey } from "../../hooks/use-escape-key";
 import { modalBackdropBg } from "../../lib/ui/theme";
@@ -60,6 +60,7 @@ export function Modal({
   onBackdropClick,
 }: ModalProps) {
   useEscapeKey(open && !dismissDisabled, onClose);
+  const titleId = useId();
 
   const handleBackdrop = (e: MouseEvent<HTMLDivElement>) => {
     if (dismissDisabled) return;
@@ -92,11 +93,12 @@ export function Modal({
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
+            aria-labelledby={title ? titleId : undefined}
           >
             {title || !hideCloseButton ? (
               <div className={headerClass}>
                 <div className="flex-1 min-w-0">
-                  {title ? <h3 className="text-lg font-bold text-foreground">{title}</h3> : null}
+                  {title ? <h3 id={titleId} className="text-lg font-bold text-foreground">{title}</h3> : null}
                   {subtitle ? <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div> : null}
                 </div>
                 {!hideCloseButton ? (
