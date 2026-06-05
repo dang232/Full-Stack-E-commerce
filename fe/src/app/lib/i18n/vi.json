@@ -56,6 +56,8 @@
     "totalLabel": "Tổng cộng",
     "savings": "Tiết kiệm {{amount}}",
     "proceedCheckout": "Tiến hành thanh toán",
+    "guestBanner": "Đăng nhập để lưu giỏ hàng và thanh toán",
+    "loginBtn": "Đăng nhập",
     "sslNotice": "Thông tin thanh toán được mã hóa SSL 256-bit",
     "errors": {
       "cantRemove": "Không thể xoá sản phẩm",

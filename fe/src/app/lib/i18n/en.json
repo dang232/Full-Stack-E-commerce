@@ -56,6 +56,8 @@
     "totalLabel": "Total",
     "savings": "You save {{amount}}",
     "proceedCheckout": "Proceed to checkout",
+    "guestBanner": "Log in to save your cart and checkout",
+    "loginBtn": "Log in",
     "sslNotice": "Payment information is SSL-256-bit encrypted",
     "errors": {
       "cantRemove": "Couldn't remove item",

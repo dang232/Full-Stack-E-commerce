@@ -367,28 +367,33 @@ export function CartPage() {
             </div>
 
             {!authenticated ? (
-              <p className="text-xs text-muted-foreground mt-5 mb-2 text-center">
-                {t("cart.guestNote")}
-              </p>
+              <div
+                className="mt-5 mb-3 flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+                style={{ background: "rgba(238,77,45,0.08)", border: "1px solid rgba(238,77,45,0.2)" }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <IconLogin size={16} style={{ color: "#EE4D2D", flexShrink: 0 }} />
+                  <span className="text-sm font-medium" style={{ color: "#EE4D2D" }}>
+                    {t("cart.guestBanner")}
+                  </span>
+                </div>
+                <button
+                  onClick={() => login("/checkout")}
+                  className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+                  style={{ background: "#EE4D2D" }}
+                >
+                  {t("cart.loginBtn")}
+                </button>
+              </div>
             ) : null}
             <button
-              onClick={() => (authenticated ? navigate("/checkout") : login("/checkout"))}
-              className="w-full mt-2 py-4 rounded-xl text-white font-bold text-base shadow-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-              style={{
-                background: authenticated
-                  ? "linear-gradient(135deg, #FF6200, #ff8a40)"
-                  : "linear-gradient(135deg, #EE4D2D, #FF6633)",
-              }}
+              onClick={() => navigate("/checkout")}
+              disabled={!authenticated}
+              aria-disabled={!authenticated}
+              className="w-full mt-2 py-4 rounded-xl text-white font-bold text-base shadow-lg transition-opacity flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:opacity-90"
+              style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
             >
-              {authenticated ? (
-                <>
-                  {t("cart.proceedCheckout")} <IconChevronRight size={18} />
-                </>
-              ) : (
-                <>
-                  <IconLogin size={18} /> {t("cart.loginToCheckout")}
-                </>
-              )}
+              {t("cart.proceedCheckout")} <IconChevronRight size={18} />
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-2" aria-hidden="true">
