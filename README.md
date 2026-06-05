@@ -4,6 +4,13 @@ A polyglot microservices e-commerce platform demonstrating DDD, CQRS, hexagonal 
 
 VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketplace inspired by Shopee, Lazada, and Tiki. It ships with: 16 services (Spring Boot + NestJS), per-service Postgres, Kafka + saga + outbox, Keycloak-backed httpOnly-cookie auth, and a React + Vite SPA. Two end-to-end test suites gate every change — `e2e-day.mjs` (55/55 API endpoints) and Playwright (19/19 browser scenarios).
 
+## System Requirements
+
+- **Minimum RAM:** 16GB (full stack uses ~12GB)
+- **Recommended RAM:** 32GB
+- **Docker Desktop:** Allocate at least 12GB
+- **Disk:** 10GB+ free for images and volumes
+
 ## Quick Links
 
 | Resource | Use it for |
