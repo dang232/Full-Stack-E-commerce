@@ -132,6 +132,8 @@ async function runErrorChain(err: unknown, ctx: RequestContext): Promise<Respons
   throw err;
 }
 
+const DEFAULT_TIMEOUT_MS = 30_000;
+
 export async function request<TSchema extends z.ZodType>(
   opts: RequestOptions<TSchema>,
 ): Promise<z.infer<TSchema>> {
@@ -141,14 +143,25 @@ export async function request<TSchema extends z.ZodType>(
   const url = buildUrl(opts.path, opts.query);
   const hasBody = opts.body !== undefined && method !== "GET";
 
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(
+    () => timeoutController.abort(new Error("Request timed out")),
+    DEFAULT_TIMEOUT_MS,
+  );
+
+  const composedSignal = opts.signal
+    ? AbortSignal.any([opts.signal, timeoutController.signal])
+    : timeoutController.signal;
+
   const init: RequestInit = {
     method,
     headers: {},
     body: hasBody ? JSON.stringify(opts.body) : undefined,
-    signal: opts.signal,
+    signal: composedSignal,
     credentials: "omit",
   };
 
+  try {
   const requestCtx = await runRequestChain({
     url,
     init,
@@ -217,6 +230,9 @@ export async function request<TSchema extends z.ZodType>(
     responseChain,
   );
   return finalCtx.parsed as z.infer<TSchema>;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export const api = {

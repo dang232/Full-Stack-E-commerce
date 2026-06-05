@@ -197,6 +197,12 @@ export function CheckoutPage() {
   const idempotencyKeyRef = useRef<string>("");
   if (!idempotencyKeyRef.current) idempotencyKeyRef.current = uuidv4();
 
+  // Regenerate idempotency key when cart contents change so a fresh order
+  // attempt after a cart edit does not reuse a stale key.
+  useEffect(() => {
+    idempotencyKeyRef.current = uuidv4();
+  }, [cartItems]);
+
   // Server-side preview of totals — best effort. UI falls back to local sum if unavailable.
   const calcQuery = useQuery({
     queryKey: [
@@ -581,6 +587,7 @@ export function CheckoutPage() {
                 selectedPaymentId={selectedPaymentId}
                 cartItems={cartItems}
                 buyerName={buyerName}
+                isProcessing={isProcessing}
                 setStep={setStep}
               />
             ) : null}

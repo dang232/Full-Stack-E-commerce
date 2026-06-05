@@ -15,6 +15,7 @@ interface Props {
   selectedPaymentId: PaymentOption["id"];
   cartItems: CartItem[];
   buyerName: string;
+  isProcessing: boolean;
   setStep: (step: "address" | "shipping" | "payment") => void;
 }
 
@@ -26,6 +27,7 @@ export function CheckoutReviewStep({
   selectedPaymentId,
   cartItems,
   buyerName,
+  isProcessing,
   setStep,
 }: Props) {
   const { t } = useTranslation();
@@ -42,7 +44,8 @@ export function CheckoutReviewStep({
           </h3>
           <button
             onClick={() => setStep("address")}
-            className="text-xs"
+            disabled={isProcessing}
+            className="text-xs disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ color: "#00BFB3" }}
           >
             {t("checkout.review.change")}
@@ -73,7 +76,8 @@ export function CheckoutReviewStep({
           </h3>
           <button
             onClick={() => setStep("shipping")}
-            className="text-xs"
+            disabled={isProcessing}
+            className="text-xs disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ color: "#00BFB3" }}
           >
             {t("checkout.review.change")}
@@ -93,7 +97,8 @@ export function CheckoutReviewStep({
           </h3>
           <button
             onClick={() => setStep("payment")}
-            className="text-xs"
+            disabled={isProcessing}
+            className="text-xs disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ color: "#00BFB3" }}
           >
             {t("checkout.review.change")}
