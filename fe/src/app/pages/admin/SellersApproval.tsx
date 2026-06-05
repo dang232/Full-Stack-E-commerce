@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { FormDialog } from "../../components/form-dialog";
 import { ApiError } from "../../lib/api";
-import { adminApproveSeller, adminListSellers } from "../../lib/api/endpoints/admin";
+import { adminApproveSeller, adminListSellers, adminRejectSeller } from "../../lib/api/endpoints/admin";
 import { formatRelativeTime } from "../../lib/format";
 
 import { SellerApplicationDetail } from "./SellerApplicationDetail";
@@ -34,11 +34,17 @@ export function SellersApproval() {
       toast.error(err instanceof ApiError ? err.message : t("admin.sellers.approveErr")),
   });
 
-  const handleReject = (_values: Record<string, string>) => {
-    // Rejection endpoint not yet available on the backend.
-    toast.info(t("admin.sellers.rejectComingSoon"));
-    setRejectFor(null);
-  };
+  const reject = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      adminRejectSeller(id, { reason }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin", "sellers"] });
+      toast.success(t("admin.sellers.rejectOk"));
+      setRejectFor(null);
+    },
+    onError: (err) =>
+      toast.error(err instanceof ApiError ? err.message : t("admin.sellers.rejectErr")),
+  });
 
   const filtered = (sellersQuery.data ?? []).filter((s) =>
     s.shopName.toLowerCase().includes(search.toLowerCase()),
@@ -72,8 +78,10 @@ export function SellersApproval() {
           },
         ]}
         onClose={() => setRejectFor(null)}
-        onSubmit={handleReject}
-        isSubmitting={false}
+        onSubmit={({ reason }) => {
+          if (rejectFor) reject.mutate({ id: rejectFor, reason });
+        }}
+        isSubmitting={reject.isPending}
       />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-foreground">{t("admin.sellers.title")}</h2>

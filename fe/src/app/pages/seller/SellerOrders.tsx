@@ -40,6 +40,7 @@ export function SellerOrders({
   const { t } = useTranslation();
   const [shipFor, setShipFor] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<string | null>(null);
+  const [confirmOrderId, setConfirmOrderId] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("all");
   const [search, setSearch] = useState("");
 
@@ -99,6 +100,22 @@ export function SellerOrders({
           if (shipFor) ship.mutate({ id: shipFor, body });
         }}
         isSubmitting={ship.isPending}
+      />
+      <FormDialog
+        open={!!confirmOrderId}
+        title={t("seller.orders.confirmDialog.title")}
+        description={t("seller.orders.confirmDialog.body")}
+        submitLabel={t("seller.orders.confirmDialog.confirm")}
+        submitColor="#00BFB3"
+        fields={[]}
+        onClose={() => setConfirmOrderId(null)}
+        onSubmit={() => {
+          if (confirmOrderId) {
+            accept.mutate(confirmOrderId);
+            setConfirmOrderId(null);
+          }
+        }}
+        isSubmitting={accept.isPending}
       />
       <FormDialog
         open={!!rejectFor}
@@ -192,10 +209,7 @@ export function SellerOrders({
                     {isPending ? (
                       <>
                         <button
-                          onClick={() => {
-                            if (!window.confirm(t("seller.orders.acceptConfirm"))) return;
-                            accept.mutate(order.id);
-                          }}
+                          onClick={() => setConfirmOrderId(order.id)}
                           disabled={accept.isPending}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
                           style={{ background: "#00BFB3" }}

@@ -20,6 +20,8 @@ export type { DashboardSummary };
 export const adminListSellers = () => api.get("/admin/sellers", z.array(sellerSummarySchema));
 export const adminApproveSeller = (id: string) =>
   api.post(`/admin/sellers/${encodeURIComponent(id)}/approve`, sellerSummarySchema);
+export const adminRejectSeller = (id: string, body: { reason: string }) =>
+  api.post(`/admin/sellers/${encodeURIComponent(id)}/reject`, sellerSummarySchema, body);
 
 export const adminPendingReviews = () => api.get("/admin/reviews/pending", z.array(reviewSchema));
 export const adminApproveReview = (id: string) =>

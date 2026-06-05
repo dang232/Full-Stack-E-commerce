@@ -518,6 +518,16 @@
       "approve": "Duyệt",
       "approveOk": "Đã duyệt seller",
       "approveErr": "Không thể duyệt seller",
+      "reject": "Từ chối",
+      "rejectOk": "Đã từ chối hồ sơ seller",
+      "rejectErr": "Không thể từ chối seller",
+      "rejectDialog": {
+        "title": "Từ chối hồ sơ seller",
+        "subtitle": "Seller: {{id}}",
+        "submitLabel": "Từ chối hồ sơ",
+        "reasonLabel": "Lý do từ chối",
+        "reasonPlaceholder": "Hồ sơ không hợp lệ, thông tin gian lận..."
+      },
       "viewApplication": "Xem hồ sơ",
       "rowApplied": "Nộp đơn {{relativeTime}}",
       "rowBank": "Ngân hàng: {{bank}} · Tài khoản đuôi {{tail}}",
@@ -723,7 +733,12 @@
       "rejectOk": "Đã từ chối đơn",
       "rejectErr": "Không thể từ chối đơn",
       "shipOk": "Đã chuyển sang trạng thái Giao hàng",
-      "shipErr": "Không thể giao hàng"
+      "shipErr": "Không thể giao hàng",
+      "confirmDialog": {
+        "title": "Xác nhận đơn hàng",
+        "body": "Chấp nhận đơn hàng này và bắt đầu xử lý?",
+        "confirm": "Xác nhận"
+      }
     },
     "shipDialog": {
       "title": "Bàn giao đơn cho vận chuyển",

@@ -518,6 +518,16 @@
       "approve": "Approve",
       "approveOk": "Seller approved",
       "approveErr": "Couldn't approve seller",
+      "reject": "Reject",
+      "rejectOk": "Seller application rejected",
+      "rejectErr": "Couldn't reject seller",
+      "rejectDialog": {
+        "title": "Reject seller application",
+        "subtitle": "Seller: {{id}}",
+        "submitLabel": "Reject application",
+        "reasonLabel": "Rejection reason",
+        "reasonPlaceholder": "Non-compliant documents, fraudulent info..."
+      },
       "viewApplication": "View application",
       "rowApplied": "Applied {{relativeTime}}",
       "rowBank": "Bank: {{bank}} · Account ending {{tail}}",
@@ -723,7 +733,12 @@
       "rejectOk": "Order rejected",
       "rejectErr": "Couldn't reject order",
       "shipOk": "Marked as shipping",
-      "shipErr": "Couldn't ship order"
+      "shipErr": "Couldn't ship order",
+      "confirmDialog": {
+        "title": "Confirm Order",
+        "body": "Accept this order and begin processing?",
+        "confirm": "Confirm"
+      }
     },
     "shipDialog": {
       "title": "Hand off to carrier",
