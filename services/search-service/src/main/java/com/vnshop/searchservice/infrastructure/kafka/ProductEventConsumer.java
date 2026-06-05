@@ -1,5 +1,7 @@
 package com.vnshop.searchservice.infrastructure.kafka;
 
+import com.vnshop.searchservice.infrastructure.elasticsearch.ProductDocument;
+import com.vnshop.searchservice.infrastructure.elasticsearch.ProductElasticsearchRepository;
 import com.vnshop.searchservice.infrastructure.idempotency.ProcessedEvent;
 import com.vnshop.searchservice.infrastructure.idempotency.ProcessedEventRepository;
 import com.vnshop.searchservice.infrastructure.persistence.ProductReadModelJpaEntity;
@@ -12,7 +14,6 @@ import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.retrytopic.DltStrategy;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -25,15 +26,19 @@ public class ProductEventConsumer {
 
     private final ProductReadModelRepository productReadModelRepository;
     private final ProcessedEventRepository processedEventRepository;
+    private final ProductElasticsearchRepository productElasticsearchRepository;
 
-    public ProductEventConsumer(ProductReadModelRepository productReadModelRepository, ProcessedEventRepository processedEventRepository) {
+    public ProductEventConsumer(
+            ProductReadModelRepository productReadModelRepository,
+            ProcessedEventRepository processedEventRepository,
+            ProductElasticsearchRepository productElasticsearchRepository) {
         this.productReadModelRepository = productReadModelRepository;
         this.processedEventRepository = processedEventRepository;
+        this.productElasticsearchRepository = productElasticsearchRepository;
     }
 
     @RetryableTopic(
             attempts = "3",
-            backoff = @Backoff(delay = 1000, multiplier = 2.0, maxDelay = 10000),
             dltStrategy = DltStrategy.FAIL_ON_ERROR,
             dltTopicSuffix = ".DLT",
             retryTopicSuffix = ".retry"
@@ -50,10 +55,32 @@ public class ProductEventConsumer {
         LOGGER.info("Consuming product event {} for product {}", event.eventType(), event.productId());
         if (event.eventType() == ProductEvent.EventType.DELETED) {
             productReadModelRepository.deleteById(event.productId());
+            indexDeleteToElasticsearch(event.productId());
         } else {
             productReadModelRepository.save(ProductReadModelJpaEntity.fromEvent(event.productId(), event.payload()));
+            indexUpsertToElasticsearch(event.productId(), event.payload());
         }
         processedEventRepository.save(new ProcessedEvent(eventId, event.eventType().name(), Instant.now()));
+    }
+
+    private void indexUpsertToElasticsearch(String productId, Map<String, Object> payload) {
+        try {
+            ProductDocument doc = ProductDocument.fromEvent(productId, payload);
+            productElasticsearchRepository.save(doc);
+            LOGGER.debug("Indexed product {} into Elasticsearch", productId);
+        } catch (Exception ex) {
+            // Log and continue — JPA write already succeeded; ES is eventually consistent.
+            LOGGER.warn("Failed to index product {} into Elasticsearch: {}", productId, ex.getMessage());
+        }
+    }
+
+    private void indexDeleteToElasticsearch(String productId) {
+        try {
+            productElasticsearchRepository.deleteById(productId);
+            LOGGER.debug("Deleted product {} from Elasticsearch", productId);
+        } catch (Exception ex) {
+            LOGGER.warn("Failed to delete product {} from Elasticsearch: {}", productId, ex.getMessage());
+        }
     }
 
     public record ProductEvent(String productId, EventType eventType, Instant timestamp, Map<String, Object> payload, String eventId) {
