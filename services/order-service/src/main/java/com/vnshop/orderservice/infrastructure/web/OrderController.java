@@ -4,6 +4,7 @@ import com.vnshop.orderservice.application.CancelOrderCommand;
 import com.vnshop.orderservice.application.CancelOrderUseCase;
 import com.vnshop.orderservice.application.CheckoutOrderUseCase;
 import com.vnshop.orderservice.application.CheckoutOrderUseCase.CheckoutOrderCommand;
+import com.vnshop.orderservice.application.ConfirmDeliveryUseCase;
 import com.vnshop.orderservice.application.ViewOrderUseCase;
 import com.vnshop.orderservice.application.query.OrderQueryHandler;
 import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
@@ -35,13 +36,16 @@ public class OrderController {
     private final CancelOrderUseCase cancelOrderUseCase;
     private final OrderQueryHandler orderQueryHandler;
     private final ViewOrderUseCase viewOrderUseCase;
+    private final ConfirmDeliveryUseCase confirmDeliveryUseCase;
 
     public OrderController(CheckoutOrderUseCase checkoutOrderUseCase, CancelOrderUseCase cancelOrderUseCase,
-            OrderQueryHandler orderQueryHandler, ViewOrderUseCase viewOrderUseCase) {
+            OrderQueryHandler orderQueryHandler, ViewOrderUseCase viewOrderUseCase,
+            ConfirmDeliveryUseCase confirmDeliveryUseCase) {
         this.checkoutOrderUseCase = checkoutOrderUseCase;
         this.cancelOrderUseCase = cancelOrderUseCase;
         this.orderQueryHandler = orderQueryHandler;
         this.viewOrderUseCase = viewOrderUseCase;
+        this.confirmDeliveryUseCase = confirmDeliveryUseCase;
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -81,6 +85,15 @@ public class OrderController {
     @DeleteMapping("/{id}/cancel")
     public ApiResponse<OrderResponse> cancel(@PathVariable UUID id) {
         return ApiResponse.ok(OrderResponse.fromDomain(cancelOrderUseCase.cancel(new CancelOrderCommand(id, JwtPrincipalUtil.currentUserId()))));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{orderId}/sub-orders/{subOrderId}/confirm-delivery")
+    public ApiResponse<Void> confirmDelivery(
+            @PathVariable UUID orderId,
+            @PathVariable Long subOrderId) {
+        confirmDeliveryUseCase.confirm(orderId, subOrderId, JwtPrincipalUtil.currentUserId());
+        return ApiResponse.ok(null);
     }
 
 }

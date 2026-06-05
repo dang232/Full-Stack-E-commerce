@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.infrastructure.config;
 
 import com.vnshop.orderservice.application.AcceptOrderUseCase;
+import com.vnshop.orderservice.application.ConfirmDeliveryUseCase;
 import com.vnshop.orderservice.application.ApproveReturnUseCase;
 import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
 import com.vnshop.orderservice.application.CancelOrderUseCase;
@@ -138,6 +139,11 @@ public class UseCaseConfig {
     @Bean
     AcceptOrderUseCase acceptOrderUseCase(OrderRepositoryPort orderRepositoryPort, OrderEventPublisherPort orderEventPublisherPort) {
         return new AcceptOrderUseCase(orderRepositoryPort, orderEventPublisherPort);
+    }
+
+    @Bean
+    ConfirmDeliveryUseCase confirmDeliveryUseCase(OrderRepositoryPort orderRepositoryPort, OrderEventPublisherPort orderEventPublisherPort) {
+        return new ConfirmDeliveryUseCase(orderRepositoryPort, orderEventPublisherPort);
     }
 
     @Bean

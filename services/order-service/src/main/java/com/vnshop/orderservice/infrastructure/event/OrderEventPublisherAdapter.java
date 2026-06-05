@@ -3,6 +3,7 @@ package com.vnshop.orderservice.infrastructure.event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.orderservice.domain.Order;
+import com.vnshop.orderservice.domain.SubOrder;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.infrastructure.outbox.OutboxEvent;
 import com.vnshop.orderservice.infrastructure.outbox.OutboxEventJpaEntity;
@@ -37,6 +38,11 @@ public class OrderEventPublisherAdapter implements OrderEventPublisherPort {
     @Override
     public void publishOrderPaid(Order order) {
         publish("ORDER_PAID", order);
+    }
+
+    @Override
+    public void publishOrderDelivered(Order order, SubOrder subOrder) {
+        publish("ORDER_DELIVERED", order);
     }
 
     private void publish(String eventType, Order order) {

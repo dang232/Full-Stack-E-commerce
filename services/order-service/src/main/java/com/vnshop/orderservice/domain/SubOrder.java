@@ -151,6 +151,10 @@ public class SubOrder {
         this.shippingInfo = shippingInfo.withTracking(carrier, trackingNumber);
     }
 
+    public void confirmDelivery() {
+        transitionTo(FulfillmentStatus.DELIVERED);
+    }
+
     public void cancel() {
         if (fulfillmentStatus != FulfillmentStatus.PENDING_ACCEPTANCE
                 && fulfillmentStatus != FulfillmentStatus.ACCEPTED) {
@@ -185,7 +189,8 @@ public class SubOrder {
             case PENDING_ACCEPTANCE -> nextStatus == FulfillmentStatus.ACCEPTED || nextStatus == FulfillmentStatus.REJECTED;
             case ACCEPTED -> nextStatus == FulfillmentStatus.PACKED;
             case PACKED -> nextStatus == FulfillmentStatus.SHIPPED;
-            case SHIPPED, REJECTED, CANCELLED -> false;
+            case SHIPPED -> nextStatus == FulfillmentStatus.DELIVERED;
+            case DELIVERED, REJECTED, CANCELLED -> false;
         };
     }
 

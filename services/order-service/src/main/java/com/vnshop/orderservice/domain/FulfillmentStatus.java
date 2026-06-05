@@ -5,6 +5,7 @@ public enum FulfillmentStatus {
     ACCEPTED,
     PACKED,
     SHIPPED,
+    DELIVERED,
     REJECTED,
     CANCELLED
 }
