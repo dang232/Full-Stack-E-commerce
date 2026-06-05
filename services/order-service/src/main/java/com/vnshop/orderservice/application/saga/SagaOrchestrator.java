@@ -110,13 +110,69 @@ public class SagaOrchestrator {
             return;
         }
         SagaState current = opt.get();
-        SagaState compensating = new SagaState(current.sagaId(), current.orderId(), SagaStatus.COMPENSATING, current.createdAt(), Instant.now());
+        SagaState compensating = new SagaState(current.sagaId(), current.orderId(),
+            SagaStatus.COMPENSATING, current.createdAt(), Instant.now());
         sagaStateRepository.save(compensating);
 
-        outboxPort.publish(AGGREGATE_TYPE, sagaId, "SAGA_COMPENSATING",
-            "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + sagaId + "\",\"failedStep\":\"" + failedStep + "\"}");
+        String orderId = current.orderId();
+        switch (failedStep) {
+            case "SHIPPING":
+                // Payment was charged, inventory was reserved — reverse both
+                outboxPort.publish("Order", orderId, "PAYMENT_REFUND_REQUESTED",
+                    "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\"}");
+                outboxPort.publish("Order", orderId, "INVENTORY_RELEASE_REQUESTED",
+                    "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\"}");
+                break;
+            case "PAYMENT":
+                // Only inventory was reserved — release it
+                outboxPort.publish("Order", orderId, "INVENTORY_RELEASE_REQUESTED",
+                    "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\"}");
+                break;
+            case "INVENTORY":
+                // Nothing to compensate — first step failed
+                markFailed(sagaId);
+                break;
+            default:
+                LOG.error("Unknown saga step: {}", failedStep);
+                markFailed(sagaId);
+        }
+        LOG.warn("Saga {} compensation initiated at step: {}", sagaId, failedStep);
+    }
 
-        LOG.warn("Saga {} compensation requested at step: {}", sagaId, failedStep);
+    @Transactional
+    public void onCompensationStepCompleted(String sagaId, String step) {
+        LOG.info("Saga {} compensation step completed: {}", sagaId, step);
+        // Any compensation step completing marks the saga as FAILED
+        // (meaning compensation is done, the order creation failed)
+        markFailed(sagaId);
+    }
+
+    public void start(String sagaId, String orderId) {
+        sagaStateRepository.save(new SagaState(sagaId, orderId, SagaStatus.STARTED, Instant.now(), null));
+    }
+
+    public void stepCompleted(String sagaId, String step) {
+        LOG.debug("Saga {} step completed: {}", sagaId, step);
+    }
+
+    @Transactional
+    public void complete(String sagaId) {
+        sagaStateRepository.findBySagaId(sagaId).ifPresent(s -> {
+            sagaStateRepository.save(new SagaState(s.sagaId(), s.orderId(),
+                SagaStatus.COMPLETED, s.createdAt(), Instant.now()));
+        });
+    }
+
+    public Optional<String> getLastCompletedStep(String sagaId) {
+        return Optional.empty(); // Simplified — full impl would track step list
+    }
+
+    private void markFailed(String sagaId) {
+        sagaStateRepository.findBySagaId(sagaId).ifPresent(s -> {
+            SagaState failed = new SagaState(s.sagaId(), s.orderId(),
+                SagaStatus.FAILED, s.createdAt(), Instant.now());
+            sagaStateRepository.save(failed);
+        });
     }
 
     /**
