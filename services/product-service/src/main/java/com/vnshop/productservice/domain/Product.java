@@ -103,6 +103,13 @@ public class Product {
         }
     }
 
+    public void softDelete() {
+        if (this.status == ProductStatus.DELETED) {
+            throw new IllegalStateException("Product already deleted");
+        }
+        this.status = ProductStatus.DELETED;
+    }
+
     public void addVariant(ProductVariant variant) {
         Objects.requireNonNull(variant, "variant is required");
         if (variants.size() >= MAX_VARIANTS) {

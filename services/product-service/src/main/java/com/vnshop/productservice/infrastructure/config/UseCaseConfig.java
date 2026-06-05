@@ -2,6 +2,7 @@ package com.vnshop.productservice.infrastructure.config;
 
 import com.vnshop.productservice.application.CountSellerProductsUseCase;
 import com.vnshop.productservice.application.CreateProductUseCase;
+import com.vnshop.productservice.application.DeleteProductUseCase;
 import com.vnshop.productservice.application.GetProductUseCase;
 import com.vnshop.productservice.application.UpdateProductUseCase;
 import com.vnshop.productservice.application.image.ProductImageUploadService;
@@ -23,6 +24,7 @@ import com.vnshop.productservice.domain.port.out.ProductRepositoryPort;
 import com.vnshop.productservice.domain.review.port.out.BuyerProfileLookupPort;
 import com.vnshop.productservice.domain.review.port.out.ReviewRepositoryPort;
 import com.vnshop.productservice.domain.storage.ObjectStorageClass;
+import com.vnshop.productservice.infrastructure.sanitization.HtmlSanitizer;
 import java.util.Set;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,13 +32,21 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class UseCaseConfig {
     @Bean
-    CreateProductUseCase createProductUseCase(ProductRepositoryPort productRepositoryPort, ProductEventPublisherPort productEventPublisherPort) {
-        return new CreateProductUseCase(productRepositoryPort, productEventPublisherPort);
+    CreateProductUseCase createProductUseCase(ProductRepositoryPort productRepositoryPort,
+            ProductEventPublisherPort productEventPublisherPort, HtmlSanitizer htmlSanitizer) {
+        return new CreateProductUseCase(productRepositoryPort, productEventPublisherPort, htmlSanitizer);
     }
 
     @Bean
-    UpdateProductUseCase updateProductUseCase(ProductRepositoryPort productRepositoryPort, ProductEventPublisherPort productEventPublisherPort) {
-        return new UpdateProductUseCase(productRepositoryPort, productEventPublisherPort);
+    UpdateProductUseCase updateProductUseCase(ProductRepositoryPort productRepositoryPort,
+            ProductEventPublisherPort productEventPublisherPort, HtmlSanitizer htmlSanitizer) {
+        return new UpdateProductUseCase(productRepositoryPort, productEventPublisherPort, htmlSanitizer);
+    }
+
+    @Bean
+    DeleteProductUseCase deleteProductUseCase(ProductRepositoryPort productRepositoryPort,
+            ProductEventPublisherPort productEventPublisherPort) {
+        return new DeleteProductUseCase(productRepositoryPort, productEventPublisherPort);
     }
 
     @Bean
@@ -69,8 +79,8 @@ public class UseCaseConfig {
     }
 
     @Bean
-    CreateReviewUseCase createReviewUseCase(ReviewRepositoryPort reviewRepositoryPort) {
-        return new CreateReviewUseCase(reviewRepositoryPort);
+    CreateReviewUseCase createReviewUseCase(ReviewRepositoryPort reviewRepositoryPort, HtmlSanitizer htmlSanitizer) {
+        return new CreateReviewUseCase(reviewRepositoryPort, htmlSanitizer);
     }
 
     @Bean

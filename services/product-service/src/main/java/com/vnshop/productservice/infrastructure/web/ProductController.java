@@ -3,14 +3,16 @@ package com.vnshop.productservice.infrastructure.web;
 import com.vnshop.productservice.application.CountSellerProductsUseCase;
 import com.vnshop.productservice.application.CreateProductCommand;
 import com.vnshop.productservice.application.CreateProductUseCase;
+import com.vnshop.productservice.application.DeleteProductUseCase;
 import com.vnshop.productservice.application.GetProductUseCase;
+import com.vnshop.productservice.application.ProductResponse;
 import com.vnshop.productservice.application.UpdateProductUseCase;
 import com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil;
-import com.vnshop.productservice.application.ProductResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,13 +31,16 @@ import java.util.UUID;
 public class ProductController {
     private final CreateProductUseCase createProductUseCase;
     private final UpdateProductUseCase updateProductUseCase;
+    private final DeleteProductUseCase deleteProductUseCase;
     private final GetProductUseCase getProductUseCase;
     private final CountSellerProductsUseCase countSellerProductsUseCase;
 
     public ProductController(CreateProductUseCase createProductUseCase, UpdateProductUseCase updateProductUseCase,
-            GetProductUseCase getProductUseCase, CountSellerProductsUseCase countSellerProductsUseCase) {
+            DeleteProductUseCase deleteProductUseCase, GetProductUseCase getProductUseCase,
+            CountSellerProductsUseCase countSellerProductsUseCase) {
         this.createProductUseCase = createProductUseCase;
         this.updateProductUseCase = updateProductUseCase;
+        this.deleteProductUseCase = deleteProductUseCase;
         this.getProductUseCase = getProductUseCase;
         this.countSellerProductsUseCase = countSellerProductsUseCase;
     }
@@ -67,6 +72,12 @@ public class ProductController {
                 request.toVariants(),
                 request.toImages()
         ));
+    }
+
+    @DeleteMapping("/sellers/me/products/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+        deleteProductUseCase.delete(id, JwtPrincipalUtil.currentSellerId());
     }
 
     @GetMapping("/products")
@@ -101,5 +112,4 @@ public class ProductController {
     public ApiResponse<List<String>> findCategories() {
         return ApiResponse.ok(getProductUseCase.findCategories());
     }
-
 }
