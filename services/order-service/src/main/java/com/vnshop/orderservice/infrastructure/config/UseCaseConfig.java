@@ -38,16 +38,7 @@ import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
 import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
 import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
-import com.vnshop.orderservice.application.finance.CreditWalletUseCase;
-import com.vnshop.orderservice.application.finance.ListPayoutsUseCase;
-import com.vnshop.orderservice.application.finance.ProcessPayoutUseCase;
-import com.vnshop.orderservice.application.finance.RequestPayoutUseCase;
-import com.vnshop.orderservice.application.finance.ViewWalletUseCase;
 import com.vnshop.orderservice.application.saga.SagaOrchestrator;
-import com.vnshop.orderservice.domain.finance.CommissionCalculator;
-import com.vnshop.orderservice.domain.finance.port.out.PayoutRepositoryPort;
-import com.vnshop.orderservice.domain.finance.port.out.SellerTransactionRepositoryPort;
-import com.vnshop.orderservice.domain.finance.port.out.SellerWalletRepositoryPort;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -201,44 +192,6 @@ public class UseCaseConfig {
             Clock clock
     ) {
         return new InvoiceUseCase(orderRepositoryPort, invoiceRepositoryPort, invoiceStoragePort, invoicePdfRendererPort, clock);
-    }
-
-    @Bean
-    CommissionCalculator commissionCalculator(CommissionCalculator.RateProvider rateProvider) {
-        return new CommissionCalculator(rateProvider);
-    }
-
-    @Bean
-    CreditWalletUseCase creditWalletUseCase(
-            SellerWalletRepositoryPort walletRepositoryPort,
-            SellerTransactionRepositoryPort transactionRepositoryPort,
-            CommissionCalculator commissionCalculator
-    ) {
-        return new CreditWalletUseCase(walletRepositoryPort, transactionRepositoryPort, commissionCalculator);
-    }
-
-    @Bean
-    ViewWalletUseCase viewWalletUseCase(SellerWalletRepositoryPort walletRepositoryPort) {
-        return new ViewWalletUseCase(walletRepositoryPort);
-    }
-
-    @Bean
-    RequestPayoutUseCase requestPayoutUseCase(SellerWalletRepositoryPort walletRepositoryPort, PayoutRepositoryPort payoutRepositoryPort) {
-        return new RequestPayoutUseCase(walletRepositoryPort, payoutRepositoryPort);
-    }
-
-    @Bean
-    ListPayoutsUseCase listPayoutsUseCase(PayoutRepositoryPort payoutRepositoryPort) {
-        return new ListPayoutsUseCase(payoutRepositoryPort);
-    }
-
-    @Bean
-    ProcessPayoutUseCase processPayoutUseCase(
-            SellerWalletRepositoryPort walletRepositoryPort,
-            PayoutRepositoryPort payoutRepositoryPort,
-            SellerTransactionRepositoryPort transactionRepositoryPort
-    ) {
-        return new ProcessPayoutUseCase(walletRepositoryPort, payoutRepositoryPort, transactionRepositoryPort);
     }
 
     @Bean
