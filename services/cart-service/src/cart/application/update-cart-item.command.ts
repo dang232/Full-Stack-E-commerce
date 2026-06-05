@@ -1,5 +1,6 @@
 export interface UpdateCartItemCommand {
   userId: string;
-  productId: string;
+  /** Composite item key: productId or productId:variantId */
+  itemKey: string;
   quantity: number;
 }

@@ -11,6 +11,7 @@ interface PersistedMoney {
 
 interface PersistedCartItem {
   productId: string;
+  variantId: string | null;
   productName: string;
   productImage: string;
   unitPrice: PersistedMoney;
@@ -43,6 +44,7 @@ export class CartRedisRepository implements CartRepository {
         Money.of(item.unitPrice.amount, item.unitPrice.currency),
         item.quantity,
         new Date(item.addedAt),
+        item.variantId,
       ),
     );
 
@@ -74,6 +76,7 @@ export class CartRedisRepository implements CartRepository {
       userId: cart.userId,
       items: cart.items.map((item) => ({
         productId: item.productId,
+        variantId: item.variantId,
         productName: item.productName,
         productImage: item.productImage,
         unitPrice: {

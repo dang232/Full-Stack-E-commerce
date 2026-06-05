@@ -9,7 +9,13 @@ export class CartItem {
     public readonly unitPrice: Money,
     private _quantity: number,
     public readonly addedAt: Date,
+    private readonly _variantId: string | null,
   ) {}
+
+  /** Returns the composite key used to distinguish line items in a cart. */
+  static computeKey(productId: string, variantId: string | null): string {
+    return variantId ? `${productId}:${variantId}` : productId;
+  }
 
   static create(
     productId: string,
@@ -17,6 +23,7 @@ export class CartItem {
     productImage: string,
     unitPrice: Money,
     quantity: number,
+    variantId?: string | null,
   ): CartItem {
     if (quantity < 1) {
       throw new InvalidCartOperationException(
@@ -35,6 +42,7 @@ export class CartItem {
       unitPrice,
       quantity,
       new Date(),
+      variantId ?? null,
     );
   }
 
@@ -45,6 +53,7 @@ export class CartItem {
     unitPrice: Money,
     quantity: number,
     addedAt: Date,
+    variantId?: string | null,
   ): CartItem {
     return new CartItem(
       productId,
@@ -53,7 +62,17 @@ export class CartItem {
       unitPrice,
       quantity,
       addedAt,
+      variantId ?? null,
     );
+  }
+
+  get variantId(): string | null {
+    return this._variantId;
+  }
+
+  /** Composite key that uniquely identifies this line item (productId:variantId or productId). */
+  get itemKey(): string {
+    return CartItem.computeKey(this.productId, this._variantId);
   }
 
   get quantity(): number {

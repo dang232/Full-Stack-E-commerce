@@ -15,6 +15,7 @@ function toMoneyResponse(money: Money): MoneyResponse {
 function toCartItemResponse(item: CartItem): CartItemResponse {
   return {
     productId: item.productId,
+    variantId: item.variantId,
     productName: item.productName,
     productImage: item.productImage,
     unitPrice: toMoneyResponse(item.unitPrice),

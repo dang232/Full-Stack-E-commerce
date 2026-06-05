@@ -16,6 +16,7 @@ import { RemoveCartItemUseCase } from '../application/remove-cart-item.use-case'
 import { UpdateCartItemUseCase } from '../application/update-cart-item.use-case';
 import { ViewCartUseCase } from '../application/view-cart.use-case';
 import type { CartResponse } from '../application/cart.response';
+import { CartItem } from '../domain/cart-item';
 import { ApiResponse } from './api-response';
 import { CartExceptionFilter } from './cart.exception-filter';
 import type { AddCartItemRequest } from './add-cart-item.request';
@@ -54,11 +55,17 @@ export class CartController {
       userId: this.requireUserId(userId),
       productId: request.productId,
       quantity: request.quantity ?? 1,
+      variantId: request.variantId ?? null,
     });
 
     return ApiResponse.ok('Cart item added', cart);
   }
 
+  /**
+   * productId path param may include the full itemKey (productId:variantId) for
+   * clients that already have the key, OR callers can pass variantId in the body
+   * and the controller assembles the key.
+   */
   @Put('items/:productId')
   async updateItem(
     @Headers('x-user-id') userId: string | undefined,
@@ -69,9 +76,11 @@ export class CartController {
       throw new BadRequestException('quantity is required');
     }
 
+    const itemKey = CartItem.computeKey(productId, request.variantId ?? null);
+
     const cart = await this.updateCartItemUseCase.execute({
       userId: this.requireUserId(userId),
-      productId,
+      itemKey,
       quantity: request.quantity,
     });
 
@@ -82,10 +91,13 @@ export class CartController {
   async removeItem(
     @Headers('x-user-id') userId: string | undefined,
     @Param('productId') productId: string,
+    @Body() request: { variantId?: string } = {},
   ): Promise<ApiResponse<CartResponse>> {
+    const itemKey = CartItem.computeKey(productId, request.variantId ?? null);
+
     const cart = await this.removeCartItemUseCase.execute({
       userId: this.requireUserId(userId),
-      productId,
+      itemKey,
     });
 
     return ApiResponse.ok('Cart item removed', cart);

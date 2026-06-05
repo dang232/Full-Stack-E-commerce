@@ -60,14 +60,14 @@ export class Cart {
 
   addItem(item: CartItem): void {
     const existing = this._items.find(
-      (cartItem) => cartItem.productId === item.productId,
+      (cartItem) => cartItem.itemKey === item.itemKey,
     );
 
     if (existing) {
       const quantity = existing.quantity + item.quantity;
       if (quantity > Cart.MAX_PER_ITEM) {
         throw new CartItemLimitExceededException(
-          item.productId,
+          item.itemKey,
           Cart.MAX_PER_ITEM,
           quantity,
         );
@@ -81,7 +81,7 @@ export class Cart {
 
       if (item.quantity > Cart.MAX_PER_ITEM) {
         throw new CartItemLimitExceededException(
-          item.productId,
+          item.itemKey,
           Cart.MAX_PER_ITEM,
           item.quantity,
         );
@@ -93,36 +93,34 @@ export class Cart {
     this._updatedAt = new Date();
   }
 
-  removeItem(productId: string): void {
+  removeItem(itemKey: string): void {
     const originalLength = this._items.length;
-    this._items = this._items.filter((item) => item.productId !== productId);
+    this._items = this._items.filter((item) => item.itemKey !== itemKey);
 
     if (this._items.length === originalLength) {
-      throw new CartItemNotFoundException(productId);
+      throw new CartItemNotFoundException(itemKey);
     }
 
     this._updatedAt = new Date();
   }
 
-  updateItemQuantity(productId: string, quantity: number): void {
+  updateItemQuantity(itemKey: string, quantity: number): void {
     if (quantity <= 0) {
-      this.removeItem(productId);
+      this.removeItem(itemKey);
       return;
     }
 
     if (quantity > Cart.MAX_PER_ITEM) {
       throw new CartItemLimitExceededException(
-        productId,
+        itemKey,
         Cart.MAX_PER_ITEM,
         quantity,
       );
     }
 
-    const item = this._items.find(
-      (cartItem) => cartItem.productId === productId,
-    );
+    const item = this._items.find((cartItem) => cartItem.itemKey === itemKey);
     if (!item) {
-      throw new CartItemNotFoundException(productId);
+      throw new CartItemNotFoundException(itemKey);
     }
 
     item.updateQuantity(quantity);

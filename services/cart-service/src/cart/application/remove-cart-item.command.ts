@@ -1,4 +1,5 @@
 export interface RemoveCartItemCommand {
   userId: string;
-  productId: string;
+  /** Composite item key: productId or productId:variantId */
+  itemKey: string;
 }

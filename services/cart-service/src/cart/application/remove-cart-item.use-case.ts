@@ -13,7 +13,7 @@ export class RemoveCartItemUseCase {
       (await this.cartRepository.findByUserId(command.userId)) ??
       Cart.create(command.userId);
 
-    cart.removeItem(command.productId);
+    cart.removeItem(command.itemKey);
     await this.cartRepository.save(cart, CartExpirationPolicy.TTL_SECONDS);
 
     return toCartResponse(cart);

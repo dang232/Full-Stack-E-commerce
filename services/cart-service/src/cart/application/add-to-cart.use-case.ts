@@ -24,6 +24,7 @@ export class AddToCartUseCase {
       snapshot.productImage,
       snapshot.unitPrice,
       command.quantity,
+      command.variantId,
     );
 
     cart.addItem(item);

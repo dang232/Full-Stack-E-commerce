@@ -13,7 +13,7 @@ export class UpdateCartItemUseCase {
       (await this.cartRepository.findByUserId(command.userId)) ??
       Cart.create(command.userId);
 
-    cart.updateItemQuantity(command.productId, command.quantity);
+    cart.updateItemQuantity(command.itemKey, command.quantity);
     await this.cartRepository.save(cart, CartExpirationPolicy.TTL_SECONDS);
 
     return toCartResponse(cart);
