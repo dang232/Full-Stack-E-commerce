@@ -1,6 +1,5 @@
 package com.vnshop.orderservice.application;
 
-import com.vnshop.orderservice.application.coupon.ReleaseCouponUsageUseCase;
 import com.vnshop.orderservice.domain.Order;
 import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
@@ -15,18 +14,15 @@ public class CancelOrderUseCase {
     private final OrderRepositoryPort orderRepository;
     private final InventoryReservationPort inventoryReservationPort;
     private final OrderEventPublisherPort orderEventPublisherPort;
-    private final ReleaseCouponUsageUseCase releaseCouponUsageUseCase;
 
     public CancelOrderUseCase(
             OrderRepositoryPort orderRepository,
             InventoryReservationPort inventoryReservationPort,
-            OrderEventPublisherPort orderEventPublisherPort,
-            ReleaseCouponUsageUseCase releaseCouponUsageUseCase
+            OrderEventPublisherPort orderEventPublisherPort
     ) {
         this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository is required");
         this.inventoryReservationPort = Objects.requireNonNull(inventoryReservationPort, "inventoryReservationPort is required");
         this.orderEventPublisherPort = Objects.requireNonNull(orderEventPublisherPort, "orderEventPublisherPort is required");
-        this.releaseCouponUsageUseCase = Objects.requireNonNull(releaseCouponUsageUseCase, "releaseCouponUsageUseCase is required");
     }
 
     @Audited(action = "CANCEL_ORDER", resourceType = "Order")
@@ -45,7 +41,8 @@ public class CancelOrderUseCase {
             }
         });
         inventoryReservationPort.release(order.id().toString());
-        releaseCouponUsageUseCase.releaseForOrder(order.id(), command.buyerId());
+        // Coupon usage release is handled by coupon-service upon receiving
+        // the OrderCancelled Kafka event published below.
         order.markPaymentFailed();
         Order savedOrder = orderRepository.save(order);
         orderEventPublisherPort.publishOrderUpdated(savedOrder);

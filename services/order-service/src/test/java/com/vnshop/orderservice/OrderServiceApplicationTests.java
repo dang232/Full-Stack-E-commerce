@@ -3,8 +3,6 @@ package com.vnshop.orderservice;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.orderservice.application.projection.OrderProjector;
 import com.vnshop.orderservice.application.query.OrderQueryHandler;
-import com.vnshop.orderservice.domain.coupon.CouponRepository;
-import com.vnshop.orderservice.domain.coupon.CouponUsageRepository;
 import com.vnshop.orderservice.domain.finance.port.out.PayoutRepositoryPort;
 import com.vnshop.orderservice.domain.finance.port.out.SellerTransactionRepositoryPort;
 import com.vnshop.orderservice.domain.finance.port.out.SellerWalletRepositoryPort;
@@ -93,12 +91,6 @@ class OrderServiceApplicationTests {
 
 	@MockitoBean
 	private OutboxEventRepository outboxEventRepository;
-
-	@MockitoBean
-	private CouponRepository couponRepository;
-
-	@MockitoBean
-	private CouponUsageRepository couponUsageRepository;
 
 	@MockitoBean
 	private SellerCommissionTierRepository sellerCommissionTierRepository;

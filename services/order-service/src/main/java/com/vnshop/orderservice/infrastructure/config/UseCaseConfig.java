@@ -22,14 +22,6 @@ import com.vnshop.orderservice.application.RequestReturnUseCase;
 import com.vnshop.orderservice.application.SellerOrderQueryUseCase;
 import com.vnshop.orderservice.application.ShipOrderUseCase;
 import com.vnshop.orderservice.application.ViewOrderUseCase;
-import com.vnshop.orderservice.application.coupon.ApplyCouponUseCase;
-import com.vnshop.orderservice.application.coupon.CreateCouponUseCase;
-import com.vnshop.orderservice.application.coupon.ListActiveCouponsUseCase;
-import com.vnshop.orderservice.application.coupon.ReleaseCouponUsageUseCase;
-import com.vnshop.orderservice.application.coupon.ValidateCouponUseCase;
-import com.vnshop.orderservice.domain.coupon.CouponRepository;
-import com.vnshop.orderservice.domain.coupon.CouponUsageRepository;
-import com.vnshop.orderservice.domain.coupon.CouponValidator;
 import com.vnshop.orderservice.domain.port.out.CommissionTierLookupPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.DashboardAnalyticsPort;
@@ -119,36 +111,6 @@ public class UseCaseConfig {
     }
 
     @Bean
-    CouponValidator couponValidator(CouponRepository couponRepository, CouponUsageRepository couponUsageRepository, Clock clock) {
-        return new CouponValidator(couponRepository, couponUsageRepository, clock);
-    }
-
-    @Bean
-    CreateCouponUseCase createCouponUseCase(CouponRepository couponRepository) {
-        return new CreateCouponUseCase(couponRepository);
-    }
-
-    @Bean
-    ValidateCouponUseCase validateCouponUseCase(CouponValidator couponValidator) {
-        return new ValidateCouponUseCase(couponValidator);
-    }
-
-    @Bean
-    ApplyCouponUseCase applyCouponUseCase(CouponValidator couponValidator, CouponRepository couponRepository, CouponUsageRepository couponUsageRepository) {
-        return new ApplyCouponUseCase(couponValidator, couponRepository, couponUsageRepository);
-    }
-
-    @Bean
-    ListActiveCouponsUseCase listActiveCouponsUseCase(CouponRepository couponRepository) {
-        return new ListActiveCouponsUseCase(couponRepository);
-    }
-
-    @Bean
-    ReleaseCouponUsageUseCase releaseCouponUsageUseCase(CouponRepository couponRepository, CouponUsageRepository couponUsageRepository) {
-        return new ReleaseCouponUsageUseCase(couponRepository, couponUsageRepository);
-    }
-
-    @Bean
     ListOpenDisputesUseCase listOpenDisputesUseCase(DisputeRepositoryPort disputeRepositoryPort) {
         return new ListOpenDisputesUseCase(disputeRepositoryPort);
     }
@@ -177,10 +139,9 @@ public class UseCaseConfig {
     CancelOrderUseCase cancelOrderUseCase(
             OrderRepositoryPort orderRepositoryPort,
             InventoryReservationPort inventoryReservationPort,
-            OrderEventPublisherPort orderEventPublisherPort,
-            ReleaseCouponUsageUseCase releaseCouponUsageUseCase
+            OrderEventPublisherPort orderEventPublisherPort
     ) {
-        return new CancelOrderUseCase(orderRepositoryPort, inventoryReservationPort, orderEventPublisherPort, releaseCouponUsageUseCase);
+        return new CancelOrderUseCase(orderRepositoryPort, inventoryReservationPort, orderEventPublisherPort);
     }
 
     @Bean
