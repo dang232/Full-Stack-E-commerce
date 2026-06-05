@@ -60,6 +60,8 @@ images:
   newTag: prod
 patchesStrategicMerge:
 - configmap-env.yaml
+- patches/replicas.yaml
+- patches/resources.yaml
 patches:
 - target:
     kind: HorizontalPodAutoscaler
