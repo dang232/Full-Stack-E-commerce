@@ -4,6 +4,8 @@ import { NOTIFICATION_REPOSITORY } from '../../../domain/port/outbound/notificat
 import { REALTIME_CHANNEL_PORT } from '../../../domain/port/outbound/realtime-channel.port';
 import { CONNECTION_REGISTRY_PORT } from '../../../domain/port/outbound/connection-registry.port';
 import { NOTIFICATION_PREFERENCES_REPOSITORY } from '../../../domain/port/outbound/notification-preferences.repository';
+import { EMAIL_CHANNEL_PORT } from '../../../domain/port/outbound/email-channel.port';
+import { PUSH_CHANNEL_PORT } from '../../../domain/port/outbound/push-channel.port';
 import { Notification } from '../../../domain/model/notification';
 import { NotificationType } from '../../../domain/model/notification-type.enum';
 import { NotificationCreatedEvent } from '../../../domain/event/notification-created.event';
@@ -26,6 +28,14 @@ describe('NotificationCreatedHandler', () => {
     findByUserId: jest.fn().mockResolvedValue(null),
     save: jest.fn().mockResolvedValue(undefined),
   };
+  const mockEmailChannel = {
+    send: jest.fn().mockResolvedValue(true),
+    isEnabled: jest.fn().mockReturnValue(false),
+  };
+  const mockPushChannel = {
+    send: jest.fn().mockResolvedValue(true),
+    isEnabled: jest.fn().mockReturnValue(false),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -36,6 +46,8 @@ describe('NotificationCreatedHandler', () => {
         { provide: REALTIME_CHANNEL_PORT, useValue: mockChannel },
         { provide: CONNECTION_REGISTRY_PORT, useValue: mockRegistry },
         { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
+        { provide: EMAIL_CHANNEL_PORT, useValue: mockEmailChannel },
+        { provide: PUSH_CHANNEL_PORT, useValue: mockPushChannel },
       ],
     }).compile();
     handler = module.get(NotificationCreatedHandler);
@@ -94,5 +106,80 @@ describe('NotificationCreatedHandler', () => {
 
     expect(mockRegistry.enqueueOffline).toHaveBeenCalledWith('user-3', notification.id);
     expect(mockRepo.save).toHaveBeenCalled();
+  });
+
+  it('dispatches email when channel is enabled and recipientEmail is provided', async () => {
+    const notification = Notification.create({
+      userId: 'user-4',
+      type: NotificationType.ORDER_CREATED,
+      title: 'T',
+      body: 'B',
+    });
+    mockRepo.findById.mockResolvedValue(notification);
+    mockRegistry.isOnline.mockResolvedValue(false);
+    mockEmailChannel.isEnabled.mockReturnValue(true);
+
+    await handler.handle(
+      new NotificationCreatedEvent(
+        notification.id,
+        'user-4',
+        NotificationType.ORDER_CREATED,
+        [],
+        'user4@example.com',
+      ),
+    );
+
+    expect(mockEmailChannel.send).toHaveBeenCalledWith(
+      { userId: 'user-4', email: 'user4@example.com' },
+      notification,
+    );
+  });
+
+  it('skips email dispatch when recipientEmail is absent', async () => {
+    const notification = Notification.create({
+      userId: 'user-5',
+      type: NotificationType.ORDER_CREATED,
+      title: 'T',
+      body: 'B',
+    });
+    mockRepo.findById.mockResolvedValue(notification);
+    mockRegistry.isOnline.mockResolvedValue(false);
+    mockEmailChannel.isEnabled.mockReturnValue(true);
+
+    await handler.handle(
+      new NotificationCreatedEvent(notification.id, 'user-5', NotificationType.ORDER_CREATED),
+    );
+
+    expect(mockEmailChannel.send).not.toHaveBeenCalled();
+  });
+
+  it('dispatches push when channel is enabled and deviceToken is provided', async () => {
+    const notification = Notification.create({
+      userId: 'user-6',
+      type: NotificationType.ORDER_SHIPPED,
+      title: 'Shipped',
+      body: 'On the way',
+    });
+    mockRepo.findById.mockResolvedValue(notification);
+    mockRegistry.isOnline.mockResolvedValue(false);
+    mockPushChannel.isEnabled.mockReturnValue(true);
+
+    await handler.handle(
+      new NotificationCreatedEvent(
+        notification.id,
+        'user-6',
+        NotificationType.ORDER_SHIPPED,
+        [],
+        undefined,
+        'device-token-abc',
+      ),
+    );
+
+    expect(mockPushChannel.send).toHaveBeenCalledWith(
+      { userId: 'user-6', deviceToken: 'device-token-abc' },
+      'Shipped',
+      'On the way',
+      undefined,
+    );
   });
 });

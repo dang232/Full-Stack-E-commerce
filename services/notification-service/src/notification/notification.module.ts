@@ -27,6 +27,9 @@ import { SocketioRealtimeChannelAdapter } from './infrastructure/realtime/socket
 // Infrastructure — Email
 import { SesEmailChannelAdapter } from './infrastructure/email/ses-email-channel.adapter';
 
+// Infrastructure — Push
+import { FcmPushChannelAdapter } from './infrastructure/push/fcm-push-channel.adapter';
+
 // Infrastructure — Messaging
 import { KafkaEventConsumer } from './infrastructure/messaging/kafka-event.consumer';
 
@@ -61,6 +64,7 @@ import { DEDUPLICATION_PORT } from './domain/port/outbound/deduplication.port';
 import { CONNECTION_REGISTRY_PORT } from './domain/port/outbound/connection-registry.port';
 import { EMAIL_CHANNEL_PORT } from './domain/port/outbound/email-channel.port';
 import { NOTIFICATION_PREFERENCES_REPOSITORY } from './domain/port/outbound/notification-preferences.repository';
+import { PUSH_CHANNEL_PORT } from './domain/port/outbound/push-channel.port';
 
 @Module({
   imports: [
@@ -83,6 +87,7 @@ import { NOTIFICATION_PREFERENCES_REPOSITORY } from './domain/port/outbound/noti
     { provide: DEDUPLICATION_PORT, useClass: RedisDeduplicationAdapter },
     { provide: CONNECTION_REGISTRY_PORT, useClass: RedisConnectionRegistryAdapter },
     { provide: EMAIL_CHANNEL_PORT, useClass: SesEmailChannelAdapter },
+    { provide: PUSH_CHANNEL_PORT, useClass: FcmPushChannelAdapter },
     { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useClass: MongoNotificationPreferencesRepository },
 
     // Infrastructure (needed for DI resolution)

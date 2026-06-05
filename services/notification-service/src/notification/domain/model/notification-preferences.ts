@@ -3,6 +3,7 @@ import { NotificationType } from './notification-type.enum';
 export enum NotificationChannel {
   IN_APP = 'IN_APP',
   EMAIL = 'EMAIL',
+  PUSH = 'PUSH',
 }
 
 /** Per-type channel preference for a single notification type. */

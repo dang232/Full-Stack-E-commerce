@@ -163,7 +163,7 @@ describe('SendNotificationUseCase', () => {
     expect(mockEmitter.emit).toHaveBeenCalledWith(
       'notification.created',
       expect.objectContaining({
-        suppressedChannels: [NotificationChannel.EMAIL],
+        suppressedChannels: expect.arrayContaining([NotificationChannel.EMAIL]),
       }),
     );
   });

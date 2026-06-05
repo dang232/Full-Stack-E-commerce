@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import {
   EmailChannelPort,
   EmailRecipient,
@@ -9,27 +10,28 @@ import { Notification } from '../../domain/model/notification';
 /**
  * SES email channel adapter.
  *
- * When SES credentials are not configured (EMAIL_ENABLED=false, the default),
- * this adapter acts as a no-op stub that logs what would be sent.
- *
- * To activate real SES delivery:
- * 1. Add @aws-sdk/client-ses to package.json
- * 2. Set EMAIL_ENABLED=true, AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
- * 3. Set EMAIL_FROM_ADDRESS to a verified SES sender
+ * Set EMAIL_ENABLED=true together with AWS credentials to enable real delivery.
+ * When disabled (the default) the adapter acts as a no-op stub that logs what
+ * would be sent, so the rest of the pipeline can run without AWS access.
  */
 @Injectable()
 export class SesEmailChannelAdapter implements EmailChannelPort {
   private readonly logger = new Logger(SesEmailChannelAdapter.name);
   private readonly enabled: boolean;
   private readonly fromAddress: string;
+  private readonly ses: SESClient | null;
 
   constructor(private readonly config: ConfigService) {
     this.enabled = this.config.get<string>('EMAIL_ENABLED', 'false') === 'true';
     this.fromAddress = this.config.get<string>('EMAIL_FROM_ADDRESS', 'noreply@vnshop.vn');
 
     if (this.enabled) {
+      this.ses = new SESClient({
+        region: this.config.get<string>('AWS_REGION', 'ap-southeast-1'),
+      });
       this.logger.log(`Email channel ENABLED (from: ${this.fromAddress})`);
     } else {
+      this.ses = null;
       this.logger.log('Email channel DISABLED (stub mode — set EMAIL_ENABLED=true to activate)');
     }
   }
@@ -39,39 +41,39 @@ export class SesEmailChannelAdapter implements EmailChannelPort {
   }
 
   async send(recipient: EmailRecipient, notification: Notification): Promise<boolean> {
-    if (!this.enabled) {
+    if (!this.enabled || !this.ses) {
       this.logger.debug(
         `[STUB] Would send email to ${recipient.email}: "${notification.title}"`,
       );
       return false;
     }
 
-    // Real SES implementation — uncomment when @aws-sdk/client-ses is installed:
-    //
-    // const { SESClient, SendEmailCommand } = await import('@aws-sdk/client-ses');
-    // const ses = new SESClient({ region: this.config.get('AWS_REGION', 'ap-southeast-1') });
-    // const command = new SendEmailCommand({
-    //   Source: this.fromAddress,
-    //   Destination: { ToAddresses: [recipient.email] },
-    //   Message: {
-    //     Subject: { Data: notification.title, Charset: 'UTF-8' },
-    //     Body: {
-    //       Html: {
-    //         Data: this.buildHtmlBody(notification),
-    //         Charset: 'UTF-8',
-    //       },
-    //     },
-    //   },
-    // });
-    // await ses.send(command);
-
-    this.logger.log(
-      `Email sent to ${recipient.email}: "${notification.title}" [notif=${notification.id}]`,
-    );
-    return true;
+    try {
+      await this.ses.send(
+        new SendEmailCommand({
+          Source: this.fromAddress,
+          Destination: { ToAddresses: [recipient.email] },
+          Message: {
+            Subject: { Data: notification.title, Charset: 'UTF-8' },
+            Body: {
+              Html: {
+                Data: this.buildHtmlBody(notification),
+                Charset: 'UTF-8',
+              },
+            },
+          },
+        }),
+      );
+      this.logger.log(
+        `Email sent to ${recipient.email}: "${notification.title}" [notif=${notification.id}]`,
+      );
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${recipient.email}`, error);
+      return false;
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private buildHtmlBody(notification: Notification): string {
     const deepLink = notification.deepLink
       ? `<p><a href="${notification.deepLink}">Xem chi tiết</a></p>`

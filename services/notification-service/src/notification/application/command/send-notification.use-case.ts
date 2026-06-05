@@ -30,6 +30,10 @@ export interface SendNotificationCommand {
   threadTitle?: string;
   metadata?: Record<string, unknown>;
   idempotencyKey?: string;
+  /** Email address for EMAIL channel delivery. */
+  recipientEmail?: string;
+  /** FCM device token for PUSH channel delivery. */
+  recipientDeviceToken?: string;
 }
 
 @Injectable()
@@ -105,8 +109,7 @@ export class SendNotificationUseCase {
     // Emit domain events with suppressed channels info for downstream handlers
     const events = notification.pullDomainEvents();
     for (const event of events) {
-      if (event instanceof NotificationCreatedEvent && suppressedChannels.length > 0) {
-        // Re-emit with suppressedChannels so downstream handlers know which channels to skip
+      if (event instanceof NotificationCreatedEvent) {
         this.eventEmitter.emit(
           'notification.created',
           new NotificationCreatedEvent(
@@ -114,6 +117,8 @@ export class SendNotificationUseCase {
             event.userId,
             event.type,
             suppressedChannels,
+            command.recipientEmail,
+            command.recipientDeviceToken,
           ),
         );
       } else {
