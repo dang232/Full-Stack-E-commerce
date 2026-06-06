@@ -330,6 +330,18 @@ services:
       timeout: 5s
       retries: 5
 
+  # -----------------------------------------------------------------------
+  # Kafka (local dev — single broker, replication.factor=1)
+  #
+  # Trade-off: a single broker means no partition replication and no
+  # fault tolerance. This is intentional for local development: it keeps
+  # resource usage low and avoids the ISR/leader-election delays that
+  # slow down test cycles.
+  #
+  # Production uses a 3-broker StatefulSet with:
+  #   default.replication.factor=3, min.insync.replicas=2
+  # See infra/k8s/kafka/kafka-statefulset.yaml for the production setup.
+  # -----------------------------------------------------------------------
   kafka:
     image: confluentinc/cp-kafka:8.2.0
     container_name: vnshop-kafka
@@ -380,11 +392,16 @@ services:
       - ./infra/kafka/kafka_server_jaas.conf.template:/etc/kafka/kafka_server_jaas.conf.template:ro
       - ./infra/kafka/certs/kafka.broker.keystore.jks:/etc/kafka/secrets/kafka.broker.keystore.jks:ro
       - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
+    # TCP probe on the CONTROLLER port (PLAINTEXT, no auth required).
+    # Verifies the broker process is up and accepting connections without
+    # needing SASL credentials. replication.factor=1 (single broker — see
+    # comment above the service definition for the production trade-off).
     healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9093' 2>/dev/null && echo OK"]
       interval: 15s
       timeout: 10s
       retries: 10
+      start_period: 30s
     deploy:
       resources:
         limits:
