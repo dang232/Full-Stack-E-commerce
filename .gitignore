@@ -3,6 +3,7 @@
 .env.secrets
 /.env
 /.env.local
+/secrets.env.local
 /services/notification-service/dist
 /services/cart-service/node_modules
 /services/cart-service/dist

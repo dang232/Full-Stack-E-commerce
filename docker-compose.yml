@@ -1,4 +1,4 @@
-name: vnshop
+﻿name: vnshop
 
 services:
   postgres-legacy:
@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: vnshop
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5432:5432"
     volumes:
@@ -30,7 +30,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_keycloak
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     volumes:
       - postgres-keycloak-data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -51,7 +51,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_user
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5433:5432"
     volumes:
@@ -74,7 +74,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_product
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5434:5432"
     volumes:
@@ -97,7 +97,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_order
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5435:5432"
     volumes:
@@ -120,7 +120,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_payment
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5436:5432"
     volumes:
@@ -143,7 +143,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_inventory
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5437:5432"
     volumes:
@@ -166,7 +166,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_search
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5438:5432"
     volumes:
@@ -189,7 +189,7 @@ services:
     environment:
       POSTGRES_DB: vnshop_shipping
       POSTGRES_USER: vnshop
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5439:5432"
     volumes:
@@ -211,7 +211,7 @@ services:
     environment:
       POSTGRES_DB: monitoring
       POSTGRES_USER: monitoring
-      POSTGRES_PASSWORD: ${MONITORING_DB_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${MONITORING_DB_PASSWORD:-monitoring}
     ports:
       - "5440:5432"
     volumes:
@@ -320,7 +320,7 @@ services:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: vnshop
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-vnshop123}
       MONGO_INITDB_DATABASE: notification_db
     volumes:
       - mongo-data:/data/db
@@ -359,15 +359,15 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
-      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD:-admin-secret-change-me}
-      KAFKA_ORDER_PASSWORD: ${KAFKA_ORDER_PASSWORD:-order-secret-change-me}
-      KAFKA_PAYMENT_PASSWORD: ${KAFKA_PAYMENT_PASSWORD:-payment-secret-change-me}
-      KAFKA_INVENTORY_PASSWORD: ${KAFKA_INVENTORY_PASSWORD:-inventory-secret-change-me}
-      KAFKA_PRODUCT_PASSWORD: ${KAFKA_PRODUCT_PASSWORD:-product-secret-change-me}
-      KAFKA_SHIPPING_PASSWORD: ${KAFKA_SHIPPING_PASSWORD:-shipping-secret-change-me}
-      KAFKA_FINANCE_PASSWORD: ${KAFKA_FINANCE_PASSWORD:-finance-secret-change-me}
-      KAFKA_SEARCH_PASSWORD: ${KAFKA_SEARCH_PASSWORD:-search-secret-change-me}
-      KAFKA_RECOMMENDATIONS_PASSWORD: ${KAFKA_RECOMMENDATIONS_PASSWORD:-recommendations-secret-change-me}
+      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD:?KAFKA_ADMIN_PASSWORD must be set}
+      KAFKA_ORDER_PASSWORD: ${KAFKA_ORDER_PASSWORD:?KAFKA_ORDER_PASSWORD must be set}
+      KAFKA_PAYMENT_PASSWORD: ${KAFKA_PAYMENT_PASSWORD:?KAFKA_PAYMENT_PASSWORD must be set}
+      KAFKA_INVENTORY_PASSWORD: ${KAFKA_INVENTORY_PASSWORD:?KAFKA_INVENTORY_PASSWORD must be set}
+      KAFKA_PRODUCT_PASSWORD: ${KAFKA_PRODUCT_PASSWORD:?KAFKA_PRODUCT_PASSWORD must be set}
+      KAFKA_SHIPPING_PASSWORD: ${KAFKA_SHIPPING_PASSWORD:?KAFKA_SHIPPING_PASSWORD must be set}
+      KAFKA_FINANCE_PASSWORD: ${KAFKA_FINANCE_PASSWORD:?KAFKA_FINANCE_PASSWORD must be set}
+      KAFKA_SEARCH_PASSWORD: ${KAFKA_SEARCH_PASSWORD:?KAFKA_SEARCH_PASSWORD must be set}
+      KAFKA_RECOMMENDATIONS_PASSWORD: ${KAFKA_RECOMMENDATIONS_PASSWORD:?KAFKA_RECOMMENDATIONS_PASSWORD must be set}
       KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.broker.keystore.jks
       KAFKA_SSL_KEYSTORE_PASSWORD: kafka-ssl-dev-password
       KAFKA_SSL_KEY_PASSWORD: kafka-ssl-dev-password
@@ -397,7 +397,7 @@ services:
       kafka:
         condition: service_healthy
     environment:
-      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD:-admin-secret-change-me}
+      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD:?KAFKA_ADMIN_PASSWORD must be set}
     volumes:
       - ./infra/scripts/init-kafka-topics.sh:/init-kafka-topics.sh:ro
     command: ["bash", "/init-kafka-topics.sh"]
@@ -414,7 +414,7 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/vnshop_keycloak
       KC_DB_SCHEMA: keycloak
       KC_DB_USERNAME: vnshop
-      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       # Exposes /health/{started,live,ready} on management port 9000 (per Keycloak 26 docs).
       # The image has no curl/wget, so the healthcheck below uses bash's /dev/tcp.
       KC_HEALTH_ENABLED: "true"
@@ -451,7 +451,7 @@ services:
     environment:
       discovery.type: single-node
       xpack.security.enabled: "true"
-      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-vnshop-es-dev-password}
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set}
       xpack.security.http.ssl.enabled: "false"
       ES_JAVA_OPTS: -Xms512m -Xmx512m
     ports:
@@ -687,7 +687,7 @@ services:
       SERVER_PORT: 8081
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/vnshop_user?currentSchema=user_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -728,7 +728,7 @@ services:
       SERVER_PORT: 8082
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/vnshop_product?currentSchema=product_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -736,7 +736,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-product
-      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_PRODUCT_PASSWORD:-product-secret-change-me}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_PRODUCT_PASSWORD:?KAFKA_SVC_PRODUCT_PASSWORD must be set}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
@@ -776,7 +776,7 @@ services:
       SERVER_PORT: 8083
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-inventory:5432/vnshop_inventory?currentSchema=inventory_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -784,7 +784,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-inventory
-      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_INVENTORY_PASSWORD:-inventory-secret-change-me}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_INVENTORY_PASSWORD:?KAFKA_SVC_INVENTORY_PASSWORD must be set}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
@@ -862,7 +862,7 @@ services:
       SERVER_PORT: 8086
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-search:5432/vnshop_search?currentSchema=search_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -870,7 +870,7 @@ services:
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-search
-      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SEARCH_PASSWORD:-search-secret-change-me}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SEARCH_PASSWORD:?KAFKA_SVC_SEARCH_PASSWORD must be set}
     volumes:
       - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
     deploy:
@@ -892,7 +892,7 @@ services:
       kafka:
         condition: service_healthy
     environment:
-      MONGO_URI: mongodb://vnshop:${MONGO_ROOT_PASSWORD:-changeme}@mongo:27017/notification_db?authSource=admin
+      MONGO_URI: mongodb://vnshop:${MONGO_ROOT_PASSWORD:-vnshop123}@mongo:27017/notification_db?authSource=admin
       REDIS_URL: redis://:${REDIS_PASSWORD:-vnshop123}@redis:6379
       PORT: 8087
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
@@ -928,7 +928,7 @@ services:
       SERVER_PORT: 8088
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=coupon_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -957,7 +957,7 @@ services:
       SERVER_PORT: 8090
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=seller_finance_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -965,7 +965,7 @@ services:
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-finance
-      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_FINANCE_PASSWORD:-finance-secret-change-me}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_FINANCE_PASSWORD:?KAFKA_SVC_FINANCE_PASSWORD must be set}
     volumes:
       - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
     deploy:
@@ -988,12 +988,12 @@ services:
       SERVER_PORT: 8094
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=recommendations_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       PRODUCT_SERVICE_URL: http://product-service:8082
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-recommendations
-      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_RECOMMENDATIONS_PASSWORD:-recommendations-secret-change-me}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_RECOMMENDATIONS_PASSWORD:?KAFKA_SVC_RECOMMENDATIONS_PASSWORD must be set}
     volumes:
       - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
     deploy:
@@ -1020,7 +1020,7 @@ services:
       SERVER_PORT: 8091
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/vnshop_order?currentSchema=order_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -1040,7 +1040,7 @@ services:
       VNSHOP_INVOICE_STORAGE_PATH_STYLE_ACCESS: ${INVOICE_STORAGE_PATH_STYLE:-true}
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-order
-      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_ORDER_PASSWORD:-order-secret-change-me}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_ORDER_PASSWORD:?KAFKA_SVC_ORDER_PASSWORD must be set}
       GRPC_CLIENT_INVENTORY_HOST: inventory-service
       GRPC_CLIENT_INVENTORY_PORT: 9093
       GRPC_CLIENT_PAYMENT_HOST: payment-service
@@ -1073,7 +1073,7 @@ services:
       SERVER_PORT: 8092
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/vnshop_payment?currentSchema=payment_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -1111,7 +1111,7 @@ services:
       # Kafka SASL/PLAIN credentials for payment-service.
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-payment
-      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_PAYMENT_PASSWORD:-payment-secret-change-me}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_PAYMENT_PASSWORD:?KAFKA_SVC_PAYMENT_PASSWORD must be set}
     volumes:
       - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
     deploy:
@@ -1138,12 +1138,12 @@ services:
       SERVER_PORT: 8093
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-shipping:5432/vnshop_shipping?currentSchema=shipping_svc
       SPRING_DATASOURCE_USERNAME: vnshop
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-shipping
-      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SHIPPING_PASSWORD:-shipping-secret-change-me}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SHIPPING_PASSWORD:?KAFKA_SVC_SHIPPING_PASSWORD must be set}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
@@ -1180,9 +1180,9 @@ services:
       DB_HOST: postgres-legacy
       DB_PORT: 5432
       DB_USERNAME: vnshop
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       DB_DATABASE: vnshop
-      DATABASE_URL: postgresql://vnshop:${POSTGRES_PASSWORD:-changeme}@postgres-legacy:5432/vnshop?currentSchema=messaging_svc
+      DATABASE_URL: postgresql://vnshop:${POSTGRES_PASSWORD:-vnshop}@postgres-legacy:5432/vnshop?currentSchema=messaging_svc
       PORT: 8095
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: always_on
@@ -1204,7 +1204,7 @@ services:
       TIMESCALE_PORT: 5432
       TIMESCALE_DB: monitoring
       TIMESCALE_USER: monitoring
-      TIMESCALE_PASSWORD: ${MONITORING_DB_PASSWORD:-changeme}
+      TIMESCALE_PASSWORD: ${MONITORING_DB_PASSWORD:-monitoring}
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       CORS_ORIGINS: http://localhost:8096,http://localhost:3000,http://localhost:5173
