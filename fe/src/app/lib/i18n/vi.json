@@ -425,7 +425,21 @@
       "fallbackName": "Phương thức {{n}}",
       "etaDays": "{{n}} ngày",
       "etaStandard": "Tiêu chuẩn",
-      "deliverInDays": "Giao trong {{n}} ngày"
+      "deliverInDays": "Giao trong {{n}} ngày",
+      "standardName": "Giao Hàng Tiêu Chuẩn",
+      "expressName": "Giao Hàng Nhanh",
+      "loadingRates": "Đang tải phí vận chuyển...",
+      "freeShippingBanner": "Đơn hàng của bạn được miễn phí vận chuyển tiêu chuẩn!",
+      "fallbackStandard": {
+        "name": "Giao Hàng Tiêu Chuẩn",
+        "desc": "Giao trong 1-2 ngày",
+        "eta": "Ngày mai"
+      },
+      "fallbackEconomy": {
+        "name": "Giao Hàng Tiết Kiệm",
+        "desc": "Giao trong 3-5 ngày",
+        "eta": "3-5 ngày"
+      }
     },
     "payment": {
       "header": "Phương thức thanh toán",
@@ -433,7 +447,15 @@
       "initFailedPrefix": "Không khởi tạo được thanh toán: {{message}}",
       "initFailedShort": "Không khởi tạo được thanh toán",
       "placeOrderFailed": "Không thể đặt hàng. Vui lòng thử lại.",
-      "supportCode": "Mã hỗ trợ: {{id}}"
+      "supportCode": "Mã hỗ trợ: {{id}}",
+      "vnpayDesc": "Thanh toán qua ví VNPay, QR Code",
+      "momoDesc": "Thanh toán qua ví MoMo",
+      "vietqrDesc": "Quét QR chuyển khoản ngân hàng",
+      "stripeName": "Thẻ quốc tế (Stripe)",
+      "paypalDesc": "Thanh toán qua tài khoản PayPal",
+      "bankName": "Thẻ ngân hàng",
+      "codName": "Thanh toán khi nhận hàng",
+      "codDesc": "Trả tiền mặt khi nhận hàng"
     },
     "review": {
       "header": "Xác nhận đơn hàng",
@@ -1007,7 +1029,14 @@
       "stepFallback": "Cập nhật",
       "estimated": "Dự kiến giao:",
       "errorBanner": "Không lấy được trạng thái mới nhất từ đơn vị vận chuyển — đang hiển thị tiến trình ước tính.",
-      "noCodeBanner": "Đơn hàng chưa có mã vận đơn — sẽ cập nhật khi người bán giao cho đơn vị vận chuyển."
+      "noCodeBanner": "Đơn hàng chưa có mã vận đơn — sẽ cập nhật khi người bán giao cho đơn vị vận chuyển.",
+      "steps": {
+        "placed": "Đặt hàng thành công",
+        "confirmed": "Người bán xác nhận đơn",
+        "pickedUp": "Đã lấy hàng",
+        "inTransit": "Đang trên đường giao",
+        "delivered": "Giao thành công"
+      }
     },
     "return": {
       "modalTitle": "Yêu cầu trả hàng",
@@ -1060,5 +1089,114 @@
     "productCount": "{{count}} sản phẩm",
     "error": "Không thể tải thông tin shop.",
     "visitShop": "Ghé thăm shop"
+  },
+  "paymentReturn": {
+    "pending": {
+      "title": "Đang xác nhận thanh toán...",
+      "body": "Vui lòng giữ trang này mở. Hệ thống đang kiểm tra trạng thái thanh toán với {{provider}}."
+    },
+    "completed": {
+      "title": "Thanh toán thành công 🎉",
+      "amountPaid": "Số tiền đã thanh toán:",
+      "orderIdLabel": "Mã đơn hàng:",
+      "viewOrders": "Xem đơn hàng",
+      "continueShopping": "Tiếp tục mua sắm"
+    },
+    "failed": {
+      "title": "Thanh toán không thành công",
+      "body": "Đơn hàng của bạn vẫn được giữ. Bạn có thể thử thanh toán lại từ trang Đơn hàng.",
+      "goOrders": "Đến đơn hàng",
+      "goHome": "Trang chủ"
+    },
+    "error": {
+      "title": "Không xác định được trạng thái",
+      "fallback": "Vui lòng kiểm tra trang đơn hàng để xem trạng thái mới nhất.",
+      "noOrderId": "Không tìm thấy mã đơn hàng trong tham số URL.",
+      "checkFailed": "Không thể kiểm tra trạng thái thanh toán.",
+      "goOrders": "Đến đơn hàng"
+    }
+  },
+  "errorBoundary": {
+    "title": "Có lỗi xảy ra",
+    "unknownError": "Đã xảy ra lỗi không xác định.",
+    "supportCode": "Mã hỗ trợ:",
+    "reload": "Tải lại trang",
+    "retry": "Thử lại",
+    "retrying": "Đang thử lại…"
+  },
+  "context": {
+    "loginToAddCart": "Vui lòng đăng nhập để thêm vào giỏ hàng",
+    "addedToCart": "Đã thêm \"{{name}}\" vào giỏ hàng",
+    "addedToCartVariant": "{{variantDesc}} · Số lượng: {{quantity}}",
+    "addedToCartQty": "Số lượng: {{quantity}}",
+    "loginToSave": "Vui lòng đăng nhập để lưu sản phẩm",
+    "loginLabel": "Đăng nhập",
+    "addedToWishlist": "Đã thêm vào danh sách yêu thích ❤️",
+    "removedFromWishlist": "Đã xóa khỏi danh sách yêu thích",
+    "loggedOut": "Đã đăng xuất khỏi tài khoản"
+  },
+  "notifications": {
+    "pageTitle": "Thông báo",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "settingsAria": "Cài đặt thông báo",
+    "empty": "Không có thông báo nào",
+    "threadCount": "{{count}} thông báo",
+    "pagination": "Trang {{current}} / {{total}}",
+    "filters": {
+      "all": "Tất cả",
+      "orders": "Đơn hàng",
+      "payment": "Thanh toán",
+      "shipping": "Vận chuyển",
+      "reviews": "Đánh giá",
+      "sellers": "Người bán"
+    },
+    "preferences": {
+      "title": "Cài đặt thông báo",
+      "saving": "Đang lưu...",
+      "save": "Lưu thay đổi",
+      "mutedLabel": "Tắt tất cả thông báo",
+      "activeLabel": "Thông báo đang bật",
+      "mutedDesc": "Bạn sẽ không nhận bất kỳ thông báo nào",
+      "activeDesc": "Tùy chỉnh từng loại thông báo bên dưới",
+      "toggleAria": "Bật/tắt thông báo",
+      "channelInApp": "Trong ứng dụng",
+      "channelEmail": "Email",
+      "types": {
+        "ORDER_CREATED": { "label": "Đơn hàng mới", "description": "Khi đơn hàng được tạo thành công" },
+        "ORDER_CANCELLED": { "label": "Đơn hàng bị hủy", "description": "Khi đơn hàng bị hủy" },
+        "ORDER_SHIPPED": { "label": "Đã giao cho vận chuyển", "description": "Khi đơn hàng được gửi đi" },
+        "ORDER_DELIVERED": { "label": "Đã giao hàng", "description": "Khi đơn hàng giao thành công" },
+        "PAYMENT_COMPLETED": { "label": "Thanh toán thành công", "description": "Khi thanh toán được xác nhận" },
+        "PAYMENT_REFUNDED": { "label": "Hoàn tiền", "description": "Khi đơn hàng được hoàn tiền" },
+        "SELLER_NEW_ORDER": { "label": "Đơn hàng mới (Seller)", "description": "Khi có đơn hàng mới cần xử lý" },
+        "PRODUCT_APPROVED": { "label": "Sản phẩm được duyệt", "description": "Khi sản phẩm được admin duyệt" },
+        "PRODUCT_REJECTED": { "label": "Sản phẩm bị từ chối", "description": "Khi sản phẩm bị từ chối" },
+        "REVIEW_REPLIED": { "label": "Phản hồi đánh giá", "description": "Khi có phản hồi cho đánh giá của bạn" },
+        "RETURN_REQUESTED": { "label": "Yêu cầu trả hàng", "description": "Khi có yêu cầu trả hàng" },
+        "PAYOUT_COMPLETED": { "label": "Rút tiền thành công", "description": "Khi lệnh rút tiền hoàn tất" }
+      }
+    }
+  },
+  "formDialog": {
+    "cancel": "Huỷ",
+    "processing": "Đang xử lý...",
+    "optional": "(tuỳ chọn)",
+    "fieldRequired": "Vui lòng nhập {{label}}",
+    "fieldInvalid": "{{label}} không hợp lệ"
+  },
+  "stripe": {
+    "initializing": "Đang khởi tạo Stripe…",
+    "processingEmail": "Đang xử lý — bạn sẽ nhận email khi hoàn tất.",
+    "confirming": "Đang xác nhận thanh toán…",
+    "processing": "Đang xử lý…",
+    "pay": "Thanh toán"
+  },
+  "vietqr": {
+    "creating": "Đang tạo QR…",
+    "altText": "VietQR mã thanh toán",
+    "accountLabel": "Tài khoản:",
+    "nameLabel": "Tên:",
+    "referenceLabel": "Nội dung CK:",
+    "autoUpdate": "Sau khi chuyển xong, đơn hàng sẽ tự động cập nhật trong vòng 1 phút."
   }
 }

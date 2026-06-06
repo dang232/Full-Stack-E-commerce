@@ -425,7 +425,21 @@
       "fallbackName": "Method {{n}}",
       "etaDays": "{{n}} days",
       "etaStandard": "Standard",
-      "deliverInDays": "Delivers in {{n}} days"
+      "deliverInDays": "Delivers in {{n}} days",
+      "standardName": "Standard Delivery",
+      "expressName": "Express Delivery",
+      "loadingRates": "Loading shipping rates...",
+      "freeShippingBanner": "Your order qualifies for free standard shipping!",
+      "fallbackStandard": {
+        "name": "Standard Delivery",
+        "desc": "Delivers in 1-2 days",
+        "eta": "Tomorrow"
+      },
+      "fallbackEconomy": {
+        "name": "Economy Delivery",
+        "desc": "Delivers in 3-5 days",
+        "eta": "3-5 days"
+      }
     },
     "payment": {
       "header": "Payment method",
@@ -433,7 +447,15 @@
       "initFailedPrefix": "Couldn't initiate payment: {{message}}",
       "initFailedShort": "Couldn't initiate payment",
       "placeOrderFailed": "Couldn't place the order. Please try again.",
-      "supportCode": "Support code: {{id}}"
+      "supportCode": "Support code: {{id}}",
+      "vnpayDesc": "Pay via VNPay wallet or QR Code",
+      "momoDesc": "Pay via MoMo wallet",
+      "vietqrDesc": "Bank transfer via QR code",
+      "stripeName": "International card (Stripe)",
+      "paypalDesc": "Pay via PayPal account",
+      "bankName": "Bank card",
+      "codName": "Cash on delivery",
+      "codDesc": "Pay cash when the parcel arrives"
     },
     "review": {
       "header": "Review your order",
@@ -1007,7 +1029,14 @@
       "stepFallback": "Update",
       "estimated": "Estimated delivery:",
       "errorBanner": "Couldn't fetch the latest status from the carrier — showing an estimated timeline.",
-      "noCodeBanner": "No tracking code yet — will update once the seller hands the parcel to the carrier."
+      "noCodeBanner": "No tracking code yet — will update once the seller hands the parcel to the carrier.",
+      "steps": {
+        "placed": "Order placed",
+        "confirmed": "Seller confirmed order",
+        "pickedUp": "Parcel picked up",
+        "inTransit": "Out for delivery",
+        "delivered": "Delivered"
+      }
     },
     "return": {
       "modalTitle": "Return request",
@@ -1060,5 +1089,114 @@
     "productCount": "{{count}} products",
     "error": "Couldn't load shop details.",
     "visitShop": "Visit shop"
+  },
+  "paymentReturn": {
+    "pending": {
+      "title": "Confirming payment...",
+      "body": "Keep this page open. We're checking your payment status with {{provider}}."
+    },
+    "completed": {
+      "title": "Payment successful 🎉",
+      "amountPaid": "Amount paid:",
+      "orderIdLabel": "Order ID:",
+      "viewOrders": "View orders",
+      "continueShopping": "Continue shopping"
+    },
+    "failed": {
+      "title": "Payment unsuccessful",
+      "body": "Your order is still saved. You can retry payment from the Orders page.",
+      "goOrders": "Go to orders",
+      "goHome": "Home"
+    },
+    "error": {
+      "title": "Status unknown",
+      "fallback": "Please check your orders page for the latest status.",
+      "noOrderId": "No order ID found in the URL parameters.",
+      "checkFailed": "Couldn't check payment status.",
+      "goOrders": "Go to orders"
+    }
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "unknownError": "An unexpected error occurred.",
+    "supportCode": "Support code:",
+    "reload": "Reload page",
+    "retry": "Try again",
+    "retrying": "Retrying…"
+  },
+  "context": {
+    "loginToAddCart": "Please log in to add items to your cart",
+    "addedToCart": "Added \"{{name}}\" to your cart",
+    "addedToCartVariant": "{{variantDesc}} · Qty: {{quantity}}",
+    "addedToCartQty": "Qty: {{quantity}}",
+    "loginToSave": "Please log in to save products",
+    "loginLabel": "Log in",
+    "addedToWishlist": "Added to wishlist ❤️",
+    "removedFromWishlist": "Removed from wishlist",
+    "loggedOut": "You've been signed out"
+  },
+  "notifications": {
+    "pageTitle": "Notifications",
+    "markAllRead": "Mark all as read",
+    "settingsAria": "Notification settings",
+    "empty": "No notifications",
+    "threadCount": "{{count}} notifications",
+    "pagination": "Page {{current}} of {{total}}",
+    "filters": {
+      "all": "All",
+      "orders": "Orders",
+      "payment": "Payment",
+      "shipping": "Shipping",
+      "reviews": "Reviews",
+      "sellers": "Sellers"
+    },
+    "preferences": {
+      "title": "Notification settings",
+      "saving": "Saving...",
+      "save": "Save changes",
+      "mutedLabel": "All notifications off",
+      "activeLabel": "Notifications on",
+      "mutedDesc": "You won't receive any notifications",
+      "activeDesc": "Customise each notification type below",
+      "toggleAria": "Toggle notifications",
+      "channelInApp": "In-app",
+      "channelEmail": "Email",
+      "types": {
+        "ORDER_CREATED": { "label": "New order", "description": "When an order is placed successfully" },
+        "ORDER_CANCELLED": { "label": "Order cancelled", "description": "When an order is cancelled" },
+        "ORDER_SHIPPED": { "label": "Shipped", "description": "When the order is handed to the carrier" },
+        "ORDER_DELIVERED": { "label": "Delivered", "description": "When the order is delivered" },
+        "PAYMENT_COMPLETED": { "label": "Payment confirmed", "description": "When a payment is confirmed" },
+        "PAYMENT_REFUNDED": { "label": "Refund", "description": "When an order is refunded" },
+        "SELLER_NEW_ORDER": { "label": "New order (Seller)", "description": "When a new order needs handling" },
+        "PRODUCT_APPROVED": { "label": "Product approved", "description": "When admin approves your product" },
+        "PRODUCT_REJECTED": { "label": "Product rejected", "description": "When a product is rejected" },
+        "REVIEW_REPLIED": { "label": "Review reply", "description": "When someone replies to your review" },
+        "RETURN_REQUESTED": { "label": "Return request", "description": "When a return is requested" },
+        "PAYOUT_COMPLETED": { "label": "Payout completed", "description": "When a withdrawal completes" }
+      }
+    }
+  },
+  "formDialog": {
+    "cancel": "Cancel",
+    "processing": "Processing...",
+    "optional": "(optional)",
+    "fieldRequired": "Please enter {{label}}",
+    "fieldInvalid": "{{label}} is invalid"
+  },
+  "stripe": {
+    "initializing": "Initialising Stripe…",
+    "processingEmail": "Processing — you'll receive an email when complete.",
+    "confirming": "Confirming payment…",
+    "processing": "Processing…",
+    "pay": "Pay"
+  },
+  "vietqr": {
+    "creating": "Generating QR…",
+    "altText": "VietQR payment code",
+    "accountLabel": "Account:",
+    "nameLabel": "Name:",
+    "referenceLabel": "Reference:",
+    "autoUpdate": "Once transferred, the order will automatically update within 1 minute."
   }
 }
