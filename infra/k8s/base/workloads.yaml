@@ -202,6 +202,8 @@ spec:
           value: "8081"
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=user_svc"
+        - name: REPLICA_HOST
+          value: "postgres-replica-users"
         envFrom:
         - configMapRef:
             name: vnshop-app-config
@@ -370,6 +372,8 @@ spec:
           value: "8082"
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=product_svc"
+        - name: REPLICA_HOST
+          value: "postgres-replica-products"
         envFrom:
         - configMapRef:
             name: vnshop-app-config
@@ -1042,6 +1046,8 @@ spec:
           value: "8091"
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:postgresql://postgres:5432/vnshop?currentSchema=order_svc"
+        - name: REPLICA_HOST
+          value: "postgres-replica-orders"
         envFrom:
         - configMapRef:
             name: vnshop-app-config
