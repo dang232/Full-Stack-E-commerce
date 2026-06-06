@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { EntityManager } from '@mikro-orm/core';
 import Redis from 'ioredis';
 import { AddToCartUseCase } from './application/add-to-cart.use-case';
 import { ClearCartUseCase } from './application/clear-cart.use-case';
@@ -11,11 +13,13 @@ import { ViewCartUseCase } from './application/view-cart.use-case';
 import type { CartRepository } from './domain/cart.repository';
 import { CART_REPOSITORY } from './domain/cart-repository.token';
 import { CartController } from './infrastructure/cart.controller';
-import { CartRedisRepository } from './infrastructure/cart.redis-repository';
+import { CartMikroOrmEntity } from './infrastructure/cart.mikro-orm-entity.js';
+import { CartPersistenceService } from './infrastructure/cart-persistence.service';
 import { ProductHttpClientAdapter } from './infrastructure/product-http-client.adapter';
 import { REDIS_CLIENT } from './redis-client.token';
 
 @Module({
+  imports: [MikroOrmModule.forFeature([CartMikroOrmEntity])],
   controllers: [CartController],
   providers: [
     {
@@ -26,14 +30,17 @@ import { REDIS_CLIENT } from './redis-client.token';
           port: Number(configService.get<string>('REDIS_PORT') ?? 6379),
           password: configService.get<string>('REDIS_PASSWORD') || undefined,
           db: Number(configService.get<string>('REDIS_DB') ?? 0),
+          lazyConnect: true,
+          enableOfflineQueue: false,
+          maxRetriesPerRequest: 1,
         }),
       inject: [ConfigService],
     },
     {
       provide: CART_REPOSITORY,
-      useFactory: (redis: Redis): CartRepository =>
-        new CartRedisRepository(redis),
-      inject: [REDIS_CLIENT],
+      useFactory: (em: EntityManager, redis: Redis): CartRepository =>
+        new CartPersistenceService(em, redis),
+      inject: [EntityManager, REDIS_CLIENT],
     },
     {
       provide: PRODUCT_CLIENT,

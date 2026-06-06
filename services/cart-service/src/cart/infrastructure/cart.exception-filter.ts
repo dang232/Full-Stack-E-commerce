@@ -14,6 +14,16 @@ export class CartExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
 
+    if (
+      exception instanceof Error &&
+      (exception as NodeJS.ErrnoException).code === 'CART_VERSION_CONFLICT'
+    ) {
+      response
+        .status(HttpStatus.CONFLICT)
+        .json(ApiResponse.error(exception.message, 'CART_VERSION_CONFLICT'));
+      return;
+    }
+
     if (exception instanceof CartDomainException) {
       response
         .status(this.resolveStatus(exception))

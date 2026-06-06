@@ -852,9 +852,12 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      postgres-cart:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8084
       REDIS_HOST: redis
+      DATABASE_URL: postgresql://vnshop:${POSTGRES_PASSWORD:-vnshop}@postgres-cart:5432/vnshop_cart
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
