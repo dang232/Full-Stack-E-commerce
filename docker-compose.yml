@@ -205,6 +205,29 @@ services:
         limits:
           memory: 512M
 
+  postgres-cart:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-cart
+    environment:
+      POSTGRES_DB: vnshop_cart
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
+    ports:
+      - "5441:5432"
+    volumes:
+      - postgres-cart-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_cart"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
   timescaledb:
     image: timescale/timescaledb:latest-pg16
     container_name: vnshop-timescaledb
@@ -648,6 +671,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       GATEWAY_CORS_ALLOWED_ORIGINS: ${GATEWAY_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
     deploy:
       resources:
@@ -710,6 +735,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       # Avatar object storage. Reads from .env — defaults to MinIO for local dev.
       # Flip PROFILE=R2 + R2 endpoint/keys in .env when R2 creds are available.
       VNSHOP_USER_STORAGE_ENABLED: ${VNSHOP_USER_STORAGE_ENABLED:-true}
@@ -757,6 +784,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       # Object storage — defaults route to local MinIO. Override OBJECT_STORAGE_*
       # in .env to point at Cloudflare R2 (or any S3-compatible backend) for prod.
       VNSHOP_OBJECT_STORAGE_ENABLED: ${OBJECT_STORAGE_ENABLED:-true}
@@ -805,6 +834,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
     volumes:
       - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
     deploy:
@@ -827,6 +858,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       # Without this, ProductHttpClientAdapter falls through to its
       # offline-mode branch and every cart item shows the raw UUID as the
       # product name with 0₫. See product-http-client.adapter.ts.
@@ -885,6 +918,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-search
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SEARCH_PASSWORD:?KAFKA_SVC_SEARCH_PASSWORD must be set}
@@ -913,7 +948,8 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD:-vnshop123}@redis:6379
       PORT: 8087
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
-      OTEL_TRACES_SAMPLER: always_on
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
@@ -951,6 +987,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
     deploy:
       resources:
         limits:
@@ -980,6 +1018,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
       KAFKA_SASL_USERNAME: svc-finance
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_FINANCE_PASSWORD:?KAFKA_SVC_FINANCE_PASSWORD must be set}
@@ -1046,6 +1086,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       # Invoice storage — same backend swap pattern as product-service.
       VNSHOP_INVOICE_STORAGE_ENABLED: ${INVOICE_STORAGE_ENABLED:-true}
       VNSHOP_INVOICE_STORAGE_PROFILE: ${INVOICE_STORAGE_PROFILE:-MINIO}
@@ -1096,6 +1138,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       # Per-method enable flags. Defaults: COD + VietQR on; VNPay/MoMo/Stripe/PayPal off.
       # Flip the matching env var to "true" once the provider's creds land in .env.
       COD_ENABLED: ${COD_ENABLED:-true}
@@ -1164,6 +1208,8 @@ services:
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       # Carrier mode: "stub" (default, deterministic pricing) or "live" (real GHN/GHTK APIs).
       CARRIER_MODE: ${CARRIER_MODE:-stub}
       # GHN (Giao Hàng Nhanh) credentials — https://dev.ghn.vn
@@ -1202,7 +1248,8 @@ services:
       DATABASE_URL: postgresql://vnshop:${POSTGRES_PASSWORD:-vnshop}@postgres-legacy:5432/vnshop?currentSchema=messaging_svc
       PORT: 8095
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
-      OTEL_TRACES_SAMPLER: always_on
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
@@ -1278,6 +1325,7 @@ volumes:
   postgres-inventory-data:
   postgres-search-data:
   postgres-shipping-data:
+  postgres-cart-data:
   redis-data:
   redis-master-data:
   kafka-data:
