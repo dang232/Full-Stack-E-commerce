@@ -18,7 +18,6 @@ import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions"
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
 import { formatPrice } from "../lib/format";
-import { comingSoon } from "../lib/ui/coming-soon";
 import { usePageMeta } from "../../utils/meta-tags";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {
@@ -430,9 +429,10 @@ export function ProductPage() {
                   {t("product.sizesLabel")}: <span className="font-normal text-muted-foreground">{selectedSize}</span>
                 </p>
                 <button
-                  className="text-xs font-medium underline"
+                  className="text-xs font-medium underline opacity-50 cursor-not-allowed"
                   style={{ color: "#EE4D2D" }}
-                  onClick={() => comingSoon("Size guide")}
+                  disabled
+                  title="Available Q3 2026"
                 >
                   {t("product.sizeGuide")}
                 </button>
