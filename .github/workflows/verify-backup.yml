@@ -1,0 +1,48 @@
+name: Verify Backup
+
+on:
+  schedule:
+    # Weekly: Sunday at 02:00 UTC
+    - cron: "0 2 * * 0"
+  workflow_dispatch:
+
+jobs:
+  verify-backup:
+    name: Backup Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start core database services
+        run: docker compose --profile apps up -d postgres-user postgres-order postgres-product
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'vnshop' }}
+
+      - name: Wait for databases to be healthy
+        run: |
+          for svc in vnshop-postgres-user vnshop-postgres-order vnshop-postgres-product; do
+            echo "Waiting for $svc..."
+            for i in $(seq 1 30); do
+              if docker inspect --format '{{.State.Health.Status}}' "$svc" 2>/dev/null | grep -q healthy; then
+                echo "$svc is healthy"
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "ERROR: $svc did not become healthy within 30 attempts"
+                exit 1
+              fi
+              sleep 5
+            done
+          done
+
+      - name: Run backup verification
+        run: bash scripts/verify-backup.sh
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'vnshop' }}
+
+      - name: Stop services
+        if: always()
+        run: docker compose --profile apps down -v
