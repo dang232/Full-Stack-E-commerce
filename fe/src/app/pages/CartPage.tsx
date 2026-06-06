@@ -1,4 +1,4 @@
-import { IconTrash, IconPlus, IconMinus, IconShoppingCart, IconTag, IconTruck, IconChevronRight, IconShield, IconArrowLeft, IconLogin } from "@tabler/icons-react";
+﻿import { ArrowLeft, ChevronRight, LogIn, Minus, Plus, ShieldCheck, ShoppingCart, Tag, Trash2, Truck } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
@@ -20,7 +20,7 @@ export function CartPage() {
   const navigate = useNavigate();
   const { ready, authenticated, login } = useAuth();
   const config = useAppConfig();
-  const { items, itemCount, totalAmount, isLoading, error, updateItem, removeItem } = useCart();
+  const { items, itemCount, totalAmount, isLoading, isHydrating, error, updateItem, removeItem } = useCart();
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -122,7 +122,7 @@ export function CartPage() {
         <button
           onClick={() => navigate("/")}
           className="px-6 py-2.5 rounded-xl text-white font-medium"
-          style={{ background: "#EE4D2D" }}
+          style={{ background: "var(--brand-primary)" }}
         >
           {t("cart.backToHome")}
         </button>
@@ -134,13 +134,13 @@ export function CartPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <IconShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
+          <ShoppingCart size={80} className="mx-auto mb-6 text-gray-200" />
           <h2 className="text-2xl font-bold text-muted-foreground mb-3">{t("cart.emptyTitle")}</h2>
           <p className="text-muted-foreground mb-8">{t("cart.emptySub")}</p>
           <button
             onClick={() => navigate("/")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
+            style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))" }}
           >
             {t("cart.continueShopping")}
           </button>
@@ -169,11 +169,11 @@ export function CartPage() {
           onClick={() => navigate(-1)}
           className="p-2 rounded-xl hover:bg-card transition-colors text-muted-foreground"
         >
-          <IconArrowLeft size={20} />
+          <ArrowLeft size={20} />
         </button>
         <h1
           className="text-2xl font-bold text-foreground"
-          style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+          
         >
           {t("cart.titleWithCount", { count: itemCount })}
         </h1>
@@ -196,7 +196,7 @@ export function CartPage() {
                 >
                   <span className="font-semibold text-foreground text-sm">{group.sellerName}</span>
                   <span className="ml-auto text-xs text-muted-foreground flex items-center gap-1">
-                    <IconTruck size={12} />
+                    <Truck size={12} />
                     {totalAmount >= FREE_SHIPPING_THRESHOLD
                       ? t("cart.freeShippingTag")
                       : t("cart.shipFee", { fee: formatPrice(FLAT_SHIPPING_FEE) })}
@@ -236,7 +236,7 @@ export function CartPage() {
                               aria-label="Decrease quantity"
                               className="w-8 h-8 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
                             >
-                              <IconMinus size={13} />
+                              <Minus size={13} />
                             </button>
                             <span className="w-10 text-center text-sm font-medium">
                               {item.quantity}
@@ -246,18 +246,29 @@ export function CartPage() {
                               aria-label="Increase quantity"
                               className="w-8 h-8 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
                             >
-                              <IconPlus size={13} />
+                              <Plus size={13} />
                             </button>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold" style={{ color: "#FF6200" }}>
-                              {formatPrice(item.price * item.quantity)}
-                            </p>
-                            {item.quantity > 1 ? (
-                              <p className="text-xs text-muted-foreground">
-                                {formatPrice(item.price)} / sp
-                              </p>
-                            ) : null}
+                            {isHydrating ? (
+                              <div className="animate-pulse space-y-1">
+                                <div className="h-4 bg-muted rounded w-20 ml-auto" />
+                                {item.quantity > 1 ? <div className="h-3 bg-muted rounded w-14 ml-auto" /> : null}
+                              </div>
+                            ) : item.price > 0 ? (
+                              <>
+                                <p className="font-bold" style={{ color: "var(--brand-primary)" }}>
+                                  {formatPrice(item.price * item.quantity)}
+                                </p>
+                                {item.quantity > 1 ? (
+                                  <p className="text-xs text-muted-foreground">
+                                    {formatPrice(item.price)} / sp
+                                  </p>
+                                ) : null}
+                              </>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">{t("cart.priceUnavailable")}</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -266,7 +277,7 @@ export function CartPage() {
                         aria-label={`Remove ${item.name ?? "item"} from cart`}
                         className="p-2 h-fit rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors shrink-0"
                       >
-                        <IconTrash size={16} />
+                        <Trash2 size={16} />
                       </button>
                     </motion.div>
                   ))}
@@ -278,16 +289,16 @@ export function CartPage() {
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-2 text-sm font-medium"
-            style={{ color: "#EE4D2D" }}
+            style={{ color: "var(--brand-primary)" }}
           >
-            <IconArrowLeft size={16} /> {t("cart.continueShopping")}
+            <ArrowLeft size={16} /> {t("cart.continueShopping")}
           </button>
         </div>
 
         <div className="space-y-4">
           <div className="bg-card rounded-2xl shadow-sm p-5">
             <div className="flex items-center gap-2 mb-3">
-              <IconTag size={18} style={{ color: "#FF6200" }} />
+              <Tag size={18} style={{ color: "var(--brand-primary)" }} />
               <h3 className="font-semibold text-foreground">{t("cart.couponHeader")}</h3>
             </div>
             <div className="flex gap-2">
@@ -296,13 +307,13 @@ export function CartPage() {
                 onChange={(e) => setCoupon(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
                 placeholder={t("cart.couponPlaceholder")}
-                className="flex-1 px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[#EE4D2D] uppercase tracking-wider"
+                className="flex-1 px-3 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-[var(--brand-primary)] uppercase tracking-wider"
               />
               <button
                 onClick={handleApplyCoupon}
                 disabled={!coupon.trim() || couponMutation.isPending}
                 className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ background: "#FF6200" }}
+                style={{ background: "var(--brand-primary)" }}
               >
                 {couponMutation.isPending ? t("cart.couponApplying") : t("cart.couponApply")}
               </button>
@@ -314,7 +325,7 @@ export function CartPage() {
                   className="mt-2 flex items-center justify-between px-3 py-2 rounded-lg text-sm"
                   style={{ background: "rgba(238,77,45,0.08)" }}
                 >
-                  <span style={{ color: "#EE4D2D" }}>
+                  <span style={{ color: "var(--brand-primary)" }}>
                     {t("cart.couponApplied", { code: appliedCoupon })}
                     {couponDiscount > 0 ? ` · -${formatPrice(couponDiscount)}` : ""}
                   </span>
@@ -340,7 +351,7 @@ export function CartPage() {
               {couponDiscount > 0 ? (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("cart.voucherDiscount")}</span>
-                  <span className="font-medium" style={{ color: "#EE4D2D" }}>
+                  <span className="font-medium" style={{ color: "var(--brand-primary)" }}>
                     -{formatPrice(couponDiscount)}
                   </span>
                 </div>
@@ -354,11 +365,11 @@ export function CartPage() {
               <div className="border-t border-border pt-3 flex justify-between">
                 <span className="font-bold text-foreground">{t("cart.totalLabel")}</span>
                 <div className="text-right">
-                  <span className="font-black text-xl" style={{ color: "#FF6200" }}>
+                  <span className="font-black text-xl" style={{ color: "var(--brand-primary)" }}>
                     {formatPrice(finalTotal)}
                   </span>
                   {couponDiscount > 0 ? (
-                    <p className="text-xs" style={{ color: "#EE4D2D" }}>
+                    <p className="text-xs" style={{ color: "var(--brand-primary)" }}>
                       {t("cart.savings", { amount: formatPrice(couponDiscount) })}
                     </p>
                   ) : null}
@@ -372,15 +383,15 @@ export function CartPage() {
                 style={{ background: "rgba(238,77,45,0.08)", border: "1px solid rgba(238,77,45,0.2)" }}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <IconLogin size={16} style={{ color: "#EE4D2D", flexShrink: 0 }} />
-                  <span className="text-sm font-medium" style={{ color: "#EE4D2D" }}>
+                  <LogIn size={16} style={{ color: "var(--brand-primary)", flexShrink: 0 }} />
+                  <span className="text-sm font-medium" style={{ color: "var(--brand-primary)" }}>
                     {t("cart.guestBanner")}
                   </span>
                 </div>
                 <button
                   onClick={() => login("/checkout")}
                   className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
-                  style={{ background: "#EE4D2D" }}
+                  style={{ background: "var(--brand-primary)" }}
                 >
                   {t("cart.loginBtn")}
                 </button>
@@ -391,9 +402,9 @@ export function CartPage() {
               disabled={!authenticated}
               aria-disabled={!authenticated}
               className="w-full mt-2 py-4 rounded-xl text-white font-bold text-base shadow-lg transition-opacity flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:opacity-90"
-              style={{ background: "linear-gradient(135deg, #FF6200, #ff8a40)" }}
+              style={{ background: "linear-gradient(135deg, var(--brand-primary), #ff8a40)" }}
             >
-              {t("cart.proceedCheckout")} <IconChevronRight size={18} />
+              {t("cart.proceedCheckout")} <ChevronRight size={18} />
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-2" aria-hidden="true">
@@ -409,7 +420,7 @@ export function CartPage() {
           </div>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-            <IconShield size={14} style={{ color: "#EE4D2D" }} />
+            <ShieldCheck size={14} style={{ color: "var(--brand-primary)" }} />
             <span>{t("cart.sslNotice")}</span>
           </div>
         </div>

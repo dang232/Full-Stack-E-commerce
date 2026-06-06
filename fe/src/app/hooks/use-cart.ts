@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -8,6 +8,7 @@ import {
   removeCartItem,
   updateCartItem,
 } from "../lib/api/endpoints/cart";
+import { productById } from "../lib/api/endpoints/products";
 import type { Cart } from "../types/api";
 import type { ProductId } from "../types/api/branded-ids";
 
@@ -289,7 +290,44 @@ export function useCart() {
     writeGuestCart([]);
   };
 
-  const cart = isGuest ? guestItemsToCart(guestItems) : query.data;
+  // For guest carts, fan-out product fetches to hydrate name/image/price.
+  // `useQueries` runs in parallel; once all settle `isHydrating` becomes false.
+  const productQueries = useQueries({
+    queries: isGuest
+      ? guestItems.map((item) => ({
+          queryKey: ["product", item.productId] as const,
+          queryFn: () => productById(item.productId),
+          staleTime: 5 * 60 * 1000,
+        }))
+      : [],
+  });
+
+  // Hydrating as long as any guest product fetch is still pending.
+  const isHydrating = isGuest && guestItems.length > 0 && productQueries.some((q) => q.isPending);
+
+  // Build a richer cart for guest mode by overlaying resolved product data.
+  const hydratedGuestCart: Cart | undefined = isGuest
+    ? {
+        ...guestItemsToCart(guestItems),
+        items: guestItems.map((item, idx) => {
+          const product = productQueries[idx]?.data;
+          return {
+            productId: item.productId as ProductId,
+            name: product?.name,
+            image: product?.image,
+            price: product?.price ?? 0,
+            quantity: item.quantity,
+            sellerId: product?.sellerId,
+          };
+        }),
+        totalAmount: guestItems.reduce((sum, item, idx) => {
+          const price = productQueries[idx]?.data?.price ?? 0;
+          return sum + price * item.quantity;
+        }, 0),
+      }
+    : undefined;
+
+  const cart = isGuest ? hydratedGuestCart : query.data;
   const items = cart?.items ?? [];
   const itemCount = cart?.itemCount ?? items.reduce((n, i) => n + i.quantity, 0);
   const totalAmount = cart?.totalAmount ?? items.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -300,6 +338,7 @@ export function useCart() {
     itemCount,
     totalAmount,
     isGuest,
+    isHydrating,
     isLoading: isGuest ? false : query.isLoading,
     error: isGuest ? null : query.error,
     addItem: (

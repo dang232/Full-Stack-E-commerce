@@ -59,6 +59,7 @@
     "guestBanner": "Đăng nhập để lưu giỏ hàng và thanh toán",
     "loginBtn": "Đăng nhập",
     "sslNotice": "Thông tin thanh toán được mã hóa SSL 256-bit",
+    "priceUnavailable": "Không có giá",
     "errors": {
       "cantRemove": "Không thể xoá sản phẩm",
       "cantUpdate": "Không thể cập nhật",

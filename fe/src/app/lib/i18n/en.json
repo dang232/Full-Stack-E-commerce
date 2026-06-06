@@ -59,6 +59,7 @@
     "guestBanner": "Log in to save your cart and checkout",
     "loginBtn": "Log in",
     "sslNotice": "Payment information is SSL-256-bit encrypted",
+    "priceUnavailable": "Price unavailable",
     "errors": {
       "cantRemove": "Couldn't remove item",
       "cantUpdate": "Couldn't update item",
