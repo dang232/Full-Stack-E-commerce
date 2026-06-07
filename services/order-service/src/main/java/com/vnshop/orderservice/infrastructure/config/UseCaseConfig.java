@@ -40,12 +40,19 @@ import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
 import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import com.vnshop.orderservice.application.saga.SagaOrchestrator;
+import com.vnshop.orderservice.application.tax.TaxCalculationService;
+import com.vnshop.orderservice.domain.port.out.TaxRateLookupPort;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class UseCaseConfig {
+    @Bean
+    TaxCalculationService taxCalculationService(TaxRateLookupPort taxRateLookupPort) {
+        return new TaxCalculationService(taxRateLookupPort);
+    }
+
     @Bean
     CreateOrderUseCase createOrderUseCase(
             OrderRepositoryPort orderRepositoryPort,
@@ -56,9 +63,10 @@ public class UseCaseConfig {
             CommissionTierLookupPort commissionTierLookupPort,
             CartRepositoryPort cartRepositoryPort,
             MetricsPort metricsPort,
-            SagaOrchestrator sagaOrchestrator
+            SagaOrchestrator sagaOrchestrator,
+            TaxCalculationService taxCalculationService
     ) {
-        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort, metricsPort, sagaOrchestrator);
+        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort, metricsPort, sagaOrchestrator, taxCalculationService);
     }
 
     @Bean
