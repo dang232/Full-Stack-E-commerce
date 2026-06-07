@@ -12,6 +12,7 @@ import { NotificationPreferencesSchemaClass } from './mongo-notification-prefere
 
 @Injectable()
 export class MongoNotificationPreferencesRepository implements NotificationPreferencesRepository {
+  /* istanbul ignore next */
   constructor(
     @InjectModel(NotificationPreferencesSchemaClass.name)
     private readonly model: Model<NotificationPreferencesSchemaClass>,

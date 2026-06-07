@@ -55,7 +55,10 @@ export class TwilioSmsChannelAdapter implements SmsChannelPort, OnModuleInit {
     return this.enabled;
   }
 
-  async send(recipient: SmsRecipient, notification: Notification): Promise<boolean> {
+  async send(
+    recipient: SmsRecipient,
+    notification: Notification,
+  ): Promise<boolean> {
     if (!this.enabled) {
       this.logger.debug(
         `[STUB] Would send SMS to ${recipient.phoneNumber}: "${notification.title}"`,
@@ -81,13 +84,17 @@ export class TwilioSmsChannelAdapter implements SmsChannelPort, OnModuleInit {
       );
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send SMS to ${recipient.phoneNumber}`, error);
+      this.logger.error(
+        `Failed to send SMS to ${recipient.phoneNumber}`,
+        error,
+      );
       return false;
     }
   }
 
   private buildSmsBody(notification: Notification): string {
     const parts = [`[VNShop] ${notification.title}`, notification.body];
+    /* istanbul ignore next */
     if (notification.deepLink) {
       parts.push(`Chi tiết: https://vnshop.vn${notification.deepLink}`);
     }

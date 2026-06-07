@@ -39,6 +39,34 @@ describe('RedisConnectionRegistryAdapter', () => {
     expect(await adapter.isOnline('user-nobody')).toBe(false);
   });
 
+  it('returns empty array when multi.exec returns null', async () => {
+    // Simulate the results[0][0] error branch in drainOfflineQueue
+    const redisMock = new RedisMock();
+    const originalMulti = redisMock.multi.bind(redisMock);
+    jest.spyOn(redisMock, 'multi').mockImplementationOnce(() => {
+      const pipeline = originalMulti();
+      const originalExec = pipeline.exec.bind(pipeline);
+      jest.spyOn(pipeline, 'exec').mockResolvedValueOnce(null as any);
+      return pipeline;
+    });
+
+    const mod = await Test.createTestingModule({
+      providers: [
+        RedisConnectionRegistryAdapter,
+        { provide: REDIS_CLIENT, useValue: redisMock },
+      ],
+    }).compile();
+    const a = mod.get(RedisConnectionRegistryAdapter);
+
+    const result = await a.drainOfflineQueue('user-null-exec');
+    expect(result).toEqual([]);
+  });
+
+  it('refreshes registration TTL', async () => {
+    await adapter.register('user-5', 'socket-r');
+    await expect(adapter.refreshRegistration('user-5')).resolves.not.toThrow();
+  });
+
   it('enqueues and drains offline notifications', async () => {
     await adapter.enqueueOffline('user-4', 'notif-1');
     await adapter.enqueueOffline('user-4', 'notif-2');

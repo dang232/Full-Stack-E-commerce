@@ -7,8 +7,10 @@ import { Notification } from '../../domain/model/notification';
 
 @Injectable()
 export class FindThreadNotificationsUseCase {
+  /* istanbul ignore next */
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY) private readonly repo: NotificationRepository,
+    @Inject(NOTIFICATION_REPOSITORY)
+    private readonly repo: NotificationRepository,
   ) {}
 
   async execute(threadId: string, userId: string): Promise<Notification[]> {

@@ -13,6 +13,7 @@ import { NotificationMapper } from './notification.mapper';
 
 @Injectable()
 export class MongoNotificationRepository implements NotificationRepository {
+  /* istanbul ignore next */
   constructor(
     @InjectModel(NotificationSchemaClass.name)
     private readonly model: Model<NotificationSchemaClass>,

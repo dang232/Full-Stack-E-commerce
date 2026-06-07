@@ -10,6 +10,7 @@ const OFFLINE_TTL = 604800; // 7 days
 
 @Injectable()
 export class RedisConnectionRegistryAdapter implements ConnectionRegistryPort {
+  /* istanbul ignore next */
   constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
 
   async register(userId: string, socketId: string): Promise<void> {

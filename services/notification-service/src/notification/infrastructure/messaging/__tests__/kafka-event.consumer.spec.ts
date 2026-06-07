@@ -306,4 +306,37 @@ describe('KafkaEventConsumer', () => {
     await consumer.handlePayoutCompleted({ payoutId: 'PAY-27' });
     expect(mockSendNotification.execute).not.toHaveBeenCalled();
   });
+
+  it('order.cancelled skips when buyerId absent', async () => {
+    await consumer.handleOrderCancelled({ orderId: 'ORD-28' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('review.replied skips when buyerId absent', async () => {
+    await consumer.handleReviewReplied({ reviewId: 'REV-2', productId: 'P-4', productName: 'X' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('product.approved skips when sellerId absent', async () => {
+    await consumer.handleProductApproved({ productId: 'P-5', productName: 'Y' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('order.created skips both when neither buyerId nor sellerId present', async () => {
+    await consumer.handleOrderCreated({ orderId: 'ORD-29' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('order.created sends only to seller when buyerId absent', async () => {
+    await consumer.handleOrderCreated({ orderId: 'ORD-30', sellerId: 'seller-30' });
+    expect(mockSendNotification.execute).toHaveBeenCalledTimes(1);
+    expect(mockSendNotification.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'seller-30', type: NotificationType.SELLER_NEW_ORDER }),
+    );
+  });
+
+  it('order.shipped skips when buyerId absent', async () => {
+    await consumer.handleOrderShipped({ orderId: 'ORD-31' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
 });

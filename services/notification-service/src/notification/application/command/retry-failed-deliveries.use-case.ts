@@ -16,6 +16,7 @@ import {
 export class RetryFailedDeliveriesUseCase {
   private readonly logger = new Logger(RetryFailedDeliveriesUseCase.name);
 
+  /* istanbul ignore next */
   constructor(
     @Inject(NOTIFICATION_REPOSITORY)
     private readonly repo: NotificationRepository,

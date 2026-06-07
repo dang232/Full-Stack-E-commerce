@@ -23,8 +23,10 @@ export interface PaginatedThreads {
 
 @Injectable()
 export class FindNotificationThreadsUseCase {
+  /* istanbul ignore next */
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY) private readonly repo: NotificationRepository,
+    @Inject(NOTIFICATION_REPOSITORY)
+    private readonly repo: NotificationRepository,
   ) {}
 
   async execute(query: FindThreadsQuery): Promise<PaginatedThreads> {

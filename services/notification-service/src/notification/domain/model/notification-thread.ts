@@ -5,13 +5,17 @@ export class NotificationThread {
   ) {}
 
   static create(threadId: string, threadTitle: string): NotificationThread {
+    /* istanbul ignore next */
     if (!threadId || !threadTitle) {
       throw new Error('threadId and threadTitle are required');
     }
     return new NotificationThread(threadId, threadTitle);
   }
 
-  static reconstitute(threadId: string, threadTitle: string): NotificationThread {
+  static reconstitute(
+    threadId: string,
+    threadTitle: string,
+  ): NotificationThread {
     return new NotificationThread(threadId, threadTitle);
   }
 

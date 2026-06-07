@@ -29,6 +29,7 @@ interface AuthenticatedRequest {
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationRestController {
+  /* istanbul ignore next */
   constructor(
     private readonly findUserNotifications: FindUserNotificationsUseCase,
     private readonly findThreads: FindNotificationThreadsUseCase,

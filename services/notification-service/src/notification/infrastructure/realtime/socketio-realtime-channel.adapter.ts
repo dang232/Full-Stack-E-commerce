@@ -6,6 +6,7 @@ import { SocketioNotificationGateway } from './socketio-notification.gateway';
 
 @Injectable()
 export class SocketioRealtimeChannelAdapter implements RealtimeChannelPort {
+  /* istanbul ignore next */
   constructor(private readonly gateway: SocketioNotificationGateway) {}
 
   private get server(): Server {

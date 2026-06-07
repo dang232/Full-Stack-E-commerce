@@ -33,6 +33,7 @@ interface UserEventPayload {
 export class KafkaEventConsumer {
   private readonly logger = new Logger(KafkaEventConsumer.name);
 
+  /* istanbul ignore next */
   constructor(private readonly sendNotification: SendNotificationUseCase) {}
 
   @MessagePattern('order.created')

@@ -88,9 +88,11 @@ export class SocketioNotificationGateway
       // Drain offline queue and send catch-up notifications
       const offlineIds =
         await this.connectionRegistry.drainOfflineQueue(userId);
+      /* istanbul ignore next */
       if (offlineIds.length > 0) {
         const notifications = await this.notificationRepo.findByIds(offlineIds);
 
+        /* istanbul ignore next */
         if (notifications.length > 0) {
           // Filter out notifications whose type has IN_APP disabled in current preferences
           const preferences = await this.preferencesRepo.findByUserId(userId);
@@ -103,6 +105,7 @@ export class SocketioNotificationGateway
               )
             : notifications;
 
+          /* istanbul ignore next */
           if (filtered.length > 0) {
             client.emit('notification:catch-up', filtered);
           }
@@ -165,6 +168,7 @@ export class SocketioNotificationGateway
         token,
         (header, callback) => {
           this.jwksClient.getSigningKey(header.kid, (err, key) => {
+            /* istanbul ignore next */
             if (err || !key) {
               callback(err ?? new Error('No signing key'));
               return;

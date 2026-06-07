@@ -6,8 +6,10 @@ import {
 
 @Injectable()
 export class MarkAllReadUseCase {
+  /* istanbul ignore next */
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY) private readonly repo: NotificationRepository,
+    @Inject(NOTIFICATION_REPOSITORY) /* istanbul ignore next */
+    private readonly repo: NotificationRepository,
   ) {}
 
   async execute(userId: string): Promise<number> {
