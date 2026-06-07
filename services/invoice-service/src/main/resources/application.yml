@@ -1,0 +1,68 @@
+server:
+  port: 8094
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: invoice-service
+  datasource:
+    url: jdbc:postgresql://localhost:5441/vnshop_invoice?currentSchema=invoice_svc
+    username: vnshop
+    password: ${DB_PASSWORD:vnshop}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: invoice-svc-pool
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: invoice_svc
+  flyway:
+    enabled: true
+    schemas: invoice_svc
+    default-schema: invoice_svc
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    properties:
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_SSL}
+      sasl.mechanism: PLAIN
+      sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-invoice}" password="${KAFKA_SASL_PASSWORD:invoice-secret-change-me}";
+      ssl.truststore.location: ${KAFKA_SSL_TRUSTSTORE_LOCATION:/etc/kafka/secrets/kafka.truststore.jks}
+      ssl.truststore.password: ${KAFKA_SSL_TRUSTSTORE_PASSWORD:kafka-ssl-dev-password}
+      ssl.endpoint.identification.algorithm: https
+    consumer:
+      group-id: invoice-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      observation-enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+      group:
+        readiness:
+          include: readinessState,db,kafka
+        liveness:
+          include: livenessState
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

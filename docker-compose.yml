@@ -1318,6 +1318,62 @@ services:
       timeout: 5s
       retries: 10
 
+  postgres-invoice:
+    profiles: ["apps"]
+    image: postgres:17.9
+    container_name: vnshop-postgres-invoice
+    environment:
+      POSTGRES_DB: vnshop_invoice
+      POSTGRES_USER: vnshop
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
+    ports:
+      - "5441:5432"
+    volumes:
+      - postgres-invoice-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vnshop -d vnshop_invoice"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  invoice-service:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: services/invoice-service/Dockerfile
+    container_name: vnshop-invoice-service
+    ports:
+      - "8094:8094"
+    depends_on:
+      postgres-invoice:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8094
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-invoice:5432/vnshop_invoice?currentSchema=invoice_svc
+      SPRING_DATASOURCE_USERNAME: vnshop
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SASL_USERNAME: svc-invoice
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_INVOICE_PASSWORD:?KAFKA_SVC_INVOICE_PASSWORD must be set}
+      MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+    volumes:
+      - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
 volumes:
   postgres-legacy-data:
   postgres-keycloak-data:
@@ -1340,3 +1396,4 @@ volumes:
   grafana-data:
   loki-data:
   unleash-db-data:
+  postgres-invoice-data:
