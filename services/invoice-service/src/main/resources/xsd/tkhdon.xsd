@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <!-- Root element -->
+  <xs:element name="TKHDon" type="TKHDonType"/>
+
+  <xs:complexType name="TKHDonType">
+    <xs:sequence>
+      <xs:element name="DLHDon"  type="DLHDonType"/>
+      <!-- DSCKS: populated by GDT API integration (Track 7.3) -->
+      <xs:element name="DSCKS"   type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="phienBan" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <!-- Invoice data block -->
+  <xs:complexType name="DLHDonType">
+    <xs:sequence>
+      <xs:element name="TTChung" type="TTChungType"/>
+      <xs:element name="NDHDon"  type="NDHDonType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- General invoice header -->
+  <xs:complexType name="TTChungType">
+    <xs:sequence>
+      <xs:element name="MauSo"     type="xs:string"/>
+      <xs:element name="KyHieu"    type="xs:string"/>
+      <xs:element name="SoHD"      type="xs:string"/>
+      <xs:element name="SoHDDayDu" type="xs:string" minOccurs="0"/>
+      <xs:element name="NLap"      type="xs:string"/>
+      <xs:element name="DVTTe"     type="xs:string"/>
+      <xs:element name="TGia"      type="xs:string" minOccurs="0"/>
+      <xs:element name="HTTToan"   type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Invoice body -->
+  <xs:complexType name="NDHDonType">
+    <xs:sequence>
+      <xs:element name="NBan"    type="NBanType"/>
+      <xs:element name="NMua"    type="NMuaType"/>
+      <xs:element name="DSHHDVu" type="DSHHDVuType"/>
+      <xs:element name="TToan"   type="TToanType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Seller -->
+  <xs:complexType name="NBanType">
+    <xs:sequence>
+      <xs:element name="Ten"     type="xs:string"/>
+      <xs:element name="MST"     type="xs:string"/>
+      <xs:element name="DChi"    type="xs:string"/>
+      <xs:element name="SDThoai" type="xs:string" minOccurs="0"/>
+      <xs:element name="DCTDTu"  type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Buyer -->
+  <xs:complexType name="NMuaType">
+    <xs:sequence>
+      <xs:element name="Ten"    type="xs:string"/>
+      <xs:element name="MST"    type="xs:string" minOccurs="0"/>
+      <xs:element name="DChi"   type="xs:string" minOccurs="0"/>
+      <xs:element name="DCTDTu" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- List of goods/services -->
+  <xs:complexType name="DSHHDVuType">
+    <xs:sequence>
+      <xs:element name="HHDVu" type="HHDVuType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Single line item -->
+  <xs:complexType name="HHDVuType">
+    <xs:sequence>
+      <xs:element name="STT"     type="xs:integer"/>
+      <xs:element name="TenHHDV" type="xs:string"/>
+      <xs:element name="DVTinh"  type="xs:string"  minOccurs="0"/>
+      <xs:element name="SLuong"  type="xs:decimal"/>
+      <xs:element name="DGia"    type="xs:decimal"/>
+      <xs:element name="TgTien"  type="xs:decimal"/>
+      <xs:element name="TSuat"   type="xs:string"/>
+      <xs:element name="TgTThue" type="xs:decimal"/>
+      <xs:element name="TgTTTien" type="xs:decimal"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Totals -->
+  <xs:complexType name="TToanType">
+    <xs:sequence>
+      <xs:element name="TgTCThue"  type="xs:decimal"/>
+      <xs:element name="TgTThue"   type="xs:decimal"/>
+      <xs:element name="TgTTTBSo"  type="xs:decimal"/>
+      <xs:element name="TgTTTBChu" type="xs:string"  minOccurs="0"/>
+      <xs:element name="DSThue"    type="DSThueType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- VAT breakdown list -->
+  <xs:complexType name="DSThueType">
+    <xs:sequence>
+      <xs:element name="Thue" type="ThueType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- VAT bucket by rate -->
+  <xs:complexType name="ThueType">
+    <xs:sequence>
+      <xs:element name="TSuat"    type="xs:string"/>
+      <xs:element name="TgTCThue" type="xs:decimal"/>
+      <xs:element name="TgTThue"  type="xs:decimal"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

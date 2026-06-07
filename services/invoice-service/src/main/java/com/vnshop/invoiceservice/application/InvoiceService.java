@@ -1,5 +1,6 @@
 package com.vnshop.invoiceservice.application;
 
+import com.vnshop.invoiceservice.application.xml.InvoiceXmlGenerator;
 import com.vnshop.invoiceservice.domain.entity.Invoice;
 import com.vnshop.invoiceservice.domain.entity.InvoiceStatus;
 import com.vnshop.invoiceservice.domain.repository.InvoiceRepository;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
+    private final InvoiceXmlGenerator invoiceXmlGenerator;
 
     /**
      * Creates a DRAFT invoice from an order.confirmed event payload.
@@ -59,5 +61,28 @@ public class InvoiceService {
             return invoiceRepository.findBySellerIdAndStatus(sellerId, status);
         }
         return invoiceRepository.findBySellerId(sellerId);
+    }
+
+    /**
+     * Generates (or regenerates) the TKHDon XML for the invoice associated with the given orderId.
+     * Validates the XML against the TKHDon XSD schema and persists it on the invoice entity.
+     *
+     * @param orderId the order whose invoice should be serialised to XML
+     * @return validated XML string
+     * @throws jakarta.persistence.EntityNotFoundException if no invoice exists for the orderId
+     */
+    @Transactional
+    public String generateXml(UUID orderId) {
+        Invoice invoice = invoiceRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
+                        "No invoice found for orderId=" + orderId));
+
+        String xml = invoiceXmlGenerator.generate(invoice);
+        invoice.setXmlPayload(xml);
+        invoice.setUpdatedAt(Instant.now());
+        invoiceRepository.save(invoice);
+
+        log.info("Generated TKHDon XML for invoiceId={} orderId={}", invoice.getId(), orderId);
+        return xml;
     }
 }
