@@ -105,8 +105,6 @@ describe('SocketioNotificationGateway', () => {
     timeoutMs = 3000,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      let timeout: NodeJS.Timeout;
-
       function cleanup() {
         clearTimeout(timeout);
         client.off(event, onEvent);
@@ -123,7 +121,7 @@ describe('SocketioNotificationGateway', () => {
         reject(error);
       }
 
-      timeout = setTimeout(() => {
+      const timeout = setTimeout(() => {
         cleanup();
         reject(new Error(timeoutMessage));
       }, timeoutMs);
@@ -240,7 +238,7 @@ describe('SocketioNotificationGateway', () => {
       const timeout = setTimeout(() => {
         reject(new Error('catch-up timeout'));
       }, 2000);
-      catchUpPromise.finally(() => clearTimeout(timeout));
+      void catchUpPromise.finally(() => clearTimeout(timeout));
     });
 
     const catchUp = await Promise.race([catchUpPromise, catchUpTimeout]);

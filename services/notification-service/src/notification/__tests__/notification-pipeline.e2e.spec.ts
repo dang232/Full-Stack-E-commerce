@@ -87,8 +87,6 @@ describe('Notification Pipeline E2E', () => {
       transports: ['websocket'],
     });
     await new Promise<void>((resolve, reject) => {
-      let timeout: NodeJS.Timeout;
-
       function cleanup() {
         clearTimeout(timeout);
         client.off('connect', onConnect);
@@ -105,7 +103,7 @@ describe('Notification Pipeline E2E', () => {
         reject(error);
       }
 
-      timeout = setTimeout(() => {
+      const timeout = setTimeout(() => {
         cleanup();
         reject(new Error('Connection timeout'));
       }, 5000);
@@ -144,7 +142,7 @@ describe('Notification Pipeline E2E', () => {
       const timeoutHandle = setTimeout(() => {
         reject(new Error('WebSocket timeout'));
       }, 5000);
-      received.finally(() => clearTimeout(timeoutHandle));
+      void received.finally(() => clearTimeout(timeoutHandle));
     });
 
     const payload = await Promise.race([received, timeout]);
