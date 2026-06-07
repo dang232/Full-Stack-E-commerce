@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VNShop — Marketplace Design Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-elevated: #f1f5f9;
+    --border: #e2e8f0;
+    --border-hover: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --primary: #4f46e5;
+    --primary-light: #eef2ff;
+    --primary-hover: #4338ca;
+    --accent: #f59e0b;
+    --accent-light: #fffbeb;
+    --success: #10b981;
+    --error: #ef4444;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  /* Announcement Bar */
+  .announcement {
+    background: var(--primary);
+    color: white;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  .announcement span { color: #c7d2fe; }
+
+  /* Navigation */
+  .nav {
+    display: flex;
+    align-items: center;
+    padding: 16px 32px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 24px;
+  }
+  .nav-logo {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+  .nav-search {
+    flex: 1;
+    max-width: 560px;
+    position: relative;
+  }
+  .nav-search input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+  .nav-search input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    background: white;
+  }
+  .nav-search svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    stroke: var(--text-muted);
+  }
+  .nav-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .nav-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .nav-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .nav-btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  .nav-btn-primary:hover { background: var(--primary-hover); color: white; }
+  .nav-cart-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -4px;
+    right: -4px;
+  }
+
+  /* Categories Bar */
+  .categories-bar {
+    display: flex;
+    gap: 4px;
+    padding: 12px 32px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .cat-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    background: transparent;
+  }
+  .cat-pill:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .cat-pill.active { background: var(--primary); color: white; }
+
+  /* Hero Banner */
+  .hero {
+    margin: 24px 32px;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border-radius: var(--radius-xl);
+    padding: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 480px; }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(4px);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: white;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+  .hero p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: white;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .hero-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+
+  /* Flash Sale */
+  .flash-sale {
+    margin: 0 32px 24px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    border: 1px solid var(--border);
+  }
+  .flash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .flash-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .flash-title h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .flash-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-light);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .flash-timer {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .flash-timer-box {
+    background: var(--accent);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    min-width: 32px;
+    text-align: center;
+  }
+  .flash-timer-sep { color: var(--accent); font-weight: 700; font-size: 14px; }
+  .flash-products {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+
+  /* Product Card */
+  .product-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .product-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  .product-img {
+    aspect-ratio: 1;
+    background: var(--bg-elevated);
+    position: relative;
+  }
+  .product-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+  }
+  .badge-sale { background: var(--accent); color: white; }
+  .badge-new { background: var(--primary); color: white; }
+  .product-body { padding: 12px; }
+  .product-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+  }
+  .product-price {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .price-current {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .price-original {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+  .price-discount {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .product-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .product-rating { display: flex; align-items: center; gap: 2px; }
+  .star { color: var(--accent); font-size: 12px; }
+
+  /* Section */
+  .section {
+    margin: 0 32px 24px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .section-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .section-link:hover { text-decoration: underline; }
+
+  /* Category Grid */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+  .category-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 8px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .category-item:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  .category-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .category-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: center;
+  }
+
+  /* Product Grid */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+
+  /* Trust Bar */
+  .trust-bar {
+    margin: 24px 32px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .trust-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .trust-text h4 { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .trust-text p { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Footer */
+  .footer {
+    margin-top: 48px;
+    padding: 48px 32px 24px;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border);
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+  .footer-brand { font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 12px; }
+  .footer-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .footer-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 12px; }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .footer-links a { font-size: 13px; color: var(--text-secondary); text-decoration: none; }
+  .footer-links a:hover { color: var(--primary); }
+  .footer-bottom {
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="announcement">🎉 New users get <span>₫50,000 OFF</span> first order — Code: <strong>VNWELCOME</strong></div>
+
+<nav class="nav">
+  <div class="nav-logo">VNShop</div>
+  <div class="nav-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" placeholder="Search for products, brands, and categories...">
+  </div>
+  <div class="nav-actions">
+    <button class="nav-btn">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </button>
+    <button class="nav-btn" style="position: relative;">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <div class="nav-cart-badge">3</div>
+    </button>
+    <button class="nav-btn-primary nav-btn">Sign In</button>
+  </div>
+</nav>
+
+<div class="categories-bar">
+  <div class="cat-pill active">All</div>
+  <div class="cat-pill">Electronics</div>
+  <div class="cat-pill">Fashion</div>
+  <div class="cat-pill">Home & Living</div>
+  <div class="cat-pill">Software</div>
+  <div class="cat-pill">Beauty</div>
+  <div class="cat-pill">Sports</div>
+  <div class="cat-pill">Books</div>
+  <div class="cat-pill">Automotive</div>
+  <div class="cat-pill">Digital Goods</div>
+  <div class="cat-pill">Food & Beverage</div>
+</div>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">⚡ Limited Time</div>
+    <h1>Mid-Year Mega Sale<br>Up to 70% Off</h1>
+    <p>Thousands of deals across all categories. Electronics, fashion, software — everything ships free over ₫500,000.</p>
+    <a href="#" class="hero-cta">Shop Deals →</a>
+  </div>
+</section>
+
+<div class="section" style="margin-top: 32px;">
+  <div class="section-header">
+    <h2>Categories</h2>
+    <a href="#" class="section-link">View All →</a>
+  </div>
+  <div class="category-grid">
+    <div class="category-item">
+      <div class="category-icon">📱</div>
+      <div class="category-name">Electronics</div>
+    </div>
+    <div class="category-item">
+      <div class="category-icon">👕</div>
+      <div class="category-name">Fashion</div>
+    </div>
+    <div class="category-item">
+      <div class="category-icon">🏠</div>
+      <div class="category-name">Home</div>
+    </div>
+    <div class="category-item">
+      <div class="category-icon">💻</div>
+      <div class="category-name">Software</div>
+    </div>
+    <div class="category-item">
+      <div class="category-icon">💄</div>
+      <div class="category-name">Beauty</div>
+    </div>
+    <div class="category-item">
+      <div class="category-icon">⚽</div>
+      <div class="category-name">Sports</div>
+    </div>
+  </div>
+</div>
+
+<div class="flash-sale">
+  <div class="flash-header">
+    <div class="flash-title">
+      <div class="flash-icon">⚡</div>
+      <h3>Flash Sale</h3>
+    </div>
+    <div class="flash-timer">
+      <div class="flash-timer-box">02</div>
+      <div class="flash-timer-sep">:</div>
+      <div class="flash-timer-box">14</div>
+      <div class="flash-timer-sep">:</div>
+      <div class="flash-timer-box">33</div>
+    </div>
+  </div>
+  <div class="flash-products">
+    <div class="product-card">
+      <div class="product-img"><span class="product-badge badge-sale">-45%</span></div>
+      <div class="product-body">
+        <div class="product-name">Wireless Bluetooth Earbuds Pro</div>
+        <div class="product-price">
+          <span class="price-current">₫299,000</span>
+          <span class="price-original">₫549,000</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.8</div>
+          <span>·</span>
+          <span>2.1k sold</span>
+        </div>
+      </div>
+    </div>
+    <div class="product-card">
+      <div class="product-img"><span class="product-badge badge-sale">-30%</span></div>
+      <div class="product-body">
+        <div class="product-name">Premium Cotton T-Shirt Pack (3)</div>
+        <div class="product-price">
+          <span class="price-current">₫189,000</span>
+          <span class="price-original">₫270,000</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.6</div>
+          <span>·</span>
+          <span>890 sold</span>
+        </div>
+      </div>
+    </div>
+    <div class="product-card">
+      <div class="product-img"><span class="product-badge badge-sale">-60%</span></div>
+      <div class="product-body">
+        <div class="product-name">JetBrains IDE License — 1 Year</div>
+        <div class="product-price">
+          <span class="price-current">₫1,200,000</span>
+          <span class="price-original">₫3,000,000</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.9</div>
+          <span>·</span>
+          <span>534 sold</span>
+        </div>
+      </div>
+    </div>
+    <div class="product-card">
+      <div class="product-img"><span class="product-badge badge-sale">-25%</span></div>
+      <div class="product-body">
+        <div class="product-name">Mechanical Keyboard RGB 75%</div>
+        <div class="product-price">
+          <span class="price-current">₫750,000</span>
+          <span class="price-original">₫999,000</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.7</div>
+          <span>·</span>
+          <span>1.4k sold</span>
+        </div>
+      </div>
+    </div>
+    <div class="product-card">
+      <div class="product-img"><span class="product-badge badge-sale">-50%</span></div>
+      <div class="product-body">
+        <div class="product-name">Korean Skincare Set 7-Step</div>
+        <div class="product-price">
+          <span class="price-current">₫425,000</span>
+          <span class="price-original">₫850,000</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.5</div>
+          <span>·</span>
+          <span>3.2k sold</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2>Recommended For You</h2>
+    <a href="#" class="section-link">See All →</a>
+  </div>
+  <div class="product-grid">
+    <div class="product-card">
+      <div class="product-img"><span class="product-badge badge-new">New</span></div>
+      <div class="product-body">
+        <div class="product-name">USB-C Hub 7-in-1 Adapter</div>
+        <div class="product-price">
+          <span class="price-current">₫450,000</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.7</div>
+          <span>·</span>
+          <span>678 sold</span>
+        </div>
+      </div>
+    </div>
+    <div class="product-card">
+      <div class="product-img"></div>
+      <div class="product-body">
+        <div class="product-name">Minimalist Leather Wallet</div>
+        <div class="product-price">
+          <span class="price-current">₫320,000</span>
+          <span class="price-original">₫400,000</span>
+          <span class="price-discount">-20%</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.4</div>
+          <span>·</span>
+          <span>245 sold</span>
+        </div>
+      </div>
+    </div>
+    <div class="product-card">
+      <div class="product-img"></div>
+      <div class="product-body">
+        <div class="product-name">Figma Pro License — Monthly</div>
+        <div class="product-price">
+          <span class="price-current">₫350,000</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.9</div>
+          <span>·</span>
+          <span>1.8k sold</span>
+        </div>
+      </div>
+    </div>
+    <div class="product-card">
+      <div class="product-img"><span class="product-badge badge-new">New</span></div>
+      <div class="product-body">
+        <div class="product-name">Running Shoes Ultra Foam</div>
+        <div class="product-price">
+          <span class="price-current">₫890,000</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.6</div>
+          <span>·</span>
+          <span>412 sold</span>
+        </div>
+      </div>
+    </div>
+    <div class="product-card">
+      <div class="product-img"></div>
+      <div class="product-body">
+        <div class="product-name">Smart Home LED Strip 5m RGB</div>
+        <div class="product-price">
+          <span class="price-current">₫175,000</span>
+          <span class="price-original">₫250,000</span>
+          <span class="price-discount">-30%</span>
+        </div>
+        <div class="product-meta">
+          <div class="product-rating"><span class="star">★</span> 4.3</div>
+          <span>·</span>
+          <span>5.6k sold</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="trust-bar">
+  <div class="trust-item">
+    <div class="trust-icon">🚚</div>
+    <div class="trust-text">
+      <h4>Free Shipping</h4>
+      <p>Orders over ₫500,000</p>
+    </div>
+  </div>
+  <div class="trust-item">
+    <div class="trust-icon">🛡️</div>
+    <div class="trust-text">
+      <h4>Buyer Protection</h4>
+      <p>Full refund guarantee</p>
+    </div>
+  </div>
+  <div class="trust-item">
+    <div class="trust-icon">⭐</div>
+    <div class="trust-text">
+      <h4>Verified Sellers</h4>
+      <p>Quality assurance</p>
+    </div>
+  </div>
+  <div class="trust-item">
+    <div class="trust-icon">💳</div>
+    <div class="trust-text">
+      <h4>Secure Payment</h4>
+      <p>Multiple options</p>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">VNShop</div>
+      <p class="footer-desc">Vietnam's modern marketplace. Buy and sell anything — electronics, fashion, software, and more. Trusted by millions.</p>
+    </div>
+    <div>
+      <div class="footer-title">Shop</div>
+      <ul class="footer-links">
+        <li><a href="#">All Categories</a></li>
+        <li><a href="#">Flash Deals</a></li>
+        <li><a href="#">New Arrivals</a></li>
+        <li><a href="#">Top Sellers</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title">Sell</div>
+      <ul class="footer-links">
+        <li><a href="#">Start Selling</a></li>
+        <li><a href="#">Seller Center</a></li>
+        <li><a href="#">Seller Tools</a></li>
+        <li><a href="#">Fees</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title">Help</div>
+      <ul class="footer-links">
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">Shipping</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title">Company</div>
+      <ul class="footer-links">
+        <li><a href="#">About</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Press</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 VNShop. All rights reserved.</span>
+    <span>Privacy · Terms · Cookies</span>
+  </div>
+</footer>
+
+</body>
+</html>

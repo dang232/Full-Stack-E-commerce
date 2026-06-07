@@ -26,10 +26,20 @@ export class NotificationSchemaClass {
   @Prop({ type: String, default: null })
   deepLink!: string | null;
 
-  @Prop({ required: true, type: String, enum: Priority, default: Priority.MEDIUM })
+  @Prop({
+    required: true,
+    type: String,
+    enum: Priority,
+    default: Priority.MEDIUM,
+  })
   priority!: Priority;
 
-  @Prop({ required: true, type: String, enum: DeliveryStatusValue, default: DeliveryStatusValue.QUEUED })
+  @Prop({
+    required: true,
+    type: String,
+    enum: DeliveryStatusValue,
+    default: DeliveryStatusValue.QUEUED,
+  })
   deliveryStatus!: DeliveryStatusValue;
 
   @Prop({ type: String, default: null })
@@ -60,7 +70,9 @@ export class NotificationSchemaClass {
   retryCount!: number;
 }
 
-export const NotificationSchema = SchemaFactory.createForClass(NotificationSchemaClass);
+export const NotificationSchema = SchemaFactory.createForClass(
+  NotificationSchemaClass,
+);
 
 // Indexes per spec
 NotificationSchema.index({ userId: 1, createdAt: -1 });

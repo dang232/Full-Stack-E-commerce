@@ -92,7 +92,11 @@ export class Notification {
       retryCount: 0,
     });
     notification._domainEvents.push(
-      new NotificationCreatedEvent(notification.id, notification.userId, notification.type),
+      new NotificationCreatedEvent(
+        notification.id,
+        notification.userId,
+        notification.type,
+      ),
     );
     return notification;
   }
@@ -118,27 +122,39 @@ export class Notification {
   }
 
   markSent(): void {
-    this._deliveryStatus = this._deliveryStatus.transitionTo(DeliveryStatusValue.SENT);
+    this._deliveryStatus = this._deliveryStatus.transitionTo(
+      DeliveryStatusValue.SENT,
+    );
   }
 
   markDelivered(): void {
-    this._deliveryStatus = this._deliveryStatus.transitionTo(DeliveryStatusValue.DELIVERED);
+    this._deliveryStatus = this._deliveryStatus.transitionTo(
+      DeliveryStatusValue.DELIVERED,
+    );
   }
 
   markOpened(): void {
-    this._deliveryStatus = this._deliveryStatus.transitionTo(DeliveryStatusValue.OPENED);
+    this._deliveryStatus = this._deliveryStatus.transitionTo(
+      DeliveryStatusValue.OPENED,
+    );
   }
 
   markFailed(): void {
-    this._deliveryStatus = this._deliveryStatus.transitionTo(DeliveryStatusValue.FAILED);
+    this._deliveryStatus = this._deliveryStatus.transitionTo(
+      DeliveryStatusValue.FAILED,
+    );
   }
 
   retry(): void {
-    this._deliveryStatus = this._deliveryStatus.transitionTo(DeliveryStatusValue.QUEUED);
+    this._deliveryStatus = this._deliveryStatus.transitionTo(
+      DeliveryStatusValue.QUEUED,
+    );
   }
 
   moveToDlq(): void {
-    this._deliveryStatus = this._deliveryStatus.transitionTo(DeliveryStatusValue.DLQ);
+    this._deliveryStatus = this._deliveryStatus.transitionTo(
+      DeliveryStatusValue.DLQ,
+    );
   }
 
   markRead(): void {

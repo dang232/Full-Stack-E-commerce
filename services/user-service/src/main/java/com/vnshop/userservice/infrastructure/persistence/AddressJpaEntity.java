@@ -1,7 +1,6 @@
 package com.vnshop.userservice.infrastructure.persistence;
 
 import com.vnshop.userservice.domain.Address;
-import com.vnshop.userservice.infrastructure.persistence.BaseJpaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

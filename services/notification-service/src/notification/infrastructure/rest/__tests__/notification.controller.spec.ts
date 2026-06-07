@@ -140,4 +140,90 @@ describe('NotificationRestController', () => {
     expect(result).toHaveProperty('type', 'ORDER_CREATED');
     expect(mockMarkRead.execute).toHaveBeenCalledWith('notif-123', 'user-1');
   });
+
+  it('POST /test returns notification DTO in non-production env', async () => {
+    const origEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'test';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const result = await controller.createTestNotification(mockReq);
+    process.env.NODE_ENV = origEnv;
+    expect(result).toHaveProperty('id');
+    expect(mockSendNotification.execute).toHaveBeenCalled();
+  });
+
+  it('POST /test throws ForbiddenException in production', async () => {
+    const origEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await expect(controller.createTestNotification(mockReq)).rejects.toThrow(
+      'Test endpoint disabled in production',
+    );
+    process.env.NODE_ENV = origEnv;
+  });
+
+  it('POST /test returns suppressed response when sendNotification returns null', async () => {
+    const origEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'test';
+    mockSendNotification.execute.mockResolvedValueOnce(null);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const result = await controller.createTestNotification(mockReq);
+    process.env.NODE_ENV = origEnv;
+    expect(result).toEqual({
+      suppressed: true,
+      message: 'All channels disabled for this type',
+    });
+  });
+
+  it('GET / sets first=true when page=0', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const result = await controller.list(mockReq, undefined, undefined, 0, 20);
+    expect(result.first).toBe(true);
+  });
+
+  it('GET / sets last=true when on last page', async () => {
+    mockFindNotifications.execute.mockResolvedValueOnce({
+      items: [],
+      total: 5,
+      page: 0,
+      limit: 20,
+      totalPages: 1,
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const result = await controller.list(mockReq, undefined, undefined, 0, 20);
+    expect(result.last).toBe(true);
+  });
+
+  it('GET / caps size at 100', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await controller.list(mockReq, undefined, undefined, 0, 999);
+    expect(mockFindNotifications.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ limit: 100 }),
+    );
+  });
+
+  it('GET /threads filters by valid type', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await controller.threads(mockReq, 'ORDER_CREATED', 0, 20);
+    expect(mockFindThreads.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ type: NotificationType.ORDER_CREATED }),
+    );
+  });
+
+  it('GET /threads ignores invalid type', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await controller.threads(mockReq, 'BOGUS', 0, 20);
+    expect(mockFindThreads.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ type: undefined }),
+    );
+  });
+
+  it('GET /threads/:threadId returns thread notifications', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const result = await controller.threadNotifications(mockReq, 'order:123');
+    expect(Array.isArray(result)).toBe(true);
+    expect(mockFindThreadNotifs.execute).toHaveBeenCalledWith(
+      'order:123',
+      'user-1',
+    );
+  });
 });

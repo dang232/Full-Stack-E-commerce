@@ -34,7 +34,10 @@ export class SesEmailChannelAdapter implements EmailChannelPort {
     private readonly templateService: TemplateService,
   ) {
     this.enabled = this.config.get<string>('EMAIL_ENABLED', 'false') === 'true';
-    this.fromAddress = this.config.get<string>('EMAIL_FROM_ADDRESS', 'noreply@vnshop.vn');
+    this.fromAddress = this.config.get<string>(
+      'EMAIL_FROM_ADDRESS',
+      'noreply@vnshop.vn',
+    );
 
     if (this.enabled) {
       this.ses = new SESClient({
@@ -43,7 +46,9 @@ export class SesEmailChannelAdapter implements EmailChannelPort {
       this.logger.log(`Email channel ENABLED (from: ${this.fromAddress})`);
     } else {
       this.ses = null;
-      this.logger.log('Email channel DISABLED (stub mode — set EMAIL_ENABLED=true to activate)');
+      this.logger.log(
+        'Email channel DISABLED (stub mode — set EMAIL_ENABLED=true to activate)',
+      );
     }
   }
 
@@ -51,7 +56,10 @@ export class SesEmailChannelAdapter implements EmailChannelPort {
     return this.enabled;
   }
 
-  async send(recipient: EmailRecipient, notification: Notification): Promise<boolean> {
+  async send(
+    recipient: EmailRecipient,
+    notification: Notification,
+  ): Promise<boolean> {
     if (!this.enabled || !this.ses) {
       this.logger.debug(
         `[STUB] Would send email to ${recipient.email}: "${notification.title}"`,
@@ -87,7 +95,8 @@ export class SesEmailChannelAdapter implements EmailChannelPort {
 
   private buildHtmlBody(notification: Notification): string {
     const templateName = TEMPLATE_MAP[notification.type];
-    const orderId = (notification.metadata?.['orderId'] as string | undefined) ?? undefined;
+    const orderId =
+      (notification.metadata?.['orderId'] as string | undefined) ?? undefined;
 
     if (templateName) {
       return this.templateService.render(templateName, {

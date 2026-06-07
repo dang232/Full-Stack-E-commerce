@@ -1,0 +1,28 @@
+<h2>Typography — Font Strategy</h2>
+<p class="subtitle">Marketplace UI needs high readability at small sizes across thousands of product titles, prices, and labels.</p>
+
+<div class="options">
+  <div class="option" data-choice="inter-only" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Inter Only</h3>
+      <p>One font for everything — headings, body, labels, prices. Clean, fast loading, excellent at small sizes. GitHub, Linear, Vercel all use this approach. Simple, consistent, no font conflicts.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="inter-plus-display" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Inter + Plus Jakarta Sans</h3>
+      <p>Jakarta Sans for headings (slightly rounder, more friendly), Inter for body/UI. Adds personality without sacrificing readability. A subtle upgrade over single-font — Gumroad, Notion approach.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="geist-system" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Geist (or system stack)</h3>
+      <p>Vercel's Geist font or pure system fonts (-apple-system, Segoe UI). Zero load time, native feel, extremely crisp. Most performant option — matters when pages have 50+ product cards.</p>
+    </div>
+  </div>
+</div>

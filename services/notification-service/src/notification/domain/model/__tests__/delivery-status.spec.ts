@@ -13,12 +13,16 @@ describe('DeliveryStatus value object', () => {
   });
 
   it('allows QUEUED -> SENT', () => {
-    const status = DeliveryStatus.queued().transitionTo(DeliveryStatusValue.SENT);
+    const status = DeliveryStatus.queued().transitionTo(
+      DeliveryStatusValue.SENT,
+    );
     expect(status.getValue()).toBe(DeliveryStatusValue.SENT);
   });
 
   it('allows QUEUED -> FAILED', () => {
-    const status = DeliveryStatus.queued().transitionTo(DeliveryStatusValue.FAILED);
+    const status = DeliveryStatus.queued().transitionTo(
+      DeliveryStatusValue.FAILED,
+    );
     expect(status.isFailed()).toBe(true);
   });
 
@@ -35,9 +39,9 @@ describe('DeliveryStatus value object', () => {
   });
 
   it('rejects QUEUED -> DELIVERED (must go through SENT)', () => {
-    expect(() => DeliveryStatus.queued().transitionTo(DeliveryStatusValue.DELIVERED)).toThrow(
-      'Invalid delivery status transition',
-    );
+    expect(() =>
+      DeliveryStatus.queued().transitionTo(DeliveryStatusValue.DELIVERED),
+    ).toThrow('Invalid delivery status transition');
   });
 
   it('rejects OPENED -> anything (terminal)', () => {

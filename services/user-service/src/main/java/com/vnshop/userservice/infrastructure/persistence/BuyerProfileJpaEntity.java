@@ -1,6 +1,5 @@
 package com.vnshop.userservice.infrastructure.persistence;
 
-import com.vnshop.userservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.userservice.domain.BuyerProfile;
 import com.vnshop.userservice.domain.PhoneNumber;
 import jakarta.persistence.CascadeType;

@@ -77,26 +77,42 @@ import { SMS_CHANNEL_PORT } from './domain/port/outbound/sms-channel.port';
   imports: [
     MongooseModule.forFeature([
       { name: NotificationSchemaClass.name, schema: NotificationSchema },
-      { name: NotificationPreferencesSchemaClass.name, schema: NotificationPreferencesSchema },
+      {
+        name: NotificationPreferencesSchemaClass.name,
+        schema: NotificationPreferencesSchema,
+      },
     ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     EventEmitterModule.forRoot(),
     RedisModule,
   ],
-  controllers: [NotificationRestController, NotificationPreferencesController, KafkaEventConsumer],
+  controllers: [
+    NotificationRestController,
+    NotificationPreferencesController,
+    KafkaEventConsumer,
+  ],
   providers: [
     // Auth
     JwtStrategy,
 
     // Port → Adapter bindings
     { provide: NOTIFICATION_REPOSITORY, useClass: MongoNotificationRepository },
-    { provide: REALTIME_CHANNEL_PORT, useClass: SocketioRealtimeChannelAdapter },
+    {
+      provide: REALTIME_CHANNEL_PORT,
+      useClass: SocketioRealtimeChannelAdapter,
+    },
     { provide: DEDUPLICATION_PORT, useClass: RedisDeduplicationAdapter },
-    { provide: CONNECTION_REGISTRY_PORT, useClass: RedisConnectionRegistryAdapter },
+    {
+      provide: CONNECTION_REGISTRY_PORT,
+      useClass: RedisConnectionRegistryAdapter,
+    },
     { provide: EMAIL_CHANNEL_PORT, useClass: SesEmailChannelAdapter },
     { provide: PUSH_CHANNEL_PORT, useClass: FcmPushChannelAdapter },
     { provide: SMS_CHANNEL_PORT, useClass: TwilioSmsChannelAdapter },
-    { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useClass: MongoNotificationPreferencesRepository },
+    {
+      provide: NOTIFICATION_PREFERENCES_REPOSITORY,
+      useClass: MongoNotificationPreferencesRepository,
+    },
 
     // Infrastructure (needed for DI resolution)
     SocketioNotificationGateway,

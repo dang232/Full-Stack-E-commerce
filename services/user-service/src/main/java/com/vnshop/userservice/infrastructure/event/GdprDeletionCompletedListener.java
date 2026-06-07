@@ -1,6 +1,6 @@
 package com.vnshop.userservice.infrastructure.event;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.vnshop.userservice.domain.GdprDeletionServiceStatus;
 import com.vnshop.userservice.domain.port.out.GdprDeletionStatusPort;
 import org.slf4j.Logger;

@@ -30,7 +30,8 @@ export class TemplateService {
       path.join(__dirname, '..', '..', '..', 'templates'),
       path.join(process.cwd(), 'src', 'templates'),
     ];
-    this.templatesDir = candidates.find((d) => fs.existsSync(d)) ?? candidates[0];
+    this.templatesDir =
+      candidates.find((d) => fs.existsSync(d)) ?? candidates[0];
   }
 
   /**

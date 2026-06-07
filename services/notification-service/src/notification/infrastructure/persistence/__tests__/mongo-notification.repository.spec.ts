@@ -3,7 +3,10 @@ import { Test } from '@nestjs/testing';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Connection, connect } from 'mongoose';
 import { MongoNotificationRepository } from '../mongo-notification.repository';
-import { NotificationSchemaClass, NotificationSchema } from '../mongo-notification.schema';
+import {
+  NotificationSchemaClass,
+  NotificationSchema,
+} from '../mongo-notification.schema';
 import { Notification } from '../../../domain/model/notification';
 import { NotificationType } from '../../../domain/model/notification-type.enum';
 import { NotificationThread } from '../../../domain/model/notification-thread';
@@ -63,7 +66,9 @@ describe('MongoNotificationRepository', () => {
     });
     await repo.save(n);
 
-    const found = await repo.findByIdempotencyKey('payment.completed:ORD-001:PAYMENT_COMPLETED');
+    const found = await repo.findByIdempotencyKey(
+      'payment.completed:ORD-001:PAYMENT_COMPLETED',
+    );
     expect(found).not.toBeNull();
     expect(found!.id).toBe(n.id);
   });
@@ -81,7 +86,11 @@ describe('MongoNotificationRepository', () => {
       );
     }
 
-    const result = await repo.findByUser({ userId: 'user-3', page: 0, limit: 2 });
+    const result = await repo.findByUser({
+      userId: 'user-3',
+      page: 0,
+      limit: 2,
+    });
     expect(result.items).toHaveLength(2);
     expect(result.total).toBe(3);
   });
@@ -100,7 +109,10 @@ describe('MongoNotificationRepository', () => {
   });
 
   it('finds threads by user', async () => {
-    const thread = NotificationThread.create('order:ORD-100', 'Đơn hàng #ORD-100');
+    const thread = NotificationThread.create(
+      'order:ORD-100',
+      'Đơn hàng #ORD-100',
+    );
     await repo.save(
       Notification.create({
         userId: 'user-4',
@@ -144,5 +156,116 @@ describe('MongoNotificationRepository', () => {
 
     const found = await repo.findByIdAndUserId(n.id, 'wrong-user');
     expect(found).toBeNull();
+  });
+
+  it('findByIds returns empty array for empty ids list', async () => {
+    const result = await repo.findByIds([]);
+    expect(result).toEqual([]);
+  });
+
+  it('findByIds returns notifications for valid ids', async () => {
+    const n = Notification.create({
+      userId: 'user-6',
+      type: NotificationType.ORDER_CREATED,
+      title: 'T',
+      body: 'B',
+    });
+    await repo.save(n);
+
+    const result = await repo.findByIds([n.id]);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(n.id);
+  });
+
+  it('findByUser filters by type', async () => {
+    const userId = 'user-7';
+    await repo.save(
+      Notification.create({
+        userId,
+        type: NotificationType.ORDER_CREATED,
+        title: 'Created',
+        body: 'B',
+      }),
+    );
+    await repo.save(
+      Notification.create({
+        userId,
+        type: NotificationType.PAYMENT_COMPLETED,
+        title: 'Payment',
+        body: 'B',
+      }),
+    );
+
+    const result = await repo.findByUser({
+      userId,
+      type: NotificationType.ORDER_CREATED,
+      page: 0,
+      limit: 20,
+    });
+
+    expect(result.items.every((n) => n.type === NotificationType.ORDER_CREATED)).toBe(true);
+  });
+
+  it('findByUser filters by threadId', async () => {
+    const userId = 'user-8';
+    const thread = NotificationThread.create('order:TH-1', 'Thread 1');
+    await repo.save(
+      Notification.create({
+        userId,
+        type: NotificationType.ORDER_CREATED,
+        title: 'In thread',
+        body: 'B',
+        thread,
+      }),
+    );
+    await repo.save(
+      Notification.create({
+        userId,
+        type: NotificationType.ORDER_SHIPPED,
+        title: 'No thread',
+        body: 'B',
+      }),
+    );
+
+    const result = await repo.findByUser({
+      userId,
+      threadId: 'order:TH-1',
+      page: 0,
+      limit: 20,
+    });
+
+    expect(result.items).toHaveLength(1);
+  });
+
+  it('findById returns null for missing id', async () => {
+    const result = await repo.findById('non-existent-id');
+    expect(result).toBeNull();
+  });
+
+  it('findByIdempotencyKey returns null for missing key', async () => {
+    const result = await repo.findByIdempotencyKey('non-existent-key');
+    expect(result).toBeNull();
+  });
+
+  it('findThreadsByUser filters by type', async () => {
+    const userId = 'user-9';
+    const thread = NotificationThread.create('order:TH-9', 'Thread 9');
+    await repo.save(
+      Notification.create({
+        userId,
+        type: NotificationType.ORDER_CREATED,
+        title: 'T',
+        body: 'B',
+        thread,
+      }),
+    );
+
+    const result = await repo.findThreadsByUser(
+      userId,
+      0,
+      10,
+      NotificationType.ORDER_CREATED,
+    );
+    expect(result.threads.length).toBeGreaterThanOrEqual(1);
   });
 });

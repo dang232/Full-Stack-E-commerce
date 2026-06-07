@@ -6,15 +6,27 @@ describe('DefaultDeliveryPolicy', () => {
   const policy = new DefaultDeliveryPolicy();
 
   it('marks order events as realtime', () => {
-    expect(policy.shouldDeliverRealtime(NotificationType.ORDER_CREATED)).toBe(true);
-    expect(policy.shouldDeliverRealtime(NotificationType.PAYMENT_COMPLETED)).toBe(true);
-    expect(policy.shouldDeliverRealtime(NotificationType.SELLER_NEW_ORDER)).toBe(true);
+    expect(policy.shouldDeliverRealtime(NotificationType.ORDER_CREATED)).toBe(
+      true,
+    );
+    expect(
+      policy.shouldDeliverRealtime(NotificationType.PAYMENT_COMPLETED),
+    ).toBe(true);
+    expect(
+      policy.shouldDeliverRealtime(NotificationType.SELLER_NEW_ORDER),
+    ).toBe(true);
   });
 
   it('marks low-priority types as non-realtime', () => {
-    expect(policy.shouldDeliverRealtime(NotificationType.PRODUCT_APPROVED)).toBe(false);
-    expect(policy.shouldDeliverRealtime(NotificationType.REVIEW_REPLIED)).toBe(false);
-    expect(policy.shouldDeliverRealtime(NotificationType.PAYOUT_COMPLETED)).toBe(false);
+    expect(
+      policy.shouldDeliverRealtime(NotificationType.PRODUCT_APPROVED),
+    ).toBe(false);
+    expect(policy.shouldDeliverRealtime(NotificationType.REVIEW_REPLIED)).toBe(
+      false,
+    );
+    expect(
+      policy.shouldDeliverRealtime(NotificationType.PAYOUT_COMPLETED),
+    ).toBe(false);
   });
 
   it('uses exponential backoff for retry delay', () => {
