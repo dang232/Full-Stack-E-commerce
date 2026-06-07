@@ -1,4 +1,4 @@
-import { IconAlertCircle, IconLayoutDashboard, IconStar, IconTag, IconUsers, IconWallet } from "@tabler/icons-react";
+import { IconAlertCircle, IconActivity, IconLayoutDashboard, IconPackage, IconStar, IconTag, IconUserSearch, IconUsers, IconWallet } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
@@ -14,11 +14,23 @@ import {
 import { AdminDashboard } from "./AdminDashboard";
 import { CouponsManagement } from "./CouponsManagement";
 import { DisputesQueue } from "./DisputesQueue";
+import { OrderManagement } from "./OrderManagement";
 import { PayoutsQueue } from "./PayoutsQueue";
 import { ReviewsModeration } from "./ReviewsModeration";
 import { SellersApproval } from "./SellersApproval";
+import { SystemHealth } from "./SystemHealth";
+import { UserManagement } from "./UserManagement";
 
-type AdminTab = "dashboard" | "sellers" | "reviews" | "coupons" | "disputes" | "payouts";
+type AdminTab =
+  | "dashboard"
+  | "sellers"
+  | "reviews"
+  | "coupons"
+  | "disputes"
+  | "payouts"
+  | "users"
+  | "orders"
+  | "health";
 
 const NAV_ITEMS: { id: AdminTab; labelKey: string; icon: typeof IconLayoutDashboard }[] = [
   { id: "dashboard", labelKey: "admin.nav.dashboard", icon: IconLayoutDashboard },
@@ -27,6 +39,9 @@ const NAV_ITEMS: { id: AdminTab; labelKey: string; icon: typeof IconLayoutDashbo
   { id: "coupons", labelKey: "admin.nav.coupons", icon: IconTag },
   { id: "disputes", labelKey: "admin.nav.disputes", icon: IconAlertCircle },
   { id: "payouts", labelKey: "admin.nav.payouts", icon: IconWallet },
+  { id: "users", labelKey: "admin.nav.users", icon: IconUserSearch },
+  { id: "orders", labelKey: "admin.nav.orders", icon: IconPackage },
+  { id: "health", labelKey: "admin.nav.health", icon: IconActivity },
 ];
 
 export function AdminPage() {
@@ -149,6 +164,9 @@ export function AdminPage() {
               {activeTab === "coupons" ? <CouponsManagement /> : null}
               {activeTab === "disputes" ? <DisputesQueue /> : null}
               {activeTab === "payouts" ? <PayoutsQueue /> : null}
+              {activeTab === "users" ? <UserManagement /> : null}
+              {activeTab === "orders" ? <OrderManagement /> : null}
+              {activeTab === "health" ? <SystemHealth /> : null}
             </motion.div>
           </div>
         </div>

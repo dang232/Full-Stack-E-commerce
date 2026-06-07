@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 import {
+  adminOrderSummarySchema,
   adminPayoutSchema,
+  adminUserSchema,
   couponSchema,
   dashboardRevenuePointSchema,
   dashboardSummarySchema,
@@ -16,6 +18,26 @@ import type { COUPON_TYPES } from "../../domain-enums";
 import { api } from "../client";
 
 export type { DashboardSummary };
+
+// User management
+export const adminSearchUsers = (params: { email?: string; phone?: string }) =>
+  api.get("/admin/users", z.array(adminUserSchema), params);
+export const adminBanUser = (id: string) =>
+  api.post(`/admin/users/${encodeURIComponent(id)}/ban`, adminUserSchema);
+export const adminUnbanUser = (id: string) =>
+  api.post(`/admin/users/${encodeURIComponent(id)}/unban`, adminUserSchema);
+export const adminUserOrders = (buyerId: string) =>
+  api.get(`/admin/orders/by-buyer/${encodeURIComponent(buyerId)}`, z.array(adminOrderSummarySchema));
+
+// Order management
+export const adminListOrders = (params: { status?: string } = {}) =>
+  api.get("/admin/orders", z.array(adminOrderSummarySchema), params);
+export const adminCancelOrder = (id: string) =>
+  api.post(`/admin/orders/${encodeURIComponent(id)}/cancel`, z.unknown());
+export const adminRefundOrder = (id: string) =>
+  api.post(`/admin/orders/${encodeURIComponent(id)}/refund`, z.unknown());
+export const adminChangeOrderStatus = (id: string, status: string) =>
+  api.patch(`/admin/orders/${encodeURIComponent(id)}/status`, z.unknown(), { status });
 
 export const adminListSellers = () => api.get("/admin/sellers", z.array(sellerSummarySchema));
 export const adminApproveSeller = (id: string) =>
