@@ -2,6 +2,7 @@ package com.vnshop.paymentservice.infrastructure.web;
 
 import com.vnshop.paymentservice.application.chargeback.ChargebackService;
 import com.vnshop.paymentservice.domain.Chargeback;
+import com.vnshop.paymentservice.infrastructure.webhook.WebhookIdempotencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,9 +32,12 @@ public class PayPalChargebackWebhookController {
     private static final String DISPUTE_CREATED = "CUSTOMER.DISPUTE.CREATED";
 
     private final ChargebackService chargebackService;
+    private final WebhookIdempotencyService webhookIdempotencyService;
 
-    public PayPalChargebackWebhookController(ChargebackService chargebackService) {
+    public PayPalChargebackWebhookController(ChargebackService chargebackService,
+                                              WebhookIdempotencyService webhookIdempotencyService) {
         this.chargebackService = Objects.requireNonNull(chargebackService, "chargebackService is required");
+        this.webhookIdempotencyService = Objects.requireNonNull(webhookIdempotencyService, "webhookIdempotencyService is required");
     }
 
     @PostMapping("/chargeback-webhook")
@@ -47,6 +51,13 @@ public class PayPalChargebackWebhookController {
         }
 
         String eventType = payload.getOrDefault("event_type", "").toString();
+        String eventId = Objects.toString(payload.get("id"), "");
+
+        // Webhook-level dedup: same event delivered twice → 200 immediately.
+        if (!eventId.isBlank() && webhookIdempotencyService.isAlreadyProcessed(eventId, "PAYPAL")) {
+            return ResponseEntity.ok(ApiResponse.ok(new ChargebackWebhookResponse("duplicate")));
+        }
+
         if (!DISPUTE_CREATED.equals(eventType)) {
             return ResponseEntity.ok(ApiResponse.ok(new ChargebackWebhookResponse("ignored")));
         }
@@ -55,15 +66,29 @@ public class PayPalChargebackWebhookController {
         String disputeId = Objects.toString(resource.get("dispute_id"), "UNKNOWN");
         String orderId = extractOrderId(resource);
         String reason = Objects.toString(resource.get("reason"), "unspecified");
-        LocalDate dueDate = null; // PayPal sends due date in dispute_life_cycle_stage details; left null here
+        LocalDate dueDate = null;
 
-        Chargeback result = chargebackService.createFromWebhook(
-                orderId,
-                disputeId,
-                Chargeback.ChargebackProvider.PAYPAL,
-                reason,
-                dueDate);
+        Chargeback result;
+        try {
+            result = chargebackService.createFromWebhook(
+                    orderId,
+                    disputeId,
+                    Chargeback.ChargebackProvider.PAYPAL,
+                    reason,
+                    dueDate);
+        } catch (Exception ex) {
+            log.error("paypal-chargeback-webhook-processing-failed eventId={} error={}", eventId, ex.getMessage());
+            if (!eventId.isBlank()) {
+                webhookIdempotencyService.storePendingForRetry(
+                        eventId, "PAYPAL", eventType,
+                        payload.toString());
+            }
+            return ResponseEntity.ok(ApiResponse.ok(new ChargebackWebhookResponse("queued_for_retry")));
+        }
 
+        if (!eventId.isBlank()) {
+            webhookIdempotencyService.markProcessed(eventId, "PAYPAL", eventType);
+        }
         String outcome = result == null ? "duplicate" : result.id().toString();
         return ResponseEntity.ok(ApiResponse.ok(new ChargebackWebhookResponse(outcome)));
     }

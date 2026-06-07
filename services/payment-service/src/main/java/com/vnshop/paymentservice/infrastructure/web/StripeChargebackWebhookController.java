@@ -8,6 +8,7 @@ import com.vnshop.paymentservice.application.chargeback.ChargebackService;
 import com.vnshop.paymentservice.domain.Chargeback;
 import com.vnshop.paymentservice.infrastructure.stripe.StripeProperties;
 import com.vnshop.paymentservice.infrastructure.stripe.StripeWebhookVerifier;
+import com.vnshop.paymentservice.infrastructure.webhook.WebhookIdempotencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -40,13 +41,16 @@ public class StripeChargebackWebhookController {
     private final StripeProperties properties;
     private final StripeWebhookVerifier verifier;
     private final ChargebackService chargebackService;
+    private final WebhookIdempotencyService webhookIdempotencyService;
 
     public StripeChargebackWebhookController(StripeProperties properties,
                                               StripeWebhookVerifier verifier,
-                                              ChargebackService chargebackService) {
+                                              ChargebackService chargebackService,
+                                              WebhookIdempotencyService webhookIdempotencyService) {
         this.properties = Objects.requireNonNull(properties, "properties is required");
         this.verifier = Objects.requireNonNull(verifier, "verifier is required");
         this.chargebackService = Objects.requireNonNull(chargebackService, "chargebackService is required");
+        this.webhookIdempotencyService = Objects.requireNonNull(webhookIdempotencyService, "webhookIdempotencyService is required");
     }
 
     @PostMapping("/chargeback-webhook")
@@ -69,6 +73,11 @@ public class StripeChargebackWebhookController {
             return ResponseEntity.ok(ApiResponse.ok(new ChargebackWebhookResponse(event.getId(), "ignored")));
         }
 
+        // Webhook-level dedup: same event delivered twice → 200 immediately.
+        if (webhookIdempotencyService.isAlreadyProcessed(event.getId(), "STRIPE")) {
+            return ResponseEntity.ok(ApiResponse.ok(new ChargebackWebhookResponse(event.getId(), "duplicate")));
+        }
+
         StripeObject obj = event.getDataObjectDeserializer().getObject().orElse(null);
         if (!(obj instanceof Dispute dispute)) {
             log.warn("stripe-chargeback-deserialise-failed event={}", event.getId());
@@ -84,13 +93,21 @@ public class StripeChargebackWebhookController {
                 .atZone(ZoneOffset.UTC).toLocalDate()
                 : null;
 
-        Chargeback result = chargebackService.createFromWebhook(
-                orderId,
-                dispute.getId(),
-                Chargeback.ChargebackProvider.STRIPE,
-                dispute.getReason() != null ? dispute.getReason() : "unspecified",
-                dueDate);
+        Chargeback result;
+        try {
+            result = chargebackService.createFromWebhook(
+                    orderId,
+                    dispute.getId(),
+                    Chargeback.ChargebackProvider.STRIPE,
+                    dispute.getReason() != null ? dispute.getReason() : "unspecified",
+                    dueDate);
+        } catch (Exception ex) {
+            log.error("stripe-chargeback-webhook-processing-failed event={} error={}", event.getId(), ex.getMessage());
+            webhookIdempotencyService.storePendingForRetry(event.getId(), "STRIPE", event.getType(), payload);
+            return ResponseEntity.ok(ApiResponse.ok(new ChargebackWebhookResponse(event.getId(), "queued_for_retry")));
+        }
 
+        webhookIdempotencyService.markProcessed(event.getId(), "STRIPE", event.getType());
         String outcome = result == null ? "duplicate" : result.id().toString();
         return ResponseEntity.ok(ApiResponse.ok(new ChargebackWebhookResponse(event.getId(), outcome)));
     }

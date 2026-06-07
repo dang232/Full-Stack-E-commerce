@@ -9,6 +9,7 @@ import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackHasher;
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackLogStore;
 import com.vnshop.paymentservice.infrastructure.stripe.StripeProperties;
 import com.vnshop.paymentservice.infrastructure.stripe.StripeWebhookVerifier;
+import com.vnshop.paymentservice.infrastructure.webhook.WebhookIdempotencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,16 +48,19 @@ public class StripeWebhookController {
     private final StripeWebhookVerifier verifier;
     private final PaymentPromotionService promotionService;
     private final PaymentCallbackLogStore callbackLogStore;
+    private final WebhookIdempotencyService webhookIdempotencyService;
 
     public StripeWebhookController(
             StripeProperties properties,
             StripeWebhookVerifier verifier,
             PaymentPromotionService promotionService,
-            PaymentCallbackLogStore callbackLogStore) {
+            PaymentCallbackLogStore callbackLogStore,
+            WebhookIdempotencyService webhookIdempotencyService) {
         this.properties = Objects.requireNonNull(properties, "properties is required");
         this.verifier = Objects.requireNonNull(verifier, "verifier is required");
         this.promotionService = Objects.requireNonNull(promotionService, "promotionService is required");
         this.callbackLogStore = Objects.requireNonNull(callbackLogStore, "callbackLogStore is required");
+        this.webhookIdempotencyService = Objects.requireNonNull(webhookIdempotencyService, "webhookIdempotencyService is required");
     }
 
     @PostMapping("/webhook")
@@ -72,6 +76,11 @@ public class StripeWebhookController {
         } catch (RuntimeException ex) {
             log.warn("stripe-webhook-malformed-payload: {}", ex.getMessage());
             return ResponseEntity.badRequest().body(ApiResponse.error("malformed payload", "BAD_REQUEST"));
+        }
+
+        // Webhook-level dedup: same event delivered twice → 200 immediately.
+        if (webhookIdempotencyService.isAlreadyProcessed(event.getId(), "STRIPE")) {
+            return ResponseEntity.ok(ApiResponse.ok(new StripeWebhookResponse(event.getId(), "duplicate")));
         }
 
         String payloadHash = PaymentCallbackHasher.sha256(payload);
@@ -111,17 +120,27 @@ public class StripeWebhookController {
             return ResponseEntity.badRequest().body(ApiResponse.error("invalid paymentId metadata", "BAD_PAYLOAD"));
         }
 
-        PaymentCallbackAttempt savedAttempt = callbackLogStore.save(
-                attempt(event, payload, payloadHash, signatureHash, "PROCESSED", false));
-        PaymentPromotionService.PromotionResult result = promotionService.promote(
-                PaymentPromotionService.PromotionCommand.fromCallback(
-                        paymentId, "STRIPE", intent.getId(),
-                        savedAttempt.callbackId(), event.getId(), payloadHash));
+        PaymentCallbackAttempt savedAttempt;
+        PaymentPromotionService.PromotionResult result;
+        try {
+            savedAttempt = callbackLogStore.save(
+                    attempt(event, payload, payloadHash, signatureHash, "PROCESSED", false));
+            result = promotionService.promote(
+                    PaymentPromotionService.PromotionCommand.fromCallback(
+                            paymentId, "STRIPE", intent.getId(),
+                            savedAttempt.callbackId(), event.getId(), payloadHash));
+        } catch (Exception ex) {
+            log.error("stripe-webhook-processing-failed event={} error={}", event.getId(), ex.getMessage());
+            webhookIdempotencyService.storePendingForRetry(event.getId(), "STRIPE", event.getType(), payload);
+            // Return 200 so Stripe does not keep retrying — we handle retry internally.
+            return ResponseEntity.ok(ApiResponse.ok(new StripeWebhookResponse(event.getId(), "queued_for_retry")));
+        }
 
         if (result.outcome() == PaymentPromotionService.PromotionResult.Outcome.PAYMENT_NOT_FOUND) {
             log.warn("stripe-webhook-payment-not-found paymentId={} intent={}", paymentId, intent.getId());
             return ResponseEntity.badRequest().body(ApiResponse.error("payment not found", "PAYMENT_NOT_FOUND"));
         }
+        webhookIdempotencyService.markProcessed(event.getId(), "STRIPE", event.getType());
         return ResponseEntity.ok(ApiResponse.ok(new StripeWebhookResponse(event.getId(), result.outcome().name())));
     }
 
