@@ -331,6 +331,10 @@ class ProcessPaymentUseCaseTest {
         }
 
         @Override
+        public List<Payment> findByMethodAndStatusAndCreatedAtBefore(com.vnshop.paymentservice.domain.PaymentMethod method, PaymentStatus status, java.time.Instant before) {
+            return List.of();
+        }
+
         public List<Payment> findByStatus(PaymentStatus status) {
             return saved.stream().filter(p -> p.status() == status).toList();
         }
