@@ -92,6 +92,7 @@ describe('Notification Pipeline E2E', () => {
   }, 30000);
 
   afterAll(async () => {
+    client?.offAny();
     client?.disconnect();
     await app?.close();
     await mongod?.stop();

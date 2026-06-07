@@ -82,6 +82,7 @@ export class SocketioNotificationGateway
       const refreshInterval = setInterval(() => {
         void this.connectionRegistry.refreshRegistration(userId);
       }, 30_000);
+      refreshInterval.unref?.();
       (client.data as { refreshInterval?: NodeJS.Timeout }).refreshInterval =
         refreshInterval;
 
