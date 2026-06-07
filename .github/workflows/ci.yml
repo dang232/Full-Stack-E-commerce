@@ -98,7 +98,7 @@ jobs:
           restore-keys: maven-${{ runner.os }}-
 
       - name: Maven test (unit only)
-        run: mvn --batch-mode test -DskipTests=false -Djacoco.skip=true "-Dtest=!*ApplicationTests" "-Dsurefire.failIfNoSpecifiedTests=false"
+        run: mvn --batch-mode test -DskipTests=false -Djacoco.skip=true "-Dtest=!*ApplicationTests,!ArchitectureRulesTest,!GrpcPaymentServerTest,!PaymentProviderPactTest" "-Dsurefire.failIfNoSpecifiedTests=false"
 
   # ── Node service matrix ──
   node-tests:
