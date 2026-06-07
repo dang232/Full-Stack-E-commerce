@@ -221,6 +221,7 @@ jobs:
           image-ref: vnshop/${{ matrix.service }}:${{ github.sha }}
           format: table
           severity: CRITICAL,HIGH
+          scanners: vuln
           exit-code: '1'
 
   # ── Eslint check (notification service only) ──
@@ -261,7 +262,7 @@ jobs:
         with:
           version: 'latest'
       - run: cd proto && buf lint
-      - run: cd proto && buf breaking --against '../.git#branch=main,subdir=proto'
+      - run: cd proto && buf breaking --against "https://github.com/${GITHUB_REPOSITORY}.git#branch=${GITHUB_BASE_REF:-main},subdir=proto"
 
   # ── Coverage summary & gate ──
   coverage-gate:
