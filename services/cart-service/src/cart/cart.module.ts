@@ -5,6 +5,7 @@ import { EntityManager } from '@mikro-orm/core';
 import Redis from 'ioredis';
 import { AddToCartUseCase } from './application/add-to-cart.use-case';
 import { ClearCartUseCase } from './application/clear-cart.use-case';
+import { MergeCartUseCase } from './application/merge-cart.use-case';
 import type { ProductClientPort } from './application/product-client.port';
 import { PRODUCT_CLIENT } from './application/product-client.token';
 import { RemoveCartItemUseCase } from './application/remove-cart-item.use-case';
@@ -80,6 +81,12 @@ import { REDIS_CLIENT } from './redis-client.token';
       provide: ClearCartUseCase,
       useFactory: (repository: CartRepository): ClearCartUseCase =>
         new ClearCartUseCase(repository),
+      inject: [CART_REPOSITORY],
+    },
+    {
+      provide: MergeCartUseCase,
+      useFactory: (repository: CartRepository): MergeCartUseCase =>
+        new MergeCartUseCase(repository),
       inject: [CART_REPOSITORY],
     },
   ],

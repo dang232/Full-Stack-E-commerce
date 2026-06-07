@@ -1,16 +1,14 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Cart } from '../domain/cart';
-import { CartItem } from '../domain/cart-item';
-import { CART_REPOSITORY } from '../domain/cart-repository.token';
+import type { CartItem } from '../domain/cart-item';
 import type { CartRepository } from '../domain/cart.repository';
 import { toCartResponse } from './cart-response.mapper';
 import type { CartResponse } from './cart.response';
 
-@Injectable()
 export class MergeCartUseCase {
   private readonly logger = new Logger(MergeCartUseCase.name);
 
-  constructor(@Inject(CART_REPOSITORY) private readonly cartRepo: CartRepository) {}
+  constructor(private readonly cartRepo: CartRepository) {}
 
   async execute(userId: string, guestSessionId: string): Promise<CartResponse> {
     const guestKey = `guest:${guestSessionId}`;
