@@ -3,7 +3,7 @@ package vnshop.inventory;
 option java_multiple_files = true;
 option java_package = "com.vnshop.proto.inventory";
 
-import "common.proto";
+import "common/common.proto";
 
 service InventoryService {
   rpc Reserve(ReserveRequest) returns (ReserveResponse);

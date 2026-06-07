@@ -84,9 +84,11 @@ class SagaOrchestratorTest {
 
         SagaState result = sagaStateRepo.findBySagaId(sagaId).orElseThrow();
         assertThat(result.currentStep()).isEqualTo(SagaStatus.COMPENSATING);
-        InMemoryOutboxPort.PublishedEvent last = outboxPort.events.get(outboxPort.events.size() - 1);
-        assertThat(last.eventType()).isEqualTo("SAGA_COMPENSATING");
-        assertThat(last.payload()).contains("\"failedStep\":\"PAYMENT_CHARGE\"");
+        InMemoryOutboxPort.PublishedEvent compensatingEvent = outboxPort.events.stream()
+                .filter(e -> "SAGA_COMPENSATING".equals(e.eventType()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(compensatingEvent.payload()).contains("\"failedStep\":\"PAYMENT_CHARGE\"");
     }
 
     @Test

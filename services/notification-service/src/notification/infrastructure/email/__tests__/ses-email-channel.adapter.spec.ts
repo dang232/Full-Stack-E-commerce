@@ -25,11 +25,16 @@ describe('SesEmailChannelAdapter', () => {
       ...overrides,
     };
     return {
-      get: jest.fn((key: string, fallback?: string) => defaults[key] ?? fallback ?? ''),
+      get: jest.fn(
+        (key: string, fallback?: string) => defaults[key] ?? fallback ?? '',
+      ),
     };
   }
 
-  function buildNotification(type = NotificationType.ORDER_CREATED, deepLink?: string) {
+  function buildNotification(
+    type = NotificationType.ORDER_CREATED,
+    deepLink?: string,
+  ) {
     return Notification.create({
       userId: 'user-1',
       type,

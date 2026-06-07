@@ -3,7 +3,7 @@ package vnshop.shipping;
 option java_multiple_files = true;
 option java_package = "com.vnshop.proto.shipping";
 
-import "common.proto";
+import "common/common.proto";
 
 service ShippingService {
   rpc RequestShipping(ShippingRequest) returns (ShippingResponse);

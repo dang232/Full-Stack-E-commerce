@@ -14,7 +14,9 @@ describe('TwilioSmsChannelAdapter', () => {
       ...overrides,
     };
     return {
-      get: jest.fn((key: string, fallback?: string) => defaults[key] ?? fallback ?? ''),
+      get: jest.fn(
+        (key: string, fallback?: string) => defaults[key] ?? fallback ?? '',
+      ),
     };
   }
 

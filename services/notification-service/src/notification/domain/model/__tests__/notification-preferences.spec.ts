@@ -1,4 +1,7 @@
-import { NotificationPreferences, NotificationChannel } from '../notification-preferences';
+import {
+  NotificationPreferences,
+  NotificationChannel,
+} from '../notification-preferences';
 import { NotificationType } from '../notification-type.enum';
 
 describe('NotificationPreferences', () => {
@@ -124,7 +127,9 @@ describe('NotificationPreferences', () => {
         NotificationChannel.PUSH,
       ]);
       expect(prefs.typePreferences).toHaveLength(1);
-      expect(prefs.typePreferences[0].type).toBe(NotificationType.ORDER_SHIPPED);
+      expect(prefs.typePreferences[0].type).toBe(
+        NotificationType.ORDER_SHIPPED,
+      );
     });
 
     it('updates updatedAt timestamp', () => {

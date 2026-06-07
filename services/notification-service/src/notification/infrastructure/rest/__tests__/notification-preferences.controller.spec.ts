@@ -45,7 +45,7 @@ describe('NotificationPreferencesController', () => {
       const prefs = NotificationPreferences.createDefault('user-1');
       mockPrefsRepo.findByUserId.mockResolvedValue(prefs);
 
-      const result = await controller.get(fakeReq as any);
+      const result = await controller.get(fakeReq);
 
       expect(result.muted).toBe(false);
       expect(Array.isArray(result.typePreferences)).toBe(true);
@@ -55,7 +55,7 @@ describe('NotificationPreferencesController', () => {
     it('creates default preferences on first access (repo returns null)', async () => {
       mockPrefsRepo.findByUserId.mockResolvedValue(null);
 
-      const result = await controller.get(fakeReq as any);
+      const result = await controller.get(fakeReq);
 
       expect(result.muted).toBe(false);
       expect(mockPrefsRepo.save).toHaveBeenCalled();
@@ -65,7 +65,7 @@ describe('NotificationPreferencesController', () => {
       const prefs = NotificationPreferences.createDefault('user-1');
       mockPrefsRepo.findByUserId.mockResolvedValue(prefs);
 
-      const result = await controller.get(fakeReq as any);
+      const result = await controller.get(fakeReq);
 
       for (const tp of result.typePreferences) {
         expect(tp).toHaveProperty('type');
@@ -89,7 +89,7 @@ describe('NotificationPreferencesController', () => {
         muted: false,
       };
 
-      const result = await controller.update(fakeReq as any, body);
+      const result = await controller.update(fakeReq, body);
 
       expect(result.muted).toBe(false);
       expect(mockPrefsRepo.save).toHaveBeenCalled();
@@ -109,7 +109,7 @@ describe('NotificationPreferencesController', () => {
         muted: false,
       };
 
-      const result = await controller.update(fakeReq as any, body as any);
+      const result = await controller.update(fakeReq, body);
 
       const types = result.typePreferences.map((tp: any) => tp.type);
       expect(types).not.toContain('INVALID_TYPE');
@@ -128,7 +128,7 @@ describe('NotificationPreferencesController', () => {
         muted: false,
       };
 
-      const result = await controller.update(fakeReq as any, body as any);
+      const result = await controller.update(fakeReq, body);
 
       const orderPref = result.typePreferences.find(
         (tp: any) => tp.type === NotificationType.ORDER_CREATED,
@@ -140,7 +140,7 @@ describe('NotificationPreferencesController', () => {
     it('sets muted=true when requested', async () => {
       mockPrefsRepo.findByUserId.mockResolvedValue(null);
 
-      const result = await controller.update(fakeReq as any, {
+      const result = await controller.update(fakeReq, {
         typePreferences: [],
         muted: true,
       });
@@ -151,7 +151,7 @@ describe('NotificationPreferencesController', () => {
     it('defaults muted to false when not provided in body', async () => {
       mockPrefsRepo.findByUserId.mockResolvedValue(null);
 
-      const result = await controller.update(fakeReq as any, {
+      const result = await controller.update(fakeReq, {
         typePreferences: [],
       } as any);
 

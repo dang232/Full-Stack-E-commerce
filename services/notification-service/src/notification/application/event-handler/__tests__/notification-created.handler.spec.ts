@@ -9,7 +9,10 @@ import { PUSH_CHANNEL_PORT } from '../../../domain/port/outbound/push-channel.po
 import { SMS_CHANNEL_PORT } from '../../../domain/port/outbound/sms-channel.port';
 import { Notification } from '../../../domain/model/notification';
 import { NotificationType } from '../../../domain/model/notification-type.enum';
-import { NotificationChannel, NotificationPreferences } from '../../../domain/model/notification-preferences';
+import {
+  NotificationChannel,
+  NotificationPreferences,
+} from '../../../domain/model/notification-preferences';
 import { NotificationCreatedEvent } from '../../../domain/event/notification-created.event';
 
 describe('NotificationCreatedHandler', () => {
@@ -474,7 +477,9 @@ describe('NotificationCreatedHandler', () => {
 
     // Prefs with IN_APP enabled for ORDER_CREATED
     const prefs = NotificationPreferences.createDefault('user-17');
-    prefs.setTypeChannels(NotificationType.ORDER_CREATED, [NotificationChannel.IN_APP]);
+    prefs.setTypeChannels(NotificationType.ORDER_CREATED, [
+      NotificationChannel.IN_APP,
+    ]);
     mockPrefsRepo.findByUserId.mockResolvedValue(prefs);
 
     await handler.handle(
@@ -485,7 +490,10 @@ describe('NotificationCreatedHandler', () => {
       ),
     );
 
-    expect(mockChannel.sendToUser).toHaveBeenCalledWith('user-17', notification);
+    expect(mockChannel.sendToUser).toHaveBeenCalledWith(
+      'user-17',
+      notification,
+    );
   });
 
   it('skips email when emailChannel.isEnabled() returns false even with enabled=true and recipientEmail', async () => {
@@ -592,7 +600,10 @@ describe('NotificationCreatedHandler', () => {
     );
 
     // With null prefs, IN_APP is active → realtime delivery attempted
-    expect(mockChannel.sendToUser).toHaveBeenCalledWith('user-20', notification);
+    expect(mockChannel.sendToUser).toHaveBeenCalledWith(
+      'user-20',
+      notification,
+    );
   });
 
   it('skips SMS dispatch when SMS channel is in suppressedChannels', async () => {

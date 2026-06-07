@@ -196,10 +196,11 @@ describe('SendNotificationUseCase', () => {
   it('emits raw event for non-NotificationCreatedEvent domain events', async () => {
     // Force pullDomainEvents to return a plain object (not NotificationCreatedEvent instance)
     // to cover the else branch at line 122
-    const { Notification: NotificationClass } = require('../../../domain/model/notification') as typeof import('../../../domain/model/notification');
-    const spy = jest.spyOn(NotificationClass.prototype, 'pullDomainEvents').mockReturnValueOnce([
-      { type: 'SOME_OTHER_EVENT' } as any,
-    ]);
+    const { Notification: NotificationClass } =
+      require('../../../domain/model/notification') as typeof import('../../../domain/model/notification');
+    const spy = jest
+      .spyOn(NotificationClass.prototype, 'pullDomainEvents')
+      .mockReturnValueOnce([{ type: 'SOME_OTHER_EVENT' } as any]);
 
     mockPrefsRepo.findByUserId.mockResolvedValue(null);
     mockRepo.save.mockResolvedValue(undefined);
@@ -211,7 +212,9 @@ describe('SendNotificationUseCase', () => {
       body: 'B',
     });
 
-    expect(mockEmitter.emit).toHaveBeenCalledWith('notification.created', { type: 'SOME_OTHER_EVENT' });
+    expect(mockEmitter.emit).toHaveBeenCalledWith('notification.created', {
+      type: 'SOME_OTHER_EVENT',
+    });
     spy.mockRestore();
   });
 
@@ -234,7 +237,6 @@ describe('SendNotificationUseCase', () => {
     expect(mockEmitter.emit).toHaveBeenCalledWith(
       'notification.created',
       expect.objectContaining({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         suppressedChannels: expect.arrayContaining([NotificationChannel.EMAIL]),
       }),
     );

@@ -145,18 +145,18 @@ describe('MarkNotificationReadUseCase', () => {
   it('throws NotFoundException when notification does not exist', async () => {
     mockRepo.findByIdAndUserId.mockResolvedValue(null);
 
-    await expect(
-      useCase.execute('non-existent-id', 'user-1'),
-    ).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('non-existent-id', 'user-1')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('throws NotFoundException when notification belongs to different user', async () => {
     // findByIdAndUserId returns null when user doesn't match
     mockRepo.findByIdAndUserId.mockResolvedValue(null);
 
-    await expect(
-      useCase.execute('notif-id', 'wrong-user'),
-    ).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('notif-id', 'wrong-user')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('calls findByIdAndUserId with correct args', async () => {
@@ -170,6 +170,9 @@ describe('MarkNotificationReadUseCase', () => {
 
     await useCase.execute('notif-abc', 'user-1');
 
-    expect(mockRepo.findByIdAndUserId).toHaveBeenCalledWith('notif-abc', 'user-1');
+    expect(mockRepo.findByIdAndUserId).toHaveBeenCalledWith(
+      'notif-abc',
+      'user-1',
+    );
   });
 });

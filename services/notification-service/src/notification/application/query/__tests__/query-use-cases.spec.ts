@@ -109,17 +109,32 @@ describe('Query Use Cases', () => {
   describe('FindNotificationThreadsUseCase - branch coverage', () => {
     it('uses page=0 when page is not provided', async () => {
       await findThreads.execute({ userId: 'u1' });
-      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith('u1', 0, 20, undefined);
+      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith(
+        'u1',
+        0,
+        20,
+        undefined,
+      );
     });
 
     it('uses limit=20 when limit is not provided', async () => {
       await findThreads.execute({ userId: 'u1' });
-      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith('u1', 0, 20, undefined);
+      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith(
+        'u1',
+        0,
+        20,
+        undefined,
+      );
     });
 
     it('passes type=undefined when type not provided', async () => {
       await findThreads.execute({ userId: 'u1', page: 1, limit: 10 });
-      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith('u1', 1, 10, undefined);
+      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith(
+        'u1',
+        1,
+        10,
+        undefined,
+      );
     });
   });
 

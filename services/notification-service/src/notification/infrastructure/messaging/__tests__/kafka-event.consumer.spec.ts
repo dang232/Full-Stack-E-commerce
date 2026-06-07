@@ -88,7 +88,7 @@ describe('KafkaEventConsumer', () => {
       expect.objectContaining({
         userId: 'seller-2',
         type: NotificationType.PAYOUT_COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         body: expect.stringContaining('5000000'),
       }),
     );
@@ -231,7 +231,7 @@ describe('KafkaEventConsumer', () => {
       expect.objectContaining({
         userId: 'seller-23',
         type: NotificationType.PRODUCT_REJECTED,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         body: expect.stringContaining('Ảnh không rõ'),
       }),
     );
@@ -298,7 +298,10 @@ describe('KafkaEventConsumer', () => {
   });
 
   it('return.requested skips when sellerId absent', async () => {
-    await consumer.handleReturnRequested({ orderId: 'ORD-27', returnId: 'RET-27' });
+    await consumer.handleReturnRequested({
+      orderId: 'ORD-27',
+      returnId: 'RET-27',
+    });
     expect(mockSendNotification.execute).not.toHaveBeenCalled();
   });
 
@@ -313,12 +316,19 @@ describe('KafkaEventConsumer', () => {
   });
 
   it('review.replied skips when buyerId absent', async () => {
-    await consumer.handleReviewReplied({ reviewId: 'REV-2', productId: 'P-4', productName: 'X' });
+    await consumer.handleReviewReplied({
+      reviewId: 'REV-2',
+      productId: 'P-4',
+      productName: 'X',
+    });
     expect(mockSendNotification.execute).not.toHaveBeenCalled();
   });
 
   it('product.approved skips when sellerId absent', async () => {
-    await consumer.handleProductApproved({ productId: 'P-5', productName: 'Y' });
+    await consumer.handleProductApproved({
+      productId: 'P-5',
+      productName: 'Y',
+    });
     expect(mockSendNotification.execute).not.toHaveBeenCalled();
   });
 
@@ -328,10 +338,16 @@ describe('KafkaEventConsumer', () => {
   });
 
   it('order.created sends only to seller when buyerId absent', async () => {
-    await consumer.handleOrderCreated({ orderId: 'ORD-30', sellerId: 'seller-30' });
+    await consumer.handleOrderCreated({
+      orderId: 'ORD-30',
+      sellerId: 'seller-30',
+    });
     expect(mockSendNotification.execute).toHaveBeenCalledTimes(1);
     expect(mockSendNotification.execute).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'seller-30', type: NotificationType.SELLER_NEW_ORDER }),
+      expect.objectContaining({
+        userId: 'seller-30',
+        type: NotificationType.SELLER_NEW_ORDER,
+      }),
     );
   });
 

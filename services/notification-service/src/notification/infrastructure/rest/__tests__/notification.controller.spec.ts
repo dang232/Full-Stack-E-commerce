@@ -56,7 +56,6 @@ describe('NotificationRestController', () => {
     }),
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const mockReq = { user: { sub: 'user-1' } } as any;
 
   beforeEach(async () => {
@@ -87,7 +86,6 @@ describe('NotificationRestController', () => {
   });
 
   it('GET / returns paginated response', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const result = await controller.list(mockReq, undefined, undefined, 0, 20);
     expect(result).toHaveProperty('content');
     expect(result).toHaveProperty('totalElements', 0);
@@ -97,7 +95,6 @@ describe('NotificationRestController', () => {
   });
 
   it('GET / passes type filter to use case', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.list(mockReq, 'ORDER_CREATED', undefined, 0, 20);
     expect(mockFindNotifications.execute).toHaveBeenCalledWith(
       expect.objectContaining({ type: NotificationType.ORDER_CREATED }),
@@ -105,7 +102,6 @@ describe('NotificationRestController', () => {
   });
 
   it('GET / ignores invalid type filter', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.list(mockReq, 'INVALID_TYPE', undefined, 0, 20);
     expect(mockFindNotifications.execute).toHaveBeenCalledWith(
       expect.objectContaining({ type: undefined }),
@@ -113,28 +109,24 @@ describe('NotificationRestController', () => {
   });
 
   it('GET /unread-count returns count', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const result = await controller.unreadCount(mockReq);
     expect(result).toEqual({ count: 5 });
     expect(mockCountUnread.execute).toHaveBeenCalledWith('user-1');
   });
 
   it('GET /threads returns paginated threads', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const result = await controller.threads(mockReq, undefined, 0, 20);
     expect(result).toHaveProperty('content');
     expect(result).toHaveProperty('totalElements');
   });
 
   it('POST /mark-all-read returns updated count', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const result = await controller.markAllNotificationsRead(mockReq);
     expect(result).toEqual({ updated: 3 });
     expect(mockMarkAllRead.execute).toHaveBeenCalledWith('user-1');
   });
 
   it('POST /:id/read returns notification DTO', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const result = await controller.markNotificationRead(mockReq, 'notif-123');
     expect(result).toHaveProperty('id');
     expect(result).toHaveProperty('type', 'ORDER_CREATED');
@@ -144,7 +136,7 @@ describe('NotificationRestController', () => {
   it('POST /test returns notification DTO in non-production env', async () => {
     const origEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'test';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
     const result = await controller.createTestNotification(mockReq);
     process.env.NODE_ENV = origEnv;
     expect(result).toHaveProperty('id');
@@ -154,7 +146,7 @@ describe('NotificationRestController', () => {
   it('POST /test throws ForbiddenException in production', async () => {
     const origEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'production';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
     await expect(controller.createTestNotification(mockReq)).rejects.toThrow(
       'Test endpoint disabled in production',
     );
@@ -165,7 +157,7 @@ describe('NotificationRestController', () => {
     const origEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'test';
     mockSendNotification.execute.mockResolvedValueOnce(null);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
     const result = await controller.createTestNotification(mockReq);
     process.env.NODE_ENV = origEnv;
     expect(result).toEqual({
@@ -175,7 +167,6 @@ describe('NotificationRestController', () => {
   });
 
   it('GET / sets first=true when page=0', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const result = await controller.list(mockReq, undefined, undefined, 0, 20);
     expect(result.first).toBe(true);
   });
@@ -188,13 +179,12 @@ describe('NotificationRestController', () => {
       limit: 20,
       totalPages: 1,
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
     const result = await controller.list(mockReq, undefined, undefined, 0, 20);
     expect(result.last).toBe(true);
   });
 
   it('GET / caps size at 100', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.list(mockReq, undefined, undefined, 0, 999);
     expect(mockFindNotifications.execute).toHaveBeenCalledWith(
       expect.objectContaining({ limit: 100 }),
@@ -202,7 +192,6 @@ describe('NotificationRestController', () => {
   });
 
   it('GET /threads filters by valid type', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.threads(mockReq, 'ORDER_CREATED', 0, 20);
     expect(mockFindThreads.execute).toHaveBeenCalledWith(
       expect.objectContaining({ type: NotificationType.ORDER_CREATED }),
@@ -210,7 +199,6 @@ describe('NotificationRestController', () => {
   });
 
   it('GET /threads ignores invalid type', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await controller.threads(mockReq, 'BOGUS', 0, 20);
     expect(mockFindThreads.execute).toHaveBeenCalledWith(
       expect.objectContaining({ type: undefined }),
@@ -218,7 +206,6 @@ describe('NotificationRestController', () => {
   });
 
   it('GET /threads/:threadId returns thread notifications', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const result = await controller.threadNotifications(mockReq, 'order:123');
     expect(Array.isArray(result)).toBe(true);
     expect(mockFindThreadNotifs.execute).toHaveBeenCalledWith(

@@ -203,7 +203,9 @@ describe('MongoNotificationRepository', () => {
       limit: 20,
     });
 
-    expect(result.items.every((n) => n.type === NotificationType.ORDER_CREATED)).toBe(true);
+    expect(
+      result.items.every((n) => n.type === NotificationType.ORDER_CREATED),
+    ).toBe(true);
   });
 
   it('findByUser filters by threadId', async () => {

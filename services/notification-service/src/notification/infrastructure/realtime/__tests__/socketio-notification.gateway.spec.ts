@@ -9,7 +9,7 @@ import { NOTIFICATION_REPOSITORY } from '../../../domain/port/outbound/notificat
 import { NOTIFICATION_PREFERENCES_REPOSITORY } from '../../../domain/port/outbound/notification-preferences.repository';
 import { Notification } from '../../../domain/model/notification';
 import { NotificationType } from '../../../domain/model/notification-type.enum';
-import { NotificationChannel, NotificationPreferences } from '../../../domain/model/notification-preferences';
+import { NotificationPreferences } from '../../../domain/model/notification-preferences';
 import { DeliveryStatusValue } from '../../../domain/model/delivery-status';
 
 // Mock jsonwebtoken to bypass JWKS verification in tests
@@ -89,7 +89,7 @@ describe('SocketioNotificationGateway', () => {
     app.useWebSocketAdapter(new IoAdapter(app));
     await app.init();
     await app.listen(0);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     const address = app.getHttpServer().address() as { port: number };
     port = address.port;
   });
@@ -266,7 +266,10 @@ describe('SocketioNotificationGateway unit', () => {
         { provide: ConfigService, useValue: mockConfigUnit },
         { provide: CONNECTION_REGISTRY_PORT, useValue: mockRegistryUnit },
         { provide: NOTIFICATION_REPOSITORY, useValue: mockRepoUnit },
-        { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepoUnit },
+        {
+          provide: NOTIFICATION_PREFERENCES_REPOSITORY,
+          useValue: mockPrefsRepoUnit,
+        },
       ],
     }).compile();
     gateway = module.get(SocketioNotificationGateway);
@@ -287,9 +290,12 @@ describe('SocketioNotificationGateway unit', () => {
   describe('handleDisconnect', () => {
     it('calls unregister when userId is set', async () => {
       const client = makeSocket();
-      (client as any).userId = 'user-d1';
+      client.userId = 'user-d1';
       await gateway.handleDisconnect(client);
-      expect(mockRegistryUnit.unregister).toHaveBeenCalledWith('user-d1', 'sock-unit');
+      expect(mockRegistryUnit.unregister).toHaveBeenCalledWith(
+        'user-d1',
+        'sock-unit',
+      );
     });
 
     it('does not call unregister when userId not set', async () => {
@@ -300,7 +306,7 @@ describe('SocketioNotificationGateway unit', () => {
 
     it('clears refreshInterval when present on socket data', async () => {
       const client = makeSocket();
-      (client as any).userId = 'user-d2';
+      client.userId = 'user-d2';
       const interval = setInterval(() => {}, 60000);
       client.data = { refreshInterval: interval };
       await gateway.handleDisconnect(client);
@@ -309,9 +315,11 @@ describe('SocketioNotificationGateway unit', () => {
 
     it('does not throw when unregister rejects', async () => {
       const client = makeSocket();
-      (client as any).userId = 'user-d3';
+      client.userId = 'user-d3';
       client.data = {};
-      mockRegistryUnit.unregister.mockRejectedValueOnce(new Error('Redis error'));
+      mockRegistryUnit.unregister.mockRejectedValueOnce(
+        new Error('Redis error'),
+      );
       await expect(gateway.handleDisconnect(client)).resolves.not.toThrow();
     });
   });
@@ -325,14 +333,14 @@ describe('SocketioNotificationGateway unit', () => {
 
     it('does nothing when ids is empty', async () => {
       const client = makeSocket();
-      (client as any).userId = 'user-a1';
+      client.userId = 'user-a1';
       await gateway.handleAck(client, { ids: [] });
       expect(mockRepoUnit.findByIdAndUserId).not.toHaveBeenCalled();
     });
 
     it('does nothing when ids is not an array', async () => {
       const client = makeSocket();
-      (client as any).userId = 'user-a2';
+      client.userId = 'user-a2';
       await gateway.handleAck(client, { ids: null as any });
       expect(mockRepoUnit.findByIdAndUserId).not.toHaveBeenCalled();
     });
@@ -346,12 +354,14 @@ describe('SocketioNotificationGateway unit', () => {
       });
       notification.markSent();
       const client = makeSocket();
-      (client as any).userId = 'user-a3';
+      client.userId = 'user-a3';
       mockRepoUnit.findByIdAndUserId.mockResolvedValueOnce(notification);
 
       await gateway.handleAck(client, { ids: [notification.id] });
 
-      expect(notification.deliveryStatus.getValue()).toBe(DeliveryStatusValue.DELIVERED);
+      expect(notification.deliveryStatus.getValue()).toBe(
+        DeliveryStatusValue.DELIVERED,
+      );
       expect(mockRepoUnit.save).toHaveBeenCalledWith(notification);
     });
 
@@ -364,7 +374,7 @@ describe('SocketioNotificationGateway unit', () => {
       });
       // status is QUEUED
       const client = makeSocket();
-      (client as any).userId = 'user-a4';
+      client.userId = 'user-a4';
       mockRepoUnit.findByIdAndUserId.mockResolvedValueOnce(notification);
 
       await gateway.handleAck(client, { ids: [notification.id] });
@@ -374,7 +384,7 @@ describe('SocketioNotificationGateway unit', () => {
 
     it('skips when notification not found', async () => {
       const client = makeSocket();
-      (client as any).userId = 'user-a5';
+      client.userId = 'user-a5';
       mockRepoUnit.findByIdAndUserId.mockResolvedValueOnce(null);
 
       await gateway.handleAck(client, { ids: ['missing'] });
@@ -384,8 +394,10 @@ describe('SocketioNotificationGateway unit', () => {
 
     it('does not throw when repo rejects', async () => {
       const client = makeSocket();
-      (client as any).userId = 'user-a6';
-      mockRepoUnit.findByIdAndUserId.mockRejectedValueOnce(new Error('DB down'));
+      client.userId = 'user-a6';
+      mockRepoUnit.findByIdAndUserId.mockRejectedValueOnce(
+        new Error('DB down'),
+      );
 
       await expect(
         gateway.handleAck(client, { ids: ['notif-err'] }),
@@ -414,14 +426,19 @@ describe('SocketioNotificationGateway unit', () => {
 
       // Mock jwt.verify to succeed
       const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken');
-      jest.spyOn(jwt, 'verify').mockImplementationOnce((_t, _g, _o, cb: any) => {
-        cb(null, { sub: 'test-user-id' });
-      });
+      jest
+        .spyOn(jwt, 'verify')
+        .mockImplementationOnce((_t, _g, _o, cb: any) => {
+          cb(null, { sub: 'test-user-id' });
+        });
 
       await gateway.handleConnection(client);
 
       // filtered.length === 0 → no emit
-      expect(client.emit).not.toHaveBeenCalledWith('notification:catch-up', expect.anything());
+      expect(client.emit).not.toHaveBeenCalledWith(
+        'notification:catch-up',
+        expect.anything(),
+      );
     });
 
     it('skips catch-up when findByIds returns empty (notifications.length===0)', async () => {
@@ -432,13 +449,18 @@ describe('SocketioNotificationGateway unit', () => {
       client.handshake = { auth: { token: 'valid-token' }, query: {} } as any;
 
       const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken');
-      jest.spyOn(jwt, 'verify').mockImplementationOnce((_t, _g, _o, cb: any) => {
-        cb(null, { sub: 'test-user-id' });
-      });
+      jest
+        .spyOn(jwt, 'verify')
+        .mockImplementationOnce((_t, _g, _o, cb: any) => {
+          cb(null, { sub: 'test-user-id' });
+        });
 
       await gateway.handleConnection(client);
 
-      expect(client.emit).not.toHaveBeenCalledWith('notification:catch-up', expect.anything());
+      expect(client.emit).not.toHaveBeenCalledWith(
+        'notification:catch-up',
+        expect.anything(),
+      );
     });
   });
 });

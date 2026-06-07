@@ -9,7 +9,6 @@ import {
 import { NotificationType } from '../../../domain/model/notification-type.enum';
 
 describe('MongoNotificationPreferencesRepository', () => {
-  const lean = jest.fn();
   const exec = jest.fn();
   const findOne = jest.fn().mockReturnValue({ lean: () => ({ exec }) });
   const updateOne = jest.fn().mockResolvedValue({});

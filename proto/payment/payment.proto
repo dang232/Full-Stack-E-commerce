@@ -3,7 +3,7 @@ package vnshop.payment;
 option java_multiple_files = true;
 option java_package = "com.vnshop.proto.payment";
 
-import "common.proto";
+import "common/common.proto";
 
 service PaymentService {
   rpc RequestPayment(PaymentRequest) returns (PaymentResponse);

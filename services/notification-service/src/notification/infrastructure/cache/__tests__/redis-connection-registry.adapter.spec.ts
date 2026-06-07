@@ -45,8 +45,7 @@ describe('RedisConnectionRegistryAdapter', () => {
     const originalMulti = redisMock.multi.bind(redisMock);
     jest.spyOn(redisMock, 'multi').mockImplementationOnce(() => {
       const pipeline = originalMulti();
-      const originalExec = pipeline.exec.bind(pipeline);
-      jest.spyOn(pipeline, 'exec').mockResolvedValueOnce(null as any);
+      jest.spyOn(pipeline, 'exec').mockResolvedValueOnce(null);
       return pipeline;
     });
 
