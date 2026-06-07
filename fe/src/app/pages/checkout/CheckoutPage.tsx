@@ -63,28 +63,6 @@ export function CheckoutPage() {
     retry: false,
   });
 
-  const selectedAddress = addresses[selectedAddressIndex];
-  const ratesQuery = useQuery({
-    queryKey: [
-      "checkout",
-      "shipping-rates",
-      selectedAddress?.street,
-      selectedAddress?.district,
-      selectedAddress?.city,
-      totalAmount,
-    ],
-    queryFn: () =>
-      fetchShippingRates({
-        street: selectedAddress!.street,
-        ward: selectedAddress!.ward ?? undefined,
-        district: selectedAddress!.district ?? "",
-        province: selectedAddress!.city,
-        orderTotalVnd: totalAmount,
-      }),
-    enabled: !!selectedAddress && cartItems.length > 0,
-    retry: false,
-  });
-
   const paymentQuery = useQuery({
     queryKey: ["checkout", "payment-methods"],
     queryFn: fetchPaymentMethods,
@@ -92,42 +70,7 @@ export function CheckoutPage() {
     retry: false,
   });
 
-  const shippingOptions = useMemo(() => {
-    // Prefer live zone+weight rates from shipping-service when an address is
-    // selected. Fall back to the checkout-service generic options, then to
-    // static fallbacks so the shipping step is never empty.
-    const ratesData = ratesQuery.data?.options;
-    if (ratesData && ratesData.length > 0) {
-      return ratesData.map((r) => ({
-        id: r.serviceCode,
-        name: r.serviceCode === "STANDARD"
-          ? t("checkout.shipping.standardName")
-          : r.serviceCode === "EXPRESS"
-            ? t("checkout.shipping.expressName")
-            : r.serviceCode,
-        desc: r.estimatedDeliveryTime,
-        fee: r.feeVnd,
-        eta: r.estimatedDeliveryTime,
-      }));
-    }
-    const checkoutData = shippingQuery.data;
-    if (checkoutData && checkoutData.length > 0) {
-      return checkoutData.map((s, i) => ({
-        id: s.code ?? `option-${i}`,
-        name: s.name ?? t("checkout.shipping.fallbackName", { n: i + 1 }),
-        desc:
-          typeof s.estimatedDays === "number"
-            ? t("checkout.shipping.deliverInDays", { n: s.estimatedDays })
-            : t("checkout.shipping.etaStandard"),
-        fee: s.fee ?? 0,
-        eta:
-          typeof s.estimatedDays === "number"
-            ? t("checkout.shipping.etaDays", { n: s.estimatedDays })
-            : t("checkout.shipping.etaStandard"),
-      }));
-    }
-    return makeFallbackShipping(t);
-  }, [ratesQuery.data, shippingQuery.data, t]);
+  // shippingOptions moved after ratesQuery declaration below
 
   const paymentOptions: PaymentOption[] = useMemo(() => {
     const data = paymentQuery.data;
@@ -188,7 +131,7 @@ export function CheckoutPage() {
     } catch { /* ignore */ }
     return "";
   });
-  const selectedShippingId = shippingChoice || shippingOptions[0]?.id || "";
+  const selectedShippingId = shippingChoice || "";
   const [selectedPaymentId, setSelectedPaymentId] = useState<PaymentOption["id"]>(() => {
     try {
       const raw = sessionStorage.getItem("vnshop:checkout-state");
@@ -228,6 +171,62 @@ export function CheckoutPage() {
   const [showCouponPicker, setShowCouponPicker] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+
+  const selectedAddress = addresses[selectedAddressIndex];
+  const ratesQuery = useQuery({
+    queryKey: [
+      "checkout",
+      "shipping-rates",
+      selectedAddress?.street,
+      selectedAddress?.district,
+      selectedAddress?.city,
+      totalAmount,
+    ],
+    queryFn: () =>
+      fetchShippingRates({
+        street: selectedAddress!.street,
+        ward: selectedAddress!.ward ?? undefined,
+        district: selectedAddress!.district ?? "",
+        province: selectedAddress!.city,
+        orderTotalVnd: totalAmount,
+      }),
+    enabled: !!selectedAddress && cartItems.length > 0,
+    retry: false,
+  });
+
+  const shippingOptions = useMemo(() => {
+    const ratesData = ratesQuery.data?.options;
+    if (ratesData && ratesData.length > 0) {
+      return ratesData.map((r: { serviceCode: string; feeVnd: number; estimatedDeliveryTime: string }) => ({
+        id: r.serviceCode,
+        name: r.serviceCode === "STANDARD"
+          ? t("checkout.shipping.standardName")
+          : r.serviceCode === "EXPRESS"
+            ? t("checkout.shipping.expressName")
+            : r.serviceCode,
+        desc: r.estimatedDeliveryTime,
+        fee: r.feeVnd,
+        eta: r.estimatedDeliveryTime,
+      }));
+    }
+    const checkoutData = shippingQuery.data;
+    if (checkoutData && checkoutData.length > 0) {
+      return checkoutData.map((s, i) => ({
+        id: s.code ?? `option-${i}`,
+        name: s.name ?? t("checkout.shipping.fallbackName", { n: i + 1 }),
+        desc:
+          typeof s.estimatedDays === "number"
+            ? t("checkout.shipping.deliverInDays", { n: s.estimatedDays })
+            : t("checkout.shipping.etaStandard"),
+        fee: s.fee ?? 0,
+        eta:
+          typeof s.estimatedDays === "number"
+            ? t("checkout.shipping.etaDays", { n: s.estimatedDays })
+            : t("checkout.shipping.etaStandard"),
+      }));
+    }
+    return makeFallbackShipping(t);
+  }, [ratesQuery.data, shippingQuery.data, t]);
 
   // Lazily fetch the public coupon catalogue when the user opens the picker.
   // No `enabled` gate would mean every checkout view paid the call even if

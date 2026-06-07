@@ -4,6 +4,7 @@ import com.vnshop.invoiceservice.application.xml.InvoiceXmlGenerator;
 import com.vnshop.invoiceservice.domain.entity.Invoice;
 import com.vnshop.invoiceservice.domain.entity.InvoiceStatus;
 import com.vnshop.invoiceservice.domain.repository.InvoiceRepository;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +25,12 @@ public class InvoiceService {
     /**
      * Creates a DRAFT invoice from an order.confirmed event payload.
      * Idempotent: if an invoice already exists for the orderId, returns the existing one.
+     *
+     * @param taxDeductionAmount pre-calculated deduction amount for authorized sellers; null otherwise
      */
     @Transactional
-    public Invoice createDraftInvoice(UUID orderId, String sellerId, String items, String vatBreakdown, String buyerTaxCode) {
+    public Invoice createDraftInvoice(UUID orderId, String sellerId, String items, String vatBreakdown,
+            String buyerTaxCode, BigDecimal taxDeductionAmount) {
         Optional<Invoice> existing = invoiceRepository.findByOrderId(orderId);
         if (existing.isPresent()) {
             log.debug("Invoice already exists for orderId={} — idempotent no-op", orderId);
@@ -41,12 +45,14 @@ public class InvoiceService {
                 .items(items)
                 .vatBreakdown(vatBreakdown)
                 .status(InvoiceStatus.DRAFT)
+                .taxDeductionAmount(taxDeductionAmount)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
 
         Invoice saved = invoiceRepository.save(invoice);
-        log.info("Created DRAFT invoice id={} for orderId={} sellerId={}", saved.getId(), orderId, sellerId);
+        log.info("Created DRAFT invoice id={} for orderId={} sellerId={} taxDeductionAmount={}",
+                saved.getId(), orderId, sellerId, taxDeductionAmount);
         return saved;
     }
 

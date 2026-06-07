@@ -35,6 +35,9 @@ public class BuyerProfileJpaEntity extends BaseJpaEntity {
 
     private String avatarUrl;
 
+    @Column(nullable = false)
+    private boolean banned = false;
+
     @OneToMany(mappedBy = "buyerProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AddressJpaEntity> addresses = new ArrayList<>();
 
@@ -46,6 +49,7 @@ public class BuyerProfileJpaEntity extends BaseJpaEntity {
         this.name = name;
         this.phone = phone;
         this.avatarUrl = avatarUrl;
+        this.banned = false;
     }
 
     static BuyerProfileJpaEntity fromDomain(BuyerProfile buyerProfile) {
@@ -55,6 +59,7 @@ public class BuyerProfileJpaEntity extends BaseJpaEntity {
                 buyerProfile.phone() == null ? null : buyerProfile.phone().value(),
                 buyerProfile.avatarUrl()
         );
+        entity.banned = buyerProfile.banned();
         buyerProfile.addresses().forEach(address -> entity.addAddress(AddressJpaEntity.fromDomain(address)));
         return entity;
     }
@@ -65,6 +70,7 @@ public class BuyerProfileJpaEntity extends BaseJpaEntity {
                 name,
                 phone == null ? null : new PhoneNumber(phone),
                 avatarUrl,
+                banned,
                 addresses.stream().map(AddressJpaEntity::toDomain).toList()
         );
     }

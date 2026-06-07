@@ -1,5 +1,7 @@
 package com.vnshop.orderservice.infrastructure.grpc;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.orderservice.domain.OrderItem;
 import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
 import com.vnshop.proto.inventory.InventoryServiceGrpc;
@@ -13,9 +15,12 @@ import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -24,15 +29,22 @@ import java.util.concurrent.TimeUnit;
 public class GrpcInventoryReservationAdapter implements InventoryReservationPort {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GrpcInventoryReservationAdapter.class);
+    private static final String TOPIC_RELEASE_REQUESTED = "inventory.release-requested";
 
     private final InventoryServiceGrpc.InventoryServiceBlockingStub inventoryStub;
     private final CircuitBreaker circuitBreaker;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     public GrpcInventoryReservationAdapter(
             InventoryServiceGrpc.InventoryServiceBlockingStub inventoryStub,
-            CircuitBreaker inventoryCircuitBreaker) {
+            CircuitBreaker inventoryCircuitBreaker,
+            KafkaTemplate<String, String> kafkaTemplate,
+            ObjectMapper objectMapper) {
         this.inventoryStub = Objects.requireNonNull(inventoryStub, "inventoryStub is required");
         this.circuitBreaker = Objects.requireNonNull(inventoryCircuitBreaker, "inventoryCircuitBreaker is required");
+        this.kafkaTemplate = Objects.requireNonNull(kafkaTemplate, "kafkaTemplate is required");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper is required");
     }
 
     @Override
@@ -94,11 +106,24 @@ public class GrpcInventoryReservationAdapter implements InventoryReservationPort
             }
             LOGGER.info("Inventory released for order {}", orderId);
         } catch (CallNotPermittedException e) {
-            LOGGER.error("Circuit breaker OPEN for inventory-service: {}", e.getMessage());
-            throw new RuntimeException("Inventory service unavailable (circuit open)", e);
+            LOGGER.warn("Circuit breaker OPEN for inventory-service — publishing release to Kafka fallback for order {}", orderId);
+            publishReleaseRequested(orderId);
         } catch (StatusRuntimeException e) {
             LOGGER.error("gRPC release call failed for order {}: {}", orderId, e.getMessage(), e);
             throw new RuntimeException("Inventory release failed for order " + orderId, e);
+        }
+    }
+
+    private void publishReleaseRequested(String orderId) {
+        try {
+            String payload = objectMapper.writeValueAsString(Map.of(
+                "orderId", orderId,
+                "timestamp", Instant.now().toString()
+            ));
+            kafkaTemplate.send(TOPIC_RELEASE_REQUESTED, orderId, payload);
+            LOGGER.info("Published inventory.release-requested for order {}", orderId);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize release-requested event for order " + orderId, e);
         }
     }
 }

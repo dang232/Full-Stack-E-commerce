@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.infrastructure.config;
 
 import com.vnshop.orderservice.application.AcceptOrderUseCase;
+import com.vnshop.orderservice.application.AdminOrderUseCase;
 import com.vnshop.orderservice.application.ConfirmDeliveryUseCase;
 import com.vnshop.orderservice.application.ApproveReturnUseCase;
 import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
@@ -23,6 +24,7 @@ import com.vnshop.orderservice.application.RequestReturnUseCase;
 import com.vnshop.orderservice.application.SellerOrderQueryUseCase;
 import com.vnshop.orderservice.application.ShipOrderUseCase;
 import com.vnshop.orderservice.application.ViewOrderUseCase;
+import com.vnshop.orderservice.domain.port.out.OrderSummaryQueryPort;
 import com.vnshop.orderservice.domain.port.out.CommissionTierLookupPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.DashboardAnalyticsPort;
@@ -48,6 +50,16 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class UseCaseConfig {
+    @Bean
+    AdminOrderUseCase adminOrderUseCase(
+            OrderRepositoryPort orderRepositoryPort,
+            OrderSummaryQueryPort orderSummaryQueryPort,
+            InventoryReservationPort inventoryReservationPort,
+            OrderEventPublisherPort orderEventPublisherPort
+    ) {
+        return new AdminOrderUseCase(orderRepositoryPort, orderSummaryQueryPort, inventoryReservationPort, orderEventPublisherPort);
+    }
+
     @Bean
     TaxCalculationService taxCalculationService(TaxRateLookupPort taxRateLookupPort) {
         return new TaxCalculationService(taxRateLookupPort);

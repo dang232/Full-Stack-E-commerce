@@ -34,3 +34,25 @@ export const shippingOptions = (body: {
 
 export const validateCoupon = (body: { code: string; subtotal?: number }) =>
   api.post("/checkout/validate-coupon", validateCouponResponseSchema, body);
+
+// Shipping rates from shipping-service (zone+weight based)
+export interface ShippingRatesRequest {
+  street: string;
+  ward?: string;
+  district: string;
+  province: string;
+  orderTotalVnd: number;
+}
+
+const shippingRatesResponseSchema = z.object({
+  options: z.array(
+    z.object({
+      serviceCode: z.string(),
+      feeVnd: z.number(),
+      estimatedDeliveryTime: z.string(),
+    })
+  ),
+});
+
+export const fetchShippingRates = (body: ShippingRatesRequest) =>
+  api.post("/shipping/rates", shippingRatesResponseSchema, body);

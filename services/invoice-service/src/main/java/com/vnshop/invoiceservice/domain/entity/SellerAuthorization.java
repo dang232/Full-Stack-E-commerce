@@ -15,6 +15,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Builder.Default;
 
 @Entity
 @Table(name = "seller_authorizations")
@@ -45,4 +46,8 @@ public class SellerAuthorization {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AuthorizationStatus status;
+
+    @Default
+    @Column(name = "tax_deduction_percent", nullable = false)
+    private int taxDeductionPercent = 10;
 }

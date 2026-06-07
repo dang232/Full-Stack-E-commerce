@@ -111,6 +111,38 @@ public class UserJpaRepository implements UserRepositoryPort {
     }
 
     @Override
+    public List<BuyerProfile> searchBuyers(String email, String phone) {
+        boolean hasEmail = email != null && !email.isBlank();
+        boolean hasPhone = phone != null && !phone.isBlank();
+        if (!hasEmail && !hasPhone) {
+            return List.of();
+        }
+        if (hasEmail) {
+            // keycloakId is the Keycloak subject UUID; email-based lookup goes
+            // through Keycloak. For the MVP we match on the `name` field which
+            // is populated with the user's display name / email prefix.
+            return entityManager.createQuery(
+                            "select b from BuyerProfileJpaEntity b left join fetch b.addresses where lower(b.name) like lower(:term)",
+                            BuyerProfileJpaEntity.class
+                    )
+                    .setParameter("term", "%" + email + "%")
+                    .getResultList()
+                    .stream()
+                    .map(BuyerProfileJpaEntity::toDomain)
+                    .toList();
+        }
+        return entityManager.createQuery(
+                        "select b from BuyerProfileJpaEntity b left join fetch b.addresses where b.phone like :term",
+                        BuyerProfileJpaEntity.class
+                )
+                .setParameter("term", "%" + phone + "%")
+                .getResultList()
+                .stream()
+                .map(BuyerProfileJpaEntity::toDomain)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public void anonymize(String keycloakId) {
         findBuyerEntityByKeycloakId(keycloakId).ifPresent(entity -> {
