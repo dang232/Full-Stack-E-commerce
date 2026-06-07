@@ -2,6 +2,52 @@ import { z } from "zod";
 
 import { productIdSchema, sellerIdSchema } from "./branded-ids";
 
+// BE user-service BuyerProfileResponse(keycloakId, name, phone, avatarUrl, banned).
+// Used by admin user management panel.
+export const adminUserSchema = z
+  .object({
+    keycloakId: z.string(),
+    name: z.string().nullable().optional(),
+    phone: z.string().nullable().optional(),
+    avatarUrl: z.string().nullable().optional(),
+    banned: z.boolean().optional(),
+  })
+  .passthrough()
+  .transform((raw) => ({
+    keycloakId: raw.keycloakId,
+    name: raw.name ?? undefined,
+    phone: raw.phone ?? undefined,
+    avatarUrl: raw.avatarUrl ?? undefined,
+    banned: raw.banned ?? false,
+  }));
+export type AdminUser = z.infer<typeof adminUserSchema>;
+
+// BE order-service OrderSummaryProjection(orderId, buyerId, sellerId, status,
+// totalAmount, itemCount, createdAt, updatedAt). Used by admin order management.
+export const adminOrderSummarySchema = z
+  .object({
+    orderId: z.string(),
+    buyerId: z.string().optional(),
+    sellerId: z.string().nullable().optional(),
+    status: z.string().optional(),
+    totalAmount: z.number().nullable().optional(),
+    itemCount: z.number().optional(),
+    createdAt: z.string().nullable().optional(),
+    updatedAt: z.string().nullable().optional(),
+  })
+  .passthrough()
+  .transform((raw) => ({
+    orderId: raw.orderId,
+    buyerId: raw.buyerId ?? "",
+    sellerId: raw.sellerId ?? undefined,
+    status: raw.status ?? "PENDING_ACCEPTANCE",
+    totalAmount: raw.totalAmount ?? 0,
+    itemCount: raw.itemCount ?? 0,
+    createdAt: raw.createdAt ?? undefined,
+    updatedAt: raw.updatedAt ?? undefined,
+  }));
+export type AdminOrderSummary = z.infer<typeof adminOrderSummarySchema>;
+
 /**
  * Admin / staff-facing schemas backing the admin control plane. The buyer-side
  * coupon surface lives in `./coupon.ts`; this file's couponSchema is the

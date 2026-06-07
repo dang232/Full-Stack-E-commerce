@@ -39,9 +39,15 @@ describe('Query Use Cases', () => {
 
   describe('FindUserNotificationsUseCase', () => {
     it('passes type filter to repository', async () => {
-      await findNotifications.execute({ userId: 'u1', type: NotificationType.ORDER_CREATED });
+      await findNotifications.execute({
+        userId: 'u1',
+        type: NotificationType.ORDER_CREATED,
+      });
       expect(mockRepo.findByUser).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'u1', type: NotificationType.ORDER_CREATED }),
+        expect.objectContaining({
+          userId: 'u1',
+          type: NotificationType.ORDER_CREATED,
+        }),
       );
     });
 
@@ -61,15 +67,27 @@ describe('Query Use Cases', () => {
 
     it('calculates totalPages', async () => {
       mockRepo.findByUser.mockResolvedValue({ items: [], total: 45 });
-      const result = await findNotifications.execute({ userId: 'u1', limit: 20 });
+      const result = await findNotifications.execute({
+        userId: 'u1',
+        limit: 20,
+      });
       expect(result.totalPages).toBe(3);
     });
   });
 
   describe('FindNotificationThreadsUseCase', () => {
     it('passes type filter and caps limit at 50', async () => {
-      await findThreads.execute({ userId: 'u1', type: NotificationType.ORDER_SHIPPED, limit: 100 });
-      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith('u1', 0, 50, NotificationType.ORDER_SHIPPED);
+      await findThreads.execute({
+        userId: 'u1',
+        type: NotificationType.ORDER_SHIPPED,
+        limit: 100,
+      });
+      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith(
+        'u1',
+        0,
+        50,
+        NotificationType.ORDER_SHIPPED,
+      );
     });
   });
 
@@ -85,6 +103,62 @@ describe('Query Use Cases', () => {
       const count = await countUnread.execute('u1');
       expect(count).toBe(5);
       expect(mockRepo.countUnread).toHaveBeenCalledWith('u1');
+    });
+  });
+
+  describe('FindNotificationThreadsUseCase - branch coverage', () => {
+    it('uses page=0 when page is not provided', async () => {
+      await findThreads.execute({ userId: 'u1' });
+      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith(
+        'u1',
+        0,
+        20,
+        undefined,
+      );
+    });
+
+    it('uses limit=20 when limit is not provided', async () => {
+      await findThreads.execute({ userId: 'u1' });
+      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith(
+        'u1',
+        0,
+        20,
+        undefined,
+      );
+    });
+
+    it('passes type=undefined when type not provided', async () => {
+      await findThreads.execute({ userId: 'u1', page: 1, limit: 10 });
+      expect(mockRepo.findThreadsByUser).toHaveBeenCalledWith(
+        'u1',
+        1,
+        10,
+        undefined,
+      );
+    });
+  });
+
+  describe('FindUserNotificationsUseCase - branch coverage', () => {
+    it('uses page=0 and limit=20 as defaults', async () => {
+      await findNotifications.execute({ userId: 'u1' });
+      expect(mockRepo.findByUser).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 0, limit: 20 }),
+      );
+    });
+
+    it('passes threadId filter when provided', async () => {
+      await findNotifications.execute({ userId: 'u1', threadId: 'order:123' });
+      expect(mockRepo.findByUser).toHaveBeenCalledWith(
+        expect.objectContaining({ threadId: 'order:123' }),
+      );
+    });
+  });
+
+  describe('FindThreadNotificationsUseCase - branch coverage', () => {
+    it('returns empty array from repo', async () => {
+      mockRepo.findByThread.mockResolvedValue([]);
+      const result = await findThreadNotifs.execute('thread:1', 'u1');
+      expect(result).toEqual([]);
     });
   });
 });

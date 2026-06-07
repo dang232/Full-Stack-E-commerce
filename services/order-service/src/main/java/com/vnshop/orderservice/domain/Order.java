@@ -22,6 +22,7 @@ public class Order {
     private Money itemsTotal;
     private Money shippingTotal;
     private Money discount;
+    private Money taxTotal;
     private Money finalAmount;
     private final String paymentMethod;
     private PaymentStatus paymentStatus;
@@ -35,7 +36,7 @@ public class Order {
 
     public Order(UUID id, String buyerId, Address shippingAddress, List<SubOrder> subOrders, String idempotencyKey) {
         this(id, generateOrderNumber(), buyerId, shippingAddress, subOrders, Money.ZERO, Money.ZERO, Money.ZERO,
-                "COD", PaymentStatus.PENDING, idempotencyKey);
+                Money.ZERO, "COD", PaymentStatus.PENDING, idempotencyKey);
     }
 
     public Order(
@@ -47,6 +48,24 @@ public class Order {
             Money itemsTotal,
             Money shippingTotal,
             Money discount,
+            String paymentMethod,
+            PaymentStatus paymentStatus,
+            String idempotencyKey
+    ) {
+        this(id, orderNumber, buyerId, shippingAddress, subOrders, itemsTotal, shippingTotal, discount,
+                Money.ZERO, paymentMethod, paymentStatus, idempotencyKey);
+    }
+
+    public Order(
+            UUID id,
+            String orderNumber,
+            String buyerId,
+            Address shippingAddress,
+            List<SubOrder> subOrders,
+            Money itemsTotal,
+            Money shippingTotal,
+            Money discount,
+            Money taxTotal,
             String paymentMethod,
             PaymentStatus paymentStatus,
             String idempotencyKey
@@ -66,6 +85,7 @@ public class Order {
         this.itemsTotal = Objects.requireNonNull(itemsTotal, "itemsTotal is required");
         this.shippingTotal = Objects.requireNonNull(shippingTotal, "shippingTotal is required");
         this.discount = Objects.requireNonNull(discount, "discount is required");
+        this.taxTotal = Objects.requireNonNull(taxTotal, "taxTotal is required");
         this.paymentMethod = paymentMethod == null || paymentMethod.isBlank() ? "COD" : paymentMethod;
         this.paymentStatus = Objects.requireNonNull(paymentStatus, "paymentStatus is required");
         this.idempotencyKey = idempotencyKey;
@@ -116,6 +136,10 @@ public class Order {
         return discount;
     }
 
+    public Money taxTotal() {
+        return taxTotal;
+    }
+
     public Money finalAmount() {
         return finalAmount;
     }
@@ -143,7 +167,16 @@ public class Order {
         if (discount.amount().compareTo(grossAmount.amount()) > 0) {
             throw new IllegalArgumentException("discount cannot exceed order total");
         }
-        finalAmount = new Money(grossAmount.amount().subtract(discount.amount()), grossAmount.currency());
+        finalAmount = new Money(
+                grossAmount.amount()
+                        .subtract(discount.amount())
+                        .add(taxTotal.amount()),
+                grossAmount.currency());
+    }
+
+    public void applyTax(Money taxTotal) {
+        this.taxTotal = Objects.requireNonNull(taxTotal, "taxTotal is required");
+        calculateTotals();
     }
 
     public void markPaymentCompleted() {
@@ -152,6 +185,10 @@ public class Order {
 
     public void markPaymentFailed() {
         paymentStatus = PaymentStatus.FAILED;
+    }
+
+    public void markPaymentDisputed() {
+        paymentStatus = PaymentStatus.DISPUTED;
     }
 
     public BigDecimal externalAmount() { return externalAmount; }

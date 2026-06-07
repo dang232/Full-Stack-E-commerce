@@ -2,8 +2,6 @@ import { IconAlertCircle, IconChevronLeft, IconChevronRight, IconEdit, IconFilte
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { comingSoon } from "../../lib/ui/coming-soon";
-
 import { SellerProductModal } from "../../components/seller-product-modal";
 import { useAuth } from "../../hooks/use-auth";
 import { useProducts } from "../../hooks/use-products";
@@ -60,8 +58,9 @@ export function SellerProducts() {
           />
         </div>
         <button
-          onClick={() => comingSoon("Product filtering")}
-          className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl bg-card text-sm text-muted-foreground"
+          disabled
+          title="Available Q3 2026"
+          className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl bg-card text-sm text-muted-foreground opacity-50 cursor-not-allowed"
         >
           <IconFilter size={15} /> {t("seller.products.filter")}
         </button>

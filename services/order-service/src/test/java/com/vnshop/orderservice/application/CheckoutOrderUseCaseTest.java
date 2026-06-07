@@ -19,6 +19,7 @@ import com.vnshop.orderservice.domain.port.out.ProductCatalogPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import com.vnshop.orderservice.application.saga.SagaOrchestrator;
+import com.vnshop.orderservice.application.tax.TaxCalculationService;
 import com.vnshop.orderservice.domain.port.out.MetricsPort;
 import com.vnshop.orderservice.domain.port.out.OutboxPort;
 import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
@@ -63,7 +64,8 @@ class CheckoutOrderUseCaseTest {
 
     private CheckoutOrderUseCase newUseCase() {
         SagaOrchestrator sagaOrchestrator = new SagaOrchestrator(new NoopSagaStateRepository(), new NoopOutboxPort(), 1_000);
-        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup, cart, noopMetrics, sagaOrchestrator);
+        TaxCalculationService taxService = new TaxCalculationService((code, date) -> java.util.Optional.of(new java.math.BigDecimal("0.10")));
+        CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup, cart, noopMetrics, sagaOrchestrator, taxService);
         return new CheckoutOrderUseCase(catalog, createOrderUseCase);
     }
 
@@ -232,6 +234,7 @@ class CheckoutOrderUseCaseTest {
         @Override public void publishOrderCreated(Order order) {}
         @Override public void publishOrderUpdated(Order order) {}
         @Override public void publishOrderPaid(Order order) {}
+        @Override public void publishOrderDelivered(Order order, SubOrder subOrder) {}
     }
 
     private static final class FakeCartRepository implements CartRepositoryPort {

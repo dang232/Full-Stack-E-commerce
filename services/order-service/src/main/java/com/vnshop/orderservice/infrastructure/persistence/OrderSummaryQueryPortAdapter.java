@@ -60,4 +60,19 @@ public class OrderSummaryQueryPortAdapter implements OrderSummaryQueryPort {
         OrderSummaryProjectionJpaEntity entity = entityManager.find(OrderSummaryProjectionJpaEntity.class, orderId);
         return Optional.ofNullable(entity).map(OrderSummaryProjectionJpaEntity::toDomain);
     }
+
+    @Override
+    public List<OrderSummaryProjection> findAll(String status) {
+        boolean hasStatus = status != null && !status.isBlank();
+        String jpql = "SELECT o FROM OrderSummaryProjectionJpaEntity o"
+                + (hasStatus ? " WHERE o.status = :status" : "")
+                + " ORDER BY o.createdAt DESC";
+        TypedQuery<OrderSummaryProjectionJpaEntity> q = entityManager
+                .createQuery(jpql, OrderSummaryProjectionJpaEntity.class)
+                .setMaxResults(200);
+        if (hasStatus) q.setParameter("status", status);
+        return q.getResultStream()
+                .map(OrderSummaryProjectionJpaEntity::toDomain)
+                .toList();
+    }
 }

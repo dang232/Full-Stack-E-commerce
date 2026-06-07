@@ -3,6 +3,7 @@ package com.vnshop.shippingservice.infrastructure.event;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@ConditionalOnBean(JdbcTemplate.class)
 public class GdprEventListener {
     private static final Logger log = LoggerFactory.getLogger(GdprEventListener.class);
     private final JdbcTemplate jdbcTemplate;

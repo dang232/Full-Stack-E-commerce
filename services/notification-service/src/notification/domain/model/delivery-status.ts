@@ -8,11 +8,20 @@ export enum DeliveryStatusValue {
 }
 
 const VALID_TRANSITIONS: Record<DeliveryStatusValue, DeliveryStatusValue[]> = {
-  [DeliveryStatusValue.QUEUED]: [DeliveryStatusValue.SENT, DeliveryStatusValue.FAILED],
-  [DeliveryStatusValue.SENT]: [DeliveryStatusValue.DELIVERED, DeliveryStatusValue.FAILED],
+  [DeliveryStatusValue.QUEUED]: [
+    DeliveryStatusValue.SENT,
+    DeliveryStatusValue.FAILED,
+  ],
+  [DeliveryStatusValue.SENT]: [
+    DeliveryStatusValue.DELIVERED,
+    DeliveryStatusValue.FAILED,
+  ],
   [DeliveryStatusValue.DELIVERED]: [DeliveryStatusValue.OPENED],
   [DeliveryStatusValue.OPENED]: [],
-  [DeliveryStatusValue.FAILED]: [DeliveryStatusValue.QUEUED, DeliveryStatusValue.DLQ],
+  [DeliveryStatusValue.FAILED]: [
+    DeliveryStatusValue.QUEUED,
+    DeliveryStatusValue.DLQ,
+  ],
   [DeliveryStatusValue.DLQ]: [],
 };
 
@@ -29,7 +38,9 @@ export class DeliveryStatus {
 
   transitionTo(next: DeliveryStatusValue): DeliveryStatus {
     if (!VALID_TRANSITIONS[this.value].includes(next)) {
-      throw new Error(`Invalid delivery status transition: ${this.value} -> ${next}`);
+      throw new Error(
+        `Invalid delivery status transition: ${this.value} -> ${next}`,
+      );
     }
     return new DeliveryStatus(next);
   }
@@ -51,6 +62,9 @@ export class DeliveryStatus {
   }
 
   isTerminal(): boolean {
-    return this.value === DeliveryStatusValue.OPENED || this.value === DeliveryStatusValue.DLQ;
+    return (
+      this.value === DeliveryStatusValue.OPENED ||
+      this.value === DeliveryStatusValue.DLQ
+    );
   }
 }

@@ -7,6 +7,10 @@ import { SocketioNotificationGateway } from '../socketio-notification.gateway';
 import { CONNECTION_REGISTRY_PORT } from '../../../domain/port/outbound/connection-registry.port';
 import { NOTIFICATION_REPOSITORY } from '../../../domain/port/outbound/notification.repository';
 import { NOTIFICATION_PREFERENCES_REPOSITORY } from '../../../domain/port/outbound/notification-preferences.repository';
+import { Notification } from '../../../domain/model/notification';
+import { NotificationType } from '../../../domain/model/notification-type.enum';
+import { NotificationPreferences } from '../../../domain/model/notification-preferences';
+import { DeliveryStatusValue } from '../../../domain/model/delivery-status';
 
 // Mock jsonwebtoken to bypass JWKS verification in tests
 jest.mock('jsonwebtoken', () => ({
@@ -73,7 +77,10 @@ describe('SocketioNotificationGateway', () => {
         SocketioNotificationGateway,
         { provide: CONNECTION_REGISTRY_PORT, useValue: mockRegistry },
         { provide: NOTIFICATION_REPOSITORY, useValue: mockRepo },
-        { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
+        {
+          provide: NOTIFICATION_PREFERENCES_REPOSITORY,
+          useValue: mockPrefsRepo,
+        },
         { provide: ConfigService, useValue: mockConfig },
       ],
     }).compile();
@@ -82,6 +89,7 @@ describe('SocketioNotificationGateway', () => {
     app.useWebSocketAdapter(new IoAdapter(app));
     await app.init();
     await app.listen(0);
+
     const address = app.getHttpServer().address() as { port: number };
     port = address.port;
   });
@@ -89,6 +97,41 @@ describe('SocketioNotificationGateway', () => {
   afterAll(async () => {
     await app.close();
   });
+
+  function waitForSocketEvent(
+    client: ClientSocket,
+    event: 'connect' | 'disconnect',
+    timeoutMessage: string,
+    timeoutMs = 3000,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      function cleanup() {
+        clearTimeout(timeout);
+        client.off(event, onEvent);
+        client.off('connect_error', onError);
+      }
+
+      function onEvent() {
+        cleanup();
+        resolve();
+      }
+
+      function onError(error: Error) {
+        cleanup();
+        reject(error);
+      }
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error(timeoutMessage));
+      }, timeoutMs);
+
+      client.once(event, onEvent);
+      if (event !== 'disconnect') {
+        client.once('connect_error', onError);
+      }
+    });
+  }
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -104,11 +147,7 @@ describe('SocketioNotificationGateway', () => {
       },
     );
 
-    await new Promise<void>((resolve, reject) => {
-      client.on('connect', resolve);
-      client.on('connect_error', reject);
-      setTimeout(() => reject(new Error('connect timeout')), 3000);
-    });
+    await waitForSocketEvent(client, 'connect', 'connect timeout');
 
     expect(client.connected).toBe(true);
 
@@ -132,10 +171,7 @@ describe('SocketioNotificationGateway', () => {
       },
     );
 
-    await new Promise<void>((resolve) => {
-      client.on('disconnect', () => resolve());
-      setTimeout(resolve, 2000);
-    });
+    await waitForSocketEvent(client, 'disconnect', 'disconnect timeout', 2000);
 
     expect(client.connected).toBe(false);
     client.disconnect();
@@ -150,12 +186,27 @@ describe('SocketioNotificationGateway', () => {
       },
     );
 
-    await new Promise<void>((resolve) => {
-      client.on('disconnect', () => resolve());
-      setTimeout(resolve, 2000);
-    });
+    await waitForSocketEvent(client, 'disconnect', 'disconnect timeout', 2000);
 
     expect(client.connected).toBe(false);
+    client.disconnect();
+  });
+
+  it('skips catch-up emit when findByIds returns empty array', async () => {
+    mockRegistry.drainOfflineQueue.mockResolvedValue(['notif-missing']);
+    mockRepo.findByIds.mockResolvedValue([]); // notifications.length === 0 → skip
+
+    const client: ClientSocket = io(
+      `http://localhost:${port}/ws/notifications`,
+      {
+        query: { token: 'valid-token' },
+        transports: ['websocket'],
+      },
+    );
+
+    await waitForSocketEvent(client, 'connect', 'connect timeout');
+
+    await new Promise((r) => setTimeout(r, 200));
     client.disconnect();
   });
 
@@ -181,23 +232,254 @@ describe('SocketioNotificationGateway', () => {
       client.on('notification:catch-up', (data: unknown[]) => resolve(data));
     });
 
-    await new Promise<void>((resolve, reject) => {
-      client.on('connect', resolve);
-      client.on('connect_error', reject);
-      setTimeout(() => reject(new Error('connect timeout')), 3000);
+    await waitForSocketEvent(client, 'connect', 'connect timeout');
+
+    const catchUpTimeout = new Promise<never>((_, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('catch-up timeout'));
+      }, 2000);
+      void catchUpPromise.finally(() => clearTimeout(timeout));
     });
 
-    const catchUp = await Promise.race([
-      catchUpPromise,
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('catch-up timeout')), 2000),
-      ),
-    ]);
+    const catchUp = await Promise.race([catchUpPromise, catchUpTimeout]);
 
     expect(catchUp).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: 'notif-1' })]),
     );
 
     client.disconnect();
+  });
+});
+
+// Unit-style tests for handleDisconnect and handleAck branches
+// (no real socket server — uses the gateway instance directly)
+describe('SocketioNotificationGateway unit', () => {
+  let gateway: SocketioNotificationGateway;
+
+  const mockRegistryUnit = {
+    register: jest.fn().mockResolvedValue(undefined),
+    unregister: jest.fn().mockResolvedValue(undefined),
+    isOnline: jest.fn().mockResolvedValue(false),
+    refreshRegistration: jest.fn().mockResolvedValue(undefined),
+    drainOfflineQueue: jest.fn().mockResolvedValue([]),
+    enqueueOffline: jest.fn().mockResolvedValue(undefined),
+  };
+  const mockRepoUnit = {
+    findByIdAndUserId: jest.fn(),
+    findByIds: jest.fn().mockResolvedValue([]),
+    save: jest.fn().mockResolvedValue(undefined),
+  };
+  const mockPrefsRepoUnit = {
+    findByUserId: jest.fn().mockResolvedValue(null),
+    save: jest.fn().mockResolvedValue(undefined),
+  };
+  const mockConfigUnit = {
+    get: jest.fn((key: string, fallback?: string) => fallback ?? ''),
+  };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    const module = await Test.createTestingModule({
+      providers: [
+        SocketioNotificationGateway,
+        { provide: ConfigService, useValue: mockConfigUnit },
+        { provide: CONNECTION_REGISTRY_PORT, useValue: mockRegistryUnit },
+        { provide: NOTIFICATION_REPOSITORY, useValue: mockRepoUnit },
+        {
+          provide: NOTIFICATION_PREFERENCES_REPOSITORY,
+          useValue: mockPrefsRepoUnit,
+        },
+      ],
+    }).compile();
+    gateway = module.get(SocketioNotificationGateway);
+  });
+
+  function makeSocket(overrides: Record<string, unknown> = {}) {
+    return {
+      id: 'sock-unit',
+      handshake: { auth: {}, query: {} },
+      data: {},
+      disconnect: jest.fn(),
+      join: jest.fn(),
+      emit: jest.fn(),
+      ...overrides,
+    } as any;
+  }
+
+  describe('handleDisconnect', () => {
+    it('calls unregister when userId is set', async () => {
+      const client = makeSocket();
+      client.userId = 'user-d1';
+      await gateway.handleDisconnect(client);
+      expect(mockRegistryUnit.unregister).toHaveBeenCalledWith(
+        'user-d1',
+        'sock-unit',
+      );
+    });
+
+    it('does not call unregister when userId not set', async () => {
+      const client = makeSocket();
+      await gateway.handleDisconnect(client);
+      expect(mockRegistryUnit.unregister).not.toHaveBeenCalled();
+    });
+
+    it('clears refreshInterval when present on socket data', async () => {
+      const client = makeSocket();
+      client.userId = 'user-d2';
+      const interval = setInterval(() => {}, 60000);
+      client.data = { refreshInterval: interval };
+      await gateway.handleDisconnect(client);
+      expect(mockRegistryUnit.unregister).toHaveBeenCalled();
+    });
+
+    it('does not throw when unregister rejects', async () => {
+      const client = makeSocket();
+      client.userId = 'user-d3';
+      client.data = {};
+      mockRegistryUnit.unregister.mockRejectedValueOnce(
+        new Error('Redis error'),
+      );
+      await expect(gateway.handleDisconnect(client)).resolves.not.toThrow();
+    });
+  });
+
+  describe('handleAck', () => {
+    it('does nothing when userId not set', async () => {
+      const client = makeSocket();
+      await gateway.handleAck(client, { ids: ['n1'] });
+      expect(mockRepoUnit.findByIdAndUserId).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when ids is empty', async () => {
+      const client = makeSocket();
+      client.userId = 'user-a1';
+      await gateway.handleAck(client, { ids: [] });
+      expect(mockRepoUnit.findByIdAndUserId).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when ids is not an array', async () => {
+      const client = makeSocket();
+      client.userId = 'user-a2';
+      await gateway.handleAck(client, { ids: null as any });
+      expect(mockRepoUnit.findByIdAndUserId).not.toHaveBeenCalled();
+    });
+
+    it('marks SENT notification as DELIVERED', async () => {
+      const notification = Notification.create({
+        userId: 'user-a3',
+        type: NotificationType.ORDER_CREATED,
+        title: 'T',
+        body: 'B',
+      });
+      notification.markSent();
+      const client = makeSocket();
+      client.userId = 'user-a3';
+      mockRepoUnit.findByIdAndUserId.mockResolvedValueOnce(notification);
+
+      await gateway.handleAck(client, { ids: [notification.id] });
+
+      expect(notification.deliveryStatus.getValue()).toBe(
+        DeliveryStatusValue.DELIVERED,
+      );
+      expect(mockRepoUnit.save).toHaveBeenCalledWith(notification);
+    });
+
+    it('skips notification with non-SENT status', async () => {
+      const notification = Notification.create({
+        userId: 'user-a4',
+        type: NotificationType.ORDER_CREATED,
+        title: 'T',
+        body: 'B',
+      });
+      // status is QUEUED
+      const client = makeSocket();
+      client.userId = 'user-a4';
+      mockRepoUnit.findByIdAndUserId.mockResolvedValueOnce(notification);
+
+      await gateway.handleAck(client, { ids: [notification.id] });
+
+      expect(mockRepoUnit.save).not.toHaveBeenCalled();
+    });
+
+    it('skips when notification not found', async () => {
+      const client = makeSocket();
+      client.userId = 'user-a5';
+      mockRepoUnit.findByIdAndUserId.mockResolvedValueOnce(null);
+
+      await gateway.handleAck(client, { ids: ['missing'] });
+
+      expect(mockRepoUnit.save).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when repo rejects', async () => {
+      const client = makeSocket();
+      client.userId = 'user-a6';
+      mockRepoUnit.findByIdAndUserId.mockRejectedValueOnce(
+        new Error('DB down'),
+      );
+
+      await expect(
+        gateway.handleAck(client, { ids: ['notif-err'] }),
+      ).resolves.not.toThrow();
+    });
+  });
+
+  describe('handleConnection catch-up filtering', () => {
+    it('skips catch-up emit when prefs filter out all notifications (filtered.length===0)', async () => {
+      // Simulate the filtered.length > 0 false branch by returning prefs with IN_APP disabled
+      const notif = Notification.create({
+        userId: 'test-user-id',
+        type: NotificationType.ORDER_CREATED,
+        title: 'T',
+        body: 'B',
+      });
+      const prefs = NotificationPreferences.createDefault('test-user-id');
+      prefs.setTypeChannels(NotificationType.ORDER_CREATED, []); // IN_APP disabled
+
+      mockRegistryUnit.drainOfflineQueue.mockResolvedValue([notif.id]);
+      mockRepoUnit.findByIds.mockResolvedValue([notif]);
+      mockPrefsRepoUnit.findByUserId.mockResolvedValue(prefs);
+
+      const client = makeSocket();
+      client.handshake = { auth: { token: 'valid-token' }, query: {} } as any;
+
+      // Mock jwt.verify to succeed
+      const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken');
+      jest
+        .spyOn(jwt, 'verify')
+        .mockImplementationOnce((_t, _g, _o, cb: any) => {
+          cb(null, { sub: 'test-user-id' });
+        });
+
+      await gateway.handleConnection(client);
+
+      // filtered.length === 0 → no emit
+      expect(client.emit).not.toHaveBeenCalledWith(
+        'notification:catch-up',
+        expect.anything(),
+      );
+    });
+
+    it('skips catch-up when findByIds returns empty (notifications.length===0)', async () => {
+      mockRegistryUnit.drainOfflineQueue.mockResolvedValue(['notif-gone']);
+      mockRepoUnit.findByIds.mockResolvedValue([]);
+
+      const client = makeSocket();
+      client.handshake = { auth: { token: 'valid-token' }, query: {} } as any;
+
+      const jwt = require('jsonwebtoken') as typeof import('jsonwebtoken');
+      jest
+        .spyOn(jwt, 'verify')
+        .mockImplementationOnce((_t, _g, _o, cb: any) => {
+          cb(null, { sub: 'test-user-id' });
+        });
+
+      await gateway.handleConnection(client);
+
+      expect(client.emit).not.toHaveBeenCalledWith(
+        'notification:catch-up',
+        expect.anything(),
+      );
+    });
   });
 });

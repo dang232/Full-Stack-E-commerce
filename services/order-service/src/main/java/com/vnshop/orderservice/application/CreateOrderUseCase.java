@@ -14,6 +14,9 @@ import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.MetricsPort;
 import com.vnshop.orderservice.application.saga.SagaOrchestrator;
+import com.vnshop.orderservice.application.tax.TaxCalculationService;
+import com.vnshop.orderservice.application.tax.TaxResult;
+import com.vnshop.orderservice.domain.Money;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,7 @@ public class CreateOrderUseCase {
     private final CartRepositoryPort cartRepositoryPort;
     private final MetricsPort metricsPort;
     private final SagaOrchestrator sagaOrchestrator;
+    private final TaxCalculationService taxCalculationService;
 
     public CreateOrderUseCase(
             OrderRepositoryPort orderRepository,
@@ -43,7 +47,8 @@ public class CreateOrderUseCase {
             CommissionTierLookupPort commissionTierLookupPort,
             CartRepositoryPort cartRepositoryPort,
             MetricsPort metricsPort,
-            SagaOrchestrator sagaOrchestrator
+            SagaOrchestrator sagaOrchestrator,
+            TaxCalculationService taxCalculationService
     ) {
         this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository is required");
         this.inventoryReservationPort = Objects.requireNonNull(inventoryReservationPort, "inventoryReservationPort is required");
@@ -54,6 +59,7 @@ public class CreateOrderUseCase {
         this.cartRepositoryPort = Objects.requireNonNull(cartRepositoryPort, "cartRepositoryPort is required");
         this.metricsPort = Objects.requireNonNull(metricsPort, "metricsPort is required");
         this.sagaOrchestrator = Objects.requireNonNull(sagaOrchestrator, "sagaOrchestrator is required");
+        this.taxCalculationService = Objects.requireNonNull(taxCalculationService, "taxCalculationService is required");
     }
 
     public Order create(CreateOrderCommand command) {
@@ -73,6 +79,9 @@ public class CreateOrderUseCase {
         List<OrderItem> itemSnapshot = List.copyOf(items);
         List<SubOrder> subOrders = splitBySeller(itemSnapshot);
         Order order = new Order(UUID.randomUUID(), buyerId, shippingAddress, subOrders, idempotencyKey);
+
+        TaxResult taxResult = taxCalculationService.calculate(itemSnapshot);
+        order.applyTax(new Money(taxResult.totalTax()));
 
         String sagaId = UUID.randomUUID().toString();
         sagaOrchestrator.start(sagaId, order.id().toString());

@@ -122,6 +122,12 @@
 			<artifactId>logstash-logback-encoder</artifactId>
 			<version>8.0</version>
 		</dependency>
+		<!-- Kafka -->
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
 		<!-- Feature Flags -->
 		<dependency>
 			<groupId>io.getunleash</groupId>
@@ -225,6 +231,8 @@
 								<exclude>com/vnshop/userservice/infrastructure/config/**</exclude>
 								<exclude>com/vnshop/userservice/infrastructure/integration/**</exclude>
 								<exclude>com/vnshop/userservice/infrastructure/storage/**</exclude>
+							<exclude>com/vnshop/userservice/infrastructure/event/**</exclude>
+							<exclude>com/vnshop/userservice/infrastructure/featureflag/**</exclude>
 							</excludes>
 							<rules>
 								<rule>

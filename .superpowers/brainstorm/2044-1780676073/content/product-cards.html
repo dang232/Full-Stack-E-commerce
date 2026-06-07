@@ -1,0 +1,63 @@
+<h2>Product Card & Grid Style</h2>
+<p class="subtitle">How should products be displayed? Editorial layouts vary from dense grids to spacious galleries.</p>
+
+<div class="cards">
+  <div class="card" data-choice="editorial-grid" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #1a1a1a; padding: 24px; min-height: 220px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div style="aspect-ratio: 3/4; background: #2d2d2d; border-radius: 0;"></div>
+        <div style="aspect-ratio: 3/4; background: #2d2d2d; border-radius: 0;"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 0 2px;">
+        <div>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 12px; color: #f5f0eb;">Minimal Linen Shirt</div>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 11px; color: #666;">₫890,000</div>
+        </div>
+        <div>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 12px; color: #f5f0eb;">Structured Blazer</div>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 11px; color: #666;">₫2,450,000</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Clean Editorial Grid</h3>
+      <p>No borders, no shadows. Product images breathe in whitespace. Minimal text underneath — name and price only. Sharp corners. SSENSE, COS approach.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="gallery-masonry" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #1a1a1a; padding: 24px; min-height: 220px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 12px;">
+        <div style="aspect-ratio: 3/4; background: #2d2d2d; grid-row: span 2;"></div>
+        <div style="aspect-ratio: 1/1; background: #2d2d2d;"></div>
+        <div style="aspect-ratio: 4/3; background: #2d2d2d;"></div>
+      </div>
+      <div style="font-family: 'Cormorant Garamond', serif; font-size: 14px; color: #a3a3a3; text-align: center; font-style: italic;">The Summer Collection</div>
+    </div>
+    <div class="card-body">
+      <h3>Gallery Masonry</h3>
+      <p>Mixed aspect ratios, asymmetric layouts. Products feel like editorial spreads. More visual drama but harder to scan quickly. Mr Porter editorial sections.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="card-elevated" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #111; padding: 24px; min-height: 220px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div style="background: #1a1a1a; border: 1px solid #2a2a2a; padding: 12px; padding-bottom: 16px;">
+          <div style="aspect-ratio: 1/1; background: #2d2d2d; margin-bottom: 12px;"></div>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 11px; color: #f5f0eb;">Minimal Linen Shirt</div>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 10px; color: #b8860b; margin-top: 4px;">₫890,000</div>
+        </div>
+        <div style="background: #1a1a1a; border: 1px solid #2a2a2a; padding: 12px; padding-bottom: 16px;">
+          <div style="aspect-ratio: 1/1; background: #2d2d2d; margin-bottom: 12px;"></div>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 11px; color: #f5f0eb;">Structured Blazer</div>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 10px; color: #b8860b; margin-top: 4px;">₫2,450,000</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Elevated Cards</h3>
+      <p>Subtle border cards on a slightly darker background. Contained feel with clear separation. Price in accent gold. More structured, easier to scan. Apple Store product grid.</p>
+    </div>
+  </div>
+</div>

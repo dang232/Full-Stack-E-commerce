@@ -5,3 +5,4 @@ metadata:
 data:
   SPRING_PROFILES_ACTIVE: dev
   NODE_ENV: development
+  OTEL_TRACES_SAMPLER_ARG: "1.0"

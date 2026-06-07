@@ -1,4 +1,4 @@
-.PHONY: up down restart rebuild logs logs-all test-order test-payment test-cart test-fe test-e2e test-all build-java compile-order seed migrate psql certs clean status help
+.PHONY: up down restart rebuild logs logs-all test-order test-payment test-cart test-fe test-e2e test-all build-java compile-order seed migrate psql certs clean status verify-backup help
 
 # ─── Stack Management ─────────────────────────────────────
 up: ## Start full stack
@@ -71,6 +71,9 @@ psql: ## Connect to order-service database
 # ─── Utilities ────────────────────────────────────────────
 certs: ## Generate Kafka SSL certificates
 	cd infra/kafka/certs && bash generate-certs.sh
+
+verify-backup: ## Verify database backups by dump/restore and smoke queries
+	./scripts/verify-backup.sh
 
 clean: ## Remove all containers, volumes, and build artifacts
 	docker compose --profile apps down -v

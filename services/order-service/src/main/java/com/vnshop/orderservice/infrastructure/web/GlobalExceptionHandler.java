@@ -1,0 +1,105 @@
+package com.vnshop.orderservice.infrastructure.web;
+
+import com.vnshop.orderservice.application.OrderAccessDeniedException;
+import com.vnshop.orderservice.application.CheckoutOrderUseCase;
+import com.vnshop.orderservice.domain.InvoiceAccessDeniedException;
+import com.vnshop.orderservice.infrastructure.cart.CartUnavailableException;
+import com.vnshop.orderservice.infrastructure.product.ProductCatalogUnavailableException;
+import io.opentelemetry.api.trace.Span;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
+
+/**
+ * Centralized exception handler that returns the standard VNShop error shape:
+ * { code, message, details, timestamp, traceId }
+ *
+ * traceId is pulled from the active OTEL span so callers can correlate with traces.
+ */
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    // --- 400 Bad Request -------------------------------------------------------
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> validationError(MethodArgumentNotValidException ex) {
+        List<String> details = ex.getBindingResult().getAllErrors().stream()
+            .map(err -> err instanceof FieldError fe
+                ? fe.getField() + ": " + fe.getDefaultMessage()
+                : err.getDefaultMessage())
+            .toList();
+        return ResponseEntity.badRequest()
+            .body(ErrorResponse.of("VALIDATION_ERROR", "Request validation failed", details, traceId()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> badRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest()
+            .body(ErrorResponse.of("BAD_REQUEST", ex.getMessage(), traceId()));
+    }
+
+    // --- 401 / 403 -------------------------------------------------------------
+
+    @ExceptionHandler(InvoiceAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> invoiceAccessDenied(InvoiceAccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(ErrorResponse.of("INVOICE_ACCESS_DENIED", ex.getMessage(), traceId()));
+    }
+
+    @ExceptionHandler(OrderAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> orderAccessDenied(OrderAccessDeniedException ex) {
+        log.warn("order-access-denied: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(ErrorResponse.of("ORDER_ACCESS_DENIED", "Not authorized for this order", traceId()));
+    }
+
+    // --- 404 Not Found ---------------------------------------------------------
+
+    @ExceptionHandler(CheckoutOrderUseCase.ProductNotFoundException.class)
+    public ResponseEntity<ErrorResponse> productNotFound(CheckoutOrderUseCase.ProductNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(ErrorResponse.of("PRODUCT_NOT_FOUND", ex.getMessage(), traceId()));
+    }
+
+    // --- 503 Service Unavailable -----------------------------------------------
+
+    @ExceptionHandler(ProductCatalogUnavailableException.class)
+    public ResponseEntity<ErrorResponse> productCatalogUnavailable(ProductCatalogUnavailableException ex) {
+        log.warn("product-catalog-unavailable: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(ErrorResponse.of("PRODUCT_CATALOG_UNAVAILABLE", "Product catalog is temporarily unavailable", traceId()));
+    }
+
+    @ExceptionHandler(CartUnavailableException.class)
+    public ResponseEntity<ErrorResponse> cartUnavailable(CartUnavailableException ex) {
+        log.warn("cart-unavailable: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(ErrorResponse.of("CART_UNAVAILABLE", "Cart service is temporarily unavailable", traceId()));
+    }
+
+    // --- 500 Internal Server Error ---------------------------------------------
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> internal(Exception ex) {
+        log.error("Unhandled exception", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(ErrorResponse.of("INTERNAL_ERROR", "An unexpected error occurred", traceId()));
+    }
+
+    // ---------------------------------------------------------------------------
+
+    private static String traceId() {
+        String id = Span.current().getSpanContext().getTraceId();
+        // OTEL returns "0000000000000000" when there is no active span
+        return "0000000000000000".equals(id) ? null : id;
+    }
+}

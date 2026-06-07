@@ -4,5 +4,7 @@ public enum PaymentStatus {
     PENDING,
     COMPLETED,
     FAILED,
-    REFUNDED
+    REFUNDED,
+    /** VietQR payment where no bank credit arrived within the configured timeout window. */
+    PAYMENT_TIMEOUT
 }

@@ -10,7 +10,8 @@ class TypePreferenceSubdoc {
   channels!: string[];
 }
 
-const TypePreferenceSubdocSchema = SchemaFactory.createForClass(TypePreferenceSubdoc);
+const TypePreferenceSubdocSchema =
+  SchemaFactory.createForClass(TypePreferenceSubdoc);
 
 @Schema({ collection: 'notification_preferences', timestamps: false })
 export class NotificationPreferencesSchemaClass extends Document {

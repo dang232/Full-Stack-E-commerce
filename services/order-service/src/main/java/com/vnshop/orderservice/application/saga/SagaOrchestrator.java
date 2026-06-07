@@ -115,6 +115,9 @@ public class SagaOrchestrator {
         sagaStateRepository.save(compensating);
 
         String orderId = current.orderId();
+        outboxPort.publish("Order", orderId, "SAGA_COMPENSATING",
+            "{\"sagaId\":\"" + sagaId + "\",\"orderId\":\"" + orderId + "\",\"failedStep\":\"" + failedStep + "\"}");
+
         switch (failedStep) {
             case "SHIPPING":
                 // Payment was charged, inventory was reserved — reverse both
@@ -124,6 +127,7 @@ public class SagaOrchestrator {
                     "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\"}");
                 break;
             case "PAYMENT":
+            case "PAYMENT_CHARGE":
                 // Only inventory was reserved — release it
                 outboxPort.publish("Order", orderId, "INVENTORY_RELEASE_REQUESTED",
                     "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\"}");

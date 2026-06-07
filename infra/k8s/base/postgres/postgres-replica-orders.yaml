@@ -1,0 +1,138 @@
+---
+# Read replica for the orders domain (order-service + payment-service schemas).
+# Streams WAL from the primary postgres Service via streaming replication.
+# Set REPLICA_HOST=postgres-replica-orders in order-service and payment-service
+# Deployments to direct readOnly=true transactions here.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-replica-orders
+  labels:
+    app.kubernetes.io/name: postgres-replica-orders
+    app.kubernetes.io/part-of: vnshop
+    app.kubernetes.io/component: database-replica
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres-replica-orders
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres-replica-orders
+        app.kubernetes.io/part-of: vnshop
+        app.kubernetes.io/component: database-replica
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: postgres-replica
+        image: postgres:16
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: vnshop-app-secret
+              key: DB_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vnshop-app-secret
+              key: DB_PASSWORD
+        - name: POSTGRES_DB
+          value: vnshop
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: vnshop-app-secret
+              key: DB_USERNAME
+        - name: POSTGRES_PRIMARY_HOST
+          value: postgres
+        - name: POSTGRES_PRIMARY_PORT
+          value: "5432"
+        # Entrypoint: run as hot standby streaming replica
+        command:
+        - bash
+        - -c
+        - |
+          set -euo pipefail
+          PGDATA=/var/lib/postgresql/data/pgdata
+          if [ ! -f "$PGDATA/PG_VERSION" ]; then
+            echo "Bootstrapping replica from primary $POSTGRES_PRIMARY_HOST:$POSTGRES_PRIMARY_PORT..."
+            PGPASSWORD="$POSTGRES_PASSWORD" pg_basebackup \
+              -h "$POSTGRES_PRIMARY_HOST" \
+              -p "$POSTGRES_PRIMARY_PORT" \
+              -U "$POSTGRES_USER" \
+              -D "$PGDATA" \
+              -Fp -Xs -P -R
+          fi
+          exec postgres -D "$PGDATA" \
+            -c hot_standby=on \
+            -c max_connections=100 \
+            -c shared_buffers=128MB \
+            -c wal_level=replica
+        ports:
+        - name: postgres
+          containerPort: 5432
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(PGUSER)
+            - -d
+            - vnshop
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(PGUSER)
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-replica-orders
+  labels:
+    app.kubernetes.io/name: postgres-replica-orders
+    app.kubernetes.io/part-of: vnshop
+    app.kubernetes.io/component: database-replica
+spec:
+  selector:
+    app.kubernetes.io/name: postgres-replica-orders
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres

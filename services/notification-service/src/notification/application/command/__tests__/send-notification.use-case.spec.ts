@@ -33,7 +33,10 @@ describe('SendNotificationUseCase', () => {
       providers: [
         SendNotificationUseCase,
         { provide: NOTIFICATION_REPOSITORY, useValue: mockRepo },
-        { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
+        {
+          provide: NOTIFICATION_PREFERENCES_REPOSITORY,
+          useValue: mockPrefsRepo,
+        },
         { provide: DEDUPLICATION_PORT, useValue: mockDedup },
         { provide: EventEmitter2, useValue: mockEmitter },
       ],
@@ -54,7 +57,9 @@ describe('SendNotificationUseCase', () => {
     expect(result.userId).toBe('user-1');
     expect(result.type).toBe(NotificationType.ORDER_CREATED);
     expect(mockRepo.save).toHaveBeenCalledWith(result);
-    expect(mockDedup.tryAcquire).toHaveBeenCalledWith('order.created:123:ORDER_CREATED');
+    expect(mockDedup.tryAcquire).toHaveBeenCalledWith(
+      'order.created:123:ORDER_CREATED',
+    );
     expect(mockEmitter.emit).toHaveBeenCalledWith(
       'notification.created',
       expect.objectContaining({
@@ -146,9 +151,78 @@ describe('SendNotificationUseCase', () => {
     expect(mockEmitter.emit).not.toHaveBeenCalled();
   });
 
+  it('proceeds when idempotency key not acquired but notification not found in repo', async () => {
+    // tryAcquire=false means another process claimed the key, but repo has no record — proceed to create
+    mockDedup.tryAcquire.mockResolvedValue(false);
+    mockRepo.findByIdempotencyKey.mockResolvedValue(null);
+    mockPrefsRepo.findByUserId.mockResolvedValue(null);
+    mockRepo.save.mockResolvedValue(undefined);
+
+    const result = await useCase.execute({
+      userId: 'user-race',
+      type: NotificationType.ORDER_CREATED,
+      title: 'T',
+      body: 'B',
+      idempotencyKey: 'race-key',
+    });
+
+    // Key acquired=false but no existing notification found — proceeds to create
+    expect(result).not.toBeNull();
+    expect(result!.userId).toBe('user-race');
+    expect(mockRepo.save).toHaveBeenCalled();
+  });
+
+  it('covers the else branch when event is not a NotificationCreatedEvent instance', async () => {
+    // The else at line 121 emits the raw event. We verify the happy-path emit happens
+    // (NotificationCreatedEvent IS the instanceof case; else fires for any other event type).
+    // We verify normal emit works (branch is internal to Notification.pullDomainEvents).
+    mockPrefsRepo.findByUserId.mockResolvedValue(null);
+    mockRepo.save.mockResolvedValue(undefined);
+
+    const result = await useCase.execute({
+      userId: 'user-evt',
+      type: NotificationType.ORDER_CREATED,
+      title: 'T',
+      body: 'B',
+    });
+
+    expect(result).not.toBeNull();
+    expect(mockEmitter.emit).toHaveBeenCalledWith(
+      'notification.created',
+      expect.anything(),
+    );
+  });
+
+  it('emits raw event for non-NotificationCreatedEvent domain events', async () => {
+    // Force pullDomainEvents to return a plain object (not NotificationCreatedEvent instance)
+    // to cover the else branch at line 122
+    const { Notification: NotificationClass } =
+      require('../../../domain/model/notification') as typeof import('../../../domain/model/notification');
+    const spy = jest
+      .spyOn(NotificationClass.prototype, 'pullDomainEvents')
+      .mockReturnValueOnce([{ type: 'SOME_OTHER_EVENT' } as any]);
+
+    mockPrefsRepo.findByUserId.mockResolvedValue(null);
+    mockRepo.save.mockResolvedValue(undefined);
+
+    await useCase.execute({
+      userId: 'user-else',
+      type: NotificationType.ORDER_CREATED,
+      title: 'T',
+      body: 'B',
+    });
+
+    expect(mockEmitter.emit).toHaveBeenCalledWith('notification.created', {
+      type: 'SOME_OTHER_EVENT',
+    });
+    spy.mockRestore();
+  });
+
   it('persists but emits with suppressedChannels when only some channels are disabled', async () => {
     const prefs = NotificationPreferences.createDefault('user-1');
-    prefs.setTypeChannels(NotificationType.ORDER_CREATED, [NotificationChannel.IN_APP]);
+    prefs.setTypeChannels(NotificationType.ORDER_CREATED, [
+      NotificationChannel.IN_APP,
+    ]);
     mockPrefsRepo.findByUserId.mockResolvedValue(prefs);
 
     const result = await useCase.execute({

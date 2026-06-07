@@ -1,5 +1,6 @@
 package com.vnshop.userservice.infrastructure.config;
 
+import com.vnshop.userservice.application.AdminUserUseCase;
 import com.vnshop.userservice.application.ApproveSellerUseCase;
 import com.vnshop.userservice.application.AuthSessionUseCase;
 import com.vnshop.userservice.application.GetPublicSellerUseCase;
@@ -24,6 +25,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class UseCaseConfig {
+    @Bean
+    AdminUserUseCase adminUserUseCase(UserRepositoryPort userRepositoryPort) {
+        return new AdminUserUseCase(userRepositoryPort);
+    }
+
     @Bean
     RegisterBuyerUseCase registerBuyerUseCase(UserRepositoryPort userRepositoryPort) {
         return new RegisterBuyerUseCase(userRepositoryPort);

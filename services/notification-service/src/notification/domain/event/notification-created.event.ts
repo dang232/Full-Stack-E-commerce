@@ -15,6 +15,8 @@ export class NotificationCreatedEvent implements DomainEvent {
     readonly recipientEmail?: string,
     /** Optional FCM device token for PUSH channel dispatch. */
     readonly recipientDeviceToken?: string,
+    /** Optional phone number for SMS channel dispatch. */
+    readonly recipientPhoneNumber?: string,
   ) {
     this.occurredAt = new Date();
     this.suppressedChannels = suppressedChannels ?? [];

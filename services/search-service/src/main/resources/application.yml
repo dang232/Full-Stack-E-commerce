@@ -87,11 +87,6 @@ otel:
   exporter:
     jaeger:
       endpoint: http://localhost:14250
-  sdk:
-    trace:
-      sampler:
-        probability: 0.1
-
 kafka:
   health:
     consumer:
@@ -105,8 +100,4 @@ spring:
     activate:
       on-profile: dev
 
-otel:
-  sdk:
-    trace:
-      sampler:
-        probability: 1.0
+# otel.sdk.trace.sampler.probability removed — use OTEL_TRACES_SAMPLER_ARG env var instead

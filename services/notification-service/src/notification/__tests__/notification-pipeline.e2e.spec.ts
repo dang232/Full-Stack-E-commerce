@@ -14,7 +14,12 @@ import { CountUnreadUseCase } from '../application/query/count-unread.use-case';
 
 // Mock JWT verification to bypass Keycloak in tests
 jest.mock('jsonwebtoken', () => ({
-  verify: (_token: string, _getKey: any, _opts: any, callback: any) => {
+  verify: (
+    _token: string,
+    _getKey: unknown,
+    _opts: unknown,
+    callback: (err: Error | null, decoded?: unknown) => void,
+  ) => {
     if (_token === 'e2e-valid-token') {
       callback(null, { sub: 'e2e-user-id' });
     } else {
@@ -37,11 +42,14 @@ describe('Notification Pipeline E2E', () => {
   let app: INestApplication;
   let mongod: MongoMemoryServer;
   let client: ClientSocket;
+  let redisClient: { disconnect: () => void };
   let sendNotification: SendNotificationUseCase;
   let countUnread: CountUnreadUseCase;
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
+
+    redisClient = new RedisMock();
 
     const module = await Test.createTestingModule({
       imports: [
@@ -62,7 +70,7 @@ describe('Notification Pipeline E2E', () => {
       ],
     })
       .overrideProvider(REDIS_CLIENT)
-      .useValue(new RedisMock())
+      .useValue(redisClient)
       .compile();
 
     app = module.createNestApplication();
@@ -79,14 +87,36 @@ describe('Notification Pipeline E2E', () => {
       transports: ['websocket'],
     });
     await new Promise<void>((resolve, reject) => {
-      client.on('connect', resolve);
-      client.on('connect_error', reject);
-      setTimeout(() => reject(new Error('Connection timeout')), 5000);
+      function cleanup() {
+        clearTimeout(timeout);
+        client.off('connect', onConnect);
+        client.off('connect_error', onError);
+      }
+
+      function onConnect() {
+        cleanup();
+        resolve();
+      }
+
+      function onError(error: Error) {
+        cleanup();
+        reject(error);
+      }
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('Connection timeout'));
+      }, 5000);
+
+      client.once('connect', onConnect);
+      client.once('connect_error', onError);
     });
   }, 30000);
 
   afterAll(async () => {
+    client?.offAny();
     client?.disconnect();
+    redisClient?.disconnect();
     await app?.close();
     await mongod?.stop();
   });
@@ -108,16 +138,21 @@ describe('Notification Pipeline E2E', () => {
       idempotencyKey: 'e2e-test-1',
     });
 
-    const payload = await Promise.race([
-      received,
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('WebSocket timeout')), 5000),
-      ),
-    ]);
+    const timeout = new Promise<never>((_, reject) => {
+      const timeoutHandle = setTimeout(() => {
+        reject(new Error('WebSocket timeout'));
+      }, 5000);
+      void received.finally(() => clearTimeout(timeoutHandle));
+    });
+
+    const payload = await Promise.race([received, timeout]);
 
     expect(payload.title).toBe('E2E: Đặt hàng thành công');
+
     expect(payload.body).toContain('E2E-001');
+
     expect(payload.deepLink).toBe('/orders/E2E-001');
+
     expect(payload.type).toBe('ORDER_CREATED');
   });
 

@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.infrastructure.config;
 
 import com.vnshop.orderservice.application.AcceptOrderUseCase;
+import com.vnshop.orderservice.application.AdminOrderUseCase;
 import com.vnshop.orderservice.application.ConfirmDeliveryUseCase;
 import com.vnshop.orderservice.application.ApproveReturnUseCase;
 import com.vnshop.orderservice.application.CalculateCheckoutUseCase;
@@ -23,6 +24,7 @@ import com.vnshop.orderservice.application.RequestReturnUseCase;
 import com.vnshop.orderservice.application.SellerOrderQueryUseCase;
 import com.vnshop.orderservice.application.ShipOrderUseCase;
 import com.vnshop.orderservice.application.ViewOrderUseCase;
+import com.vnshop.orderservice.domain.port.out.OrderSummaryQueryPort;
 import com.vnshop.orderservice.domain.port.out.CommissionTierLookupPort;
 import com.vnshop.orderservice.domain.port.out.CartRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.DashboardAnalyticsPort;
@@ -40,12 +42,29 @@ import com.vnshop.orderservice.domain.port.out.RefundRequestPort;
 import com.vnshop.orderservice.domain.port.out.ReturnRepositoryPort;
 import com.vnshop.orderservice.domain.port.out.ShippingRequestPort;
 import com.vnshop.orderservice.application.saga.SagaOrchestrator;
+import com.vnshop.orderservice.application.tax.TaxCalculationService;
+import com.vnshop.orderservice.domain.port.out.TaxRateLookupPort;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class UseCaseConfig {
+    @Bean
+    AdminOrderUseCase adminOrderUseCase(
+            OrderRepositoryPort orderRepositoryPort,
+            OrderSummaryQueryPort orderSummaryQueryPort,
+            InventoryReservationPort inventoryReservationPort,
+            OrderEventPublisherPort orderEventPublisherPort
+    ) {
+        return new AdminOrderUseCase(orderRepositoryPort, orderSummaryQueryPort, inventoryReservationPort, orderEventPublisherPort);
+    }
+
+    @Bean
+    TaxCalculationService taxCalculationService(TaxRateLookupPort taxRateLookupPort) {
+        return new TaxCalculationService(taxRateLookupPort);
+    }
+
     @Bean
     CreateOrderUseCase createOrderUseCase(
             OrderRepositoryPort orderRepositoryPort,
@@ -56,9 +75,10 @@ public class UseCaseConfig {
             CommissionTierLookupPort commissionTierLookupPort,
             CartRepositoryPort cartRepositoryPort,
             MetricsPort metricsPort,
-            SagaOrchestrator sagaOrchestrator
+            SagaOrchestrator sagaOrchestrator,
+            TaxCalculationService taxCalculationService
     ) {
-        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort, metricsPort, sagaOrchestrator);
+        return new CreateOrderUseCase(orderRepositoryPort, inventoryReservationPort, paymentRequestPort, shippingRequestPort, orderEventPublisherPort, commissionTierLookupPort, cartRepositoryPort, metricsPort, sagaOrchestrator, taxCalculationService);
     }
 
     @Bean

@@ -1,0 +1,79 @@
+<h2>Dark Mode — Marketplace Style</h2>
+<p class="subtitle">How should dark mode feel for a general marketplace?</p>
+
+<div class="cards">
+  <div class="card" data-choice="slate-dark" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #0f172a; padding: 24px; min-height: 180px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid #1e293b;">
+        <div style="font-family: Inter, sans-serif; font-size: 16px; color: #f8fafc; font-weight: 700;">VNShop</div>
+        <div style="margin-left: auto; width: 24px; height: 24px; border-radius: 6px; background: #1e293b;"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 10px;">
+          <div style="aspect-ratio: 1; background: #334155; border-radius: 6px; margin-bottom: 8px;"></div>
+          <div style="height: 5px; width: 70%; background: #e2e8f0; border-radius: 3px; margin-bottom: 4px;"></div>
+          <div style="height: 5px; width: 40%; background: #818cf8; border-radius: 3px;"></div>
+        </div>
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 10px;">
+          <div style="aspect-ratio: 1; background: #334155; border-radius: 6px; margin-bottom: 8px;"></div>
+          <div style="height: 5px; width: 60%; background: #e2e8f0; border-radius: 3px; margin-bottom: 4px;"></div>
+          <div style="height: 5px; width: 50%; background: #818cf8; border-radius: 3px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Slate Navy</h3>
+      <p>Deep blue-gray (#0F172A → #1E293B). Warm undertone, not pure black. Indigo lightens to #818CF8 for dark mode. GitHub, Discord approach. Easy on eyes for long browsing sessions.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="neutral-dark" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #171717; padding: 24px; min-height: 180px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid #262626;">
+        <div style="font-family: Inter, sans-serif; font-size: 16px; color: #fafafa; font-weight: 700;">VNShop</div>
+        <div style="margin-left: auto; width: 24px; height: 24px; border-radius: 6px; background: #262626;"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div style="background: #262626; border: 1px solid #363636; border-radius: 10px; padding: 10px;">
+          <div style="aspect-ratio: 1; background: #363636; border-radius: 6px; margin-bottom: 8px;"></div>
+          <div style="height: 5px; width: 70%; background: #e5e5e5; border-radius: 3px; margin-bottom: 4px;"></div>
+          <div style="height: 5px; width: 40%; background: #a78bfa; border-radius: 3px;"></div>
+        </div>
+        <div style="background: #262626; border: 1px solid #363636; border-radius: 10px; padding: 10px;">
+          <div style="aspect-ratio: 1; background: #363636; border-radius: 6px; margin-bottom: 8px;"></div>
+          <div style="height: 5px; width: 60%; background: #e5e5e5; border-radius: 3px; margin-bottom: 4px;"></div>
+          <div style="height: 5px; width: 50%; background: #a78bfa; border-radius: 3px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>True Neutral</h3>
+      <p>Pure gray scale (#171717 → #262626). No color tint, purely neutral. Indigo shifts to lighter violet #A78BFA. X/Twitter, Vercel approach. Minimal, lets products stand out.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="warm-dark" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #1c1917; padding: 24px; min-height: 180px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid #292524;">
+        <div style="font-family: Inter, sans-serif; font-size: 16px; color: #fafaf9; font-weight: 700;">VNShop</div>
+        <div style="margin-left: auto; width: 24px; height: 24px; border-radius: 6px; background: #292524;"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div style="background: #292524; border: 1px solid #3d3835; border-radius: 10px; padding: 10px;">
+          <div style="aspect-ratio: 1; background: #3d3835; border-radius: 6px; margin-bottom: 8px;"></div>
+          <div style="height: 5px; width: 70%; background: #e7e5e4; border-radius: 3px; margin-bottom: 4px;"></div>
+          <div style="height: 5px; width: 40%; background: #818cf8; border-radius: 3px;"></div>
+        </div>
+        <div style="background: #292524; border: 1px solid #3d3835; border-radius: 10px; padding: 10px;">
+          <div style="aspect-ratio: 1; background: #3d3835; border-radius: 6px; margin-bottom: 8px;"></div>
+          <div style="height: 5px; width: 60%; background: #e7e5e4; border-radius: 3px; margin-bottom: 4px;"></div>
+          <div style="height: 5px; width: 50%; background: #818cf8; border-radius: 3px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Warm Stone</h3>
+      <p>Brown-tinted dark (#1C1917 → #292524). Cozy, approachable warmth. Less "tech," more "comfortable shop." Notion dark mode territory. Welcoming for extended browsing.</p>
+    </div>
+  </div>
+</div>

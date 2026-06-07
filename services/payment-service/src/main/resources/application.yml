@@ -81,6 +81,10 @@ payment:
     account-id: ${SEPAY_ACCOUNT_ID:}
     base-url: ${SEPAY_BASE_URL:https://my.sepay.vn/userapi}
     poll-interval-seconds: ${SEPAY_POLL_INTERVAL_SECONDS:30}
+    # Shared secret for SePay push-mode webhooks. SePay sends this in the
+    # "Authorization: Apikey <secret>" header on each callback. Leave blank
+    # to disable signature checking (dev/sandbox only — never in production).
+    webhook-secret: ${SEPAY_WEBHOOK_SECRET:}
   stripe:
     enabled: ${STRIPE_ENABLED:false}
     secret-key: ${STRIPE_SECRET_KEY:}
@@ -130,6 +134,12 @@ vietqr:
   account-name: ${VIETQR_ACCOUNT_NAME:}
   template: ${VIETQR_TEMPLATE:compact2}
 
+# VietQR payment timeout sweep. Payments that remain PENDING beyond
+# timeout-minutes are transitioned to PAYMENT_TIMEOUT by VietQrTimeoutJob.
+# timeout-check-interval-seconds controls how frequently the sweep runs.
+payment.vietqr.timeout-minutes: ${VIETQR_TIMEOUT_MINUTES:10}
+payment.vietqr.timeout-check-interval-seconds: ${VIETQR_TIMEOUT_CHECK_INTERVAL_SECONDS:60}
+
 springdoc:
   api-docs:
     path: /api-docs
@@ -164,19 +174,10 @@ otel:
   exporter:
     jaeger:
       endpoint: http://localhost:14250
-  sdk:
-    trace:
-      sampler:
-        probability: 0.1
-
 ---
 spring:
   config:
     activate:
       on-profile: dev
 
-otel:
-  sdk:
-    trace:
-      sampler:
-        probability: 1.0
+# otel.sdk.trace.sampler.probability removed — use OTEL_TRACES_SAMPLER_ARG env var instead

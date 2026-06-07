@@ -15,4 +15,10 @@ public interface OrderSummaryQueryPort {
     List<OrderSummaryProjection> findByBuyerId(String buyerId);
     Page<OrderSummaryProjection> findByBuyerId(String buyerId, String status, Pageable pageable);
     Optional<OrderSummaryProjection> findByOrderId(String orderId);
+
+    /**
+     * Admin-only: returns all orders, optionally filtered by fulfillment status.
+     * Implementations should limit result size to prevent runaway queries.
+     */
+    List<OrderSummaryProjection> findAll(String status);
 }

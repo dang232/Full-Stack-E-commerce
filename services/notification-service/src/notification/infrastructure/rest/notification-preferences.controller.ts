@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Put,
-  Body,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Put, Body, Req, UseGuards } from '@nestjs/common';
 import { GetPreferencesUseCase } from '../../application/query/get-preferences.use-case';
 import { UpdatePreferencesUseCase } from '../../application/command/update-preferences.use-case';
 import { NotificationType } from '../../domain/model/notification-type.enum';
@@ -24,6 +17,7 @@ interface UpdatePreferencesBody {
 @Controller('notifications/preferences')
 @UseGuards(JwtAuthGuard)
 export class NotificationPreferencesController {
+  /* istanbul ignore next */
   constructor(
     private readonly getPreferences: GetPreferencesUseCase,
     private readonly updatePreferences: UpdatePreferencesUseCase,
@@ -43,7 +37,10 @@ export class NotificationPreferencesController {
   }
 
   @Put()
-  async update(@Req() req: AuthenticatedRequest, @Body() body: UpdatePreferencesBody) {
+  async update(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: UpdatePreferencesBody,
+  ) {
     const validTypes = Object.values(NotificationType) as string[];
     const validChannels = Object.values(NotificationChannel) as string[];
 

@@ -47,7 +47,9 @@ export class NotificationMapper {
       readAt: notification.readAt,
       createdAt: notification.createdAt,
       retryCount: notification.retryCount,
-      expiresAt: new Date(notification.createdAt.getTime() + 90 * 24 * 60 * 60 * 1000), // 90 days TTL
+      expiresAt: new Date(
+        notification.createdAt.getTime() + 90 * 24 * 60 * 60 * 1000,
+      ), // 90 days TTL
     };
   }
 }

@@ -19,6 +19,12 @@ public class ApiExceptionHandler {
         return ApiResponse.error(exception.getMessage(), "BAD_REQUEST");
     }
 
+    @ExceptionHandler(SepayWebhookController.SepaySignatureException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiResponse<Void> sepaySignatureRejected(SepayWebhookController.SepaySignatureException exception) {
+        return ApiResponse.error("unauthorized", "INVALID_SIGNATURE");
+    }
+
     @ExceptionHandler(OrderAccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiResponse<Void> orderAccessDenied(OrderAccessDeniedException exception) {

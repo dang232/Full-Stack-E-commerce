@@ -1,0 +1,289 @@
+# =============================================================================
+# VNShop Kafka — Production StatefulSet (3 brokers, KRaft mode)
+#
+# Broker configuration is supplied via the kafka-config ConfigMap below,
+# which mounts infra/kafka/server.properties into each pod.
+#
+# Key production settings (see infra/kafka/server.properties for details):
+#   default.replication.factor=3
+#   min.insync.replicas=2
+#   unclean.leader.election.enable=false
+#   log.retention.hours=168
+#
+# Local dev uses a single-broker Docker Compose service with
+# replication.factor=1. Do NOT apply this manifest locally.
+# =============================================================================
+
+---
+# ConfigMap — mounts server.properties into each broker pod.
+# Apply after updating infra/kafka/server.properties and running:
+#   kubectl create configmap kafka-config \
+#     --from-file=server.properties=infra/kafka/server.properties \
+#     --dry-run=client -o yaml | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/part-of: vnshop
+data:
+  server.properties: |
+    default.replication.factor=3
+    min.insync.replicas=2
+    unclean.leader.election.enable=false
+    num.partitions=6
+    log.retention.hours=168
+    offsets.topic.replication.factor=3
+    transaction.state.log.replication.factor=3
+    transaction.state.log.min.isr=2
+    log.segment.bytes=1073741824
+    log.retention.check.interval.ms=300000
+    num.network.threads=3
+    num.io.threads=8
+    num.recovery.threads.per.data.dir=1
+    socket.send.buffer.bytes=102400
+    socket.receive.buffer.bytes=102400
+    socket.request.max.bytes=104857600
+
+---
+# Headless Service — enables stable DNS for each broker pod
+# (kafka-0.kafka-headless, kafka-1.kafka-headless, kafka-2.kafka-headless).
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-headless
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/part-of: vnshop
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: kafka
+  ports:
+  - name: broker
+    port: 9092
+    targetPort: broker
+  - name: controller
+    port: 9093
+    targetPort: controller
+
+---
+# Client Service — stable ClusterIP for application bootstrap addresses.
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/part-of: vnshop
+spec:
+  selector:
+    app.kubernetes.io/name: kafka
+  ports:
+  - name: broker
+    port: 9092
+    targetPort: broker
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/part-of: vnshop
+spec:
+  # 3 replicas satisfy default.replication.factor=3 and min.insync.replicas=2.
+  # Scaling below 3 will violate ISR constraints and stall producers with acks=all.
+  replicas: 3
+  serviceName: kafka-headless
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kafka
+  # Ordered rollout ensures one broker restarts at a time, preserving quorum.
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kafka
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      # Spread pods across nodes to avoid co-location failures.
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: kafka
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+
+      initContainers:
+      # Formats the KRaft storage directory on first boot using the pod's
+      # ordinal index as the broker.id / node.id.
+      - name: kafka-init
+        image: confluentinc/cp-kafka:8.2.0
+        command:
+        - /bin/sh
+        - -c
+        - |
+          BROKER_ID=${HOSTNAME##*-}
+          STORAGE_DIR=/var/lib/kafka/data
+          META_FILE="${STORAGE_DIR}/meta.properties"
+          if [ ! -f "${META_FILE}" ]; then
+            echo "Formatting KRaft storage for broker ${BROKER_ID}..."
+            kafka-storage format \
+              --config /etc/kafka/server.properties \
+              --cluster-id "${KAFKA_CLUSTER_ID}" \
+              --ignore-formatted
+          fi
+        env:
+        - name: KAFKA_CLUSTER_ID
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secret
+              key: cluster-id
+        volumeMounts:
+        - name: kafka-data
+          mountPath: /var/lib/kafka/data
+        - name: kafka-config
+          mountPath: /etc/kafka/server.properties
+          subPath: server.properties
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:8.2.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: broker
+          containerPort: 9092
+        - name: controller
+          containerPort: 9093
+
+        env:
+        # Derive broker ID and advertised listener from the pod ordinal.
+        - name: KAFKA_NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KAFKA_PROCESS_ROLES
+          value: "broker,controller"
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+          # All three brokers participate in the KRaft controller quorum.
+          value: "0@kafka-0.kafka-headless:9093,1@kafka-1.kafka-headless:9093,2@kafka-2.kafka-headless:9093"
+        - name: KAFKA_LISTENERS
+          value: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://$(POD_NAME).kafka-headless:9092"
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME
+          value: "PLAINTEXT"
+        - name: KAFKA_CONTROLLER_LISTENER_NAMES
+          value: "CONTROLLER"
+        - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+          value: "false"
+        - name: KAFKA_CLUSTER_ID
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secret
+              key: cluster-id
+        - name: KAFKA_LOG_DIRS
+          value: "/var/lib/kafka/data"
+
+        volumeMounts:
+        - name: kafka-data
+          mountPath: /var/lib/kafka/data
+        - name: kafka-config
+          mountPath: /etc/kafka/server.properties
+          subPath: server.properties
+
+        # Readiness: TCP check on the controller port (PLAINTEXT, no auth).
+        # Pod is only added to the Service endpoint slice once this passes.
+        readinessProbe:
+          tcpSocket:
+            port: controller
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+
+        # Liveness: same TCP probe. Container is restarted if the port
+        # stops accepting connections (e.g. JVM deadlock / OOM kill).
+        livenessProbe:
+          tcpSocket:
+            port: controller
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        # Startup probe gives the broker up to 5 minutes (30 * 10s) to
+        # format storage and join the quorum on first boot before liveness
+        # kicks in.
+        startupProbe:
+          tcpSocket:
+            port: controller
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+
+      volumes:
+      - name: kafka-config
+        configMap:
+          name: kafka-config
+
+  # Persistent volume claims — one 20 Gi volume per broker pod.
+  # The storage class must support ReadWriteOnce (block storage).
+  # Adjust storageClassName to match your cloud provider:
+  #   AWS EKS:  gp3
+  #   GKE:      standard-rwo
+  #   AKS:      managed-premium
+  volumeClaimTemplates:
+  - metadata:
+      name: kafka-data
+      labels:
+        app.kubernetes.io/name: kafka
+        app.kubernetes.io/part-of: vnshop
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: standard-rwo

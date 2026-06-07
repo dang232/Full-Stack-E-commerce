@@ -78,6 +78,11 @@
 			<version>1.3.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-api</artifactId>
+			<version>1.45.0</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

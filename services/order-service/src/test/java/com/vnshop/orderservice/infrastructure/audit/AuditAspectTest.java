@@ -1,5 +1,6 @@
 package com.vnshop.orderservice.infrastructure.audit;
 
+import com.vnshop.orderservice.domain.annotation.Audited;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

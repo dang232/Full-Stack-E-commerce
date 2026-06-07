@@ -2,6 +2,7 @@ package com.vnshop.userservice.infrastructure.config;
 
 import com.vnshop.userservice.application.GdprDeleteUseCase;
 import com.vnshop.userservice.application.GdprExportUseCase;
+import com.vnshop.userservice.domain.port.out.GdprDeletionStatusPort;
 import com.vnshop.userservice.domain.port.out.GdprExportRepositoryPort;
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +19,8 @@ public class GdprUseCaseConfig {
 
     @Bean
     public GdprDeleteUseCase gdprDeleteUseCase(UserRepositoryPort userRepository,
-                                               KafkaTemplate<String, Object> kafkaTemplate) {
-        return new GdprDeleteUseCase(userRepository, kafkaTemplate);
+                                               KafkaTemplate<String, Object> kafkaTemplate,
+                                               GdprDeletionStatusPort deletionStatusPort) {
+        return new GdprDeleteUseCase(userRepository, kafkaTemplate, deletionStatusPort);
     }
 }

@@ -7,12 +7,17 @@ import {
 
 @Injectable()
 export class MarkNotificationReadUseCase {
+  /* istanbul ignore next */
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY) private readonly repo: NotificationRepository,
+    @Inject(NOTIFICATION_REPOSITORY)
+    private readonly repo: NotificationRepository,
   ) {}
 
   async execute(notificationId: string, userId: string): Promise<Notification> {
-    const notification = await this.repo.findByIdAndUserId(notificationId, userId);
+    const notification = await this.repo.findByIdAndUserId(
+      notificationId,
+      userId,
+    );
     if (!notification) {
       throw new NotFoundException(`Notification ${notificationId} not found`);
     }

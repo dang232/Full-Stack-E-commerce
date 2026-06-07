@@ -18,6 +18,12 @@ public interface UserRepositoryPort {
      */
     List<BuyerProfile> findBuyersByKeycloakIds(List<String> keycloakIds);
 
+    /**
+     * Admin search by email (keycloakId prefix match) or phone substring.
+     * Both params are optional; if both are null/blank, returns an empty list.
+     */
+    List<BuyerProfile> searchBuyers(String email, String phone);
+
     SellerProfile saveSeller(SellerProfile sellerProfile);
 
     Optional<SellerProfile> findSellerById(String sellerId);

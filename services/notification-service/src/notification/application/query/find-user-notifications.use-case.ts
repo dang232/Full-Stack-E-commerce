@@ -25,11 +25,15 @@ export interface PaginatedNotifications {
 
 @Injectable()
 export class FindUserNotificationsUseCase {
+  /* istanbul ignore next */
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY) private readonly repo: NotificationRepository,
+    @Inject(NOTIFICATION_REPOSITORY)
+    private readonly repo: NotificationRepository,
   ) {}
 
-  async execute(query: FindUserNotificationsQuery): Promise<PaginatedNotifications> {
+  async execute(
+    query: FindUserNotificationsQuery,
+  ): Promise<PaginatedNotifications> {
     const page = query.page ?? 0;
     const limit = Math.min(query.limit ?? 20, 100);
 

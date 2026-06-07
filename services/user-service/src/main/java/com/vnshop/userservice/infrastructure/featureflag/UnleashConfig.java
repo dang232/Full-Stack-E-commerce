@@ -2,7 +2,6 @@ package com.vnshop.userservice.infrastructure.featureflag;
 
 import io.getunleash.DefaultUnleash;
 import io.getunleash.Unleash;
-import io.getunleash.util.UnleashConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +20,7 @@ public class UnleashConfig {
 
     @Bean
     public Unleash unleash() {
-        var config = UnleashConfig.builder()
+        var config = io.getunleash.util.UnleashConfig.builder()
                 .appName(appName)
                 .unleashAPI(apiUrl)
                 .apiKey(apiKey)

@@ -23,8 +23,15 @@ export interface NotificationRepository {
   findByIds(ids: string[]): Promise<Notification[]>;
   findByIdAndUserId(id: string, userId: string): Promise<Notification | null>;
   findByIdempotencyKey(key: string): Promise<Notification | null>;
-  findByUser(options: FindUserNotificationsOptions): Promise<{ items: Notification[]; total: number }>;
-  findThreadsByUser(userId: string, page: number, limit: number, type?: NotificationType): Promise<{ threads: ThreadSummary[]; total: number }>;
+  findByUser(
+    options: FindUserNotificationsOptions,
+  ): Promise<{ items: Notification[]; total: number }>;
+  findThreadsByUser(
+    userId: string,
+    page: number,
+    limit: number,
+    type?: NotificationType,
+  ): Promise<{ threads: ThreadSummary[]; total: number }>;
   findByThread(threadId: string, userId: string): Promise<Notification[]>;
   countUnread(userId: string): Promise<number>;
   markAllReadForUser(userId: string): Promise<number>;

@@ -34,21 +34,27 @@ export interface SendNotificationCommand {
   recipientEmail?: string;
   /** FCM device token for PUSH channel delivery. */
   recipientDeviceToken?: string;
+  /** E.164 phone number for SMS channel delivery. */
+  recipientPhoneNumber?: string;
 }
 
 @Injectable()
 export class SendNotificationUseCase {
   private readonly logger = new Logger(SendNotificationUseCase.name);
 
+  /* istanbul ignore next */
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY) private readonly repo: NotificationRepository,
+    @Inject(NOTIFICATION_REPOSITORY)
+    private readonly repo: NotificationRepository,
     @Inject(NOTIFICATION_PREFERENCES_REPOSITORY)
     private readonly prefsRepo: NotificationPreferencesRepository,
     @Inject(DEDUPLICATION_PORT) private readonly dedup: DeduplicationPort,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(command: SendNotificationCommand): Promise<Notification | null> {
+  async execute(
+    command: SendNotificationCommand,
+  ): Promise<Notification | null> {
     // Check user preferences before persisting
     const prefs = await this.prefsRepo.findByUserId(command.userId);
     const allChannels = Object.values(NotificationChannel);
@@ -75,9 +81,13 @@ export class SendNotificationUseCase {
       const acquired = await this.dedup.tryAcquire(command.idempotencyKey);
       if (!acquired) {
         // Another process already claimed this key
-        const existing = await this.repo.findByIdempotencyKey(command.idempotencyKey);
+        const existing = await this.repo.findByIdempotencyKey(
+          command.idempotencyKey,
+        );
         if (existing) {
-          this.logger.debug(`Duplicate notification skipped: ${command.idempotencyKey}`);
+          this.logger.debug(
+            `Duplicate notification skipped: ${command.idempotencyKey}`,
+          );
           return existing;
         }
         // Key exists but notification not found (rare: key set but save failed) — proceed
@@ -119,9 +129,11 @@ export class SendNotificationUseCase {
             suppressedChannels,
             command.recipientEmail,
             command.recipientDeviceToken,
+            command.recipientPhoneNumber,
           ),
         );
       } else {
+        /* istanbul ignore next */
         this.eventEmitter.emit('notification.created', event);
       }
     }

@@ -30,6 +30,7 @@ public class SecurityConfig {
                         // response only carries display name + avatar, the
                         // same surface that already shows publicly elsewhere.
                         .requestMatchers(HttpMethod.GET, "/users/public-profiles").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();

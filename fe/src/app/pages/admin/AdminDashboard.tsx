@@ -1,6 +1,5 @@
 import { IconAlertCircle, IconChartBar, IconPackage, IconTrendingUp, IconUsers, IconWallet } from "@tabler/icons-react";
 
-import { comingSoon } from "../../lib/ui/coming-soon";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
@@ -62,8 +61,9 @@ export function AdminDashboard() {
           <p className="text-sm text-muted-foreground">{t("admin.dashboard.subtitle")}</p>
         </div>
         <button
-          onClick={() => comingSoon("Report export")}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card text-sm text-muted-foreground"
+          disabled
+          title="Available Q3 2026"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card text-sm text-muted-foreground opacity-50 cursor-not-allowed"
         >
           <IconChartBar size={15} /> {t("admin.dashboard.exportReport")}
         </button>

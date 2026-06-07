@@ -7,6 +7,7 @@ import { NotificationPreferences } from '../../domain/model/notification-prefere
 
 @Injectable()
 export class GetPreferencesUseCase {
+  /* istanbul ignore next */
   constructor(
     @Inject(NOTIFICATION_PREFERENCES_REPOSITORY)
     private readonly repo: NotificationPreferencesRepository,

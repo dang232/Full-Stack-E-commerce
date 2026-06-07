@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 FROM maven:3.9.11-eclipse-temurin-25 AS builder
 WORKDIR /workspace
 COPY services/shipping-service/pom.xml .

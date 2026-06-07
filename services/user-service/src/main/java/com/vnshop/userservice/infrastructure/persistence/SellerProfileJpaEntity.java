@@ -1,7 +1,6 @@
 package com.vnshop.userservice.infrastructure.persistence;
 
 import com.vnshop.userservice.domain.Address;
-import com.vnshop.userservice.infrastructure.persistence.BaseJpaEntity;
 import com.vnshop.userservice.domain.SellerProfile;
 import com.vnshop.userservice.domain.Tier;
 import jakarta.persistence.Column;

@@ -5,3 +5,7 @@ resources:
 - configmap.yaml
 - secret.yaml
 - workloads.yaml
+- postgres/postgres-replica-orders.yaml
+- postgres/postgres-replica-products.yaml
+- postgres/postgres-replica-users.yaml
+- istio/

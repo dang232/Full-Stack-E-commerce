@@ -16,13 +16,17 @@ import {
 export class RetryFailedDeliveriesUseCase {
   private readonly logger = new Logger(RetryFailedDeliveriesUseCase.name);
 
+  /* istanbul ignore next */
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY) private readonly repo: NotificationRepository,
-    @Inject(REALTIME_CHANNEL_PORT) private readonly channel: RealtimeChannelPort,
-    @Inject(CONNECTION_REGISTRY_PORT) private readonly registry: ConnectionRegistryPort,
+    @Inject(NOTIFICATION_REPOSITORY)
+    private readonly repo: NotificationRepository,
+    @Inject(REALTIME_CHANNEL_PORT)
+    private readonly channel: RealtimeChannelPort,
+    @Inject(CONNECTION_REGISTRY_PORT)
+    private readonly registry: ConnectionRegistryPort,
   ) {}
 
-  async execute(): Promise<{ retried: number; movedToDlq: number }> {
+  execute(): { retried: number; movedToDlq: number } {
     // Retry logic is handled inline in the event handler.
     // This use case is a placeholder for a scheduled job that would
     // query FAILED notifications and re-enqueue them.

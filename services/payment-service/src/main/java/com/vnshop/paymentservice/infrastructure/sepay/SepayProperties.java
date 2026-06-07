@@ -16,7 +16,9 @@ public record SepayProperties(
         String apiKey,
         String accountId,
         String baseUrl,
-        long pollIntervalSeconds) {
+        long pollIntervalSeconds,
+        /** Shared secret sent by SePay in the {@code Authorization: Apikey <secret>} header on push callbacks. */
+        String webhookSecret) {
     public SepayProperties {
         if (baseUrl == null || baseUrl.isBlank()) baseUrl = "https://my.sepay.vn/userapi";
         if (pollIntervalSeconds <= 0) pollIntervalSeconds = 30;

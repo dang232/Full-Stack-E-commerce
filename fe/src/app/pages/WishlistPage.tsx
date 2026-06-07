@@ -1,6 +1,5 @@
-import { IconHeart, IconShoppingCart, IconStar, IconTrash, IconShare, IconFilter } from "@tabler/icons-react";
+import { IconHeart, IconShoppingCart, IconStar, IconTrash, IconShare } from "@tabler/icons-react";
 
-import { comingSoon } from "../lib/ui/coming-soon";
 import { useQueries } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { useMemo } from "react";
@@ -90,12 +89,6 @@ export function WishlistPage() {
             className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted"
           >
             <IconShare size={18} />
-          </button>
-          <button
-            onClick={() => comingSoon("Wishlist filtering")}
-            className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted"
-          >
-            <IconFilter size={18} />
           </button>
         </div>
       </div>

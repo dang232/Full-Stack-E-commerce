@@ -59,6 +59,9 @@ public interface OrderJpaSpringDataRepository extends JpaRepository<OrderJpaEnti
             @Param("statuses") List<FulfillmentStatus> statuses
     );
 
+    long countByBuyerIdAndCreatedAtAfterAndPaymentStatusNot(
+            String buyerId, Instant since, com.vnshop.orderservice.domain.PaymentStatus excludedStatus);
+
     long countByCreatedAtBetween(Instant startInclusive, Instant endInclusive);
 
     @Query("select coalesce(sum(order.finalAmount.amount), 0) from OrderJpaEntity order where order.createdAt between :startInclusive and :endInclusive")

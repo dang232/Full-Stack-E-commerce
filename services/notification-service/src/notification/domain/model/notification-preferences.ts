@@ -4,6 +4,7 @@ export enum NotificationChannel {
   IN_APP = 'IN_APP',
   EMAIL = 'EMAIL',
   PUSH = 'PUSH',
+  SMS = 'SMS',
 }
 
 /** Per-type channel preference for a single notification type. */
@@ -51,7 +52,9 @@ export class NotificationPreferences {
     });
   }
 
-  static reconstitute(props: NotificationPreferencesProps): NotificationPreferences {
+  static reconstitute(
+    props: NotificationPreferencesProps,
+  ): NotificationPreferences {
     return new NotificationPreferences(props);
   }
 
@@ -68,7 +71,10 @@ export class NotificationPreferences {
   }
 
   /** Check if a specific channel is enabled for a notification type. */
-  isChannelEnabled(type: NotificationType, channel: NotificationChannel): boolean {
+  isChannelEnabled(
+    type: NotificationType,
+    channel: NotificationChannel,
+  ): boolean {
     if (this._muted) return false;
 
     const pref = this._typePreferences.find((p) => p.type === type);
@@ -78,7 +84,10 @@ export class NotificationPreferences {
   }
 
   /** Update channel preferences for a specific type. */
-  setTypeChannels(type: NotificationType, channels: NotificationChannel[]): void {
+  setTypeChannels(
+    type: NotificationType,
+    channels: NotificationChannel[],
+  ): void {
     const existing = this._typePreferences.findIndex((p) => p.type === type);
     if (existing >= 0) {
       this._typePreferences[existing] = { type, channels };

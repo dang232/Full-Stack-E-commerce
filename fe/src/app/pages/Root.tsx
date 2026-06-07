@@ -15,7 +15,6 @@ import { useAppConfig } from "../hooks/use-app-config";
 import { useCart } from "../hooks/use-cart";
 import { useSearchSuggestions } from "../hooks/use-search-suggestions";
 import { useWishlist } from "../hooks/use-wishlist";
-import { comingSoon } from "../lib/ui/coming-soon";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -285,17 +284,13 @@ function Navbar() {
                         { icon: IconPackage, label: t("auth.myOrders"), path: "/orders" },
                         { icon: IconHeart, label: t("auth.wishlist"), path: "/wishlist" },
                         { icon: IconBell, label: t("auth.notifications"), path: "/notifications" },
-                        { icon: IconSettings, label: t("auth.settings"), path: "#", action: () => comingSoon("Settings") },
+                        { icon: IconSettings, label: t("auth.settings"), path: "/profile" },
                       ].map((item) => (
                         <button
                           key={item.label}
                           role="menuitem"
                           onClick={() => {
-                            if (item.action) {
-                              item.action();
-                            } else {
-                              void navigate(item.path);
-                            }
+                            void navigate(item.path);
                             setUserMenuOpen(false);
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted transition-colors text-left text-foreground"
@@ -363,13 +358,6 @@ function Navbar() {
           >
             <IconTag size={14} />
             <span>{t("nav.allCategories")}</span>
-          </button>
-          <button
-            onClick={() => comingSoon("Support center")}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <IconHeadphones size={14} />
-            <span>{t("nav.support")}</span>
           </button>
         </nav>
       </div>
@@ -494,12 +482,9 @@ export function Root() {
                     "Returns",
                   ].map((link) => (
                     <li key={link}>
-                      <button
-                        onClick={() => comingSoon(link)}
-                        className="text-sm text-[#757575] hover:text-[#EE4D2D] transition-colors text-left"
-                      >
+                      <span className="text-sm text-[#757575]">
                         {link}
-                      </button>
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -519,12 +504,9 @@ export function Root() {
                     t("footer.terms"),
                   ].map((link) => (
                     <li key={link}>
-                      <button
-                        onClick={() => comingSoon(link)}
-                        className="text-sm text-[#757575] hover:text-[#EE4D2D] transition-colors text-left"
-                      >
+                      <span className="text-sm text-[#757575]">
                         {link}
-                      </button>
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -595,13 +577,14 @@ export function Root() {
                 </div>
                 <div className="flex flex-col gap-2">
                   {["App Store", "Google Play"].map((store) => (
-                    <button
+                    <span
                       key={store}
-                      onClick={() => comingSoon(store)}
-                      className="px-3 py-1.5 rounded border border-[#E0E0E0] dark:border-[#333] text-xs text-[#757575] hover:text-[#EE4D2D] hover:border-[#EE4D2D] transition-colors text-left"
+                      className="px-3 py-1.5 rounded border border-[#E0E0E0] dark:border-[#333] text-xs text-[#BDBDBD] cursor-not-allowed text-left"
+                      title="Available Q4 2026"
+                      aria-disabled="true"
                     >
                       {store}
-                    </button>
+                    </span>
                   ))}
                 </div>
               </div>

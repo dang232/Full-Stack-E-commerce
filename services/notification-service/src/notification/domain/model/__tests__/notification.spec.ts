@@ -81,7 +81,10 @@ describe('Notification aggregate', () => {
   });
 
   it('creates with thread when provided', () => {
-    const thread = NotificationThread.create('order:VN2024-abc', 'Đơn hàng #VN2024-abc');
+    const thread = NotificationThread.create(
+      'order:VN2024-abc',
+      'Đơn hàng #VN2024-abc',
+    );
     const n = Notification.create({ ...baseProps, thread });
     expect(n.thread).toBe(thread);
     expect(n.thread!.threadId).toBe('order:VN2024-abc');

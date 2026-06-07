@@ -18,6 +18,7 @@ import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackLogStore;
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackOutbox;
 import com.vnshop.paymentservice.infrastructure.gateway.PaymentCallbackOutboxRecord;
 import com.vnshop.paymentservice.infrastructure.stripe.StripeProperties;
+import com.vnshop.paymentservice.infrastructure.webhook.WebhookIdempotencyService;
 import com.vnshop.paymentservice.infrastructure.stripe.StripeWebhookVerifier;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -128,7 +129,8 @@ class StripeWebhookControllerTest {
             StripeWebhookVerifier verifier) {
         StripeProperties props = new StripeProperties(true, "sk_test", "pk_test", "whsec_x");
         PaymentPromotionService promotion = new PaymentPromotionService(payments, new LedgerService(ledger), outbox);
-        return new StripeWebhookController(props, verifier, promotion, logStore);
+        WebhookIdempotencyService noopIdempotency = mock(WebhookIdempotencyService.class);
+        return new StripeWebhookController(props, verifier, promotion, logStore, noopIdempotency);
     }
 
     private static StripeWebhookVerifier stubVerifier(Event event) {
@@ -186,6 +188,10 @@ class StripeWebhookControllerTest {
         }
 
         @Override
+        public List<Payment> findByMethodAndStatusAndCreatedAtBefore(com.vnshop.paymentservice.domain.PaymentMethod method, PaymentStatus status, java.time.Instant before) {
+            return List.of();
+        }
+
         public List<Payment> findByStatus(PaymentStatus status) {
             return byId.values().stream().filter(p -> p.status() == status).toList();
         }

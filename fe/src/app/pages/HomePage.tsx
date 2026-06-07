@@ -13,7 +13,6 @@ import { useFlashSaleWithProducts, type FlashSaleItem } from "../hooks/use-flash
 import { useProducts } from "../hooks/use-products";
 import { listSellers } from "../lib/api/endpoints/sellers";
 import { formatPrice } from "../lib/format";
-import { comingSoon } from "../lib/ui/coming-soon";
 import { initialAvatarColor, initialFromName } from "../lib/initial-avatar";
 import type { PublicSeller } from "../types/api";
 import type { Product } from "../types/ui";
@@ -984,20 +983,22 @@ function AppBanner() {
           <p className="text-white/75 text-sm">{t("home.downloadAppSub")}</p>
         </div>
         <div className="flex gap-2.5 shrink-0">
-          <button
-            onClick={() => comingSoon("Mobile app")}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
+          <span
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white opacity-60 cursor-not-allowed"
             style={{ color: "#EE4D2D" }}
+            title="Available Q4 2026"
+            aria-disabled="true"
           >
             <IconBrandApple size={18} stroke={2} /> {t("home.appStore")}
-          </button>
-          <button
-            onClick={() => comingSoon("Mobile app")}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:opacity-90 transition-opacity"
+          </span>
+          <span
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white opacity-60 cursor-not-allowed"
             style={{ color: "#EE4D2D" }}
+            title="Available Q4 2026"
+            aria-disabled="true"
           >
             <IconBrandGooglePlay size={18} stroke={2} /> {t("home.googlePlay")}
-          </button>
+          </span>
         </div>
       </div>
     </div>

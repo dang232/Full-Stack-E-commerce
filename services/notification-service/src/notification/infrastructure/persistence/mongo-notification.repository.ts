@@ -13,6 +13,7 @@ import { NotificationMapper } from './notification.mapper';
 
 @Injectable()
 export class MongoNotificationRepository implements NotificationRepository {
+  /* istanbul ignore next */
   constructor(
     @InjectModel(NotificationSchemaClass.name)
     private readonly model: Model<NotificationSchemaClass>,
@@ -29,23 +30,28 @@ export class MongoNotificationRepository implements NotificationRepository {
 
   async findById(id: string): Promise<Notification | null> {
     const doc = await this.model.findOne({ id }).lean();
-    return doc ? NotificationMapper.toDomain(doc as unknown as NotificationSchemaClass) : null;
+    return doc ? NotificationMapper.toDomain(doc) : null;
   }
 
   async findByIds(ids: string[]): Promise<Notification[]> {
     if (ids.length === 0) return [];
     const docs = await this.model.find({ id: { $in: ids } }).lean();
-    return docs.map((d) => NotificationMapper.toDomain(d as unknown as NotificationSchemaClass));
+    return docs.map((d) =>
+      NotificationMapper.toDomain(d as unknown as NotificationSchemaClass),
+    );
   }
 
-  async findByIdAndUserId(id: string, userId: string): Promise<Notification | null> {
+  async findByIdAndUserId(
+    id: string,
+    userId: string,
+  ): Promise<Notification | null> {
     const doc = await this.model.findOne({ id, userId }).lean();
-    return doc ? NotificationMapper.toDomain(doc as unknown as NotificationSchemaClass) : null;
+    return doc ? NotificationMapper.toDomain(doc) : null;
   }
 
   async findByIdempotencyKey(key: string): Promise<Notification | null> {
     const doc = await this.model.findOne({ idempotencyKey: key }).lean();
-    return doc ? NotificationMapper.toDomain(doc as unknown as NotificationSchemaClass) : null;
+    return doc ? NotificationMapper.toDomain(doc) : null;
   }
 
   async findByUser(
@@ -57,12 +63,19 @@ export class MongoNotificationRepository implements NotificationRepository {
     if (threadId) filter['threadId'] = threadId;
 
     const [docs, total] = await Promise.all([
-      this.model.find(filter).sort({ createdAt: -1 }).skip(page * limit).limit(limit).lean(),
+      this.model
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(page * limit)
+        .limit(limit)
+        .lean(),
       this.model.countDocuments(filter),
     ]);
 
     return {
-      items: docs.map((d) => NotificationMapper.toDomain(d as unknown as NotificationSchemaClass)),
+      items: docs.map((d) =>
+        NotificationMapper.toDomain(d as unknown as NotificationSchemaClass),
+      ),
       total,
     };
   }
@@ -73,10 +86,25 @@ export class MongoNotificationRepository implements NotificationRepository {
     limit: number,
     type?: NotificationType,
   ): Promise<{ threads: ThreadSummary[]; total: number }> {
-    const matchStage: Record<string, unknown> = { userId, threadId: { $ne: null } };
+    const matchStage: Record<string, unknown> = {
+      userId,
+      threadId: { $ne: null },
+    };
     if (type) matchStage['type'] = type;
 
-    const result = await this.model.aggregate([
+    interface ThreadAggRow {
+      _id: string;
+      threadTitle: string;
+      unreadCount: number;
+      totalCount: number;
+      latestAt: Date;
+    }
+    interface FacetResult {
+      threads: ThreadAggRow[];
+      count: Array<{ total: number }>;
+    }
+
+    const result = await this.model.aggregate<FacetResult>([
       { $match: matchStage },
       { $sort: { createdAt: -1 as const } },
       {
@@ -97,22 +125,30 @@ export class MongoNotificationRepository implements NotificationRepository {
       },
     ]);
 
-    const facet = result[0] ?? { threads: [], count: [] };
+    const facet: FacetResult = result[0] ?? { threads: [], count: [] };
     const total = facet.count[0]?.total ?? 0;
-    const threads = facet.threads.map((t: any) => ({
-      threadId: t._id as string,
-      threadTitle: t.threadTitle as string,
-      unreadCount: t.unreadCount as number,
-      totalCount: t.totalCount as number,
-      latestAt: t.latestAt as Date,
+    const threads = facet.threads.map((t) => ({
+      threadId: t._id,
+      threadTitle: t.threadTitle,
+      unreadCount: t.unreadCount,
+      totalCount: t.totalCount,
+      latestAt: t.latestAt,
     }));
 
     return { threads, total };
   }
 
-  async findByThread(threadId: string, userId: string): Promise<Notification[]> {
-    const docs = await this.model.find({ threadId, userId }).sort({ createdAt: 1 }).lean();
-    return docs.map((d) => NotificationMapper.toDomain(d as unknown as NotificationSchemaClass));
+  async findByThread(
+    threadId: string,
+    userId: string,
+  ): Promise<Notification[]> {
+    const docs = await this.model
+      .find({ threadId, userId })
+      .sort({ createdAt: 1 })
+      .lean();
+    return docs.map((d) =>
+      NotificationMapper.toDomain(d as unknown as NotificationSchemaClass),
+    );
   }
 
   async countUnread(userId: string): Promise<number> {

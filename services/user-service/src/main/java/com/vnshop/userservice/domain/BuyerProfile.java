@@ -11,13 +11,19 @@ public class BuyerProfile {
     private String name;
     private PhoneNumber phone;
     private String avatarUrl;
+    private boolean banned;
     private final List<Address> addresses;
 
     public BuyerProfile(String keycloakId, String name, PhoneNumber phone, String avatarUrl, List<Address> addresses) {
+        this(keycloakId, name, phone, avatarUrl, false, addresses);
+    }
+
+    public BuyerProfile(String keycloakId, String name, PhoneNumber phone, String avatarUrl, boolean banned, List<Address> addresses) {
         this.keycloakId = requireNonBlank(keycloakId, "keycloakId");
         this.name = name;
         this.phone = phone;
         this.avatarUrl = avatarUrl;
+        this.banned = banned;
         this.addresses = new ArrayList<>();
         if (addresses != null) {
             if (addresses.size() > MAX_ADDRESSES) {
@@ -45,6 +51,18 @@ public class BuyerProfile {
 
     public List<Address> addresses() {
         return List.copyOf(addresses);
+    }
+
+    public boolean banned() {
+        return banned;
+    }
+
+    public void ban() {
+        this.banned = true;
+    }
+
+    public void unban() {
+        this.banned = false;
     }
 
     public void updateProfile(String name, PhoneNumber phone, String avatarUrl) {

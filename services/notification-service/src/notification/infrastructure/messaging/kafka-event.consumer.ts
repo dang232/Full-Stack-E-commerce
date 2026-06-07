@@ -21,10 +21,19 @@ interface OrderEventPayload {
   [key: string]: unknown;
 }
 
+interface UserEventPayload {
+  userId?: string;
+  email?: string;
+  phoneNumber?: string;
+  resetLink?: string;
+  [key: string]: unknown;
+}
+
 @Controller()
 export class KafkaEventConsumer {
   private readonly logger = new Logger(KafkaEventConsumer.name);
 
+  /* istanbul ignore next */
   constructor(private readonly sendNotification: SendNotificationUseCase) {}
 
   @MessagePattern('order.created')
@@ -239,8 +248,47 @@ export class KafkaEventConsumer {
     }
   }
 
+  @MessagePattern('user.registered')
+  async handleUserRegistered(@Payload() p: UserEventPayload): Promise<void> {
+    if (p.userId) {
+      await this.send({
+        userId: p.userId,
+        type: NotificationType.USER_REGISTERED,
+        title: 'Chào mừng đến VNShop!',
+        body: 'Tài khoản của bạn đã được tạo thành công. Bắt đầu mua sắm ngay hôm nay!',
+        deepLink: '/products',
+        priority: Priority.MEDIUM,
+        threadId: `user:${p.userId}`,
+        threadTitle: 'Tài khoản',
+        metadata: { email: p.email },
+        idempotencyKey: `user.registered:${p.userId}:USER_REGISTERED`,
+        recipientEmail: p.email,
+      });
+    }
+  }
+
+  @MessagePattern('user.password-reset')
+  async handleUserPasswordReset(@Payload() p: UserEventPayload): Promise<void> {
+    if (p.userId) {
+      await this.send({
+        userId: p.userId,
+        type: NotificationType.USER_PASSWORD_RESET,
+        title: 'Đặt lại mật khẩu',
+        body: 'Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.',
+        deepLink: p.resetLink ?? '/auth/reset-password',
+        priority: Priority.HIGH,
+        threadId: `user:${p.userId}`,
+        threadTitle: 'Tài khoản',
+        metadata: { email: p.email },
+        idempotencyKey: `user.password-reset:${p.userId}:USER_PASSWORD_RESET`,
+        recipientEmail: p.email,
+      });
+    }
+  }
+
   private sanitizeMetadata(p: OrderEventPayload): Record<string, unknown> {
-    const { buyerId, sellerId, ...displayFields } = p;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { buyerId: _b, sellerId: _s, ...displayFields } = p;
     return displayFields;
   }
 

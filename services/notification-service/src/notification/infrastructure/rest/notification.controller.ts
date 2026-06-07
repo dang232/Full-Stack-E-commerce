@@ -29,6 +29,7 @@ interface AuthenticatedRequest {
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationRestController {
+  /* istanbul ignore next */
   constructor(
     private readonly findUserNotifications: FindUserNotificationsUseCase,
     private readonly findThreads: FindNotificationThreadsUseCase,
@@ -65,7 +66,7 @@ export class NotificationRestController {
     });
 
     return {
-      content: result.items.map(NotificationResponseDto.from),
+      content: result.items.map((n) => NotificationResponseDto.from(n)),
       totalElements: result.total,
       totalPages: result.totalPages,
       number: result.page,
@@ -106,7 +107,7 @@ export class NotificationRestController {
     });
 
     return {
-      content: result.threads.map(ThreadResponseDto.from),
+      content: result.threads.map((t) => ThreadResponseDto.from(t)),
       totalElements: result.total,
       totalPages: result.totalPages,
       number: result.page,
@@ -123,7 +124,7 @@ export class NotificationRestController {
   ) {
     const userId = req.user.sub;
     const items = await this.findThreadNotifications.execute(threadId, userId);
-    return items.map(NotificationResponseDto.from);
+    return items.map((n) => NotificationResponseDto.from(n));
   }
 
   @Post(':id/read')
@@ -157,7 +158,10 @@ export class NotificationRestController {
       metadata: { source: 'manual-test' },
     });
     if (!notification) {
-      return { suppressed: true, message: 'All channels disabled for this type' };
+      return {
+        suppressed: true,
+        message: 'All channels disabled for this type',
+      };
     }
     return NotificationResponseDto.from(notification);
   }

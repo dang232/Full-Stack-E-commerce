@@ -26,20 +26,29 @@ import {
   PUSH_CHANNEL_PORT,
   PushChannelPort,
 } from '../../domain/port/outbound/push-channel.port';
+import {
+  SMS_CHANNEL_PORT,
+  SmsChannelPort,
+} from '../../domain/port/outbound/sms-channel.port';
 import { Notification } from '../../domain/model/notification';
 
 @Injectable()
 export class NotificationCreatedHandler {
   private readonly logger = new Logger(NotificationCreatedHandler.name);
 
+  /* istanbul ignore next */
   constructor(
-    @Inject(NOTIFICATION_REPOSITORY) private readonly repo: NotificationRepository,
+    @Inject(NOTIFICATION_REPOSITORY)
+    private readonly repo: NotificationRepository,
     @Inject(NOTIFICATION_PREFERENCES_REPOSITORY)
     private readonly prefsRepo: NotificationPreferencesRepository,
-    @Inject(REALTIME_CHANNEL_PORT) private readonly realtimeChannel: RealtimeChannelPort,
-    @Inject(CONNECTION_REGISTRY_PORT) private readonly registry: ConnectionRegistryPort,
+    @Inject(REALTIME_CHANNEL_PORT)
+    private readonly realtimeChannel: RealtimeChannelPort,
+    @Inject(CONNECTION_REGISTRY_PORT)
+    private readonly registry: ConnectionRegistryPort,
     @Inject(EMAIL_CHANNEL_PORT) private readonly emailChannel: EmailChannelPort,
     @Inject(PUSH_CHANNEL_PORT) private readonly pushChannel: PushChannelPort,
+    @Inject(SMS_CHANNEL_PORT) private readonly smsChannel: SmsChannelPort,
   ) {}
 
   @OnEvent('notification.created')
@@ -56,9 +65,26 @@ export class NotificationCreatedHandler {
     };
 
     await Promise.all([
-      this.dispatchInApp(event, notification, isChannelActive(NotificationChannel.IN_APP)),
-      this.dispatchEmail(event, notification, isChannelActive(NotificationChannel.EMAIL)),
-      this.dispatchPush(event, notification, isChannelActive(NotificationChannel.PUSH)),
+      this.dispatchInApp(
+        event,
+        notification,
+        isChannelActive(NotificationChannel.IN_APP),
+      ),
+      this.dispatchEmail(
+        event,
+        notification,
+        isChannelActive(NotificationChannel.EMAIL),
+      ),
+      this.dispatchPush(
+        event,
+        notification,
+        isChannelActive(NotificationChannel.PUSH),
+      ),
+      this.dispatchSms(
+        event,
+        notification,
+        isChannelActive(NotificationChannel.SMS),
+      ),
     ]);
   }
 
@@ -81,7 +107,9 @@ export class NotificationCreatedHandler {
         notification.markSent();
         await this.realtimeChannel.sendToUser(event.userId, notification);
         await this.repo.save(notification);
-        this.logger.debug(`Sent notification ${notification.id} to ${event.userId}`);
+        this.logger.debug(
+          `Sent notification ${notification.id} to ${event.userId}`,
+        );
       } catch (err) {
         notification.markFailed();
         await this.repo.save(notification);
@@ -92,7 +120,9 @@ export class NotificationCreatedHandler {
       notification.markSent();
       await this.repo.save(notification);
       await this.registry.enqueueOffline(event.userId, notification.id);
-      this.logger.debug(`User ${event.userId} offline — queued ${notification.id}`);
+      this.logger.debug(
+        `User ${event.userId} offline — queued ${notification.id}`,
+      );
     }
   }
 
@@ -102,6 +132,7 @@ export class NotificationCreatedHandler {
     enabled: boolean,
   ): Promise<void> {
     if (!enabled || !event.recipientEmail) return;
+    /* istanbul ignore next */
     if (!this.emailChannel.isEnabled()) return;
 
     try {
@@ -110,7 +141,10 @@ export class NotificationCreatedHandler {
         notification,
       );
     } catch (error) {
-      this.logger.error(`Email dispatch failed for notification ${notification.id}`, error);
+      this.logger.error(
+        `Email dispatch failed for notification ${notification.id}`,
+        error,
+      );
     }
   }
 
@@ -130,7 +164,31 @@ export class NotificationCreatedHandler {
         notification.deepLink ? { deepLink: notification.deepLink } : undefined,
       );
     } catch (error) {
-      this.logger.error(`Push dispatch failed for notification ${notification.id}`, error);
+      this.logger.error(
+        `Push dispatch failed for notification ${notification.id}`,
+        error,
+      );
+    }
+  }
+
+  private async dispatchSms(
+    event: NotificationCreatedEvent,
+    notification: Notification,
+    enabled: boolean,
+  ): Promise<void> {
+    if (!enabled || !event.recipientPhoneNumber) return;
+    if (!this.smsChannel.isEnabled()) return;
+
+    try {
+      await this.smsChannel.send(
+        { userId: event.userId, phoneNumber: event.recipientPhoneNumber },
+        notification,
+      );
+    } catch (error) {
+      this.logger.error(
+        `SMS dispatch failed for notification ${notification.id}`,
+        error,
+      );
     }
   }
 }

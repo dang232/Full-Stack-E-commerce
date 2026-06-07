@@ -1,8 +1,8 @@
 package com.vnshop.apigateway.infrastructure.route;
 
-import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import com.vnshop.apigateway.infrastructure.config.TieredRateLimiter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -19,6 +19,14 @@ import org.springframework.context.annotation.Configuration;
  *
  * <p>The Authorization header is forwarded to downstream services automatically by
  * Spring Cloud Gateway, so dropping TokenRelay does not lose anything.
+ *
+ * <p>Rate limiting is per-route with tiered limits — authenticated users get higher
+ * allowances than anonymous callers, and two users behind the same CGNAT IP each get
+ * independent buckets because the key is the JWT {@code sub} claim, not the IP.
+ * See {@link com.vnshop.apigateway.infrastructure.config.RateLimiterConfig} for the
+ * per-route replenish/burst values and
+ * {@link com.vnshop.apigateway.infrastructure.config.TieredKeyResolver} for the
+ * key-resolution strategy.
  */
 @Configuration
 public class RouteConfig {
@@ -71,25 +79,23 @@ public class RouteConfig {
     }
 
     @Bean
-    RedisRateLimiter redisRateLimiter() {
-        return new RedisRateLimiter(10, 20, 1);
-    }
-
-    @Bean
     RouteLocator gatewayRoutes(
         RouteLocatorBuilder builder,
-        RedisRateLimiter redisRateLimiter,
-        KeyResolver userKeyResolver
+        TieredRateLimiter paymentRateLimiter,
+        TieredRateLimiter authRateLimiter,
+        TieredRateLimiter searchRateLimiter,
+        TieredRateLimiter generalRateLimiter,
+        KeyResolver tieredKeyResolver
     ) {
         return builder.routes()
             .route("products", route -> route.path("/products/**")
-                .filters(filters -> rateLimited(filters, "product-service", redisRateLimiter, userKeyResolver))
+                .filters(filters -> rateLimited(filters, "product-service", generalRateLimiter, tieredKeyResolver))
                 .uri(productServiceUri))
             .route("categories", route -> route.path("/categories/**")
                 .filters(filters -> resilient(filters, "product-service"))
                 .uri(productServiceUri))
             .route("search", route -> route.path("/search/**")
-                .filters(filters -> resilient(filters, "search-service"))
+                .filters(filters -> rateLimited(filters, "search-service", searchRateLimiter, tieredKeyResolver))
                 .uri(searchServiceUri))
             // /inventory/** route was removed in Phase 3C: inventory-service exposes
             // only gRPC (Reserve/Release) and the flash-sale REST endpoint below.
@@ -124,7 +130,7 @@ public class RouteConfig {
             // bearer token; the controller in user-service proxies to Keycloak's
             // Admin API to create the user, then materialises the buyer profile.
             .route("auth", route -> route.path("/auth/**")
-                .filters(filters -> rateLimited(filters, "user-service", redisRateLimiter, userKeyResolver))
+                .filters(filters -> rateLimited(filters, "user-service", authRateLimiter, tieredKeyResolver))
                 .uri(userServiceUri))
             .route("cart", route -> route.path("/cart/**")
                 .filters(filters -> resilient(filters, "cart-service"))
@@ -152,10 +158,10 @@ public class RouteConfig {
                 .filters(filters -> resilient(filters, "order-service"))
                 .uri(orderServiceUri))
             .route("orders", route -> route.path("/orders/**")
-                .filters(filters -> rateLimited(filters, "order-service", redisRateLimiter, userKeyResolver))
+                .filters(filters -> rateLimited(filters, "order-service", generalRateLimiter, tieredKeyResolver))
                 .uri(orderServiceUri))
             .route("payment", route -> route.path("/payment/**")
-                .filters(filters -> rateLimited(filters, "payment-service", redisRateLimiter, userKeyResolver))
+                .filters(filters -> rateLimited(filters, "payment-service", paymentRateLimiter, tieredKeyResolver))
                 .uri(paymentServiceUri))
             .route("shipping", route -> route.path("/shipping/**")
                 .filters(filters -> resilient(filters, "shipping-service"))
@@ -235,13 +241,13 @@ public class RouteConfig {
     private GatewayFilterSpec rateLimited(
         GatewayFilterSpec filters,
         String service,
-        RedisRateLimiter redisRateLimiter,
-        KeyResolver userKeyResolver
+        TieredRateLimiter rateLimiter,
+        KeyResolver keyResolver
     ) {
         return filters
             .requestRateLimiter(config -> config
-                .setRateLimiter(redisRateLimiter)
-                .setKeyResolver(userKeyResolver))
+                .setRateLimiter(rateLimiter)
+                .setKeyResolver(keyResolver))
             .circuitBreaker(config -> config
                 .setName(service)
                 .setFallbackUri("forward:/fallback/" + service));

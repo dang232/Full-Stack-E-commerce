@@ -15,6 +15,7 @@ import { useCart } from "../../hooks/use-cart";
 import { ApiError } from "../../lib/api";
 import {
   calculateCheckout,
+  fetchShippingRates,
   paymentMethods as fetchPaymentMethods,
   shippingOptions as fetchShippingOptions,
 } from "../../lib/api/endpoints/checkout";
@@ -31,8 +32,8 @@ import { CheckoutShippingStep } from "./CheckoutShippingStep";
 import { CheckoutSuccess } from "./CheckoutSuccess";
 import { CheckoutSummary } from "./CheckoutSummary";
 import {
-  FALLBACK_PAYMENT,
-  FALLBACK_SHIPPING,
+  makeFallbackPayment,
+  makeFallbackShipping,
   STEPS,
   type PaymentOption,
   type Step,
@@ -69,32 +70,20 @@ export function CheckoutPage() {
     retry: false,
   });
 
-  const shippingOptions = useMemo(() => {
-    const data = shippingQuery.data;
-    if (!data || data.length === 0) return FALLBACK_SHIPPING;
-    return data.map((s, i) => ({
-      id: s.code ?? `option-${i}`,
-      name: s.name ?? t("checkout.shipping.fallbackName", { n: i + 1 }),
-      desc:
-        typeof s.estimatedDays === "number"
-          ? t("checkout.shipping.deliverInDays", { n: s.estimatedDays })
-          : t("checkout.shipping.etaStandard"),
-      fee: s.fee ?? 0,
-      eta:
-        typeof s.estimatedDays === "number"
-          ? t("checkout.shipping.etaDays", { n: s.estimatedDays })
-          : t("checkout.shipping.etaStandard"),
-    }));
-  }, [shippingQuery.data, t]);
+  // shippingOptions moved after ratesQuery declaration below
 
   const paymentOptions: PaymentOption[] = useMemo(() => {
     const data = paymentQuery.data;
-    if (!data || data.length === 0) return FALLBACK_PAYMENT;
+    const fallback = makeFallbackPayment(t);
+    if (!data || data.length === 0) return fallback;
     const codeToFallback: Record<string, PaymentOption> = {
-      VNPAY: FALLBACK_PAYMENT[0],
-      MOMO: FALLBACK_PAYMENT[1],
-      BANK: FALLBACK_PAYMENT[2],
-      COD: FALLBACK_PAYMENT[3],
+      VNPAY: fallback[0],
+      MOMO: fallback[1],
+      VIETQR: fallback[2],
+      STRIPE: fallback[3],
+      PAYPAL: fallback[4],
+      BANK: fallback[5],
+      COD: fallback[6],
     };
     return data
       .filter((p) => p.enabled !== false)
@@ -107,7 +96,7 @@ export function CheckoutPage() {
             desc: p.description ?? "",
           },
       );
-  }, [paymentQuery.data]);
+  }, [paymentQuery.data, t]);
 
   const [step, setStep] = useState<Step>(() => {
     try {
@@ -142,7 +131,7 @@ export function CheckoutPage() {
     } catch { /* ignore */ }
     return "";
   });
-  const selectedShippingId = shippingChoice || shippingOptions[0]?.id || "";
+  const selectedShippingId = shippingChoice || "";
   const [selectedPaymentId, setSelectedPaymentId] = useState<PaymentOption["id"]>(() => {
     try {
       const raw = sessionStorage.getItem("vnshop:checkout-state");
@@ -182,6 +171,62 @@ export function CheckoutPage() {
   const [showCouponPicker, setShowCouponPicker] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+
+  const selectedAddress = addresses[selectedAddressIndex];
+  const ratesQuery = useQuery({
+    queryKey: [
+      "checkout",
+      "shipping-rates",
+      selectedAddress?.street,
+      selectedAddress?.district,
+      selectedAddress?.city,
+      totalAmount,
+    ],
+    queryFn: () =>
+      fetchShippingRates({
+        street: selectedAddress!.street,
+        ward: selectedAddress!.ward ?? undefined,
+        district: selectedAddress!.district ?? "",
+        province: selectedAddress!.city,
+        orderTotalVnd: totalAmount,
+      }),
+    enabled: !!selectedAddress && cartItems.length > 0,
+    retry: false,
+  });
+
+  const shippingOptions = useMemo(() => {
+    const ratesData = ratesQuery.data?.options;
+    if (ratesData && ratesData.length > 0) {
+      return ratesData.map((r: { serviceCode: string; feeVnd: number; estimatedDeliveryTime: string }) => ({
+        id: r.serviceCode,
+        name: r.serviceCode === "STANDARD"
+          ? t("checkout.shipping.standardName")
+          : r.serviceCode === "EXPRESS"
+            ? t("checkout.shipping.expressName")
+            : r.serviceCode,
+        desc: r.estimatedDeliveryTime,
+        fee: r.feeVnd,
+        eta: r.estimatedDeliveryTime,
+      }));
+    }
+    const checkoutData = shippingQuery.data;
+    if (checkoutData && checkoutData.length > 0) {
+      return checkoutData.map((s, i) => ({
+        id: s.code ?? `option-${i}`,
+        name: s.name ?? t("checkout.shipping.fallbackName", { n: i + 1 }),
+        desc:
+          typeof s.estimatedDays === "number"
+            ? t("checkout.shipping.deliverInDays", { n: s.estimatedDays })
+            : t("checkout.shipping.etaStandard"),
+        fee: s.fee ?? 0,
+        eta:
+          typeof s.estimatedDays === "number"
+            ? t("checkout.shipping.etaDays", { n: s.estimatedDays })
+            : t("checkout.shipping.etaStandard"),
+      }));
+    }
+    return makeFallbackShipping(t);
+  }, [ratesQuery.data, shippingQuery.data, t]);
 
   // Lazily fetch the public coupon catalogue when the user opens the picker.
   // No `enabled` gate would mean every checkout view paid the call even if
@@ -327,7 +372,6 @@ export function CheckoutPage() {
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
     try {
-      const selectedAddress = addresses[selectedAddressIndex];
       if (!selectedAddress) {
         toast.error(t("checkout.address.missingValidation"));
         setIsProcessing(false);
@@ -568,6 +612,8 @@ export function CheckoutPage() {
                 setShippingChoice={setShippingChoice}
                 note={note}
                 setNote={setNote}
+                isLoadingRates={ratesQuery.isLoading}
+                subtotal={subtotal}
               />
             ) : null}
 

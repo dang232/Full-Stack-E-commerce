@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { App } from 'firebase-admin/app';
-import { PushChannelPort, PushRecipient } from '../../domain/port/outbound/push-channel.port';
+import {
+  PushChannelPort,
+  PushRecipient,
+} from '../../domain/port/outbound/push-channel.port';
 
 /**
  * Firebase Cloud Messaging push adapter.
@@ -23,9 +26,12 @@ export class FcmPushChannelAdapter implements PushChannelPort {
     if (serviceAccountJson) {
       try {
         // Lazy-require so the module loads even when firebase-admin is absent in tests
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const admin = require('firebase-admin') as typeof import('firebase-admin');
+        /* eslint-disable @typescript-eslint/no-require-imports */
+        const admin =
+          require('firebase-admin') as typeof import('firebase-admin');
+        /* eslint-enable @typescript-eslint/no-require-imports */
         app = admin.initializeApp({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           credential: admin.credential.cert(JSON.parse(serviceAccountJson)),
         });
         enabled = true;
@@ -54,13 +60,17 @@ export class FcmPushChannelAdapter implements PushChannelPort {
     data?: Record<string, string>,
   ): Promise<boolean> {
     if (!this.enabled || !this.app) {
-      this.logger.debug(`[STUB] Would push to user=${recipient.userId}: "${title}"`);
+      this.logger.debug(
+        `[STUB] Would push to user=${recipient.userId}: "${title}"`,
+      );
       return false;
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const admin = require('firebase-admin') as typeof import('firebase-admin');
+      /* eslint-disable @typescript-eslint/no-require-imports */
+      const admin =
+        require('firebase-admin') as typeof import('firebase-admin');
+      /* eslint-enable @typescript-eslint/no-require-imports */
       await admin.messaging(this.app).send({
         token: recipient.deviceToken,
         notification: { title, body },
@@ -69,7 +79,10 @@ export class FcmPushChannelAdapter implements PushChannelPort {
       this.logger.log(`Push sent to user=${recipient.userId}: "${title}"`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send push to user=${recipient.userId}`, error);
+      this.logger.error(
+        `Failed to send push to user=${recipient.userId}`,
+        error,
+      );
       return false;
     }
   }

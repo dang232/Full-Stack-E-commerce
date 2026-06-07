@@ -5,3 +5,4 @@ metadata:
 data:
   SPRING_PROFILES_ACTIVE: prod
   NODE_ENV: production
+  OTEL_TRACES_SAMPLER_ARG: "0.01"

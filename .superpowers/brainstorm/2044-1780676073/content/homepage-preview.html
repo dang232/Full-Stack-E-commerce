@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VNShop — Design Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-primary: #0f0f0f;
+    --bg-secondary: #1a1a1a;
+    --bg-card: #161616;
+    --bg-elevated: #1e1e1e;
+    --border: #2a2a2a;
+    --text-primary: #f5f0eb;
+    --text-secondary: #a3a3a3;
+    --text-muted: #666;
+    --accent: #b8860b;
+    --accent-light: #d4a017;
+    --accent-subtle: rgba(184, 134, 11, 0.1);
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Navigation */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    color: var(--text-primary);
+  }
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 400;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-actions {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .nav-actions svg { width: 20px; height: 20px; stroke: var(--text-secondary); cursor: pointer; }
+  .nav-actions svg:hover { stroke: var(--accent); }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, var(--bg-primary) 100%),
+                linear-gradient(135deg, rgba(184, 134, 11, 0.03) 0%, transparent 50%);
+  }
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    padding: 0 24px;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 64px;
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+  }
+  .hero-subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 480px;
+    margin: 0 auto 36px;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+  .hero-cta {
+    display: inline-block;
+    padding: 14px 40px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+    background: var(--accent);
+    color: var(--bg-primary);
+    text-decoration: none;
+    transition: all 0.3s;
+    border: 1px solid var(--accent);
+  }
+  .hero-cta:hover {
+    background: transparent;
+    color: var(--accent);
+  }
+
+  /* Section Headers */
+  .section-header {
+    text-align: center;
+    padding: 80px 24px 48px;
+  }
+  .section-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  .section-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  /* Product Grid */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 0 48px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .product-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 16px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .product-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .product-image {
+    aspect-ratio: 3/4;
+    background: var(--bg-elevated);
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .product-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.3));
+  }
+  .product-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-weight: 500;
+    z-index: 1;
+  }
+  .product-info { padding: 4px 0; }
+  .product-brand {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .product-name {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-weight: 400;
+  }
+  .product-price {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .product-price-original {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: line-through;
+    margin-left: 8px;
+  }
+
+  /* Categories Section */
+  .categories {
+    background: var(--bg-secondary);
+    padding: 80px 48px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .category-card {
+    position: relative;
+    aspect-ratio: 4/5;
+    background: var(--bg-elevated);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .category-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.8));
+  }
+  .category-info {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    z-index: 1;
+  }
+  .category-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .category-count {
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 64px 48px 32px;
+    border-top: 1px solid var(--border);
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 48px;
+  }
+  .footer-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .footer-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 300px;
+  }
+  .footer-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .footer-links a {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-bottom {
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Announcement bar */
+  .announcement {
+    background: var(--accent);
+    color: var(--bg-primary);
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div class="announcement">FREE SHIPPING ON ORDERS OVER ₫1,000,000 — USE CODE: VNFIRST</div>
+
+<nav class="nav">
+  <div class="nav-logo">VNSHOP</div>
+  <ul class="nav-links">
+    <li><a href="#">New In</a></li>
+    <li><a href="#">Women</a></li>
+    <li><a href="#">Men</a></li>
+    <li><a href="#">Designers</a></li>
+    <li><a href="#">Sale</a></li>
+  </ul>
+  <div class="nav-actions">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <p class="hero-eyebrow">Summer 2026 Collection</p>
+    <h1 class="hero-title">The Art of<br>Considered Style</h1>
+    <p class="hero-subtitle">Curated pieces from Vietnam's finest designers. Each item selected for quality, craftsmanship, and timeless appeal.</p>
+    <a href="#" class="hero-cta">Explore Collection</a>
+  </div>
+</section>
+
+<div class="section-header">
+  <h2>New Arrivals</h2>
+  <p>Handpicked additions to our curation</p>
+</div>
+
+<div class="product-grid">
+  <div class="product-card">
+    <div class="product-image">
+      <span class="product-badge">New</span>
+    </div>
+    <div class="product-info">
+      <div class="product-brand">Maison de Saigon</div>
+      <div class="product-name">Oversized Linen Blazer</div>
+      <span class="product-price">₫2,890,000</span>
+    </div>
+  </div>
+  <div class="product-card">
+    <div class="product-image"></div>
+    <div class="product-info">
+      <div class="product-brand">Hanoi Atelier</div>
+      <div class="product-name">Silk Mandarin Collar Shirt</div>
+      <span class="product-price">₫1,450,000</span>
+      <span class="product-price-original">₫1,890,000</span>
+    </div>
+  </div>
+  <div class="product-card">
+    <div class="product-image">
+      <span class="product-badge">Exclusive</span>
+    </div>
+    <div class="product-info">
+      <div class="product-brand">Viet Leather Co.</div>
+      <div class="product-name">Handcrafted Messenger Bag</div>
+      <span class="product-price">₫3,200,000</span>
+    </div>
+  </div>
+  <div class="product-card">
+    <div class="product-image"></div>
+    <div class="product-info">
+      <div class="product-brand">Dalat Knits</div>
+      <div class="product-name">Merino Crew Neck Sweater</div>
+      <span class="product-price">₫890,000</span>
+    </div>
+  </div>
+</div>
+
+<section class="categories">
+  <div class="section-header" style="padding-top: 0;">
+    <h2>Shop by Category</h2>
+    <p>Explore our curated departments</p>
+  </div>
+  <div class="categories-grid">
+    <div class="category-card">
+      <div class="category-info">
+        <div class="category-name">Womenswear</div>
+        <div class="category-count">324 pieces</div>
+      </div>
+    </div>
+    <div class="category-card">
+      <div class="category-info">
+        <div class="category-name">Menswear</div>
+        <div class="category-count">218 pieces</div>
+      </div>
+    </div>
+    <div class="category-card">
+      <div class="category-info">
+        <div class="category-name">Accessories</div>
+        <div class="category-count">156 pieces</div>
+      </div>
+    </div>
+    <div class="category-card">
+      <div class="category-info">
+        <div class="category-name">Home</div>
+        <div class="category-count">89 pieces</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">VNSHOP</div>
+      <p class="footer-desc">Vietnam's premier curated marketplace. Connecting discerning buyers with exceptional local craftsmanship.</p>
+    </div>
+    <div>
+      <div class="footer-title">Shop</div>
+      <ul class="footer-links">
+        <li><a href="#">New Arrivals</a></li>
+        <li><a href="#">Designers</a></li>
+        <li><a href="#">Sale</a></li>
+        <li><a href="#">Gift Cards</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title">Help</div>
+      <ul class="footer-links">
+        <li><a href="#">Shipping</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">Size Guide</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title">Company</div>
+      <ul class="footer-links">
+        <li><a href="#">About</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Sustainability</a></li>
+        <li><a href="#">Press</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 VNShop. All rights reserved.</span>
+    <span>Privacy · Terms · Cookies</span>
+  </div>
+</footer>
+
+</body>
+</html>
