@@ -9,7 +9,6 @@ import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.retrytopic.DltStrategy;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
 /**
@@ -35,7 +34,6 @@ public class SagaCompensationListener {
 
     @RetryableTopic(
             attempts = "4",
-            backoff = @Backoff(delay = 2000, multiplier = 2.0, maxDelay = 30000),
             dltStrategy = DltStrategy.FAIL_ON_ERROR,
             dltTopicSuffix = ".DLT",
             retryTopicSuffix = ".retry"
