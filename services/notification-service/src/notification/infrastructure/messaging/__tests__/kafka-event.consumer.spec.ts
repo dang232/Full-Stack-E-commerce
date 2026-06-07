@@ -158,4 +158,152 @@ describe('KafkaEventConsumer', () => {
       }),
     );
   });
+
+  it('order.delivered sends to buyer', async () => {
+    await consumer.handleOrderDelivered({
+      orderId: 'ORD-20',
+      buyerId: 'buyer-20',
+    });
+
+    expect(mockSendNotification.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'buyer-20',
+        type: NotificationType.ORDER_DELIVERED,
+        idempotencyKey: 'order.delivered:ORD-20:ORDER_DELIVERED',
+      }),
+    );
+  });
+
+  it('order.delivered skips when buyerId absent', async () => {
+    await consumer.handleOrderDelivered({ orderId: 'ORD-20' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('payment.completed sends to buyer', async () => {
+    await consumer.handlePaymentCompleted({
+      orderId: 'ORD-21',
+      buyerId: 'buyer-21',
+    });
+
+    expect(mockSendNotification.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'buyer-21',
+        type: NotificationType.PAYMENT_COMPLETED,
+        idempotencyKey: 'payment.completed:ORD-21:PAYMENT_COMPLETED',
+      }),
+    );
+  });
+
+  it('payment.completed skips when buyerId absent', async () => {
+    await consumer.handlePaymentCompleted({ orderId: 'ORD-21' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('payment.refunded sends to buyer', async () => {
+    await consumer.handlePaymentRefunded({
+      orderId: 'ORD-22',
+      buyerId: 'buyer-22',
+    });
+
+    expect(mockSendNotification.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'buyer-22',
+        type: NotificationType.PAYMENT_REFUNDED,
+        idempotencyKey: 'payment.refunded:ORD-22:PAYMENT_REFUNDED',
+      }),
+    );
+  });
+
+  it('payment.refunded skips when buyerId absent', async () => {
+    await consumer.handlePaymentRefunded({ orderId: 'ORD-22' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('product.rejected sends to seller', async () => {
+    await consumer.handleProductRejected({
+      productId: 'P-3',
+      productName: 'Tablet',
+      sellerId: 'seller-23',
+      reason: 'Ảnh không rõ',
+    });
+
+    expect(mockSendNotification.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'seller-23',
+        type: NotificationType.PRODUCT_REJECTED,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        body: expect.stringContaining('Ảnh không rõ'),
+      }),
+    );
+  });
+
+  it('product.rejected skips when sellerId absent', async () => {
+    await consumer.handleProductRejected({
+      productId: 'P-3',
+      productName: 'Tablet',
+    });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('user.registered sends to user with email', async () => {
+    await consumer.handleUserRegistered({
+      userId: 'user-24',
+      email: 'user24@example.com',
+    });
+
+    expect(mockSendNotification.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-24',
+        type: NotificationType.USER_REGISTERED,
+        recipientEmail: 'user24@example.com',
+        idempotencyKey: 'user.registered:user-24:USER_REGISTERED',
+      }),
+    );
+  });
+
+  it('user.registered skips when userId absent', async () => {
+    await consumer.handleUserRegistered({ email: 'nobody@example.com' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('user.password-reset sends to user with resetLink', async () => {
+    await consumer.handleUserPasswordReset({
+      userId: 'user-25',
+      resetLink: '/auth/reset?token=xyz',
+    });
+
+    expect(mockSendNotification.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-25',
+        type: NotificationType.USER_PASSWORD_RESET,
+        deepLink: '/auth/reset?token=xyz',
+        idempotencyKey: 'user.password-reset:user-25:USER_PASSWORD_RESET',
+      }),
+    );
+  });
+
+  it('user.password-reset uses default deepLink when resetLink absent', async () => {
+    await consumer.handleUserPasswordReset({ userId: 'user-26' });
+
+    expect(mockSendNotification.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deepLink: '/auth/reset-password',
+      }),
+    );
+  });
+
+  it('user.password-reset skips when userId absent', async () => {
+    await consumer.handleUserPasswordReset({ email: 'nobody@example.com' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('return.requested skips when sellerId absent', async () => {
+    await consumer.handleReturnRequested({ orderId: 'ORD-27', returnId: 'RET-27' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
+
+  it('payout.completed skips when sellerId absent', async () => {
+    await consumer.handlePayoutCompleted({ payoutId: 'PAY-27' });
+    expect(mockSendNotification.execute).not.toHaveBeenCalled();
+  });
 });
