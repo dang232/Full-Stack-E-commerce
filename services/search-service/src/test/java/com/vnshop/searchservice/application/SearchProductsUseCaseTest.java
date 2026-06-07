@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.vnshop.searchservice.domain.ProductReadModel;
-import com.vnshop.searchservice.infrastructure.persistence.ProductReadModelRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,7 +21,7 @@ import java.util.List;
 
 class SearchProductsUseCaseTest {
 
-    private final ProductReadModelRepository repository = mock(ProductReadModelRepository.class);
+    private final SearchRepository repository = mock(SearchRepository.class);
     private final SearchProductsUseCase useCase = new SearchProductsUseCase(repository);
 
     @Test
