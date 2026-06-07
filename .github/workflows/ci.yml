@@ -142,6 +142,7 @@ jobs:
   dependency-check:
     name: OWASP dependency check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [changes, java-tests, node-tests]
     if: always() && (needs.changes.outputs.poms == 'true' || github.event_name == 'workflow_dispatch')
     defaults:
@@ -165,12 +166,17 @@ jobs:
           key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: maven-${{ runner.os }}-
 
+      - name: Compute OWASP cache key
+        id: owasp-cache
+        run: echo "month=$(date +'%Y-%m')" >> "$GITHUB_OUTPUT"
+
       - name: Cache NVD CVE database
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: dependency-check-data-${{ runner.os }}-v1-${{ github.run_id }}
-          restore-keys: dependency-check-data-${{ runner.os }}-v1-
+          key: dependency-check-data-${{ runner.os }}-v1-${{ steps.owasp-cache.outputs.month }}
+          restore-keys: |
+            dependency-check-data-${{ runner.os }}-v1-
 
       - name: OWASP dependency check
         run: mvn --batch-mode org.owasp:dependency-check-maven:12.1.9:check -DfailBuildOnCVSS=7 -DknownExploitedEnabled=false
