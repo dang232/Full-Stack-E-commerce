@@ -42,11 +42,14 @@ describe('Notification Pipeline E2E', () => {
   let app: INestApplication;
   let mongod: MongoMemoryServer;
   let client: ClientSocket;
+  let redisClient: { disconnect: () => void };
   let sendNotification: SendNotificationUseCase;
   let countUnread: CountUnreadUseCase;
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
+
+    redisClient = new RedisMock();
 
     const module = await Test.createTestingModule({
       imports: [
@@ -67,7 +70,7 @@ describe('Notification Pipeline E2E', () => {
       ],
     })
       .overrideProvider(REDIS_CLIENT)
-      .useValue(new RedisMock())
+      .useValue(redisClient)
       .compile();
 
     app = module.createNestApplication();
@@ -84,15 +87,38 @@ describe('Notification Pipeline E2E', () => {
       transports: ['websocket'],
     });
     await new Promise<void>((resolve, reject) => {
-      client.on('connect', resolve);
-      client.on('connect_error', reject);
-      setTimeout(() => reject(new Error('Connection timeout')), 5000);
+      let timeout: NodeJS.Timeout;
+
+      function cleanup() {
+        clearTimeout(timeout);
+        client.off('connect', onConnect);
+        client.off('connect_error', onError);
+      }
+
+      function onConnect() {
+        cleanup();
+        resolve();
+      }
+
+      function onError(error: Error) {
+        cleanup();
+        reject(error);
+      }
+
+      timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('Connection timeout'));
+      }, 5000);
+
+      client.once('connect', onConnect);
+      client.once('connect_error', onError);
     });
   }, 30000);
 
   afterAll(async () => {
     client?.offAny();
     client?.disconnect();
+    redisClient?.disconnect();
     await app?.close();
     await mongod?.stop();
   });
@@ -114,12 +140,14 @@ describe('Notification Pipeline E2E', () => {
       idempotencyKey: 'e2e-test-1',
     });
 
-    const payload = await Promise.race([
-      received,
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('WebSocket timeout')), 5000),
-      ),
-    ]);
+    const timeout = new Promise<never>((_, reject) => {
+      const timeoutHandle = setTimeout(() => {
+        reject(new Error('WebSocket timeout'));
+      }, 5000);
+      received.finally(() => clearTimeout(timeoutHandle));
+    });
+
+    const payload = await Promise.race([received, timeout]);
 
     expect(payload.title).toBe('E2E: Đặt hàng thành công');
 

@@ -4,7 +4,7 @@ modules:
     name: buf.build/vnshop/proto
 breaking:
   use:
-    - FILE
+    - PACKAGE
 lint:
   use:
     - STANDARD

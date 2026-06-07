@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 FROM maven:3.9.11-eclipse-temurin-25-alpine AS builder
 WORKDIR /workspace
 COPY services/api-gateway/pom.xml .

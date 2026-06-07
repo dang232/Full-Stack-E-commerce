@@ -98,6 +98,43 @@ describe('SocketioNotificationGateway', () => {
     await app.close();
   });
 
+  function waitForSocketEvent(
+    client: ClientSocket,
+    event: 'connect' | 'disconnect',
+    timeoutMessage: string,
+    timeoutMs = 3000,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      let timeout: NodeJS.Timeout;
+
+      function cleanup() {
+        clearTimeout(timeout);
+        client.off(event, onEvent);
+        client.off('connect_error', onError);
+      }
+
+      function onEvent() {
+        cleanup();
+        resolve();
+      }
+
+      function onError(error: Error) {
+        cleanup();
+        reject(error);
+      }
+
+      timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error(timeoutMessage));
+      }, timeoutMs);
+
+      client.once(event, onEvent);
+      if (event !== 'disconnect') {
+        client.once('connect_error', onError);
+      }
+    });
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockRegistry.drainOfflineQueue.mockResolvedValue([]);
@@ -112,11 +149,7 @@ describe('SocketioNotificationGateway', () => {
       },
     );
 
-    await new Promise<void>((resolve, reject) => {
-      client.on('connect', resolve);
-      client.on('connect_error', reject);
-      setTimeout(() => reject(new Error('connect timeout')), 3000);
-    });
+    await waitForSocketEvent(client, 'connect', 'connect timeout');
 
     expect(client.connected).toBe(true);
 
@@ -140,10 +173,7 @@ describe('SocketioNotificationGateway', () => {
       },
     );
 
-    await new Promise<void>((resolve) => {
-      client.on('disconnect', () => resolve());
-      setTimeout(resolve, 2000);
-    });
+    await waitForSocketEvent(client, 'disconnect', 'disconnect timeout', 2000);
 
     expect(client.connected).toBe(false);
     client.disconnect();
@@ -158,10 +188,7 @@ describe('SocketioNotificationGateway', () => {
       },
     );
 
-    await new Promise<void>((resolve) => {
-      client.on('disconnect', () => resolve());
-      setTimeout(resolve, 2000);
-    });
+    await waitForSocketEvent(client, 'disconnect', 'disconnect timeout', 2000);
 
     expect(client.connected).toBe(false);
     client.disconnect();
@@ -179,11 +206,7 @@ describe('SocketioNotificationGateway', () => {
       },
     );
 
-    await new Promise<void>((resolve, reject) => {
-      client.on('connect', resolve);
-      client.on('connect_error', reject);
-      setTimeout(() => reject(new Error('connect timeout')), 3000);
-    });
+    await waitForSocketEvent(client, 'connect', 'connect timeout');
 
     await new Promise((r) => setTimeout(r, 200));
     client.disconnect();
@@ -211,18 +234,16 @@ describe('SocketioNotificationGateway', () => {
       client.on('notification:catch-up', (data: unknown[]) => resolve(data));
     });
 
-    await new Promise<void>((resolve, reject) => {
-      client.on('connect', resolve);
-      client.on('connect_error', reject);
-      setTimeout(() => reject(new Error('connect timeout')), 3000);
+    await waitForSocketEvent(client, 'connect', 'connect timeout');
+
+    const catchUpTimeout = new Promise<never>((_, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('catch-up timeout'));
+      }, 2000);
+      catchUpPromise.finally(() => clearTimeout(timeout));
     });
 
-    const catchUp = await Promise.race([
-      catchUpPromise,
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('catch-up timeout')), 2000),
-      ),
-    ]);
+    const catchUp = await Promise.race([catchUpPromise, catchUpTimeout]);
 
     expect(catchUp).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: 'notif-1' })]),

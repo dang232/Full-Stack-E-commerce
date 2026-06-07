@@ -17,6 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  DOCKER_BUILDKIT: 1
   MAVEN_OPTS: -Dmaven.repo.local=${{ github.workspace }}/.m2/repository
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -261,8 +262,20 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1
         with:
           version: 'latest'
+      - name: Resolve proto baseline branch
+        id: proto-base
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] && [ -n "${GITHUB_BASE_REF}" ]; then
+            branch="${GITHUB_BASE_REF}"
+          else
+            branch="${{ github.event.repository.default_branch }}"
+          fi
+          git fetch --no-tags origin "${branch}:refs/remotes/origin/${branch}"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
       - run: cd proto && buf lint
-      - run: cd proto && buf breaking --against "https://github.com/${GITHUB_REPOSITORY}.git#branch=${GITHUB_BASE_REF:-main},subdir=proto"
+      - run: cd proto && buf breaking --against "../.git#ref=refs/remotes/origin/${{ steps.proto-base.outputs.branch }},subdir=proto"
 
   # ── Coverage summary & gate ──
   coverage-gate:
