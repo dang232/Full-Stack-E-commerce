@@ -286,7 +286,8 @@ export class KafkaEventConsumer {
   }
 
   private sanitizeMetadata(p: OrderEventPayload): Record<string, unknown> {
-    const { buyerId, sellerId, ...displayFields } = p;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { buyerId: _b, sellerId: _s, ...displayFields } = p;
     return displayFields;
   }
 

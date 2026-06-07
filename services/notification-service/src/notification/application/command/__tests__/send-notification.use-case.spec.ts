@@ -33,7 +33,10 @@ describe('SendNotificationUseCase', () => {
       providers: [
         SendNotificationUseCase,
         { provide: NOTIFICATION_REPOSITORY, useValue: mockRepo },
-        { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
+        {
+          provide: NOTIFICATION_PREFERENCES_REPOSITORY,
+          useValue: mockPrefsRepo,
+        },
         { provide: DEDUPLICATION_PORT, useValue: mockDedup },
         { provide: EventEmitter2, useValue: mockEmitter },
       ],
@@ -54,7 +57,9 @@ describe('SendNotificationUseCase', () => {
     expect(result.userId).toBe('user-1');
     expect(result.type).toBe(NotificationType.ORDER_CREATED);
     expect(mockRepo.save).toHaveBeenCalledWith(result);
-    expect(mockDedup.tryAcquire).toHaveBeenCalledWith('order.created:123:ORDER_CREATED');
+    expect(mockDedup.tryAcquire).toHaveBeenCalledWith(
+      'order.created:123:ORDER_CREATED',
+    );
     expect(mockEmitter.emit).toHaveBeenCalledWith(
       'notification.created',
       expect.objectContaining({
@@ -148,7 +153,9 @@ describe('SendNotificationUseCase', () => {
 
   it('persists but emits with suppressedChannels when only some channels are disabled', async () => {
     const prefs = NotificationPreferences.createDefault('user-1');
-    prefs.setTypeChannels(NotificationType.ORDER_CREATED, [NotificationChannel.IN_APP]);
+    prefs.setTypeChannels(NotificationType.ORDER_CREATED, [
+      NotificationChannel.IN_APP,
+    ]);
     mockPrefsRepo.findByUserId.mockResolvedValue(prefs);
 
     const result = await useCase.execute({
@@ -163,6 +170,7 @@ describe('SendNotificationUseCase', () => {
     expect(mockEmitter.emit).toHaveBeenCalledWith(
       'notification.created',
       expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         suppressedChannels: expect.arrayContaining([NotificationChannel.EMAIL]),
       }),
     );

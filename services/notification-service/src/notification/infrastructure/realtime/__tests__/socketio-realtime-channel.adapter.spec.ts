@@ -93,6 +93,7 @@ describe('SocketioRealtimeChannelAdapter', () => {
 
     await adapter.sendToUser('u1', notification);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const payload = mockEmit.mock.calls[0][1] as Record<string, unknown>;
     expect(typeof payload['createdAt']).toBe('string');
     expect(() => new Date(payload['createdAt'] as string)).not.toThrow();

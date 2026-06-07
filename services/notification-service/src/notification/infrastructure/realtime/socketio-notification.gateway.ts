@@ -10,17 +10,11 @@ import { Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import jwksRsa from 'jwks-rsa';
-import {
-  CONNECTION_REGISTRY_PORT,
-} from '../../domain/port/outbound/connection-registry.port';
+import { CONNECTION_REGISTRY_PORT } from '../../domain/port/outbound/connection-registry.port';
 import type { ConnectionRegistryPort } from '../../domain/port/outbound/connection-registry.port';
-import {
-  NOTIFICATION_REPOSITORY,
-} from '../../domain/port/outbound/notification.repository';
+import { NOTIFICATION_REPOSITORY } from '../../domain/port/outbound/notification.repository';
 import type { NotificationRepository } from '../../domain/port/outbound/notification.repository';
-import {
-  NOTIFICATION_PREFERENCES_REPOSITORY,
-} from '../../domain/port/outbound/notification-preferences.repository';
+import { NOTIFICATION_PREFERENCES_REPOSITORY } from '../../domain/port/outbound/notification-preferences.repository';
 import type { NotificationPreferencesRepository } from '../../domain/port/outbound/notification-preferences.repository';
 import { NotificationChannel } from '../../domain/model/notification-preferences';
 import { DeliveryStatusValue } from '../../domain/model/delivery-status';
@@ -28,7 +22,9 @@ import { DeliveryStatusValue } from '../../domain/model/delivery-status';
 @WebSocketGateway({
   namespace: '/ws/notifications',
   cors: {
-    origin: (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost:5173').split(','),
+    origin: (
+      process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost:5173'
+    ).split(','),
     credentials: true,
   },
   pingInterval: 25000,
@@ -65,7 +61,8 @@ export class SocketioNotificationGateway
 
   async handleConnection(client: Socket): Promise<void> {
     try {
-      const token = (client.handshake.auth?.token ?? client.handshake.query['token']) as string | undefined;
+      const token = (client.handshake.auth?.token ??
+        client.handshake.query['token']) as string | undefined;
       if (!token) {
         client.disconnect(true);
         return;
@@ -82,13 +79,15 @@ export class SocketioNotificationGateway
       void client.join(`user:${userId}`);
 
       // Refresh registration every 30s to keep TTL alive
-      const refreshInterval = setInterval(async () => {
-        await this.connectionRegistry.refreshRegistration(userId);
+      const refreshInterval = setInterval(() => {
+        void this.connectionRegistry.refreshRegistration(userId);
       }, 30_000);
-      client.data['refreshInterval'] = refreshInterval;
+      (client.data as { refreshInterval?: NodeJS.Timeout }).refreshInterval =
+        refreshInterval;
 
       // Drain offline queue and send catch-up notifications
-      const offlineIds = await this.connectionRegistry.drainOfflineQueue(userId);
+      const offlineIds =
+        await this.connectionRegistry.drainOfflineQueue(userId);
       if (offlineIds.length > 0) {
         const notifications = await this.notificationRepo.findByIds(offlineIds);
 
@@ -97,7 +96,10 @@ export class SocketioNotificationGateway
           const preferences = await this.preferencesRepo.findByUserId(userId);
           const filtered = preferences
             ? notifications.filter((n) =>
-                preferences.isChannelEnabled(n.type, NotificationChannel.IN_APP),
+                preferences.isChannelEnabled(
+                  n.type,
+                  NotificationChannel.IN_APP,
+                ),
               )
             : notifications;
 
@@ -116,7 +118,8 @@ export class SocketioNotificationGateway
 
   async handleDisconnect(client: Socket): Promise<void> {
     const userId = (client as Socket & { userId?: string }).userId;
-    const interval = client.data?.['refreshInterval'] as NodeJS.Timeout | undefined;
+    const interval = (client.data as { refreshInterval?: NodeJS.Timeout })
+      .refreshInterval;
     if (interval) clearInterval(interval);
 
     if (userId) {
@@ -132,16 +135,21 @@ export class SocketioNotificationGateway
   @SubscribeMessage('notification:ack')
   async handleAck(client: Socket, payload: { ids: string[] }): Promise<void> {
     const userId = (client as Socket & { userId?: string }).userId;
-    if (!userId || !Array.isArray(payload?.ids) || payload.ids.length === 0) return;
+    if (!userId || !Array.isArray(payload?.ids) || payload.ids.length === 0)
+      return;
 
     // Cap batch size to prevent abuse
     const ids = payload.ids.slice(0, 100);
 
     for (const id of ids) {
       try {
-        const notification = await this.notificationRepo.findByIdAndUserId(id, userId);
+        const notification = await this.notificationRepo.findByIdAndUserId(
+          id,
+          userId,
+        );
         if (!notification) continue;
-        if (notification.deliveryStatus.getValue() !== DeliveryStatusValue.SENT) continue;
+        if (notification.deliveryStatus.getValue() !== DeliveryStatusValue.SENT)
+          continue;
 
         notification.markDelivered();
         await this.notificationRepo.save(notification);

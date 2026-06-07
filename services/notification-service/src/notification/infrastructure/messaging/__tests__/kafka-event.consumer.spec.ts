@@ -88,6 +88,7 @@ describe('KafkaEventConsumer', () => {
       expect.objectContaining({
         userId: 'seller-2',
         type: NotificationType.PAYOUT_COMPLETED,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         body: expect.stringContaining('5000000'),
       }),
     );

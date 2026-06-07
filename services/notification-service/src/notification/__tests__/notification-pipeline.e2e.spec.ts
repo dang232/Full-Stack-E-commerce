@@ -14,7 +14,12 @@ import { CountUnreadUseCase } from '../application/query/count-unread.use-case';
 
 // Mock JWT verification to bypass Keycloak in tests
 jest.mock('jsonwebtoken', () => ({
-  verify: (_token: string, _getKey: any, _opts: any, callback: any) => {
+  verify: (
+    _token: string,
+    _getKey: unknown,
+    _opts: unknown,
+    callback: (err: Error | null, decoded?: unknown) => void,
+  ) => {
     if (_token === 'e2e-valid-token') {
       callback(null, { sub: 'e2e-user-id' });
     } else {
@@ -73,6 +78,7 @@ describe('Notification Pipeline E2E', () => {
     sendNotification = module.get(SendNotificationUseCase);
     countUnread = module.get(CountUnreadUseCase);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const port = (app.getHttpServer().address() as { port: number }).port;
     client = io(`http://localhost:${port}/ws/notifications`, {
       query: { token: 'e2e-valid-token' },
@@ -108,6 +114,7 @@ describe('Notification Pipeline E2E', () => {
       idempotencyKey: 'e2e-test-1',
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const payload = await Promise.race([
       received,
       new Promise((_, reject) =>
@@ -115,9 +122,13 @@ describe('Notification Pipeline E2E', () => {
       ),
     ]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(payload.title).toBe('E2E: Đặt hàng thành công');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(payload.body).toContain('E2E-001');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(payload.deepLink).toBe('/orders/E2E-001');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(payload.type).toBe('ORDER_CREATED');
   });
 

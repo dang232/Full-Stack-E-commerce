@@ -73,7 +73,10 @@ describe('SocketioNotificationGateway', () => {
         SocketioNotificationGateway,
         { provide: CONNECTION_REGISTRY_PORT, useValue: mockRegistry },
         { provide: NOTIFICATION_REPOSITORY, useValue: mockRepo },
-        { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
+        {
+          provide: NOTIFICATION_PREFERENCES_REPOSITORY,
+          useValue: mockPrefsRepo,
+        },
         { provide: ConfigService, useValue: mockConfig },
       ],
     }).compile();
@@ -82,6 +85,7 @@ describe('SocketioNotificationGateway', () => {
     app.useWebSocketAdapter(new IoAdapter(app));
     await app.init();
     await app.listen(0);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const address = app.getHttpServer().address() as { port: number };
     port = address.port;
   });
