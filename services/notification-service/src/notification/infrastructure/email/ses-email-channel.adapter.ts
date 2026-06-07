@@ -6,6 +6,8 @@ import {
   EmailRecipient,
 } from '../../domain/port/outbound/email-channel.port';
 import { Notification } from '../../domain/model/notification';
+import { NotificationType } from '../../domain/model/notification-type.enum';
+import { TemplateService } from '../templates/template.service';
 
 /**
  * SES email channel adapter.
@@ -14,6 +16,12 @@ import { Notification } from '../../domain/model/notification';
  * When disabled (the default) the adapter acts as a no-op stub that logs what
  * would be sent, so the rest of the pipeline can run without AWS access.
  */
+/** Maps notification types to their Handlebars template name. */
+const TEMPLATE_MAP: Partial<Record<NotificationType, string>> = {
+  [NotificationType.ORDER_CREATED]: 'order-confirmed',
+  [NotificationType.ORDER_SHIPPED]: 'order-shipped',
+};
+
 @Injectable()
 export class SesEmailChannelAdapter implements EmailChannelPort {
   private readonly logger = new Logger(SesEmailChannelAdapter.name);
@@ -21,7 +29,10 @@ export class SesEmailChannelAdapter implements EmailChannelPort {
   private readonly fromAddress: string;
   private readonly ses: SESClient | null;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly templateService: TemplateService,
+  ) {
     this.enabled = this.config.get<string>('EMAIL_ENABLED', 'false') === 'true';
     this.fromAddress = this.config.get<string>('EMAIL_FROM_ADDRESS', 'noreply@vnshop.vn');
 
@@ -75,19 +86,23 @@ export class SesEmailChannelAdapter implements EmailChannelPort {
   }
 
   private buildHtmlBody(notification: Notification): string {
-    const deepLink = notification.deepLink
-      ? `<p><a href="${notification.deepLink}">Xem chi tiết</a></p>`
-      : '';
-    return `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">${notification.title}</h2>
-        <p style="color: #555; line-height: 1.6;">${notification.body}</p>
-        ${deepLink}
-        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-        <p style="color: #999; font-size: 12px;">
-          VNShop — Bạn nhận email này vì đã bật thông báo qua email.
-        </p>
-      </div>
-    `;
+    const templateName = TEMPLATE_MAP[notification.type];
+    const orderId = (notification.metadata?.['orderId'] as string | undefined) ?? undefined;
+
+    if (templateName) {
+      return this.templateService.render(templateName, {
+        title: notification.title,
+        body: notification.body,
+        deepLink: notification.deepLink ?? undefined,
+        orderId,
+      });
+    }
+
+    // Fallback for types without a dedicated template
+    return this.templateService.render('__fallback__', {
+      title: notification.title,
+      body: notification.body,
+      deepLink: notification.deepLink ?? undefined,
+    });
   }
 }

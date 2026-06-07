@@ -34,6 +34,8 @@ export interface SendNotificationCommand {
   recipientEmail?: string;
   /** FCM device token for PUSH channel delivery. */
   recipientDeviceToken?: string;
+  /** E.164 phone number for SMS channel delivery. */
+  recipientPhoneNumber?: string;
 }
 
 @Injectable()
@@ -119,6 +121,7 @@ export class SendNotificationUseCase {
             suppressedChannels,
             command.recipientEmail,
             command.recipientDeviceToken,
+            command.recipientPhoneNumber,
           ),
         );
       } else {

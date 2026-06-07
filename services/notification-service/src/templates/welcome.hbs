@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{title}}</title>
+  <style>
+    body { margin: 0; padding: 0; background: #f5f5f5; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .header { background: #e53935; padding: 24px 32px; text-align: center; }
+    .header h1 { margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: .5px; }
+    .body { padding: 32px; }
+    .body h2 { color: #333333; font-size: 20px; margin-top: 0; }
+    .body p { color: #555555; font-size: 15px; line-height: 1.7; }
+    .btn { display: inline-block; margin-top: 20px; padding: 12px 28px; background: #e53935; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 15px; font-weight: 600; }
+    .footer { background: #f9f9f9; padding: 20px 32px; border-top: 1px solid #eeeeee; text-align: center; }
+    .footer p { color: #aaaaaa; font-size: 12px; margin: 0; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>VNShop</h1>
+    </div>
+    <div class="body">
+      <h2>Chào mừng bạn đến với VNShop! / Welcome to VNShop!</h2>
+      <p>
+        Tài khoản của bạn đã được tạo thành công.<br/>
+        Your account has been created successfully.
+      </p>
+      <p>
+        Bắt đầu mua sắm ngay hôm nay và khám phá hàng ngàn sản phẩm chất lượng.<br/>
+        Start shopping today and discover thousands of quality products.
+      </p>
+      {{#if deepLink}}
+      <a class="btn" href="{{deepLink}}">Bắt đầu mua sắm / Start Shopping</a>
+      {{/if}}
+    </div>
+    <div class="footer">
+      <p>
+        VNShop — Bạn nhận email này vì vừa đăng ký tài khoản.<br/>
+        You received this because you just created an account.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

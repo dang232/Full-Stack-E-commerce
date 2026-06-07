@@ -6,6 +6,7 @@ import { CONNECTION_REGISTRY_PORT } from '../../../domain/port/outbound/connecti
 import { NOTIFICATION_PREFERENCES_REPOSITORY } from '../../../domain/port/outbound/notification-preferences.repository';
 import { EMAIL_CHANNEL_PORT } from '../../../domain/port/outbound/email-channel.port';
 import { PUSH_CHANNEL_PORT } from '../../../domain/port/outbound/push-channel.port';
+import { SMS_CHANNEL_PORT } from '../../../domain/port/outbound/sms-channel.port';
 import { Notification } from '../../../domain/model/notification';
 import { NotificationType } from '../../../domain/model/notification-type.enum';
 import { NotificationCreatedEvent } from '../../../domain/event/notification-created.event';
@@ -36,6 +37,10 @@ describe('NotificationCreatedHandler', () => {
     send: jest.fn().mockResolvedValue(true),
     isEnabled: jest.fn().mockReturnValue(false),
   };
+  const mockSmsChannel = {
+    send: jest.fn().mockResolvedValue(true),
+    isEnabled: jest.fn().mockReturnValue(false),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -48,6 +53,7 @@ describe('NotificationCreatedHandler', () => {
         { provide: NOTIFICATION_PREFERENCES_REPOSITORY, useValue: mockPrefsRepo },
         { provide: EMAIL_CHANNEL_PORT, useValue: mockEmailChannel },
         { provide: PUSH_CHANNEL_PORT, useValue: mockPushChannel },
+        { provide: SMS_CHANNEL_PORT, useValue: mockSmsChannel },
       ],
     }).compile();
     handler = module.get(NotificationCreatedHandler);

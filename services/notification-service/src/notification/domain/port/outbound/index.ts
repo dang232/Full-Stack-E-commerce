@@ -7,3 +7,5 @@ export { EMAIL_CHANNEL_PORT } from './email-channel.port';
 export type { EmailChannelPort, EmailRecipient } from './email-channel.port';
 export { PUSH_CHANNEL_PORT } from './push-channel.port';
 export type { PushChannelPort, PushRecipient } from './push-channel.port';
+export { SMS_CHANNEL_PORT } from './sms-channel.port';
+export type { SmsChannelPort, SmsRecipient } from './sms-channel.port';

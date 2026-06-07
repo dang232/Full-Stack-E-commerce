@@ -26,6 +26,10 @@ import {
   PUSH_CHANNEL_PORT,
   PushChannelPort,
 } from '../../domain/port/outbound/push-channel.port';
+import {
+  SMS_CHANNEL_PORT,
+  SmsChannelPort,
+} from '../../domain/port/outbound/sms-channel.port';
 import { Notification } from '../../domain/model/notification';
 
 @Injectable()
@@ -40,6 +44,7 @@ export class NotificationCreatedHandler {
     @Inject(CONNECTION_REGISTRY_PORT) private readonly registry: ConnectionRegistryPort,
     @Inject(EMAIL_CHANNEL_PORT) private readonly emailChannel: EmailChannelPort,
     @Inject(PUSH_CHANNEL_PORT) private readonly pushChannel: PushChannelPort,
+    @Inject(SMS_CHANNEL_PORT) private readonly smsChannel: SmsChannelPort,
   ) {}
 
   @OnEvent('notification.created')
@@ -59,6 +64,7 @@ export class NotificationCreatedHandler {
       this.dispatchInApp(event, notification, isChannelActive(NotificationChannel.IN_APP)),
       this.dispatchEmail(event, notification, isChannelActive(NotificationChannel.EMAIL)),
       this.dispatchPush(event, notification, isChannelActive(NotificationChannel.PUSH)),
+      this.dispatchSms(event, notification, isChannelActive(NotificationChannel.SMS)),
     ]);
   }
 
@@ -131,6 +137,24 @@ export class NotificationCreatedHandler {
       );
     } catch (error) {
       this.logger.error(`Push dispatch failed for notification ${notification.id}`, error);
+    }
+  }
+
+  private async dispatchSms(
+    event: NotificationCreatedEvent,
+    notification: Notification,
+    enabled: boolean,
+  ): Promise<void> {
+    if (!enabled || !event.recipientPhoneNumber) return;
+    if (!this.smsChannel.isEnabled()) return;
+
+    try {
+      await this.smsChannel.send(
+        { userId: event.userId, phoneNumber: event.recipientPhoneNumber },
+        notification,
+      );
+    } catch (error) {
+      this.logger.error(`SMS dispatch failed for notification ${notification.id}`, error);
     }
   }
 }
