@@ -71,12 +71,12 @@ class SearchProductsUseCaseTest {
 
     @Test
     void facets_mapsObjectArrayTuplesToFacetEntries() {
-        when(repository.categoryFacetsFor(any(), any(), any(), any())).thenReturn(List.<Object[]>of(
-                new Object[]{"electronics", 12L},
-                new Object[]{"fashion", 5L}
+        when(repository.categoryFacetsFor(any(), any(), any(), any())).thenReturn(List.of(
+                new SearchFacetsResponse.FacetEntry("electronics", 12L),
+                new SearchFacetsResponse.FacetEntry("fashion", 5L)
         ));
-        when(repository.brandFacetsFor(any(), any(), any(), any())).thenReturn(List.<Object[]>of(
-                new Object[]{"Acme", 7L}
+        when(repository.brandFacetsFor(any(), any(), any(), any())).thenReturn(List.of(
+                new SearchFacetsResponse.FacetEntry("Acme", 7L)
         ));
 
         SearchFacetsResponse facets = useCase.facets("phone", "electronics", "Acme", null, null);
@@ -94,8 +94,8 @@ class SearchProductsUseCaseTest {
     void facets_handlesIntegerCounts() {
         // JPA may return Integer for COUNT depending on the dialect; the mapper must
         // accept any Number subtype.
-        when(repository.categoryFacetsFor(any(), any(), any(), any())).thenReturn(List.<Object[]>of(
-                new Object[]{"electronics", 3}
+        when(repository.categoryFacetsFor(any(), any(), any(), any())).thenReturn(List.of(
+                new SearchFacetsResponse.FacetEntry("electronics", 3L)
         ));
         when(repository.brandFacetsFor(any(), any(), any(), any())).thenReturn(List.of());
 
@@ -108,8 +108,8 @@ class SearchProductsUseCaseTest {
     void facets_facetAxesUseRelaxedFilters() {
         // Verifies the "drop your own axis" semantic: the category-facet call drops
         // `category` and the brand-facet call drops `brand`.
-        when(repository.categoryFacetsFor(any(), any(), any(), any())).thenReturn(List.<Object[]>of());
-        when(repository.brandFacetsFor(any(), any(), any(), any())).thenReturn(List.<Object[]>of());
+        when(repository.categoryFacetsFor(any(), any(), any(), any())).thenReturn(List.of());
+        when(repository.brandFacetsFor(any(), any(), any(), any())).thenReturn(List.of());
 
         useCase.facets("q", "electronics", "Acme", BigDecimal.ONE, BigDecimal.TEN);
 
