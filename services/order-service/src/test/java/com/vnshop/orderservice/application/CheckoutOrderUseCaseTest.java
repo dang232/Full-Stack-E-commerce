@@ -234,6 +234,7 @@ class CheckoutOrderUseCaseTest {
         @Override public void publishOrderCreated(Order order) {}
         @Override public void publishOrderUpdated(Order order) {}
         @Override public void publishOrderPaid(Order order) {}
+        @Override public void publishOrderDelivered(Order order, SubOrder subOrder) {}
     }
 
     private static final class FakeCartRepository implements CartRepositoryPort {

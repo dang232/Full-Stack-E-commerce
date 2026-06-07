@@ -86,5 +86,6 @@ class RejectOrderUseCaseTest {
         @Override public void publishOrderCreated(Order order) {}
         @Override public void publishOrderUpdated(Order order) { updates.add(order); }
         @Override public void publishOrderPaid(Order order) {}
+        @Override public void publishOrderDelivered(Order order, SubOrder subOrder) {}
     }
 }
