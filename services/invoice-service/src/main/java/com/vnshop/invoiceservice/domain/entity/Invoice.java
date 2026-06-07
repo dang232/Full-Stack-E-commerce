@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -58,6 +59,21 @@ public class Invoice {
 
     @Column(name = "xml_payload", columnDefinition = "TEXT")
     private String xmlPayload;
+
+    @Column(name = "gdt_verification_code")
+    private String gdtVerificationCode;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
+    @Column(name = "submitted_at")
+    private Instant submittedAt;
+
+    @Column(name = "gdt_response_json", columnDefinition = "TEXT")
+    private String gdtResponseJson;
+
+    @Column(name = "tax_deduction_amount", precision = 19, scale = 4)
+    private BigDecimal taxDeductionAmount;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

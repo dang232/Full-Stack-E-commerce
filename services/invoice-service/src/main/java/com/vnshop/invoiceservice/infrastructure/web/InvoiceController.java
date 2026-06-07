@@ -1,9 +1,11 @@
 package com.vnshop.invoiceservice.infrastructure.web;
 
 import com.vnshop.invoiceservice.application.InvoiceService;
+import com.vnshop.invoiceservice.application.gdt.InvoiceSubmissionService;
 import com.vnshop.invoiceservice.domain.entity.Invoice;
 import com.vnshop.invoiceservice.domain.entity.InvoiceStatus;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
+    private final InvoiceSubmissionService invoiceSubmissionService;
 
     /**
      * Returns the invoice for the given orderId.
@@ -53,5 +56,47 @@ public class InvoiceController {
     public ResponseEntity<String> generateXml(@PathVariable UUID orderId) {
         String xml = invoiceService.generateXml(orderId);
         return ResponseEntity.ok(xml);
+    }
+
+    /**
+     * Submits the invoice for the given orderId to the GDT API.
+     * The invoice must already have an XML payload (generate via /{orderId}/xml first).
+     *
+     * POST /api/v1/invoices/{orderId}/submit
+     */
+    @PostMapping("/{orderId}/submit")
+    public ResponseEntity<Invoice> submit(@PathVariable UUID orderId) {
+        Invoice invoice = invoiceSubmissionService.submitToGdt(orderId);
+        return ResponseEntity.ok(invoice);
+    }
+
+    /**
+     * Returns the current GDT submission status for the invoice.
+     *
+     * GET /api/v1/invoices/{orderId}/gdt-status
+     */
+    @GetMapping("/{orderId}/gdt-status")
+    public ResponseEntity<Map<String, Object>> gdtStatus(@PathVariable UUID orderId) {
+        return invoiceService.findByOrderId(orderId)
+                .map(inv -> ResponseEntity.ok(Map.<String, Object>of(
+                        "orderId", inv.getOrderId(),
+                        "status", inv.getStatus(),
+                        "gdtInvoiceNumber", inv.getGdtInvoiceNumber() != null ? inv.getGdtInvoiceNumber() : "",
+                        "gdtVerificationCode", inv.getGdtVerificationCode() != null ? inv.getGdtVerificationCode() : "",
+                        "rejectionReason", inv.getRejectionReason() != null ? inv.getRejectionReason() : "",
+                        "submittedAt", inv.getSubmittedAt() != null ? inv.getSubmittedAt().toString() : ""
+                )))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Resubmits a REJECTED invoice to the GDT API after admin correction.
+     *
+     * POST /api/v1/invoices/{orderId}/resubmit
+     */
+    @PostMapping("/{orderId}/resubmit")
+    public ResponseEntity<Invoice> resubmit(@PathVariable UUID orderId) {
+        Invoice invoice = invoiceSubmissionService.resubmitToGdt(orderId);
+        return ResponseEntity.ok(invoice);
     }
 }
