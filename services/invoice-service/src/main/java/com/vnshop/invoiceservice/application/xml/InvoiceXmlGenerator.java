@@ -6,6 +6,7 @@ import com.vnshop.invoiceservice.domain.entity.Invoice;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -40,10 +41,16 @@ public class InvoiceXmlGenerator {
             DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
 
     private static final String XSD_PATH = "xsd/tkhdon.xsd";
-    private static final String CURRENCY = "VND";
-    private static final String INVOICE_TEMPLATE_CODE = "1";
+
+    @Value("${invoice.currency:VND}")
+    private String currency;
+
+    @Value("${invoice.template-code:1}")
+    private String invoiceTemplateCode;
+
     /** Payment method: TM/CK = cash or bank transfer */
-    private static final String PAYMENT_METHOD = "TM/CK";
+    @Value("${invoice.payment-method:TM/CK}")
+    private String paymentMethod;
 
     @Value("${invoice.seller.name:VNShop Joint Stock Company}")
     private String sellerName;
@@ -66,7 +73,7 @@ public class InvoiceXmlGenerator {
     private final ObjectMapper objectMapper;
     private final Schema xsdSchema;
 
-    public InvoiceXmlGenerator(ObjectMapper objectMapper) throws SAXException {
+    public InvoiceXmlGenerator(ObjectMapper objectMapper) throws SAXException, IOException {
         this.objectMapper = objectMapper;
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         this.xsdSchema = sf.newSchema(new ClassPathResource(XSD_PATH).getURL());
@@ -118,16 +125,16 @@ public class InvoiceXmlGenerator {
 
     private DLHDon.TTChung buildTTChung(Invoice invoice) {
         DLHDon.TTChung h = new DLHDon.TTChung();
-        h.setMauSo(INVOICE_TEMPLATE_CODE);
+        h.setMauSo(invoiceTemplateCode);
         h.setKyHieu(invoiceSymbol);
 
         String sequential = extractSequentialNumber(invoice.getGdtInvoiceNumber());
         h.setSoHD(sequential);
         h.setSoHDDayDu(invoice.getGdtInvoiceNumber());
         h.setNLap(DATE_FMT.format(invoice.getCreatedAt()));
-        h.setDvtte(CURRENCY);
+        h.setDvtte(currency);
         h.setTGia("1");
-        h.setHtttoan(PAYMENT_METHOD);
+        h.setHtttoan(paymentMethod);
         return h;
     }
 

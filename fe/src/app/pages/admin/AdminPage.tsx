@@ -1,4 +1,4 @@
-import { IconAlertCircle, IconActivity, IconLayoutDashboard, IconPackage, IconStar, IconTag, IconUserSearch, IconUsers, IconWallet } from "@tabler/icons-react";
+﻿import { IconAlertCircle, IconActivity, IconLayoutDashboard, IconPackage, IconStar, IconTag, IconUserSearch, IconUsers, IconWallet } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
@@ -123,7 +123,7 @@ export function AdminPage() {
                       <span
                         aria-hidden="true"
                         className="px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white"
-                        style={{ background: "#FF6200" }}
+                        style={{ background: "oklch(52% 0.2 270)" }}
                       >
                         {badge}
                       </span>

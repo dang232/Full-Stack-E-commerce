@@ -1,4 +1,4 @@
-import { IconBell } from "@tabler/icons-react";
+﻿import { IconBell } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 
 import { AnimatePresence, motion } from "motion/react";
@@ -203,7 +203,7 @@ export function NotificationBell() {
                               {!n.read ? (
                                 <span
                                   className="w-2 h-2 rounded-full shrink-0 mt-1.5"
-                                  style={{ background: "#FF6200" }}
+                                  style={{ background: "oklch(52% 0.2 270)" }}
                                 />
                               ) : null}
                             </div>

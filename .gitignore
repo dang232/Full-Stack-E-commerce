@@ -49,3 +49,4 @@ infra/kafka/certs/*.srl
 *.tfstate.backup
 *.tfplan
 .terraform.lock.hcl
+/services/configuration-service/node_modules

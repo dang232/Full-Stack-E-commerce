@@ -1,4 +1,4 @@
-import { IconAlertCircle, IconPlus } from "@tabler/icons-react";
+﻿import { IconAlertCircle, IconPlus } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -111,7 +111,7 @@ export function CheckoutAddressStep({
                   {addr.isDefault ? (
                     <span
                       className="px-1.5 py-0.5 rounded text-xs font-medium border"
-                      style={{ borderColor: "#FF6200", color: "#FF6200" }}
+                      style={{ borderColor: "oklch(52% 0.2 270)", color: "oklch(52% 0.2 270)" }}
                     >
                       {t("checkout.address.isDefaultBadge")}
                     </span>

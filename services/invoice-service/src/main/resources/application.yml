@@ -37,12 +37,9 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     properties:
-      security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_SSL}
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
       sasl.mechanism: PLAIN
       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-invoice}" password="${KAFKA_SASL_PASSWORD:invoice-secret-change-me}";
-      ssl.truststore.location: ${KAFKA_SSL_TRUSTSTORE_LOCATION:/etc/kafka/secrets/kafka.truststore.jks}
-      ssl.truststore.password: ${KAFKA_SSL_TRUSTSTORE_PASSWORD:kafka-ssl-dev-password}
-      ssl.endpoint.identification.algorithm: https
     consumer:
       group-id: invoice-service
       auto-offset-reset: earliest
@@ -53,6 +50,11 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     listener:
       observation-enabled: true
+
+config-service:
+  url: ${CONFIG_SERVICE_URL:http://configuration-service:8097}
+  enabled: ${CONFIG_SERVICE_ENABLED:true}
+  timeout-ms: 3000
 
 management:
   endpoints:
@@ -66,7 +68,7 @@ management:
       show-details: when_authorized
       group:
         readiness:
-          include: readinessState,db,kafka
+          include: readinessState,db
         liveness:
           include: livenessState
 

@@ -31,6 +31,19 @@ TOPICS=(
   "payment.refunded:6"
   "inventory.released:6"
   "shipping.cancelled:6"
+  # invoice / notification topics
+  "order.confirmed:6"
+  "order.confirmed.retry:6"
+  "order.confirmed.DLT:6"
+  "order.delivered:6"
+  "notification.events:6"
+  "product.approved:3"
+  "product.rejected:3"
+  "review.replied:3"
+  "return.requested:3"
+  "payout.completed:3"
+  "user.registered:3"
+  "user.password-reset:3"
   # GDPR topics
   "gdpr.export-requested:1"
   "gdpr.export-fragment:3"
@@ -102,6 +115,18 @@ $ACL --add --allow-principal User:svc-user --operation Write --topic gdpr.deleti
 $ACL --add --allow-principal User:svc-user --operation Read --topic gdpr.export-fragment
 $ACL --add --allow-principal User:svc-user --operation Read --topic gdpr.deletion-completed
 $ACL --add --allow-principal User:svc-user --operation Read --group user-service-gdpr-export
+
+# invoice-service (svc-invoice): consumes order.confirmed, retries, DLT; produces to retry/DLT
+$ACL --add --allow-principal User:svc-invoice --operation Read --topic order.confirmed
+$ACL --add --allow-principal User:svc-invoice --operation Read --topic order.confirmed.retry
+$ACL --add --allow-principal User:svc-invoice --operation Read --topic order.confirmed.DLT
+$ACL --add --allow-principal User:svc-invoice --operation Write --topic order.confirmed.retry
+$ACL --add --allow-principal User:svc-invoice --operation Write --topic order.confirmed.DLT
+$ACL --add --allow-principal User:svc-invoice --operation Read --group invoice-service
+
+# notification topic: order-service produces notification.events
+$ACL --add --allow-principal User:svc-order --operation Read --topic notification.events
+$ACL --add --allow-principal User:svc-order --operation Write --topic notification.events
 
 # order-service: consumes gdpr.*-requested; produces gdpr.export-fragment / gdpr.deletion-completed
 $ACL --add --allow-principal User:svc-order --operation Read --topic gdpr.export-requested

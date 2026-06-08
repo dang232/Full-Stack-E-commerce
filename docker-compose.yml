@@ -214,7 +214,7 @@ services:
       POSTGRES_USER: vnshop
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
-      - "5441:5432"
+      - "5442:5432"
     volumes:
       - postgres-cart-data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -375,19 +375,19 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
-      KAFKA_LISTENERS: SASL_SSL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,SASL_PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_LISTENERS: SASL_PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,SASL_PLAINTEXT_HOST://0.0.0.0:29092
       # Advertise the in-network address for service-to-broker traffic AND a host-mapped
       # address for tools running on the laptop. Without the in-network advertised name,
       # clients bootstrap fine but then get told to reconnect to "localhost:9092" and fail.
-      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka:9092,SASL_PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_SSL:SASL_SSL,SASL_PLAINTEXT_HOST:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_SSL
+      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://kafka:9092,SASL_PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_PLAINTEXT_HOST:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
       KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
       KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
-      KAFKA_SUPER_USERS: "User:admin"
-      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -403,18 +403,12 @@ services:
       KAFKA_FINANCE_PASSWORD: ${KAFKA_FINANCE_PASSWORD:?KAFKA_FINANCE_PASSWORD must be set}
       KAFKA_SEARCH_PASSWORD: ${KAFKA_SEARCH_PASSWORD:?KAFKA_SEARCH_PASSWORD must be set}
       KAFKA_RECOMMENDATIONS_PASSWORD: ${KAFKA_RECOMMENDATIONS_PASSWORD:?KAFKA_RECOMMENDATIONS_PASSWORD must be set}
-      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.broker.keystore.jks
-      KAFKA_SSL_KEYSTORE_PASSWORD: kafka-ssl-dev-password
-      KAFKA_SSL_KEY_PASSWORD: kafka-ssl-dev-password
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.jks
-      KAFKA_SSL_TRUSTSTORE_PASSWORD: kafka-ssl-dev-password
+      KAFKA_INVOICE_PASSWORD: ${KAFKA_INVOICE_PASSWORD:?KAFKA_INVOICE_PASSWORD must be set}
       KAFKA_SSL_CLIENT_AUTH: none
-    entrypoint: ["/bin/sh", "-c", "envsubst < /etc/kafka/kafka_server_jaas.conf.template > /etc/kafka/kafka_server_jaas.conf && exec /etc/confluent/docker/run"]
+    entrypoint: ["/bin/sh", "-c", "sed -e \"s/\\$${KAFKA_ADMIN_PASSWORD}/$KAFKA_ADMIN_PASSWORD/g\" -e \"s/\\$${KAFKA_ORDER_PASSWORD}/$KAFKA_ORDER_PASSWORD/g\" -e \"s/\\$${KAFKA_PAYMENT_PASSWORD}/$KAFKA_PAYMENT_PASSWORD/g\" -e \"s/\\$${KAFKA_INVENTORY_PASSWORD}/$KAFKA_INVENTORY_PASSWORD/g\" -e \"s/\\$${KAFKA_PRODUCT_PASSWORD}/$KAFKA_PRODUCT_PASSWORD/g\" -e \"s/\\$${KAFKA_SHIPPING_PASSWORD}/$KAFKA_SHIPPING_PASSWORD/g\" -e \"s/\\$${KAFKA_FINANCE_PASSWORD}/$KAFKA_FINANCE_PASSWORD/g\" -e \"s/\\$${KAFKA_SEARCH_PASSWORD}/$KAFKA_SEARCH_PASSWORD/g\" -e \"s/\\$${KAFKA_RECOMMENDATIONS_PASSWORD}/$KAFKA_RECOMMENDATIONS_PASSWORD/g\" -e \"s/\\$${KAFKA_INVOICE_PASSWORD}/$KAFKA_INVOICE_PASSWORD/g\" /etc/kafka/kafka_server_jaas.conf.template > /etc/kafka/kafka_server_jaas.conf && exec /etc/confluent/docker/run"]
     volumes:
       - kafka-data:/var/lib/kafka/data
       - ./infra/kafka/kafka_server_jaas.conf.template:/etc/kafka/kafka_server_jaas.conf.template:ro
-      - ./infra/kafka/certs/kafka.broker.keystore.jks:/etc/kafka/secrets/kafka.broker.keystore.jks:ro
-      - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
     # TCP probe on the CONTROLLER port (PLAINTEXT, no auth required).
     # Verifies the broker process is up and accepting connections without
     # needing SASL credentials. replication.factor=1 (single broker — see
@@ -768,6 +762,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      configuration-service:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8082
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/vnshop_product?currentSchema=product_svc
@@ -778,7 +774,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-product
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_PRODUCT_PASSWORD:?KAFKA_SVC_PRODUCT_PASSWORD must be set}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -818,6 +814,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      configuration-service:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8083
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-inventory:5432/vnshop_inventory?currentSchema=inventory_svc
@@ -828,7 +826,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-inventory
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_INVENTORY_PASSWORD:?KAFKA_SVC_INVENTORY_PASSWORD must be set}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -890,6 +888,9 @@ services:
       PAYMENT_DEFAULT: COD
       SUPPORT_PHONE: "1900-0000"
       SUPPORT_EMAIL: support@vnshop.vn
+      CONFIG_FILE_PATH: /app/config/services.yml
+    volumes:
+      - ./services/configuration-service/config:/app/config:ro
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8097/api/config"]
       interval: 10s
@@ -911,6 +912,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      configuration-service:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8086
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-search:5432/vnshop_search?currentSchema=search_svc
@@ -923,7 +926,7 @@ services:
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-search
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SEARCH_PASSWORD:?KAFKA_SVC_SEARCH_PASSWORD must be set}
     volumes:
@@ -954,6 +957,8 @@ services:
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SASL_USERNAME: svc-order
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_ORDER_PASSWORD:?KAFKA_SVC_ORDER_PASSWORD must be set}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
       # Email channel (SES). Set EMAIL_ENABLED=true + AWS creds to activate.
@@ -979,6 +984,8 @@ services:
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      configuration-service:
         condition: service_healthy
     environment:
       SERVER_PORT: 8088
@@ -1011,6 +1018,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      configuration-service:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8090
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=seller_finance_svc
@@ -1023,7 +1032,7 @@ services:
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-finance
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_FINANCE_PASSWORD:?KAFKA_SVC_FINANCE_PASSWORD must be set}
     volumes:
@@ -1044,6 +1053,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      configuration-service:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8094
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-legacy:5432/vnshop?currentSchema=recommendations_svc
@@ -1051,7 +1062,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       PRODUCT_SERVICE_URL: http://product-service:8082
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-recommendations
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_RECOMMENDATIONS_PASSWORD:?KAFKA_SVC_RECOMMENDATIONS_PASSWORD must be set}
     volumes:
@@ -1075,6 +1086,8 @@ services:
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      configuration-service:
         condition: service_healthy
     environment:
       SERVER_PORT: 8091
@@ -1100,7 +1113,7 @@ services:
       VNSHOP_INVOICE_STORAGE_ACCESS_KEY: ${INVOICE_STORAGE_ACCESS_KEY:-vnshop}
       VNSHOP_INVOICE_STORAGE_SECRET_KEY: ${INVOICE_STORAGE_SECRET_KEY:-vnshop123}
       VNSHOP_INVOICE_STORAGE_PATH_STYLE_ACCESS: ${INVOICE_STORAGE_PATH_STYLE:-true}
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-order
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_ORDER_PASSWORD:?KAFKA_SVC_ORDER_PASSWORD must be set}
       GRPC_CLIENT_INVENTORY_HOST: inventory-service
@@ -1130,6 +1143,8 @@ services:
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      configuration-service:
         condition: service_healthy
     environment:
       SERVER_PORT: 8092
@@ -1173,7 +1188,7 @@ services:
       # FX provider for Stripe/PayPal (USD conversion).
       FX_FALLBACK_RATE: ${FX_FALLBACK_RATE:-25500}
       # Kafka SASL/PLAIN credentials for payment-service.
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-payment
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_PAYMENT_PASSWORD:?KAFKA_SVC_PAYMENT_PASSWORD must be set}
     volumes:
@@ -1198,6 +1213,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      configuration-service:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8093
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-shipping:5432/vnshop_shipping?currentSchema=shipping_svc
@@ -1205,7 +1222,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-shipping
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_SHIPPING_PASSWORD:?KAFKA_SVC_SHIPPING_PASSWORD must be set}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
@@ -1254,6 +1271,8 @@ services:
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SASL_USERNAME: svc-order
+      KAFKA_SASL_PASSWORD: ${KAFKA_SVC_ORDER_PASSWORD:?KAFKA_SVC_ORDER_PASSWORD must be set}
       KEYCLOAK_ISSUER_URI: http://localhost:8085/realms/vnshop
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/vnshop/protocol/openid-connect/certs
 
@@ -1348,27 +1367,27 @@ services:
       dockerfile: services/invoice-service/Dockerfile
     container_name: vnshop-invoice-service
     ports:
-      - "8094:8094"
+      - "8098:8098"
     depends_on:
       postgres-invoice:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      configuration-service:
+        condition: service_healthy
     environment:
-      SERVER_PORT: 8094
+      SERVER_PORT: 8098
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-invoice:5432/vnshop_invoice?currentSchema=invoice_svc
       SPRING_DATASOURCE_USERNAME: vnshop
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_USERNAME: svc-invoice
       KAFKA_SASL_PASSWORD: ${KAFKA_SVC_INVOICE_PASSWORD:?KAFKA_SVC_INVOICE_PASSWORD must be set}
       MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
-    volumes:
-      - ./infra/kafka/certs/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
     deploy:
       resources:
         limits:

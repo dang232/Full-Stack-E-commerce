@@ -1,4 +1,4 @@
-import { IconSearch } from "@tabler/icons-react";
+import { Search } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 interface SearchAutocompleteProps {
@@ -21,7 +21,7 @@ export function SearchAutocomplete({
   suggestions,
   onValueChange,
   onSubmit,
-  placeholder = "Tìm kiếm sản phẩm...",
+  placeholder = "Search for products, brands, and categories...",
   className,
 }: SearchAutocompleteProps) {
   const [open, setOpen] = useState(false);
@@ -80,8 +80,9 @@ export function SearchAutocomplete({
           e.preventDefault();
           submit(value);
         }}
-        className="flex w-full rounded-xl overflow-hidden shadow-md"
+        className="relative flex items-center"
       >
+        <Search className="absolute left-3.5 w-4 h-4 text-muted-foreground pointer-events-none transition-colors" />
         <input
           type="text"
           value={value}
@@ -92,7 +93,7 @@ export function SearchAutocomplete({
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 px-4 py-2.5 text-sm bg-card text-foreground outline-none placeholder:text-muted-foreground"
+          className="w-full py-2.5 pl-10 pr-4 border-[1.5px] border-border rounded-[var(--radius-xl)] text-sm bg-muted text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:shadow-[0_0_0_4px_var(--primary-light)] focus:bg-card transition-all duration-[var(--duration-base)]"
           aria-label="Search products"
           role="combobox"
           aria-expanded={showDropdown}
@@ -102,21 +103,13 @@ export function SearchAutocomplete({
             activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
           }
         />
-        <button
-          type="submit"
-          className="px-5 py-2.5 font-semibold text-sm text-white transition-colors"
-          style={{ background: "#FF6200" }}
-          aria-label="Tìm kiếm"
-        >
-          <IconSearch size={18} />
-        </button>
       </form>
 
       {showDropdown ? (
         <ul
           id={listboxId}
           role="listbox"
-          className="absolute left-0 right-0 top-full mt-1 max-h-80 overflow-y-auto bg-card rounded-xl shadow-lg border border-border z-50"
+          className="absolute left-0 right-0 top-full mt-2 max-h-80 overflow-y-auto bg-card rounded-[var(--radius-lg)] shadow-lg border border-border z-50 p-2 animate-fade-in"
         >
           {suggestions.map((suggestion, idx) => (
             <li
@@ -128,17 +121,15 @@ export function SearchAutocomplete({
               <button
                 type="button"
                 onMouseDown={(e) => {
-                  // mousedown beats blur, so the suggestion fires before the
-                  // input loses focus and the dropdown closes.
                   e.preventDefault();
                   submit(suggestion);
                 }}
                 onMouseEnter={() => setActiveIndex(idx)}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${
-                  idx === activeIndex ? "bg-muted" : "hover:bg-muted"
-                } text-foreground`}
+                className={`w-full px-3 py-2.5 text-left text-sm flex items-center gap-2.5 rounded-[var(--radius-md)] ${
+                  idx === activeIndex ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                } transition-colors`}
               >
-                <IconSearch size={14} className="text-muted-foreground" />
+                <Search className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">{suggestion}</span>
               </button>
             </li>

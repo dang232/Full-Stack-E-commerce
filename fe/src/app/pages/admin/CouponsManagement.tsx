@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+﻿import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -61,7 +61,7 @@ export function CouponsManagement() {
           onClick={() => setShowCreate(true)}
           disabled={createCoupon.isPending}
           className="px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
-          style={{ background: "#FF6200" }}
+          style={{ background: "oklch(52% 0.2 270)" }}
         >
           {t("admin.coupons.create")}
         </button>

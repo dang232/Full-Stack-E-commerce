@@ -1,4 +1,4 @@
-import { IconCreditCard, IconMapPin, IconPackage, IconTruck } from "@tabler/icons-react";
+﻿import { IconCreditCard, IconMapPin, IconPackage, IconTruck } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
 import { formatPrice } from "../../lib/format";
@@ -56,7 +56,7 @@ export function CheckoutReviewStep({
             <p className="font-semibold text-foreground">
               {buyerName}
               {addresses[selectedAddressIndex].phone ? (
-                <> · {addresses[selectedAddressIndex].phone}</>
+                <> Â· {addresses[selectedAddressIndex].phone}</>
               ) : null}
             </p>
             <p className="text-muted-foreground mt-0.5">
@@ -133,7 +133,7 @@ export function CheckoutReviewStep({
                 </p>
                 <p className="text-xs text-muted-foreground">x{item.quantity}</p>
               </div>
-              <span className="text-sm font-bold" style={{ color: "#FF6200" }}>
+              <span className="text-sm font-bold" style={{ color: "oklch(52% 0.2 270)" }}>
                 {formatPrice(item.price * item.quantity)}
               </span>
             </div>

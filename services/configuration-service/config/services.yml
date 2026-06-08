@@ -1,0 +1,67 @@
+global:
+  currency: VND
+  timezone: Asia/Ho_Chi_Minh
+  locale: vi-VN
+
+services:
+  invoice-service:
+    invoice:
+      currency: VND
+      template-code: "1"
+      payment-method: TM/CK
+      symbol: C26T
+      seller:
+        name: VNShop Joint Stock Company
+        tax-code: "0123456789"
+        address: "123 Le Loi Street, District 1, Ho Chi Minh City"
+        phone: ""
+        email: invoice@vnshop.vn
+
+  payment-service:
+    payment:
+      ledger:
+        currency: VND
+        buyer-account: buyer_cash
+        clearing-account: payment_clearing
+      providers:
+        cod: true
+        vnpay: true
+        momo: true
+        stripe: true
+        paypal: true
+
+  shipping-service:
+    shipping:
+      free-threshold-vnd: 500000
+      carrier-mode: stub
+
+  order-service:
+    checkout:
+      cod-enabled: true
+      vnpay-enabled: true
+      momo-enabled: true
+    commission:
+      standard: "0.10"
+      verified: "0.08"
+      preferred: "0.05"
+      mall: "0.03"
+
+  product-service:
+    product:
+      max-images: 10
+      review-auto-approve: false
+
+  cart-service:
+    cart:
+      max-items: 50
+      session-ttl-hours: 72
+
+  notification-service:
+    notification:
+      email-enabled: false
+      sms-enabled: false
+
+  user-service:
+    user:
+      avatar-max-size-mb: 5
+      password-min-length: 8

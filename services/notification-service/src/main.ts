@@ -21,6 +21,13 @@ async function bootstrap() {
       client: {
         clientId: 'notification-service',
         brokers,
+        ...(process.env.KAFKA_SASL_USERNAME && {
+          sasl: {
+            mechanism: 'plain',
+            username: process.env.KAFKA_SASL_USERNAME,
+            password: process.env.KAFKA_SASL_PASSWORD ?? '',
+          },
+        }),
       },
       consumer: {
         groupId: process.env.KAFKA_CONSUMER_GROUP ?? 'notification-service',

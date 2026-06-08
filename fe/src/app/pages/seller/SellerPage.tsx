@@ -1,4 +1,4 @@
-import { IconCircleCheck, IconLayoutDashboard, IconPackage, IconSettings, IconShoppingBag, IconStar, IconWallet } from "@tabler/icons-react";
+﻿import { IconCircleCheck, IconLayoutDashboard, IconPackage, IconSettings, IconShoppingBag, IconStar, IconWallet } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
@@ -78,8 +78,8 @@ export function SellerPage() {
                 </span>
                 {pendingOrders.length > 0 ? (
                   <>
-                    <span>·</span>
-                    <span style={{ color: "#FF6200" }}>
+                    <span>Â·</span>
+                    <span style={{ color: "oklch(52% 0.2 270)" }}>
                       {t("seller.ordersToHandle", { count: pendingOrders.length })}
                     </span>
                   </>

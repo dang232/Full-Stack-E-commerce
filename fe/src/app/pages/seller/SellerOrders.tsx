@@ -1,4 +1,4 @@
-import { IconCircleCheck, IconPackage, IconSearch, IconTruck } from "@tabler/icons-react";
+﻿import { IconCircleCheck, IconPackage, IconSearch, IconTruck } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -230,7 +230,7 @@ export function SellerOrders({
                         onClick={() => setShipFor(order.id)}
                         disabled={ship.isPending}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                        style={{ background: "#FF6200" }}
+                        style={{ background: "oklch(52% 0.2 270)" }}
                       >
                         <IconTruck size={13} /> {t("seller.orders.ship")}
                       </button>

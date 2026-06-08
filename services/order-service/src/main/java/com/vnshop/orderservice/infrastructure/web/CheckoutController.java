@@ -7,6 +7,7 @@ import com.vnshop.orderservice.application.shipping.ShippingQuoteRequest;
 import com.vnshop.orderservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,28 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/checkout")
 public class CheckoutController {
-    // Static catalog of payment methods the FE renders on the checkout page.
-    // The shape matches paymentMethodSchema (code/name/description/enabled) so
-    // the FE can drop its FALLBACK_PAYMENT mirror. COD is always on; VNPAY and
-    // MOMO have provider integrations in payment-service. A follow-up will move
-    // this to @ConfigurationProperties so a deploy can toggle providers without
-    // a code change.
-    private static final List<PaymentMethodResponse> PAYMENT_METHODS = List.of(
-            new PaymentMethodResponse(
-                    "COD",
-                    "Cash on Delivery",
-                    "Pay with cash when the order is delivered",
-                    true),
-            new PaymentMethodResponse(
-                    "VNPAY",
-                    "VNPay",
-                    "Pay online via VNPay (ATM, QR, internet banking)",
-                    true),
-            new PaymentMethodResponse(
-                    "MOMO",
-                    "MoMo",
-                    "Pay with the MoMo e-wallet",
-                    true));
+
+    @Value("${checkout.payment-methods.cod.enabled:true}")
+    private boolean codEnabled = true;
+
+    @Value("${checkout.payment-methods.vnpay.enabled:true}")
+    private boolean vnpayEnabled = true;
+
+    @Value("${checkout.payment-methods.momo.enabled:true}")
+    private boolean momoEnabled = true;
 
     private final CalculateCheckoutUseCase calculateCheckoutUseCase;
     private final ShippingQuotePort shippingQuotePort;
@@ -97,7 +85,23 @@ public class CheckoutController {
 
     @GetMapping("/payment-methods")
     public ApiResponse<List<PaymentMethodResponse>> paymentMethods() {
-        return ApiResponse.ok(PAYMENT_METHODS);
+        List<PaymentMethodResponse> methods = new java.util.ArrayList<>();
+        methods.add(new PaymentMethodResponse(
+                "COD",
+                "Cash on Delivery",
+                "Pay with cash when the order is delivered",
+                codEnabled));
+        methods.add(new PaymentMethodResponse(
+                "VNPAY",
+                "VNPay",
+                "Pay online via VNPay (ATM, QR, internet banking)",
+                vnpayEnabled));
+        methods.add(new PaymentMethodResponse(
+                "MOMO",
+                "MoMo",
+                "Pay with the MoMo e-wallet",
+                momoEnabled));
+        return ApiResponse.ok(java.util.Collections.unmodifiableList(methods));
     }
 
     @PostMapping("/shipping-options")

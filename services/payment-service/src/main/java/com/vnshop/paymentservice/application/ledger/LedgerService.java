@@ -13,14 +13,27 @@ import java.util.List;
 import java.util.Objects;
 
 public class LedgerService {
-    private static final String CURRENCY = "VND";
-    private static final String BUYER_CASH = "buyer_cash";
-    private static final String PAYMENT_CLEARING = "payment_clearing";
 
+    private final String currency;
+    private final String buyerAccount;
+    private final String clearingAccount;
     private final LedgerRepositoryPort ledgerRepositoryPort;
 
-    public LedgerService(LedgerRepositoryPort ledgerRepositoryPort) {
+    /** Spring-wired constructor — values come from application properties. */
+    public LedgerService(
+            LedgerRepositoryPort ledgerRepositoryPort,
+            String currency,
+            String buyerAccount,
+            String clearingAccount) {
         this.ledgerRepositoryPort = Objects.requireNonNull(ledgerRepositoryPort, "ledgerRepositoryPort is required");
+        this.currency = Objects.requireNonNull(currency, "currency is required");
+        this.buyerAccount = Objects.requireNonNull(buyerAccount, "buyerAccount is required");
+        this.clearingAccount = Objects.requireNonNull(clearingAccount, "clearingAccount is required");
+    }
+
+    /** Convenience constructor using production defaults — used in tests and legacy wiring. */
+    public LedgerService(LedgerRepositoryPort ledgerRepositoryPort) {
+        this(ledgerRepositoryPort, "VND", "buyer_cash", "payment_clearing");
     }
 
     public List<LedgerEntry> recordPayment(Payment payment) {
@@ -42,8 +55,8 @@ public class LedgerService {
                 command.orderId(),
                 "Payment captured",
                 List.of(
-                        new LedgerPosting(PAYMENT_CLEARING, LedgerPostingType.DEBIT, command.amount(), CURRENCY),
-                        new LedgerPosting(BUYER_CASH, LedgerPostingType.CREDIT, command.amount(), CURRENCY)
+                        new LedgerPosting(clearingAccount, LedgerPostingType.DEBIT, command.amount(), currency),
+                        new LedgerPosting(buyerAccount, LedgerPostingType.CREDIT, command.amount(), currency)
                 ));
     }
 

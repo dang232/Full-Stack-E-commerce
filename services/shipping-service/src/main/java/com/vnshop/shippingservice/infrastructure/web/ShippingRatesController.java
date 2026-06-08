@@ -1,6 +1,7 @@
 package com.vnshop.shippingservice.infrastructure.web;
 
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,7 +30,9 @@ import java.util.Set;
 @RestController
 public class ShippingRatesController {
 
-    private static final long FREE_SHIPPING_THRESHOLD_VND = 500_000L;
+    @Value("${shipping.free-threshold-vnd:500000}")
+    private long freeShippingThresholdVnd;
+
     private static final long DEFAULT_WEIGHT_GRAMS = 1_000L;
 
     // Zone 1 — same city as the warehouse (HCMC). Accept common abbreviations.
@@ -59,7 +62,7 @@ public class ShippingRatesController {
                 : DEFAULT_WEIGHT_GRAMS;
 
         long orderTotal = request.orderTotalVnd() != null ? request.orderTotalVnd() : 0L;
-        boolean freeStandard = orderTotal > FREE_SHIPPING_THRESHOLD_VND;
+        boolean freeStandard = orderTotal > freeShippingThresholdVnd;
 
         long baseVnd = switch (zone) {
             case 1 -> 20_000L;

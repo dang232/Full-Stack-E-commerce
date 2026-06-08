@@ -1,4 +1,4 @@
-import { IconHome, IconSearch, IconMoodSad } from "@tabler/icons-react";
+﻿import { IconHome, IconSearch, IconMoodSad } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -12,7 +12,7 @@ export function NotFoundPage() {
         className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
         style={{ background: "rgba(238,77,45,0.08)" }}
       >
-        <IconMoodSad size={48} style={{ color: "#EE4D2D" }} />
+        <IconMoodSad size={48} style={{ color: "oklch(52% 0.2 270)" }} />
       </div>
 
       <h1
@@ -34,7 +34,7 @@ export function NotFoundPage() {
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-semibold text-sm shadow-lg hover:opacity-90 transition-opacity"
-          style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
+          style={{ background: "linear-gradient(135deg, oklch(52% 0.2 270), oklch(48% 0.22 290))" }}
         >
           <IconHome size={16} />
           {t("notFound.goHome", "Go Home")}
@@ -43,7 +43,7 @@ export function NotFoundPage() {
         <button
           onClick={() => navigate("/search")}
           className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm border-2 transition-colors hover:bg-[rgba(238,77,45,0.06)]"
-          style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
+          style={{ borderColor: "oklch(52% 0.2 270)", color: "oklch(52% 0.2 270)" }}
         >
           <IconSearch size={16} />
           {t("notFound.search", "Search Products")}

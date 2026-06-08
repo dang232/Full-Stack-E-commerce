@@ -1,4 +1,4 @@
-import { IconHeart, IconShoppingCart, IconStar, IconTrash, IconShare } from "@tabler/icons-react";
+﻿import { IconHeart, IconShoppingCart, IconStar, IconTrash, IconShare } from "@tabler/icons-react";
 
 import { useQueries } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
@@ -105,7 +105,7 @@ export function WishlistPage() {
           <button
             onClick={() => navigate("/")}
             className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
+            style={{ background: "linear-gradient(135deg, oklch(52% 0.2 270), oklch(48% 0.22 290))" }}
           >
             {t("wishlist.discover")}
           </button>
@@ -117,7 +117,7 @@ export function WishlistPage() {
               onClick={handleAddAll}
               disabled={products.length === 0}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm shadow disabled:opacity-50"
-              style={{ background: "#FF6200" }}
+              style={{ background: "oklch(52% 0.2 270)" }}
             >
               <IconShoppingCart size={16} /> {t("wishlist.addAll")}
             </button>
@@ -172,7 +172,7 @@ export function WishlistPage() {
                       {discount !== null ? (
                         <span
                           className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[10px] font-bold"
-                          style={{ background: "#FF6200" }}
+                          style={{ background: "oklch(52% 0.2 270)" }}
                         >
                           -{discount}%
                         </span>
@@ -185,7 +185,7 @@ export function WishlistPage() {
                         }}
                         className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-card"
                       >
-                        <IconHeart size={14} fill="#FF6200" className="text-[#FF6200]" />
+                        <IconHeart size={14} fill="oklch(52% 0.2 270)" className="text-[#FF6200]" />
                       </button>
                     </div>
                     <div className="p-3">
@@ -205,7 +205,7 @@ export function WishlistPage() {
                         </div>
                       ) : null}
                       <div className="flex items-center gap-1 mb-3">
-                        <span className="font-bold text-sm" style={{ color: "#FF6200" }}>
+                        <span className="font-bold text-sm" style={{ color: "oklch(52% 0.2 270)" }}>
                           {formatPrice(p.price ?? 0)}
                         </span>
                         {original ? (
@@ -217,7 +217,7 @@ export function WishlistPage() {
                       <button
                         onClick={() => handleAddToCart(id)}
                         className="w-full py-2 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
-                        style={{ background: "#EE4D2D" }}
+                        style={{ background: "oklch(52% 0.2 270)" }}
                       >
                         <IconShoppingCart size={13} /> {t("wishlist.addToCart")}
                       </button>

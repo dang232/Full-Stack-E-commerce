@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -58,7 +58,7 @@ function ShipDialogBody({
             onClick={handleSubmit}
             disabled={isSubmitting}
             className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
-            style={{ background: "#FF6200" }}
+            style={{ background: "oklch(52% 0.2 270)" }}
           >
             {isSubmitting ? t("seller.shipDialog.submitting") : t("seller.shipDialog.submit")}
           </button>

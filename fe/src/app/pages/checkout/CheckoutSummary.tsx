@@ -1,4 +1,4 @@
-import { IconCheck, IconCircleCheck, IconChevronRight, IconTag } from "@tabler/icons-react";
+﻿import { IconCheck, IconCircleCheck, IconChevronRight, IconTag } from "@tabler/icons-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 
@@ -171,12 +171,12 @@ export function CheckoutSummary({
                                 </p>
                                 <p className="text-xs text-muted-foreground truncate">
                                   {label}
-                                  {minLabel ? ` · ${minLabel}` : ""}
+                                  {minLabel ? ` Â· ${minLabel}` : ""}
                                 </p>
                               </div>
                               <span
                                 className="text-xs font-semibold shrink-0"
-                                style={{ color: eligible ? "#FF6200" : "#9ca3af" }}
+                                style={{ color: eligible ? "oklch(52% 0.2 270)" : "#9ca3af" }}
                               >
                                 {eligible
                                   ? t("checkout.summary.couponApply")
@@ -262,12 +262,12 @@ export function CheckoutSummary({
           {discount > 0 ? (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t("checkout.summary.discount")}</span>
-              <span style={{ color: "#FF6200" }}>-{formatPrice(discount)}</span>
+              <span style={{ color: "oklch(52% 0.2 270)" }}>-{formatPrice(discount)}</span>
             </div>
           ) : null}
           <div className="flex justify-between font-black text-base pt-2 border-t border-border">
             <span>{t("checkout.summary.total")}</span>
-            <span style={{ color: "#FF6200" }}>{formatPrice(finalTotal)}</span>
+            <span style={{ color: "oklch(52% 0.2 270)" }}>{formatPrice(finalTotal)}</span>
           </div>
         </div>
 

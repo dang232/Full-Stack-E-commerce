@@ -1,8 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { AppConfigDto } from './dto/app-config.dto.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
 
 @Injectable()
 export class ConfigurationService {
+  private serviceConfigs: Record<string, Record<string, unknown>>;
+  private globalConfig: Record<string, unknown>;
+
+  constructor() {
+    this.loadServiceConfigs();
+  }
+
+  private loadServiceConfigs(): void {
+    const configPath = path.resolve(
+      process.env.CONFIG_FILE_PATH ?? path.join(__dirname, '../../config/services.yml'),
+    );
+    try {
+      const fileContent = fs.readFileSync(configPath, 'utf8');
+      const parsed = yaml.load(fileContent) as Record<string, unknown>;
+      this.globalConfig = (parsed.global as Record<string, unknown>) ?? {};
+      this.serviceConfigs = (parsed.services as Record<string, Record<string, unknown>>) ?? {};
+    } catch (err) {
+      console.warn(`Failed to load service configs from ${configPath}: ${err}`);
+      this.globalConfig = {};
+      this.serviceConfigs = {};
+    }
+  }
+
   getConfig(): AppConfigDto {
     return {
       brand: {
@@ -51,5 +77,25 @@ export class ConfigurationService {
         ),
       },
     };
+  }
+
+  getServiceConfig(serviceName: string): Record<string, unknown> {
+    const config = this.serviceConfigs[serviceName];
+    if (!config) {
+      throw new NotFoundException(`No configuration found for service: ${serviceName}`);
+    }
+    return { ...this.globalConfig, ...config };
+  }
+
+  getAllServiceConfigs(): Record<string, Record<string, unknown>> {
+    return this.serviceConfigs;
+  }
+
+  getGlobalConfig(): Record<string, unknown> {
+    return this.globalConfig;
+  }
+
+  reloadConfigs(): void {
+    this.loadServiceConfigs();
   }
 }

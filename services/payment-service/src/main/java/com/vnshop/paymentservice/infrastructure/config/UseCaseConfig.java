@@ -18,6 +18,7 @@ import com.vnshop.paymentservice.infrastructure.gateway.VnpayProperties;
 import com.vnshop.paymentservice.infrastructure.paypal.PayPalProperties;
 import com.vnshop.paymentservice.infrastructure.sepay.SepayProperties;
 import com.vnshop.paymentservice.infrastructure.stripe.StripeProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,8 +40,12 @@ import java.util.List;
 public class UseCaseConfig {
 
     @Bean
-    LedgerService ledgerService(LedgerRepositoryPort ledgerRepositoryPort) {
-        return new LedgerService(ledgerRepositoryPort);
+    LedgerService ledgerService(
+            LedgerRepositoryPort ledgerRepositoryPort,
+            @Value("${payment.ledger.currency:VND}") String currency,
+            @Value("${payment.ledger.buyer-account:buyer_cash}") String buyerAccount,
+            @Value("${payment.ledger.clearing-account:payment_clearing}") String clearingAccount) {
+        return new LedgerService(ledgerRepositoryPort, currency, buyerAccount, clearingAccount);
     }
 
     @Bean

@@ -1,4 +1,4 @@
-import { IconAlertCircle, IconChevronLeft, IconChevronRight, IconEdit, IconFilter, IconPlus, IconSearch } from "@tabler/icons-react";
+﻿import { IconAlertCircle, IconChevronLeft, IconChevronRight, IconEdit, IconFilter, IconPlus, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -36,7 +36,7 @@ export function SellerProducts() {
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-semibold text-sm"
-          style={{ background: "#FF6200" }}
+          style={{ background: "oklch(52% 0.2 270)" }}
         >
           <IconPlus size={16} /> {t("seller.products.addNew")}
         </button>
@@ -107,7 +107,7 @@ export function SellerProducts() {
                     </p>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm font-bold" style={{ color: "#FF6200" }}>
+                <td className="px-4 py-3 text-sm font-bold" style={{ color: "oklch(52% 0.2 270)" }}>
                   {formatPrice(p.price)}
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">{p.stock}</td>

@@ -140,6 +140,11 @@ vietqr:
 payment.vietqr.timeout-minutes: ${VIETQR_TIMEOUT_MINUTES:10}
 payment.vietqr.timeout-check-interval-seconds: ${VIETQR_TIMEOUT_CHECK_INTERVAL_SECONDS:60}
 
+config-service:
+  url: ${CONFIG_SERVICE_URL:http://configuration-service:8097}
+  enabled: ${CONFIG_SERVICE_ENABLED:true}
+  timeout-ms: 3000
+
 springdoc:
   api-docs:
     path: /api-docs

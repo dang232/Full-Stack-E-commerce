@@ -1,4 +1,4 @@
-import { RouterProvider } from "react-router";
+﻿import { RouterProvider } from "react-router";
 import { Toaster } from "sonner";
 
 import { ErrorBoundary } from "./components/error-boundary";

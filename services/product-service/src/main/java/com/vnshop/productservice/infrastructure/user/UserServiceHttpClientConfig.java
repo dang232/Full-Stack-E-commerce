@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.productservice.domain.review.port.out.BuyerProfileLookupPort;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -46,5 +47,11 @@ public class UserServiceHttpClientConfig {
     public BuyerProfileLookupPort buyerProfileLookupPort(
             UserServiceHttpClient httpClient, ObjectMapper objectMapper) {
         return new UserServiceBuyerProfileAdapter(httpClient, objectMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }

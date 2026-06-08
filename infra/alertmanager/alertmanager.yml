@@ -18,31 +18,13 @@ route:
 
 receivers:
   - name: 'default'
-    slack_configs:
-      - api_url: '${ALERTMANAGER_SLACK_WEBHOOK_URL}'
-        channel: '#vnshop-alerts'
-        title: '{{ .GroupLabels.alertname }}'
-        text: >-
-          {{ range .Alerts }}
-          *Alert:* {{ .Labels.alertname }}
-          *Severity:* {{ .Labels.severity }}
-          *Description:* {{ .Annotations.description }}
-          *Service:* {{ .Labels.job }}
-          {{ end }}
+    webhook_configs:
+      - url: 'http://localhost:9999/dev-null'
         send_resolved: true
 
   - name: 'critical'
-    slack_configs:
-      - api_url: '${ALERTMANAGER_SLACK_CRITICAL_WEBHOOK_URL}'
-        channel: '#vnshop-critical'
-        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
-        text: >-
-          {{ range .Alerts }}
-          *Alert:* {{ .Labels.alertname }}
-          *Service:* {{ .Labels.job }}
-          *Description:* {{ .Annotations.description }}
-          *Runbook:* {{ .Annotations.runbook_url }}
-          {{ end }}
+    webhook_configs:
+      - url: 'http://localhost:9999/dev-null'
         send_resolved: true
 
 inhibit_rules:
