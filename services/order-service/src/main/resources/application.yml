@@ -129,7 +129,7 @@ management:
       show-details: when_authorized
       group:
         readiness:
-          include: readinessState,db,kafka
+          include: readinessState,db
         liveness:
           include: livenessState
   health:

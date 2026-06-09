@@ -9,7 +9,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -22,9 +23,10 @@ import org.springframework.stereotype.Component;
  * and injects it into Spring's Environment as a property source. Falls back
  * to local application.yml defaults if the config-service is unreachable.
  */
-@Slf4j
 @Component
 public class ConfigServiceClient implements ApplicationRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(ConfigServiceClient.class);
 
     private final ConfigurableEnvironment environment;
     private final ObjectMapper objectMapper;
