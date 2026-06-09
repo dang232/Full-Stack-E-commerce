@@ -2,7 +2,7 @@
 
 A polyglot microservices e-commerce platform demonstrating DDD, CQRS, hexagonal architecture, and event-driven sagas, with a React storefront on top.
 
-VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketplace inspired by Shopee, Lazada, and Tiki. It ships with: 16 services (Spring Boot + NestJS), per-service Postgres, Kafka + saga + outbox, Keycloak-backed httpOnly-cookie auth, and a React + Vite SPA. Two end-to-end test suites gate every change — `e2e-day.mjs` (55/55 API endpoints) and Playwright (19/19 browser scenarios).
+VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketplace inspired by Shopee, Lazada, and Tiki. It ships with: 18 services (Spring Boot + NestJS), per-service Postgres, Kafka (SASL-authenticated + per-service ACLs) + saga + outbox, Keycloak-backed httpOnly-cookie auth, and a React + Vite SPA. Two end-to-end test suites gate every change — `e2e-day.mjs` (55/55 API endpoints) and Playwright (19/19 browser scenarios).
 
 ## System Requirements
 
@@ -21,11 +21,11 @@ VNShop is a portfolio full-stack project for a Vietnamese multi-seller marketpla
 | [Audit summary 2026-05-21](docs/AUDIT-SUMMARY-2026-05-21.md) | Consolidated security audit ledger (pt12 → pt23) — 18 findings closed across 7 services |
 | [Status reality 2026-05-14](docs/STATUS-REALITY-2026-05-14.md) | Reconciliation of older gap-analysis docs against the current tree |
 | [E2E audit 2026-05-18](docs/E2E-AUDIT-2026-05-18.md) | What `e2e-day.mjs` and Playwright cover, plus the bugs fixed during the buildout |
-| [Latest session handover](docs/SESSION-HANDOVER-2026-05-29-pt44.md) | Most recent change set (production-hardening: commission tier, idempotency, health probes, FX fields) |
+| [Latest session handover](docs/SESSION-HANDOVER-2026-06-09.md) | Most recent change set (centralized configuration service, Docker/Kafka infra fixes) |
 | [Frontend README](fe/README.md) | React + Vite SPA setup, scripts, layout |
 | [Docker Compose](docker-compose.yml) | Local infrastructure and service definitions |
 
-For a chronological view of what shipped, walk the handover series in `docs/SESSION-HANDOVER-2026-05-{17..29}-pt{0..44}.md`. For the day-to-day pickup case, [HANDOFF.md](HANDOFF.md) is enough.
+For a chronological view of what shipped, walk the handover series in `docs/SESSION-HANDOVER-2026-05-{17..29}-pt{0..44}.md` and `docs/SESSION-HANDOVER-2026-06-*.md`. For the day-to-day pickup case, [HANDOFF.md](HANDOFF.md) is enough.
 
 ## Architecture Overview
 
@@ -64,10 +64,12 @@ For a chronological view of what shipped, walk the handover series in `docs/SESS
                          |            |
                   +------v------+ +---v----------+
                   | Cart        | | Kafka        |
-                  | :8084       | | order.* /    |
-                  | NestJS      | | product.* /  |
-                  | Redis-only  | | notif.* /    |
-                  +-------------+ | messaging.*  |
+                  | :8084       | | SASL_PLAIN   |
+                  | NestJS      | | per-svc ACLs |
+                  | Redis-only  | | order.* /    |
+                  +-------------+ | product.* /  |
+                                  | notif.* /    |
+                                  | messaging.*  |
                                   +-------+------+
                                           |
         +-----------+-------+--------+---------+----------+--------+----------+
@@ -81,6 +83,8 @@ For a chronological view of what shipped, walk the handover series in `docs/SESS
 |            | |       | |       | |PayPal  | |        | |       | |        |
 +------------+ +-------+ +-------+ +--------+ +---------+ +-------+ +--------+
 
+         Configuration (:8097, NestJS) — centralized business config (YAML-driven, hot-reload)
+         Invoice (:8098, Spring Boot) — XML invoice generation
          Seller Finance (:8090, Spring Boot) — wallet + payouts
          Coupon (:8088, profile=legacy) — superseded by order-service in app profile
          Review (profile=apps) — kept for backwards compatibility; review APIs are owned by product-service
@@ -95,27 +99,30 @@ Two end-to-end gates run green at the current HEAD:
 | `node infra/scripts/e2e-day.mjs` | **55/55 PASS** | Single-day flow: register → login (buyer/seller/admin) → catalog → public sellers → seller fulfilment → cart → wishlist → checkout (live shipping rate quote) → order → coupon validate + apply → admin seller approval → saga compensation (cancel + return + refund) → messaging WebSocket handshake → reviews + Q&A → recommendations → admin dashboards → user profile |
 | `cd fe && npx playwright test` | **19/19 PASS** | Real browser against dockerised FE: smoke, buyer happy path, authenticated routes, role guards, search, public sellers, guest cart |
 
-Per-service unit tests at HEAD (2026-05-29):
+Per-service unit tests at HEAD (2026-06-09):
 
 | Service | Tests |
 | --- | --- |
-| order-service | 135/135 |
+| order-service | 144/144 |
+| user-service | 141/141 |
 | payment-service | 89/89 |
+| notification-service | 89/89 |
 | product-service | 33/33 |
-| seller-finance-service | 17/17 |
-| FE vitest | 165/165 |
+| seller-finance-service | 20/20 |
+| FE vitest | 169/169 |
 | FE typecheck | 0 errors |
 
-### Recent shipped (2026-05-23 → 2026-05-29)
+### Recent shipped (2026-06-02 → 2026-06-09)
 
-- **PayPal refund saga closed end-to-end** (pt42–pt43). All five steps of `PAYPAL-CAPTURE-PLAN.md` committed: `PaymentCallbackOutboxRelay` + `PaymentCompletedListener` + capture-endpoint dedup + `PayPalGateway.refund()` + `PayPalRefundListener` + `PaymentRefundedEvent` consumers on order-service and seller-finance-service.
-- **Commission tier propagation** (pt44). `commissionTier` flows through the entire refund chain: order-service → payment-service → seller-finance-service. Defaults to STANDARD for backward compat; ready for per-seller tiers.
-- **Finance listener idempotency** (pt44). `processed_refund` table + `@Transactional` debit-and-insert guards against Kafka redelivery double-debit.
-- **Kafka producer health probe** (pt44). `KafkaProducerHealthIndicator` on order, payment, product services. Surfaces broker connectivity in `/actuator/health`.
-- **FX fields on Payment domain** (pt44). V9 migration columns (`external_amount`, `external_currency`, `fx_rate`, `fx_rate_at`) now populated during PayPal order creation and exposed on `PaymentResponse`.
-- **`@Cacheable` on product-by-id and coupon-by-code** (pt42). Redis-backed cache for hot-path reads.
-- **Search discoverability** (pt42). Published products are discoverable via `/search` — journey AC-2.4 closed.
-- **VNPay/MoMo redirectUrl typed field** (pt42). `PaymentResponse` surfaces the gateway redirect URL for PENDING payments.
+- **Centralized configuration service** (2026-06-09). NestJS service at `:8097` with YAML-backed business config. Java services fetch on startup via `ConfigServiceClient`; hot-reload via `POST /api/config/reload`. Extracted hardcoded constants (currency, invoice template, payment methods, shipping thresholds) into `services/configuration-service/config/services.yml`.
+- **Invoice service** (2026-06-09). Spring Boot service at `:8098` generates XML invoices per Vietnamese e-invoice spec. JAXB marshalling, buyer/seller ownership checks, Kafka integration.
+- **Kafka SASL + ACL security hardening** (pt49). Broker switched to `SASL_PLAINTEXT` with per-service credentials and `StandardAuthorizer` ACLs. Prevents event forgery between bounded contexts.
+- **Refund saga fix** (pt49, P0). Topic name mismatch (`payment.refund_requested` vs `payment.refund.requested`) silently killed the entire refund flow. Fixed + deterministic saga compensation wired end-to-end.
+- **gRPC Docker networking fix** (pt49, P0). Localhost-hardcoded gRPC hosts replaced with Docker DNS env vars. All saga cross-service calls (inventory ↔ payment ↔ shipping) now work in containers.
+- **OWASP security audit — 50 findings** (pt48). 18 fixed: product-service auth on mutations, gateway seller role guards, admin role defense-in-depth, rate limiting on `/auth/**`, security headers, pagination caps, DB password externalization, Redis auth.
+- **Notification preferences enforcement** (pt48). `SendNotificationUseCase` checks per-channel preferences before delivery; WebSocket filters catch-up notifications on reconnect.
+- **Cart cleared after checkout** (pt49). Fire-and-forget cart clear on successful order placement.
+- **CI pipeline** (2026-06-05). GitHub Actions with OWASP dependency check, Buf protobuf lint, Trivy container scanning, BuildKit caching, Jest/vitest/Playwright gates.
 
 ### What's left / deferred
 
@@ -124,14 +131,15 @@ Per-service unit tests at HEAD (2026-05-29):
 | 1 | R2 swap for avatar storage | Ready (checklist in `docs/R2-SWAP-CHECKLIST.md`) | R2 credentials |
 | 2 | PayPal sandbox manual smoke | All code committed + unit-tested | `PAYPAL_CLIENT_ID`/`SECRET` |
 | 3 | Per-seller commission tier on SubOrder | Design ready, hardcoded to STANDARD | Business decision |
-| 4 | FX fields on `PaymentCompletedEvent` | Nice-to-have for analytics | None |
-| 5 | Kafka health probe for consumer-only services | Low priority | None |
-| 6 | VNPay / MoMo payment methods | Phase 3 | Business registration (MST + GPKD) |
-| 7 | Notifications inbox (FE bell) | Kafka consumer exists | FE work |
-| 8 | Real GHN/GHTK shipping adapter | Port exists, stub in place | API key |
-| 9 | Native password reset / 2FA | Bounces to Keycloak account console | Design decision |
-| 10 | Email verification flow | Currently auto-verified on register | Design decision |
-| 11 | Hero/promo/trending CMS for HomePage | Stubs via `<ComingSoonCard>` | Content strategy |
+| 4 | VNPay / MoMo payment methods | Phase 3 | Business registration (MST + GPKD) |
+| 5 | Notifications inbox (FE bell) | Kafka consumer exists | FE work |
+| 6 | Real GHN/GHTK shipping adapter | Port exists, stub in place | API key |
+| 7 | Native password reset / 2FA | Bounces to Keycloak account console | Design decision |
+| 8 | Email verification flow | Currently auto-verified on register | Design decision |
+| 9 | Hero/promo/trending CMS for HomePage | Stubs via `<ComingSoonCard>` | Content strategy |
+| 10 | Config hot-reload without restart | Java services fetch on startup only | Webhook/event push |
+| 11 | Remaining OWASP findings (32/50) | Tracked in security audit docs | Architectural effort |
+| 12 | monitoring-service TypeORM drift | `service_id` column missing in entity | Schema fix |
 
 ### Service ownership at HEAD
 
@@ -151,18 +159,21 @@ flowchart TB
     SHIP[shipping-service :8093]
     SF[seller-finance :8090]
     R[recommendations :8094]
+    INV[invoice-service :8098]
   end
 
   subgraph NestJS
     C[cart-service :8084]
     N[notification-service :8087]
     M[messaging-service :8095]
+    CFG[configuration-service :8097]
   end
 
   FE --> GW
   GW --> KC
-  GW --> U & P & O & I & C & S & N & PAY & SHIP & SF & R & M
+  GW --> U & P & O & I & C & S & N & PAY & SHIP & SF & R & M & INV
 
+  CFG --> ConfigYAML[Centralized business config, hot-reload, per-service + global]
   U --> SellerProfile[Buyers, sellers, addresses, wishlist, native /auth/register]
   P --> Catalog[Catalog, variants, images, reviews, questions, public seller stats batch]
   O --> Commerce[Orders, sub-orders, checkout, coupons, saga, outbox, payouts, finance]
@@ -175,6 +186,7 @@ flowchart TB
   SHIP --> Shipping[Shipment creation + tracking]
   SF --> Wallet[Seller wallet + payouts]
   R --> Recs[Frequently-bought-together via co-purchase aggregator]
+  INV --> Invoice[XML invoice generation per VN e-invoice spec]
 ```
 
 ## Tech Stack
@@ -186,17 +198,19 @@ flowchart TB
 | Frontend | React 18.3, Vite 6.3, TanStack Query 5, react-router 7, i18next 26, zod 4, Tailwind v4 |
 | Identity | Keycloak 26.6 (`vnshop` realm), OIDC / OAuth2, JWT, ROPC for native login |
 | Data stores | PostgreSQL 17.9 (per-service), Redis 8.6, Elasticsearch 9.4.0, MinIO (S3-compatible) |
-| Messaging | Kafka (`confluentinc/cp-kafka:8.2.0`), outbox pattern, saga orchestration |
-| Payments | COD, VietQR, SePay (live); Stripe, PayPal (sandbox-ready); VNPay, MoMo (deferred) |
+| Messaging | Kafka (`confluentinc/cp-kafka:8.2.0`), SASL_PLAINTEXT + per-service ACLs, outbox pattern, saga orchestration |
+| Payments | COD, VietQR, SePay (live); Stripe, PayPal (sandbox-ready, full refund saga); VNPay, MoMo (deferred) |
 | Inter-service | gRPC (order↔payment↔shipping↔inventory), Kafka events, REST with Resilience4j |
-| Observability | Jaeger (OTLP traces), Prometheus + Alertmanager, Kafka producer health probes |
+| Observability | Jaeger (OTLP traces), Prometheus + Alertmanager, Loki, Grafana, Kafka producer health probes |
 | Resilience | Resilience4j circuit breaker + retry, Caffeine + Redis cache, idempotent consumers |
+| Security | OWASP audit (50 findings, 18 fixed), rate limiting, security headers, DB/Redis password externalization |
 | Quality | JaCoCo (Java), vitest + Playwright (FE), Jest (NestJS), 90% coverage target |
+| CI/CD | GitHub Actions, OWASP dependency check, Buf protobuf lint, Trivy container scan, BuildKit |
 | Runtime | Docker, Docker Compose, virtual threads (Java 25) |
 
 ## Quick Start
 
-Stand up everything (infrastructure + 13 app services + frontend):
+Stand up everything (infrastructure + 18 app services + frontend):
 
 ```bash
 docker compose --profile apps up -d
@@ -223,7 +237,7 @@ node infra/scripts/seed-demo.mjs
 Verify the stack is healthy with both gates:
 
 ```bash
-node infra/scripts/e2e-day.mjs       # 52/52 — day-in-the-life API smoke
+node infra/scripts/e2e-day.mjs       # 55/55 — day-in-the-life API smoke
 cd fe && npx playwright test         # 19/19 — real browser FE-to-BE
 ```
 
@@ -278,6 +292,8 @@ If you see 503s on either suite, Spring Cloud Gateway's Resilience4j breaker has
 8093 shipping-service
 8094 recommendations-service
 8095 messaging-service
+8097 configuration-service
+8098 invoice-service
 ```
 
 ### Per-service Postgres
@@ -318,6 +334,8 @@ docker compose --profile apps down
 | shipping-service | 8093 | Spring Boot | apps | Shipment creation, carrier integration, tracking |
 | recommendations-service | 8094 | Spring Boot | apps | Frequently-bought-together via co-purchase aggregator |
 | messaging-service | 8095 | NestJS | apps | Buyer-seller direct messaging (REST + WebSocket fan-out) |
+| configuration-service | 8097 | NestJS | apps | Centralized business config (YAML-driven, per-service + global, hot-reload via POST /reload) |
+| invoice-service | 8098 | Spring Boot | apps | XML invoice generation per VN e-invoice spec |
 | review-service | — | Spring Boot | apps | Backwards-compat shell; review APIs are owned by product-service |
 
 ## Architecture Patterns
@@ -363,6 +381,8 @@ When adding behavior, start in the domain model, expose it through an applicatio
 
 ## Production characteristics now in place
 
+- **Centralized configuration service.** Business constants (currency, invoice templates, payment methods, shipping thresholds) live in `services/configuration-service/config/services.yml`. Java services fetch on startup via `ConfigServiceClient` with local `application.yml` fallback. Hot-reload via `POST /api/config/reload`.
+- **Kafka SASL + ACL authentication.** Broker runs SASL_PLAINTEXT with per-service credentials (`svc-order`, `svc-payment`, etc.) and `StandardAuthorizer` ACLs. Prevents cross-context event forgery. Auto-topic creation disabled.
 - **httpOnly cookie auth.** Refresh tokens live in the `vnshop_rt` cookie (HttpOnly, SameSite=Lax, Path=/auth, configurable Secure) issued by user-service. Access tokens are JS-memory-only. XSS can't bootstrap a new session.
 - **Resilience4j** circuit breaker + retry on the user-service → product-service stats adapter (sliding window 10, failure rate 50%, 10s open, 3 half-open trial, 3-attempt retry with 200ms exponential backoff).
 - **Caffeine** in-memory cache on the same adapter (5-minute TTL, 10k entries, `recordStats()` enabled).
@@ -383,6 +403,9 @@ When adding behavior, start in the domain model, expose it through an applicatio
 - **Health probes** exposed via `/actuator/health` with `circuitbreakers` contributor enabled; Prometheus endpoint available.
 - **Virtual threads** enabled on 11 servlet services (`spring.threads.virtual.enabled=true`).
 - **BuildKit cache mounts** on 15 Dockerfiles (60-80% cold-build speedup).
+- **OWASP security audit.** 50 findings identified (2 critical, 12 high, 24 medium, 12 low); 18 fixed: auth on mutations, seller/admin role guards, rate limiting on `/auth/**`, security headers (X-Frame-Options DENY, X-Content-Type-Options nosniff), max pagination caps, DB password externalization, Redis auth.
+- **Notification preferences enforcement.** `SendNotificationUseCase` checks per-channel enable flags before delivery; WebSocket gateway filters catch-up on reconnect.
+- **Deterministic saga compensation.** inventory-service publishes `inventory.released`, shipping-service publishes `shipping.cancelled`, payment refund carries `sagaId` pass-through. No more 5-minute timeout → FAILED fallback.
 
 See [`docs/SESSION-HANDOVER-2026-05-19-pt4.md`](docs/SESSION-HANDOVER-2026-05-19-pt4.md#operational-gotchas--durable-rules--additions-to-the-pt3-list) for the durable rules learned along the way (Hibernate 7 single-row aggregate wrapping, Spring 4 PathPattern regex limits, AOP-only `@CircuitBreaker`, `@MappedSuperclass` retroactivity, cookie-based auth needing `credentials: "include"` on every call, etc.).
 
@@ -416,20 +439,24 @@ services/
   coupon-service/          # Legacy profile (8088)
   seller-finance-service/  # Wallet + payouts (8090)
   order-service/           # Orders, checkout, saga, finance (8091)
-  payment-service/         # COD + VietQR live; MoMo Phase 2; VNPay deferred (8092)
+  payment-service/         # COD + VietQR live; Stripe + PayPal sandbox (8092)
   shipping-service/        # Carrier integration (8093)
   recommendations-service/ # Co-purchase recs (8094)
   messaging-service/       # NestJS chat REST + WS (8095)
+  configuration-service/   # NestJS centralized config server (8097)
+  invoice-service/         # XML invoice generation (8098)
   review-service/          # Backwards-compat shell
 fe/                        # React + Vite SPA
 infra/
   scripts/
-    e2e-day.mjs            # 35-step day-in-the-life API suite
+    e2e-day.mjs            # 55-step day-in-the-life API suite
     seed-demo.mjs          # Demo catalog seeder
     setup-keycloak-admin-client.sh
+    init-kafka-topics.sh   # Pre-create Kafka topics + ACLs
     backup.sh / restore.sh
   k8s/                     # K8s + Helm scaffolding
   prometheus/              # Metrics + alert rules
+  kafka/certs/             # Kafka SSL certs (for future use)
 docs/                      # Status reality, audits, session handovers
 .sisyphus/                 # Architecture + status canonicals
 ```
