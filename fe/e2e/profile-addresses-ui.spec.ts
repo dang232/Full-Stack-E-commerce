@@ -218,9 +218,9 @@ test.describe("profile addresses UI", () => {
 
     await expect(page.getByText("99 Delete Me Street")).toBeVisible({ timeout: 10_000 });
 
-    // The trash icon button only renders on non-default rows. There's
-    // exactly one in this fixture; click via the Tabler class anchor.
-    const trash = page.locator("button:has(svg.tabler-icon-trash)").first();
+    // The trash button only renders on non-default rows. There's
+    // exactly one in this fixture; find it via aria-label.
+    const trash = page.getByRole("button", { name: /remove address/i }).first();
     await expect(trash).toBeVisible({ timeout: 10_000 });
     await trash.click();
 

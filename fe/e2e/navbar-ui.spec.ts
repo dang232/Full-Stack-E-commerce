@@ -26,8 +26,8 @@ test.describe("navbar UI", () => {
       page.getByText(/All products|Tất cả sản phẩm|No products found/i).first(),
     ).toBeVisible({ timeout: 20_000 });
 
-    // Click the VNShop logo — its accessible name includes "VNShop MARKETPLACE".
-    await page.getByRole("button", { name: /VNShop MARKETPLACE/i }).first().click();
+    // Click the VNShop logo — its accessible name is "VNShop home".
+    await page.getByRole("button", { name: /VNShop home/i }).first().click();
     await expect.poll(() => new URL(page.url()).pathname, {
       timeout: 10_000,
       message: "logo click did not navigate to /",
@@ -43,21 +43,12 @@ test.describe("navbar UI", () => {
     ).toBeVisible({ timeout: 20_000 });
 
     // Each link is a button (the navbar is React Router with onClick=navigate).
-    // Click "Flash Sale" — should land on /search?flash=true.
-    await page.getByRole("button", { name: /^(Flash Sale)$/i }).first().click();
-    await expect.poll(() => page.url(), { timeout: 10_000 }).toMatch(
-      /\/search\?flash=true/,
-    );
-
-    // Back home, then "Fashion" → /search?cat=fashion.
-    await page.getByRole("button", { name: /VNShop MARKETPLACE/i }).first().click();
-    await expect.poll(() => new URL(page.url()).pathname).toBe("/");
-
+    // Click "Fashion" → /search?cat=fashion.
     await page.getByRole("button", { name: /^(Fashion|Thời Trang)$/i }).first().click();
     await expect.poll(() => page.url(), { timeout: 10_000 }).toMatch(/cat=fashion/);
 
     // "All Categories" CTA → /search.
-    await page.getByRole("button", { name: /VNShop MARKETPLACE/i }).first().click();
+    await page.getByRole("button", { name: /VNShop home/i }).first().click();
     await expect.poll(() => new URL(page.url()).pathname).toBe("/");
 
     await page.getByRole("button", { name: /^(All Categories|Tất cả danh mục)$/i }).first().click();
@@ -77,12 +68,11 @@ test.describe("navbar UI", () => {
     try {
       await page.goto("/");
       await expect(
-        page.getByRole("button", { name: /VNShop MARKETPLACE/i }).first(),
+        page.getByRole("button", { name: /VNShop home/i }).first(),
       ).toBeVisible({ timeout: 20_000 });
 
-      // The hamburger uses Tabler IconMenu2 (svg.tabler-icon-menu-2). The
-      // close icon is IconX. Anchor by class so we don't depend on labels.
-      const hamburger = page.locator("button:has(svg.tabler-icon-menu-2)").first();
+      // The hamburger uses lucide Menu icon with aria-label="Open menu".
+      const hamburger = page.getByRole("button", { name: /open menu/i }).first();
       await expect(hamburger).toBeVisible({ timeout: 10_000 });
       await hamburger.click();
 

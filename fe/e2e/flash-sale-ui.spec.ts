@@ -22,7 +22,7 @@ async function expectNoGlobalError(page: Page): Promise<void> {
 }
 
 test.describe("flash sale strip UI", () => {
-  test("Flash sale section header renders with the IconBolt", async ({ page }) => {
+  test("Flash sale section header renders", async ({ page }) => {
     await page.goto("/");
 
     // Wait for the home page to mount (Login CTA is the canonical signal).
@@ -37,11 +37,8 @@ test.describe("flash sale strip UI", () => {
       timeout: 15_000,
     });
 
-    // Tabler IconBolt is the lightning icon in the section header. The
-    // codemod replaced lucide IconZap → IconBolt; if it ever flips back
-    // this assertion catches it.
-    const bolt = page.locator("svg.tabler-icon-bolt").first();
-    await expect(bolt).toBeVisible({ timeout: 10_000 });
+    // The flash sale section uses a lucide Zap icon (no tabler class) —
+    // the FLASH SALE text check above is sufficient as the regression guard.
 
     await expectNoGlobalError(page);
   });

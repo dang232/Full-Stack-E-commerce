@@ -84,9 +84,8 @@ test.describe("messages + notifications UI", () => {
     await seedBuyer(page.request);
     await page.goto("/");
 
-    // The bell button uses the Tabler IconBell svg. Anchor by class to
-    // avoid label fragility (the aria-label varies with notification count).
-    const bell = page.locator("button:has(svg.tabler-icon-bell)").first();
+    // The bell button aria-label is the localized "Notifications" / "Thông báo".
+    const bell = page.getByRole("button", { name: /^(Notifications|Thông báo)$/i }).first();
     await expect(bell).toBeVisible({ timeout: 20_000 });
 
     // Click the bell — its dropdown / panel should appear. The exact

@@ -129,10 +129,9 @@ test.describe("cart page UI — buyer flow", () => {
     const totalBefore = await firstNonZeroVnd(page);
     expect(totalBefore, "expected a starting total").toBeGreaterThan(0);
 
-    // Tabler icons render with `tabler-icon-plus` / `tabler-icon-minus` /
-    // `tabler-icon-trash` class names on the inner svg. Anchor on those so
-    // the unlabeled icon-only buttons are unambiguous.
-    const plusBtn = page.locator("button:has(svg.tabler-icon-plus)").first();
+    // Lucide icons don't carry tabler class names. Anchor on aria-label
+    // instead so the unlabeled icon-only buttons are unambiguous.
+    const plusBtn = page.getByRole("button", { name: /increase quantity/i }).first();
     await expect(plusBtn).toBeVisible({ timeout: 10_000 });
     await plusBtn.click();
 
@@ -152,7 +151,7 @@ test.describe("cart page UI — buyer flow", () => {
       timeout: 15_000,
     });
 
-    const removeBtn = page.locator("button:has(svg.tabler-icon-trash)").first();
+    const removeBtn = page.getByRole("button", { name: /remove.*from cart/i }).first();
     await expect(removeBtn).toBeVisible({ timeout: 10_000 });
     await removeBtn.click();
 

@@ -67,7 +67,7 @@ test.describe("wishlist heart toggle UI", () => {
     // The page has TWO heart icons: the navbar wishlist link AND the
     // product page's wishlist toggle. Skip the navbar (first match) and
     // pick the second — the toggle button next to the product H1.
-    const heart = page.locator("main button:has(svg.tabler-icon-heart)").first();
+    const heart = page.getByRole("button", { name: /wishlist/i }).first();
     await expect(heart).toBeVisible({ timeout: 10_000 });
     await heart.click();
 
@@ -88,7 +88,7 @@ test.describe("wishlist heart toggle UI", () => {
       timeout: 20_000,
     });
 
-    const heart = page.locator("main button:has(svg.tabler-icon-heart)").first();
+    const heart = page.getByRole("button", { name: /wishlist/i }).first();
     await expect(heart).toBeVisible({ timeout: 10_000 });
 
     // First click — add.

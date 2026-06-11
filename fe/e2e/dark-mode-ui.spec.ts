@@ -44,7 +44,7 @@ test.describe("dark-mode toggle UI", () => {
     await page.goto("/");
     // Wait for the SPA to mount.
     await expect(
-      page.getByRole("button", { name: /^(Dark|Tối|Light|Sáng)$/i }),
+      page.getByRole("button", { name: /switch to (dark|light) mode/i }),
     ).toBeVisible({ timeout: 20_000 });
 
     // localStorage may carry over a previous "dark" preference between test
@@ -59,9 +59,8 @@ test.describe("dark-mode toggle UI", () => {
     expect(lightBg, "expected a non-empty computed background-color").toBeTruthy();
     expect(lightBg, "body should not be transparent in light mode").not.toBe("rgba(0, 0, 0, 0)");
 
-    // Click the toggle. The button label is localized (Tối/Dark) — match
-    // either. Anchored with $ so the regex doesn't match other navigation.
-    const toggle = page.getByRole("button", { name: /^(Dark|Tối)$/i }).first();
+    // Click the toggle. The button aria-label is "Switch to dark mode".
+    const toggle = page.getByRole("button", { name: /switch to dark mode/i }).first();
     await expect(toggle).toBeVisible();
     await toggle.click();
 
@@ -80,7 +79,7 @@ test.describe("dark-mode toggle UI", () => {
     expect(darkBg, "background color did not change after toggle").not.toBe(lightBg);
 
     // Round-trip: click again should return to light.
-    const toggleBack = page.getByRole("button", { name: /^(Light|Sáng)$/i }).first();
+    const toggleBack = page.getByRole("button", { name: /switch to light mode/i }).first();
     await expect(toggleBack).toBeVisible();
     await toggleBack.click();
 
@@ -96,7 +95,7 @@ test.describe("dark-mode toggle UI", () => {
   test("dark mode is readable: foreground text contrast is light, not gray", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("button", { name: /^(Dark|Tối|Light|Sáng)$/i }),
+      page.getByRole("button", { name: /switch to (dark|light) mode/i }),
     ).toBeVisible({ timeout: 20_000 });
 
     // Force dark.

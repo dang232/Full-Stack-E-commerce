@@ -105,7 +105,7 @@ test.describe.serial("Workday — buyer (guest → register → shop → order)"
     });
 
     await step(page, "buyer", "Toggle dark mode on", async () => {
-      const dark = page.getByRole("button", { name: /^(Dark|Tối)$/i }).first();
+      const dark = page.getByRole("button", { name: /switch to dark mode/i }).first();
       await expect(dark).toBeVisible({ timeout: 10_000 });
       await dark.click();
       await expect
@@ -203,7 +203,7 @@ test.describe.serial("Workday — buyer (guest → register → shop → order)"
         totalBefore,
         `expected a non-zero VND total but read 0 — see screenshot for the cart state`,
       ).toBeGreaterThan(0);
-      const plus = page.locator("button:has(svg.tabler-icon-plus)").first();
+      const plus = page.getByRole("button", { name: /increase quantity/i }).first();
       await expect(plus).toBeVisible({ timeout: 10_000 });
       await plus.click();
       await expect
@@ -221,7 +221,7 @@ test.describe.serial("Workday — buyer (guest → register → shop → order)"
         timeout: 20_000,
       });
       const heart = page
-        .locator("main button:has(svg.tabler-icon-heart)")
+        .getByRole("button", { name: /wishlist/i })
         .first();
       await expect(heart).toBeVisible({ timeout: 10_000 });
       await heart.click();

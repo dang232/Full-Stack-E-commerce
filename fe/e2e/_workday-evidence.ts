@@ -252,18 +252,17 @@ export async function loginAsSeededUser(
 }
 
 /**
- * Open the header user-menu and click logout. Anchors on Tabler icon
- * class names (chevron-down for the trigger, logout for the menu entry)
- * so we don't depend on localized labels.
+ * Open the header user-menu and click logout. Anchors on accessible names
+ * so we don't depend on icon implementation details.
  */
 export async function logoutViaUserMenu(page: Page): Promise<void> {
   const menuTrigger = page
-    .locator("header button:has(svg.tabler-icon-chevron-down)")
+    .getByRole("button", { name: /account menu/i })
     .first();
   await expect(menuTrigger).toBeVisible({ timeout: 10_000 });
   await menuTrigger.click();
   await page
-    .locator("button:has(svg.tabler-icon-logout)")
+    .getByRole("button", { name: /^(Log out|Đăng xuất)$/i })
     .first()
     .click();
   await expect(

@@ -76,7 +76,7 @@ test.describe("theme + i18n persistence UI", () => {
   test("Dark mode toggle state changes the body bg, even on reload", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("button", { name: /^(Dark|Tối|Light|Sáng)$/i }).first(),
+      page.getByRole("button", { name: /switch to (dark|light) mode/i }).first(),
     ).toBeVisible({ timeout: 20_000 });
 
     // Force a known starting state.
@@ -87,7 +87,7 @@ test.describe("theme + i18n persistence UI", () => {
     const lightBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
     // Toggle to dark.
-    await page.getByRole("button", { name: /^(Dark|Tối)$/i }).first().click();
+    await page.getByRole("button", { name: /switch to dark mode/i }).first().click();
     await expect.poll(() => isDarkClassPresent(page), { timeout: 5_000 }).toBe(true);
 
     const darkBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
@@ -99,7 +99,7 @@ test.describe("theme + i18n persistence UI", () => {
     // preference that doesn't exist.
     await page.reload();
     await expect(
-      page.getByRole("button", { name: /^(Dark|Tối|Light|Sáng)$/i }).first(),
+      page.getByRole("button", { name: /switch to (dark|light) mode/i }).first(),
     ).toBeVisible({ timeout: 20_000 });
 
     const reloadedBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
