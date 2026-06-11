@@ -37,6 +37,7 @@ spring:
       security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
       sasl.mechanism: PLAIN
       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-order}" password="${KAFKA_SASL_PASSWORD:order-secret-change-me}";
+      ssl.endpoint.identification.algorithm: https
     admin:
       properties:
         security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
@@ -47,6 +48,13 @@ spring:
 # to create users on POST /auth/register. The realm import in
 # infra/keycloak/vnshop-realm.json defines the matching client.
 vnshop:
+  auth:
+    # cookie-secure must be true in production (HTTPS only).
+    # cookie-same-site=Strict prevents the browser from sending vnshop_rt and
+    # vnshop_csrf on any cross-site request. Paired with the X-CSRF-Token
+    # double-submit check in CsrfProtectionFilter for defence-in-depth.
+    cookie-secure: ${VNSHOP_AUTH_COOKIE_SECURE:false}
+    cookie-same-site: ${VNSHOP_AUTH_COOKIE_SAME_SITE:Strict}
   product-service:
     uri: ${PRODUCT_SERVICE_URI:http://product-service:8082}
     connect-timeout-ms: ${PRODUCT_SERVICE_CONNECT_TIMEOUT_MS:1000}
