@@ -29,7 +29,7 @@ scrape_configs:
             message: message
             traceId: traceId
             spanId: spanId
-            timestamp: '@timestamp'
+            timestamp: '"@timestamp"'
       - labels:
           level:
           logger:

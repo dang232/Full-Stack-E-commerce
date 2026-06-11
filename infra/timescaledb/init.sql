@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 -- Health metrics hypertable
 CREATE TABLE health_metrics (
+  id          SERIAL,
   time        TIMESTAMPTZ NOT NULL,
   service_id  TEXT NOT NULL,
   status      TEXT NOT NULL,
