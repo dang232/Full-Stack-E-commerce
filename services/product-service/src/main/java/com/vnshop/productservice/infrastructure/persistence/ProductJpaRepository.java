@@ -30,7 +30,7 @@ public class ProductJpaRepository implements ProductRepositoryPort {
     }
 
     @Override
-    @Cacheable(value = "product", key = "#productId", sync = true, unless = "#result == null || !#result.isPresent()")
+    @Cacheable(value = "product", key = "#productId", unless = "#result == null")
     public Optional<Product> findById(UUID productId) {
         return springDataRepository.findById(productId).map(ProductJpaEntity::toDomain);
     }

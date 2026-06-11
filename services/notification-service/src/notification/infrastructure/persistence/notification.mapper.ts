@@ -30,7 +30,7 @@ export class NotificationMapper {
   }
 
   static toPersistence(notification: Notification): Record<string, unknown> {
-    return {
+    const doc: Record<string, unknown> = {
       id: notification.id,
       userId: notification.userId,
       type: notification.type,
@@ -42,7 +42,6 @@ export class NotificationMapper {
       threadId: notification.thread?.threadId ?? null,
       threadTitle: notification.thread?.threadTitle ?? null,
       metadata: notification.metadata,
-      idempotencyKey: notification.idempotencyKey,
       read: notification.read,
       readAt: notification.readAt,
       createdAt: notification.createdAt,
@@ -51,5 +50,11 @@ export class NotificationMapper {
         notification.createdAt.getTime() + 90 * 24 * 60 * 60 * 1000,
       ), // 90 days TTL
     };
+    // Only persist idempotencyKey when non-null; omitting it lets the
+    // sparse unique index skip the document instead of conflicting on null.
+    if (notification.idempotencyKey) {
+      doc.idempotencyKey = notification.idempotencyKey;
+    }
+    return doc;
   }
 }

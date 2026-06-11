@@ -119,6 +119,7 @@ public class RateLimiterConfig {
     }
 
     @Bean
+    @Primary
     TieredRateLimiter generalRateLimiter(
             RedisRateLimiter generalAnonRateLimiter,
             RedisRateLimiter generalAuthRateLimiter) {

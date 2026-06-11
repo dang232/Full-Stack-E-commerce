@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { PostgreSqlDriver } from '@mikro-orm/postgresql';
 import { AppController } from './app.controller';
 import { CartModule } from './cart/cart.module';
 import { CartMikroOrmEntity } from './cart/infrastructure/cart.mikro-orm-entity.js';
@@ -19,11 +20,12 @@ import { CartMikroOrmEntity } from './cart/infrastructure/cart.mikro-orm-entity.
           );
         }
         return {
+          driver: PostgreSqlDriver,
           entities: [CartMikroOrmEntity],
           clientUrl: databaseUrl,
           pool: { min: 2, max: 10 },
           migrations: {
-            path: './src/db/migrations',
+            path: './dist/db/migrations',
             disableForeignKeys: false,
           },
           debug: false,

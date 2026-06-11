@@ -45,6 +45,7 @@ public class RouteConfig {
     private final String recommendationsServiceUri;
     private final String messagingServiceUri;
     private final String monitoringServiceUri;
+    private final String configurationServiceUri;
 
     public RouteConfig(
         @Value("${vnshop.routes.product-service:http://product-service:8082}") String productServiceUri,
@@ -60,7 +61,8 @@ public class RouteConfig {
         @Value("${vnshop.routes.seller-finance-service:http://seller-finance-service:8090}") String sellerFinanceServiceUri,
         @Value("${vnshop.routes.recommendations-service:http://recommendations-service:8094}") String recommendationsServiceUri,
         @Value("${vnshop.routes.messaging-service:http://messaging-service:8095}") String messagingServiceUri,
-        @Value("${vnshop.routes.monitoring-service:http://monitoring-service-v2:8096}") String monitoringServiceUri
+        @Value("${vnshop.routes.monitoring-service:http://monitoring-service-v2:8096}") String monitoringServiceUri,
+        @Value("${vnshop.routes.configuration-service:http://configuration-service:8097}") String configurationServiceUri
     ) {
         this.productServiceUri = productServiceUri;
         this.userServiceUri = userServiceUri;
@@ -76,6 +78,7 @@ public class RouteConfig {
         this.recommendationsServiceUri = recommendationsServiceUri;
         this.messagingServiceUri = messagingServiceUri;
         this.monitoringServiceUri = monitoringServiceUri;
+        this.configurationServiceUri = configurationServiceUri;
     }
 
     @Bean
@@ -200,6 +203,9 @@ public class RouteConfig {
             .route("recommendations", route -> route.path("/recommendations/**")
                 .filters(filters -> resilient(filters, "recommendations-service"))
                 .uri(recommendationsServiceUri))
+            // Configuration service — public app config endpoint.
+            .route("configuration", route -> route.path("/api/config")
+                .uri(configurationServiceUri))
             // Admin sub-routes — more specific patterns must come before the
             // catch-all /admin/** route below. Each maps to the service that owns
             // the corresponding domain endpoints.
