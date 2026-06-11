@@ -33,6 +33,7 @@ spring:
       security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
       sasl.mechanism: PLAIN
       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-finance}" password="${KAFKA_SASL_PASSWORD:finance-secret-change-me}";
+      ssl.endpoint.identification.algorithm: https
     admin:
       properties:
         security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
