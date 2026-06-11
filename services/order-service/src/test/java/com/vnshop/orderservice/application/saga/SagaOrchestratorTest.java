@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.application.saga;
 
 import com.vnshop.orderservice.domain.port.out.OutboxPort;
+import com.vnshop.orderservice.domain.port.out.SagaCompensationPublisherPort;
 import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
 import com.vnshop.orderservice.domain.saga.SagaState;
 import com.vnshop.orderservice.domain.saga.SagaStatus;
@@ -17,12 +18,14 @@ class SagaOrchestratorTest {
     private SagaOrchestrator orchestrator;
     private InMemorySagaStateRepository sagaStateRepo;
     private InMemoryOutboxPort outboxPort;
+    private RecordingCompensationPublisher compensationPublisher;
 
     @BeforeEach
     void setUp() {
         sagaStateRepo = new InMemorySagaStateRepository();
         outboxPort = new InMemoryOutboxPort();
-        orchestrator = new SagaOrchestrator(sagaStateRepo, outboxPort, 1_000);
+        compensationPublisher = new RecordingCompensationPublisher();
+        orchestrator = new SagaOrchestrator(sagaStateRepo, outboxPort, compensationPublisher, 1_000);
     }
 
     @Test
@@ -120,6 +123,38 @@ class SagaOrchestratorTest {
     }
 
     @Test
+    void compensate_paymentFailed_publishesInventoryReleaseRequested() {
+        SagaState started = orchestrator.startOrderSaga("order-1");
+        String sagaId = started.sagaId();
+
+        orchestrator.compensate(sagaId, "PAYMENT");
+
+        assertThat(compensationPublisher.inventoryReleaseCount).isEqualTo(1);
+        assertThat(compensationPublisher.paymentRefundCount).isEqualTo(0);
+    }
+
+    @Test
+    void compensate_shippingFailed_publishesBothRefundAndInventoryRelease() {
+        SagaState started = orchestrator.startOrderSaga("order-1");
+        String sagaId = started.sagaId();
+
+        orchestrator.compensate(sagaId, "SHIPPING");
+
+        assertThat(compensationPublisher.paymentRefundCount).isEqualTo(1);
+        assertThat(compensationPublisher.inventoryReleaseCount).isEqualTo(1);
+    }
+
+    @Test
+    void stepCompleted_updatesPersistedStatus_soGetLastCompletedStepReturnsCorrectStep() {
+        orchestrator.start("saga-1", "order-1");
+        orchestrator.stepCompleted("saga-1", "INVENTORY");
+        assertThat(orchestrator.getLastCompletedStep("saga-1")).contains("INVENTORY");
+
+        orchestrator.stepCompleted("saga-1", "PAYMENT");
+        assertThat(orchestrator.getLastCompletedStep("saga-1")).contains("PAYMENT");
+    }
+
+    @Test
     void compensate_withMissingSaga_doesNothing() {
         orchestrator.compensate("nonexistent", "ANY");
         assertThat(sagaStateRepo.stored).isNull();
@@ -177,6 +212,21 @@ class SagaOrchestratorTest {
 
         PublishedEvent lastEvent() {
             return events.get(events.size() - 1);
+        }
+    }
+
+    static class RecordingCompensationPublisher implements SagaCompensationPublisherPort {
+        int inventoryReleaseCount = 0;
+        int paymentRefundCount = 0;
+
+        @Override
+        public void publishInventoryReleaseRequested(String orderId, String sagaId) {
+            inventoryReleaseCount++;
+        }
+
+        @Override
+        public void publishPaymentRefundRequested(String orderId, String sagaId) {
+            paymentRefundCount++;
         }
     }
 }

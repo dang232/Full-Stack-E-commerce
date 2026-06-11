@@ -22,6 +22,7 @@ import com.vnshop.orderservice.application.saga.SagaOrchestrator;
 import com.vnshop.orderservice.application.tax.TaxCalculationService;
 import com.vnshop.orderservice.domain.port.out.MetricsPort;
 import com.vnshop.orderservice.domain.port.out.OutboxPort;
+import com.vnshop.orderservice.domain.port.out.SagaCompensationPublisherPort;
 import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
 import com.vnshop.orderservice.domain.saga.SagaState;
 import org.junit.jupiter.api.Test;
@@ -63,7 +64,7 @@ class CheckoutOrderUseCaseTest {
     private final MetricsPort noopMetrics = new NoopMetrics();
 
     private CheckoutOrderUseCase newUseCase() {
-        SagaOrchestrator sagaOrchestrator = new SagaOrchestrator(new NoopSagaStateRepository(), new NoopOutboxPort(), 1_000);
+        SagaOrchestrator sagaOrchestrator = new SagaOrchestrator(new NoopSagaStateRepository(), new NoopOutboxPort(), new NoopCompensationPublisher(), 1_000);
         TaxCalculationService taxService = new TaxCalculationService((code, date) -> java.util.Optional.of(new java.math.BigDecimal("0.10")));
         CreateOrderUseCase createOrderUseCase = new CreateOrderUseCase(repository, inventory, payment, shipping, events, tierLookup, cart, noopMetrics, sagaOrchestrator, taxService);
         return new CheckoutOrderUseCase(catalog, createOrderUseCase);
@@ -259,5 +260,10 @@ class CheckoutOrderUseCaseTest {
 
     private static final class NoopOutboxPort implements OutboxPort {
         @Override public void publish(String aggregateType, String aggregateId, String eventType, String payload) {}
+    }
+
+    private static final class NoopCompensationPublisher implements SagaCompensationPublisherPort {
+        @Override public void publishInventoryReleaseRequested(String orderId, String sagaId) {}
+        @Override public void publishPaymentRefundRequested(String orderId, String sagaId) {}
     }
 }

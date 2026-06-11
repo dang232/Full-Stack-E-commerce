@@ -1,6 +1,7 @@
 package com.vnshop.orderservice.application.saga;
 
 import com.vnshop.orderservice.domain.port.out.OutboxPort;
+import com.vnshop.orderservice.domain.port.out.SagaCompensationPublisherPort;
 import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
 import com.vnshop.orderservice.domain.saga.SagaState;
 import com.vnshop.orderservice.domain.saga.SagaStatus;
@@ -21,15 +22,18 @@ public class SagaOrchestrator {
 
     private final SagaStateRepository sagaStateRepository;
     private final OutboxPort outboxPort;
+    private final SagaCompensationPublisherPort compensationPublisher;
     private final long compensationTimeoutMs;
 
     public SagaOrchestrator(
             SagaStateRepository sagaStateRepository,
             OutboxPort outboxPort,
+            SagaCompensationPublisherPort compensationPublisher,
             @Value("${saga.compensation-timeout-ms:300000}") long compensationTimeoutMs
     ) {
         this.sagaStateRepository = sagaStateRepository;
         this.outboxPort = outboxPort;
+        this.compensationPublisher = compensationPublisher;
         this.compensationTimeoutMs = compensationTimeoutMs;
     }
 
@@ -121,16 +125,13 @@ public class SagaOrchestrator {
         switch (failedStep) {
             case "SHIPPING":
                 // Payment was charged, inventory was reserved — reverse both
-                outboxPort.publish("Order", orderId, "PAYMENT_REFUND_REQUESTED",
-                    "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\"}");
-                outboxPort.publish("Order", orderId, "INVENTORY_RELEASE_REQUESTED",
-                    "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\"}");
+                compensationPublisher.publishPaymentRefundRequested(orderId, sagaId);
+                compensationPublisher.publishInventoryReleaseRequested(orderId, sagaId);
                 break;
             case "PAYMENT":
             case "PAYMENT_CHARGE":
                 // Only inventory was reserved — release it
-                outboxPort.publish("Order", orderId, "INVENTORY_RELEASE_REQUESTED",
-                    "{\"orderId\":\"" + orderId + "\",\"sagaId\":\"" + sagaId + "\"}");
+                compensationPublisher.publishInventoryReleaseRequested(orderId, sagaId);
                 break;
             case "INVENTORY":
                 // Nothing to compensate — first step failed
@@ -155,7 +156,24 @@ public class SagaOrchestrator {
         sagaStateRepository.save(new SagaState(sagaId, orderId, SagaStatus.STARTED, Instant.now(), null));
     }
 
+    /**
+     * Records the last successfully completed saga step so that {@link #getLastCompletedStep}
+     * can return the correct failed-step name when compensation is needed.
+     */
+    @Transactional
     public void stepCompleted(String sagaId, String step) {
+        sagaStateRepository.findBySagaId(sagaId).ifPresent(current -> {
+            SagaStatus newStatus = switch (step) {
+                case "INVENTORY" -> SagaStatus.INVENTORY_RESERVED;
+                case "PAYMENT" -> SagaStatus.PAYMENT_CHARGED;
+                case "SHIPPING" -> SagaStatus.SHIPPING_CREATED;
+                default -> current.currentStep();
+            };
+            if (newStatus != current.currentStep()) {
+                sagaStateRepository.save(new SagaState(
+                    current.sagaId(), current.orderId(), newStatus, current.createdAt(), Instant.now()));
+            }
+        });
         LOG.debug("Saga {} step completed: {}", sagaId, step);
     }
 
@@ -167,8 +185,19 @@ public class SagaOrchestrator {
         });
     }
 
+    /**
+     * Returns the last step that completed successfully for the given saga, derived from
+     * the persisted {@link SagaStatus}. Used by {@link com.vnshop.orderservice.application.CreateOrderUseCase}
+     * to determine which compensation actions are needed.
+     */
     public Optional<String> getLastCompletedStep(String sagaId) {
-        return Optional.empty(); // Simplified — full impl would track step list
+        return sagaStateRepository.findBySagaId(sagaId)
+            .map(s -> switch (s.currentStep()) {
+                case INVENTORY_RESERVED -> "INVENTORY";
+                case PAYMENT_CHARGED -> "PAYMENT";
+                case SHIPPING_CREATED -> "SHIPPING";
+                default -> null;
+            });
     }
 
     private void markFailed(String sagaId) {
@@ -184,10 +213,6 @@ public class SagaOrchestrator {
      * (e.g. inventory release, payment refund, shipping cancellation). Promotes a
      * COMPENSATING saga directly to FAILED so listeners and dashboards see a real
      * terminal state without waiting for the timeout finalizer.
-     *
-     * <p>Wire downstream confirmation Kafka events here (e.g. {@code inventory.released},
-     * {@code payment.refunded}, {@code shipping.cancelled}). Until those exist, the
-     * timeout finalizer remains the only fallback.
      */
     @Transactional
     public void onCompensationCompleted(String sagaId, String confirmingStep) {
@@ -219,6 +244,6 @@ public class SagaOrchestrator {
         outboxPort.publish(AGGREGATE_TYPE, current.sagaId(), "SAGA_FAILED",
             "{\"orderId\":\"" + current.orderId() + "\",\"sagaId\":\"" + current.sagaId() + "\",\"reason\":\"" + reason + "\"}");
 
-        LOG.error("Saga {} marked FAILED after compensation timeout", current.sagaId());
+        LOG.error("Saga {} marked FAILED after compensation: {}", current.sagaId(), reason);
     }
 }

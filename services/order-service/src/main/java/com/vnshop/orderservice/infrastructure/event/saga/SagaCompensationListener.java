@@ -3,6 +3,9 @@ package com.vnshop.orderservice.infrastructure.event.saga;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.orderservice.application.saga.SagaOrchestrator;
+import com.vnshop.orderservice.domain.port.out.SagaStateRepository;
+import com.vnshop.orderservice.domain.saga.SagaState;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.DltHandler;
@@ -16,19 +19,27 @@ import org.springframework.stereotype.Service;
  * (inventory, payment, shipping) and promotes COMPENSATING sagas to FAILED
  * without waiting for the timeout finalizer.
  *
- * <p>Downstream services must publish to {@code inventory.released},
- * {@code payment.refunded}, or {@code shipping.cancelled} with a JSON
- * payload containing a {@code sagaId} field for this listener to fire.
+ * <p>Downstream services publish to {@code inventory.released},
+ * {@code payment.refunded}, or {@code shipping.cancelled}. The payload is
+ * expected to contain either a {@code sagaId} field (preferred) or an
+ * {@code orderId} field. When only {@code orderId} is present the saga is
+ * looked up by order, allowing downstream services that are unaware of the
+ * saga ID to still close the compensation loop.
  */
 @Service
 public class SagaCompensationListener {
     private static final Logger LOG = LoggerFactory.getLogger(SagaCompensationListener.class);
 
     private final SagaOrchestrator sagaOrchestrator;
+    private final SagaStateRepository sagaStateRepository;
     private final ObjectMapper objectMapper;
 
-    public SagaCompensationListener(SagaOrchestrator sagaOrchestrator, ObjectMapper objectMapper) {
+    public SagaCompensationListener(
+            SagaOrchestrator sagaOrchestrator,
+            SagaStateRepository sagaStateRepository,
+            ObjectMapper objectMapper) {
         this.sagaOrchestrator = sagaOrchestrator;
+        this.sagaStateRepository = sagaStateRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -48,14 +59,27 @@ public class SagaCompensationListener {
         JsonNode envelope = readTree(eventJson);
         JsonNode payload = envelope.hasNonNull("payload") ? readTree(envelope.get("payload").asText()) : envelope;
 
+        String resolvedTopic = topic == null ? "UNKNOWN" : topic;
+
+        // Prefer sagaId from payload; fall back to orderId lookup
         String sagaId = text(payload, "sagaId");
         if (sagaId == null || sagaId.isBlank()) {
-            LOG.warn("Skipping compensation confirmation — missing sagaId in event from {}", topic);
-            return;
+            String orderId = text(payload, "orderId");
+            if (orderId == null || orderId.isBlank()) {
+                LOG.warn("Skipping compensation confirmation — missing both sagaId and orderId in event from {}", resolvedTopic);
+                return;
+            }
+            Optional<SagaState> saga = sagaStateRepository.findByOrderId(orderId);
+            if (saga.isEmpty()) {
+                LOG.warn("Skipping compensation confirmation — no saga found for orderId={} from {}", orderId, resolvedTopic);
+                return;
+            }
+            sagaId = saga.get().sagaId();
+            LOG.debug("Resolved sagaId={} from orderId={} for compensation confirmation from {}", sagaId, orderId, resolvedTopic);
         }
 
-        sagaOrchestrator.onCompensationCompleted(sagaId, topic == null ? "UNKNOWN" : topic);
-        LOG.info("Saga {} compensation confirmed by {}", sagaId, topic);
+        sagaOrchestrator.onCompensationCompleted(sagaId, resolvedTopic);
+        LOG.info("Saga {} compensation confirmed by {}", sagaId, resolvedTopic);
     }
 
     private JsonNode readTree(String json) {
@@ -68,7 +92,7 @@ public class SagaCompensationListener {
 
     private static String text(JsonNode node, String fieldName) {
         JsonNode value = node.path(fieldName);
-        return value.isMissingNode() ? null : value.asText();
+        return value.isMissingNode() || value.isNull() ? null : value.asText();
     }
 
     @DltHandler
