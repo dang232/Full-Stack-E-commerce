@@ -22,7 +22,9 @@
     "myOrders": "My Orders",
     "wishlist": "Wishlist",
     "notifications": "Notifications",
-    "settings": "Settings"
+    "settings": "Settings",
+    "loginRequired": "Please sign in to continue",
+    "noAccess": "You don't have access to this page"
   },
   "cart": {
     "title": "Cart",
@@ -109,7 +111,15 @@
     "emptyTitle": "No products found",
     "emptySub": "Try adjusting your filters or search query",
     "emptyClear": "Clear filters",
-    "loadMore": "Show {{count}} more products"
+    "loadMore": "Show {{count}} more products",
+    "noResultsFor": "No results for '{{query}}'",
+    "showingRange": "Showing {{start}}–{{end}} of {{total}} results for '{{query}}'",
+    "andUp": "& up",
+    "verifiedOnly": "Verified only",
+    "officialStores": "Official stores",
+    "shippingHeader": "Shipping",
+    "freeShippingTag": "Free shipping",
+    "sameDayDelivery": "Same-day delivery"
   },
   "flashSale": {
     "title": "⚡ FLASH SALE",
@@ -221,6 +231,8 @@
     "suggestionsSubtitle": "Personalised based on your shopping preferences",
     "viewAll": "View all",
     "trending": "Trending",
+    "sellerShowcase": "Top Sellers",
+    "viewAllSellers": "View All",
     "categories": "Product Categories",
     "allCategoriesLabel": "All categories",
     "trustedSellers": "Trusted Shops",
@@ -513,7 +525,10 @@
       "coupons": "Coupons",
       "disputes": "Disputes",
       "payouts": "Payouts",
-      "ariaLabelWithBadge": "{{label}}, {{count}} pending"
+      "ariaLabelWithBadge": "{{label}}, {{count}} pending",
+      "users": "Users",
+      "orders": "Orders",
+      "health": "System Health"
     },
     "dashboard": {
       "title": "Admin Dashboard",

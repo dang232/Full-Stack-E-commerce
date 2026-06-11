@@ -1,22 +1,20 @@
-import {
-  IconBrandPaypal,
-  IconBuildingBank,
-  IconCash,
-  IconCircleCheck,
-  IconCreditCard,
-  IconMapPin,
-  IconQrcode,
-  IconTruck,
-  IconWallet,
-} from "@tabler/icons-react";
 import type { TFunction } from "i18next";
+import {
+  Banknote,
+  CheckCircle,
+  CreditCard,
+  MapPin,
+  QrCode,
+  Truck,
+  Wallet,
+} from "lucide-react";
 
 export type Step = "address" | "shipping" | "payment" | "review" | "success";
 
 export interface CheckoutStepConfig {
   id: Step;
   labelKey: string;
-  icon: typeof IconMapPin;
+  icon: typeof MapPin;
 }
 
 export interface ShippingOption {
@@ -30,15 +28,15 @@ export interface ShippingOption {
 export interface PaymentOption {
   id: "VNPAY" | "MOMO" | "COD" | "BANK" | "STRIPE" | "PAYPAL" | "VIETQR";
   name: string;
-  Icon: typeof IconCreditCard;
+  Icon: typeof CreditCard;
   desc: string;
 }
 
 export const STEPS: CheckoutStepConfig[] = [
-  { id: "address", labelKey: "checkout.steps.address", icon: IconMapPin },
-  { id: "shipping", labelKey: "checkout.steps.shipping", icon: IconTruck },
-  { id: "payment", labelKey: "checkout.steps.payment", icon: IconCreditCard },
-  { id: "review", labelKey: "checkout.steps.review", icon: IconCircleCheck },
+  { id: "address", labelKey: "checkout.steps.address", icon: MapPin },
+  { id: "shipping", labelKey: "checkout.steps.shipping", icon: Truck },
+  { id: "payment", labelKey: "checkout.steps.payment", icon: CreditCard },
+  { id: "review", labelKey: "checkout.steps.review", icon: CheckCircle },
 ];
 
 export function makeFallbackShipping(t: TFunction): ShippingOption[] {
@@ -62,18 +60,18 @@ export function makeFallbackShipping(t: TFunction): ShippingOption[] {
 
 export function makeFallbackPayment(t: TFunction): PaymentOption[] {
   return [
-    { id: "VNPAY", name: "VNPay", Icon: IconWallet, desc: t("checkout.payment.vnpayDesc") },
-    { id: "MOMO", name: "MoMo", Icon: IconWallet, desc: t("checkout.payment.momoDesc") },
-    { id: "VIETQR", name: "VietQR", Icon: IconQrcode, desc: t("checkout.payment.vietqrDesc") },
+    { id: "VNPAY", name: "VNPay", Icon: Wallet, desc: t("checkout.payment.vnpayDesc") },
+    { id: "MOMO", name: "MoMo", Icon: Wallet, desc: t("checkout.payment.momoDesc") },
+    { id: "VIETQR", name: "VietQR", Icon: QrCode, desc: t("checkout.payment.vietqrDesc") },
     {
       id: "STRIPE",
       name: t("checkout.payment.stripeName"),
-      Icon: IconCreditCard,
+      Icon: CreditCard,
       desc: "Visa, Mastercard, Amex via Stripe",
     },
-    { id: "PAYPAL", name: "PayPal", Icon: IconBrandPaypal, desc: t("checkout.payment.paypalDesc") },
-    { id: "BANK", name: t("checkout.payment.bankName"), Icon: IconBuildingBank, desc: "Visa, Mastercard, JCB" },
-    { id: "COD", name: t("checkout.payment.codName"), Icon: IconCash, desc: t("checkout.payment.codDesc") },
+    { id: "PAYPAL", name: "PayPal", Icon: Wallet, desc: t("checkout.payment.paypalDesc") },
+    { id: "BANK", name: t("checkout.payment.bankName"), Icon: CreditCard, desc: "Visa, Mastercard, JCB" },
+    { id: "COD", name: t("checkout.payment.codName"), Icon: Banknote, desc: t("checkout.payment.codDesc") },
   ];
 }
 

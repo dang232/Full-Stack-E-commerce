@@ -1,4 +1,4 @@
-import { IconAlertCircle, IconChartBar, IconPackage, IconTrendingUp, IconUsers, IconWallet } from "@tabler/icons-react";
+import { IconAlertCircle, IconChartBar, IconPackage, IconRefresh, IconTrendingUp, IconUsers, IconWallet } from "@tabler/icons-react";
 
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -70,9 +70,21 @@ export function AdminDashboard() {
       </div>
 
       {summaryQuery.error instanceof ApiError ? (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
-          <IconAlertCircle size={14} className="shrink-0 mt-0.5" />
-          <p>{t("admin.dashboard.kpiLoadFail", { message: summaryQuery.error.message })}</p>
+        <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4 text-sm text-amber-800 dark:text-amber-200 flex items-center gap-3">
+          <IconAlertCircle size={18} className="shrink-0 text-amber-500" />
+          <p className="flex-1">
+            {t("admin.dashboard.kpiLoadFailFriendly", {
+              defaultValue: "Unable to load metrics. Please check your permissions or try again.",
+            })}
+          </p>
+          <button
+            type="button"
+            onClick={() => summaryQuery.refetch()}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-700 px-3 py-1.5 text-xs font-medium text-amber-800 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-900 transition-colors"
+          >
+            <IconRefresh size={14} />
+            {t("common.retry", { defaultValue: "Retry" })}
+          </button>
         </div>
       ) : null}
 

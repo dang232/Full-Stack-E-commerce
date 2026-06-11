@@ -59,13 +59,15 @@ const STATUS_CONFIG: Record<
   },
 };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function fromServer(o: ServerOrder): UIOrder {
   const sub = o.subOrders?.[0];
   const items =
     o.subOrders?.flatMap((s) =>
       (s.items ?? []).map((i) => ({
         productId: i.productId,
-        name: i.name ?? i.productId,
+        name: i.name && !UUID_PATTERN.test(i.name) ? i.name : "Product",
         image: i.image ?? "",
         quantity: i.quantity,
         price: i.price,
@@ -370,12 +372,19 @@ function OrderCard({
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-2xl shadow-sm overflow-hidden"
+        className="bg-card border border-border rounded-[var(--radius-lg)] p-5 mb-3 transition-all hover:border-border-hover hover:shadow-sm"
       >
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+        {/* Top row: order ID + date | status pill */}
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">{t("orders.orderId")}</span>
-            <span className="text-xs font-bold text-foreground font-mono">{order.id}</span>
+            <span className="text-[13px] font-semibold text-foreground">
+              {t("orders.orderNumber", { defaultValue: "Order" })} #{order.id.slice(0, 8).toUpperCase()}
+            </span>
+            {order.date ? (
+              <span className="text-xs text-muted-foreground">
+                {new Date(order.date).toLocaleDateString()}
+              </span>
+            ) : null}
           </div>
           <div
             aria-live="polite"
@@ -388,111 +397,92 @@ function OrderCard({
           </div>
         </div>
 
-        <div className="p-5">
-          {order.items.length === 0 ? (
-            order.itemCount && order.itemCount > 0 ? (
-              <p className="text-sm text-muted-foreground italic mb-3">
-                {t("orders.itemCountSummary", {
-                  count: order.itemCount,
-                  defaultValue: `${order.itemCount} sản phẩm`,
-                })}
-              </p>
-            ) : null
-          ) : null}
-          {order.items.map((item) => (
-            <div
-              key={`${item.productId}-${item.variant ?? ""}`}
-              className="flex items-center gap-4 mb-3"
-            >
-              <ImageWithFallback
-                src={item.image ?? ""}
-                alt={item.name}
-                className="w-16 h-16 rounded-xl object-cover border border-border"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground line-clamp-2">{item.name}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-muted-foreground">x{item.quantity}</span>
-                  <span className="font-bold text-sm" style={{ color: "#FF6200" }}>
-                    {formatPrice(item.price)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          <div className="flex items-center justify-between pt-3 border-t border-border">
-            <div className="text-sm text-muted-foreground">
-              {order.date ? <span>{order.date}</span> : null}
-              {order.seller ? <span> · {order.seller}</span> : null}
-            </div>
-            <div className="text-right">
-              <span className="text-xs text-muted-foreground">{t("orders.totalLabel")} </span>
-              <span className="font-black" style={{ color: "#FF6200" }}>
-                {formatPrice(order.total)}
-              </span>
+        {/* Items */}
+        {order.items.length === 0 && order.itemCount && order.itemCount > 0 ? (
+          <p className="text-sm text-muted-foreground italic mb-3">
+            {t("orders.itemCountSummary", {
+              count: order.itemCount,
+              defaultValue: `${order.itemCount} sản phẩm`,
+            })}
+          </p>
+        ) : null}
+        {order.items.map((item) => (
+          <div
+            key={`${item.productId}-${item.variant ?? ""}`}
+            className="flex items-center gap-3 mb-3"
+          >
+            <ImageWithFallback
+              src={item.image ?? ""}
+              alt={item.name}
+              className="w-14 h-14 rounded-[var(--radius-md)] object-cover border border-border flex-shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground line-clamp-2">{item.name}</p>
+              <span className="text-xs text-muted-foreground">x{item.quantity}</span>
             </div>
           </div>
-        </div>
+        ))}
 
-        <div className="flex gap-2 px-5 pb-4">
-          {order.status === "shipping" ? (
+        {/* Bottom row: total + actions */}
+        <div className="flex items-center justify-between pt-3 border-t border-border">
+          <span className="text-[15px] font-bold text-primary">{formatPrice(order.total)}</span>
+          <div className="flex gap-2">
+            {order.status === "shipping" ? (
+              <button
+                onClick={() => setShowTracking(true)}
+                className="px-3.5 py-1.5 rounded-[var(--radius-md)] text-xs font-medium border border-border text-text-secondary hover:bg-muted flex items-center gap-1.5"
+              >
+                <IconMapPin size={13} /> {t("orders.actions.track")}
+              </button>
+            ) : null}
+            {order.status === "delivered" ? (
+              <>
+                <button
+                  onClick={() => onReorder(order.items)}
+                  className="px-3.5 py-1.5 rounded-[var(--radius-md)] text-xs font-medium border border-border text-text-secondary hover:bg-muted flex items-center gap-1.5"
+                >
+                  <IconRefresh size={13} /> {t("orders.actions.reorder")}
+                </button>
+                <button
+                  onClick={() => setShowReturn(true)}
+                  className="px-3.5 py-1.5 rounded-[var(--radius-md)] text-xs font-medium border border-amber-200 text-amber-600 hover:bg-amber-50 flex items-center gap-1.5"
+                >
+                  <IconArrowsLeftRight size={13} /> {t("orders.actions.return")}
+                </button>
+                <button
+                  onClick={() => {
+                    const firstProduct = order.items[0]?.productId;
+                    if (firstProduct) onReview(firstProduct);
+                    else toast.info(t("orders.noReviewableProduct"));
+                  }}
+                  className="px-3.5 py-1.5 rounded-[var(--radius-md)] text-xs font-medium bg-primary text-white border border-primary flex items-center gap-1.5"
+                >
+                  <IconStar size={13} /> {t("orders.actions.review")}
+                </button>
+              </>
+            ) : null}
+            {order.status === "pending" ? (
+              <button
+                onClick={() => onCancel(order.id)}
+                className="px-3.5 py-1.5 rounded-[var(--radius-md)] text-xs font-medium border border-red-200 text-red-500 hover:bg-red-50 flex items-center gap-1.5"
+              >
+                <IconCircleX size={13} /> {t("orders.actions.cancel")}
+              </button>
+            ) : null}
             <button
-              onClick={() => setShowTracking(true)}
-              className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2"
-              style={{ borderColor: "#00BFB3", color: "#00BFB3" }}
+              onClick={() => {
+                const sellerId = rawOrder.subOrders?.[0]?.sellerId;
+                if (!sellerId) {
+                  toast.info(t("orders.noSellerForChat"));
+                  return;
+                }
+                void navigate(`/messages?with=${encodeURIComponent(sellerId)}`);
+              }}
+              className="px-3.5 py-1.5 rounded-[var(--radius-md)] text-xs font-medium border border-border text-text-secondary hover:bg-muted flex items-center gap-1.5"
             >
-              <IconMapPin size={15} /> {t("orders.actions.track")}
+              <IconMessage size={13} /> {t("orders.actions.chat")}
             </button>
-          ) : null}
-          {order.status === "delivered" ? (
-            <>
-              <button
-                onClick={() => onReorder(order.items)}
-                className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 border-border text-muted-foreground hover:bg-muted"
-              >
-                <IconRefresh size={14} /> {t("orders.actions.reorder")}
-              </button>
-              <button
-                onClick={() => setShowReturn(true)}
-                className="flex-1 py-2.5 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 border-amber-200 text-amber-600 hover:bg-amber-50"
-              >
-                <IconArrowsLeftRight size={14} /> {t("orders.actions.return")}
-              </button>
-              <button
-                onClick={() => {
-                  const firstProduct = order.items[0]?.productId;
-                  if (firstProduct) onReview(firstProduct);
-                  else toast.info(t("orders.noReviewableProduct"));
-                }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 text-white"
-                style={{ background: "#FF6200" }}
-              >
-                <IconStar size={14} /> {t("orders.actions.review")}
-              </button>
-            </>
-          ) : null}
-          {order.status === "pending" ? (
-            <button
-              onClick={() => onCancel(order.id)}
-              className="flex items-center gap-2 py-2.5 px-4 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50"
-            >
-              <IconCircleX size={14} /> {t("orders.actions.cancel")}
-            </button>
-          ) : null}
-          <button
-            onClick={() => {
-              const sellerId = rawOrder.subOrders?.[0]?.sellerId;
-              if (!sellerId) {
-                toast.info(t("orders.noSellerForChat"));
-                return;
-              }
-              void navigate(`/messages?with=${encodeURIComponent(sellerId)}`);
-            }}
-            className="py-2.5 px-4 rounded-xl border border-border text-sm text-muted-foreground flex items-center gap-1 hover:bg-muted"
-          >
-            <IconMessage size={14} /> {t("orders.actions.chat")}
-          </button>
+          </div>
         </div>
       </motion.div>
     </>
@@ -558,6 +548,15 @@ export function OrdersPage() {
     });
   };
 
+  const tabCounts = useMemo(() => {
+    const counts: Partial<Record<OrderTab, number>> = {};
+    for (const { ui } of allOrders) {
+      const s = ui.status as OrderTab;
+      counts[s] = (counts[s] ?? 0) + 1;
+    }
+    return counts;
+  }, [allOrders]);
+
   if (!ready) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center text-sm text-muted-foreground">
@@ -583,38 +582,41 @@ export function OrdersPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
-      <h1
-        className="text-2xl font-bold text-foreground mb-6"
-        style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-      >
-        {t("orders.pageTitle")}
-      </h1>
+    <div className="max-w-[1100px] mx-auto py-8 px-8">
+      <h1 className="text-2xl font-bold text-foreground mb-6">{t("orders.pageTitle")}</h1>
 
       <div role="tablist" aria-label="Order status" className="flex gap-1 overflow-x-auto pb-1 mb-6 scrollbar-hide">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            id={`orders-tab-${tab.id}`}
-            role="tab"
-            aria-selected={activeTab === tab.id}
-            onClick={() => {
-              setActiveTab(tab.id);
-              setPage(0);
-            }}
-            className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all"
-            style={
-              activeTab === tab.id
-                ? { background: "#00BFB3", color: "#fff" }
-                : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }
-            }
-          >
-            {t(tab.labelKey)}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const count = tab.id === "all" ? allOrders.length : (tabCounts[tab.id] ?? 0);
+          return (
+            <button
+              key={tab.id}
+              id={`orders-tab-${tab.id}`}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setPage(0);
+              }}
+              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                isActive
+                  ? "bg-primary text-white border-primary"
+                  : "bg-transparent text-text-secondary border-border hover:border-border-hover"
+              }`}
+            >
+              {t(tab.labelKey)}
+              {count > 0 ? (
+                <span className="bg-accent text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-lg ml-1">
+                  {count}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
-      <div role="tabpanel" aria-labelledby={`orders-tab-${activeTab}`} className="space-y-4">
+      <div role="tabpanel" aria-labelledby={`orders-tab-${activeTab}`}>
         {filtered.length > 0
           ? filtered.map((entry) => (
               <OrderCard
@@ -628,7 +630,7 @@ export function OrdersPage() {
             ))
           : null}
         {filtered.length === 0 ? (
-          <div className="py-16 text-center bg-card rounded-2xl">
+          <div className="py-16 text-center bg-card rounded-[var(--radius-lg)] border border-border">
             <IconPackage size={48} className="mx-auto mb-4 text-gray-200" />
             <p className="text-muted-foreground font-medium">{t("orders.empty")}</p>
           </div>
@@ -640,7 +642,7 @@ export function OrdersPage() {
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={ordersQuery.data?.first ?? true}
-            className="px-4 py-2 rounded-xl border border-border text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+            className="px-4 py-2 rounded-[var(--radius-md)] border border-border text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
           >
             {t("common.prev")}
           </button>
@@ -650,7 +652,7 @@ export function OrdersPage() {
           <button
             onClick={() => setPage((p) => p + 1)}
             disabled={ordersQuery.data?.last ?? true}
-            className="px-4 py-2 rounded-xl border border-border text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+            className="px-4 py-2 rounded-[var(--radius-md)] border border-border text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors"
           >
             {t("common.next")}
           </button>

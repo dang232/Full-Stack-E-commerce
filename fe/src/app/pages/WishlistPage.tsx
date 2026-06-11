@@ -1,5 +1,4 @@
-﻿import { IconHeart, IconShoppingCart, IconStar, IconTrash, IconShare } from "@tabler/icons-react";
-
+﻿import { Heart, ShoppingCart, Star, Trash2, Share2 } from "lucide-react";
 import { useQueries } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { useMemo } from "react";
@@ -67,28 +66,26 @@ export function WishlistPage() {
   if (!ready) return null;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-[1100px] mx-auto py-8 px-8">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1
-            className="text-2xl font-bold text-foreground"
-            style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-          >
-            {t("wishlist.pageTitle")}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {t("wishlist.countLabel", { count: wishlist.count })}
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-foreground">
+          {t("wishlist.pageTitle")}
+          {wishlist.count > 0 ? (
+            <span className="ml-2 text-base font-medium text-text-secondary">
+              ({t("wishlist.countLabel", { count: wishlist.count })})
+            </span>
+          ) : null}
+        </h1>
         <div className="flex gap-2">
           <button
             onClick={() => {
               void navigator.clipboard.writeText(window.location.href);
               toast.success("Link copied!");
             }}
-            className="p-2.5 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted"
+            className="p-2.5 rounded-[var(--radius-md)] border border-border bg-card text-muted-foreground hover:bg-muted"
+            aria-label="Share wishlist"
           >
-            <IconShare size={18} />
+            <Share2 size={18} />
           </button>
         </div>
       </div>
@@ -97,15 +94,14 @@ export function WishlistPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="py-24 text-center bg-card rounded-2xl"
+          className="py-24 text-center bg-card rounded-[var(--radius-lg)] border border-border"
         >
-          <IconHeart size={64} className="mx-auto mb-5 text-gray-200" />
+          <Heart size={64} className="mx-auto mb-5 text-gray-200" />
           <h2 className="text-xl font-bold text-muted-foreground mb-3">{t("wishlist.emptyTitle")}</h2>
           <p className="text-sm text-muted-foreground mb-8 max-w-xs mx-auto">{t("wishlist.emptySub")}</p>
           <button
             onClick={() => navigate("/")}
-            className="px-8 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(135deg, oklch(52% 0.2 270), oklch(48% 0.22 290))" }}
+            className="px-8 py-3 rounded-[var(--radius-lg)] bg-primary text-white font-semibold hover:opacity-90 transition-opacity"
           >
             {t("wishlist.discover")}
           </button>
@@ -116,24 +112,23 @@ export function WishlistPage() {
             <button
               onClick={handleAddAll}
               disabled={products.length === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm shadow disabled:opacity-50"
-              style={{ background: "oklch(52% 0.2 270)" }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-[var(--radius-md)] bg-primary text-white font-semibold text-sm disabled:opacity-50"
             >
-              <IconShoppingCart size={16} /> {t("wishlist.addAll")}
+              <ShoppingCart size={16} /> {t("wishlist.addAll")}
             </button>
             <button
               onClick={() => {
                 wishlist.clear();
                 toast.info(t("wishlist.cleared"));
               }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm border border-border bg-card text-muted-foreground hover:border-red-300 hover:text-red-500 transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-[var(--radius-md)] font-semibold text-sm border border-border bg-card text-muted-foreground hover:border-red-300 hover:text-red-500 transition-colors"
             >
-              <IconTrash size={16} /> {t("wishlist.clearAll")}
+              <Trash2 size={16} /> {t("wishlist.clearAll")}
             </button>
           </div>
 
           <AnimatePresence>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {products.map(({ id, data: p }, i) => {
                 if (!p) return null;
                 const original = p.originalPrice;
@@ -148,7 +143,7 @@ export function WishlistPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: i * 0.05 }}
-                    className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group"
+                    className="bg-card rounded-[var(--radius-lg)] border border-border overflow-hidden hover:shadow-lg transition-all group"
                   >
                     <div
                       role="button"
@@ -170,22 +165,21 @@ export function WishlistPage() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       {discount !== null ? (
-                        <span
-                          className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[10px] font-bold"
-                          style={{ background: "oklch(52% 0.2 270)" }}
-                        >
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-white text-[10px] font-bold">
                           -{discount}%
                         </span>
                       ) : null}
+                      {/* Heart always visible and red (active state) */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           wishlist.toggle(id);
                           toast.info(t("wishlist.removed"));
                         }}
-                        className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-card"
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-card opacity-100"
+                        aria-label={t("wishlist.removeAria", { name: p.name })}
                       >
-                        <IconHeart size={14} fill="oklch(52% 0.2 270)" className="text-[#FF6200]" />
+                        <Heart size={14} fill="#ef4444" className="text-red-500" />
                       </button>
                     </div>
                     <div className="p-3">
@@ -197,7 +191,7 @@ export function WishlistPage() {
                       </button>
                       {p.rating !== undefined || p.reviewCount !== undefined ? (
                         <div className="flex items-center gap-1 mt-1 mb-2">
-                          <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
+                          <Star size={11} fill="#F59E0B" className="text-amber-400" />
                           <span className="text-xs text-muted-foreground">{p.rating ?? 0}</span>
                           <span className="text-xs text-muted-foreground">
                             ({(p.reviewCount ?? 0).toLocaleString()})
@@ -205,7 +199,7 @@ export function WishlistPage() {
                         </div>
                       ) : null}
                       <div className="flex items-center gap-1 mb-3">
-                        <span className="font-bold text-sm" style={{ color: "oklch(52% 0.2 270)" }}>
+                        <span className="font-bold text-sm text-primary">
                           {formatPrice(p.price ?? 0)}
                         </span>
                         {original ? (
@@ -216,10 +210,9 @@ export function WishlistPage() {
                       </div>
                       <button
                         onClick={() => handleAddToCart(id)}
-                        className="w-full py-2 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
-                        style={{ background: "oklch(52% 0.2 270)" }}
+                        className="w-full py-2 rounded-[var(--radius-md)] bg-primary text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
                       >
-                        <IconShoppingCart size={13} /> {t("wishlist.addToCart")}
+                        <ShoppingCart size={13} /> {t("wishlist.addToCart")}
                       </button>
                     </div>
                   </motion.div>

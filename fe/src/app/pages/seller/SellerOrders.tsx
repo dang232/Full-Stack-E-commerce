@@ -1,4 +1,4 @@
-﻿import { IconCircleCheck, IconPackage, IconSearch, IconTruck } from "@tabler/icons-react";
+﻿import { IconAlertCircle, IconCircleCheck, IconPackage, IconSearch, IconTruck } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,10 +31,12 @@ export function SellerOrders({
   orders,
   isLoading,
   error,
+  onRetry,
 }: {
   orders: PendingSubOrder[];
   isLoading: boolean;
   error: unknown;
+  onRetry?: () => void;
 }) {
   const qc = useQueryClient();
   const { t } = useTranslation();
@@ -106,7 +108,7 @@ export function SellerOrders({
         title={t("seller.orders.confirmDialog.title")}
         description={t("seller.orders.confirmDialog.body")}
         submitLabel={t("seller.orders.confirmDialog.confirm")}
-        submitColor="#00BFB3"
+        submitColor="var(--primary)"
         fields={[]}
         onClose={() => setConfirmOrderId(null)}
         onSubmit={() => {
@@ -122,7 +124,7 @@ export function SellerOrders({
         title={t("seller.rejectDialog.title")}
         description={rejectFor ? t("seller.rejectDialog.subtitle", { id: rejectFor }) : undefined}
         submitLabel={t("seller.rejectDialog.submitLabel")}
-        submitColor="#EF4444"
+        submitColor="var(--error)"
         fields={[
           {
             key: "reason",
@@ -138,70 +140,103 @@ export function SellerOrders({
         }}
         isSubmitting={reject.isPending}
       />
-      <h2 className="text-xl font-bold text-foreground">{t("seller.orders.title")}</h2>
 
+      {/* Tab pills + search */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label={t("seller.orders.title")}>
           {STATUS_TABS.map(({ id }) => (
             <button
               key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
               onClick={() => setTab(id)}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
-              style={{
-                background: tab === id ? "rgba(0,191,179,0.12)" : "transparent",
-                color: tab === id ? "#00BFB3" : "#6b7280",
-                border: tab === id ? "1px solid #00BFB3" : "1px solid #e5e7eb",
-              }}
+              className={[
+                "shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border",
+                tab === id
+                  ? "bg-primary-light text-primary border-primary"
+                  : "bg-transparent text-text-secondary border-border hover:bg-background",
+              ].join(" ")}
             >
               {t(`seller.orders.tabs.${id}`)}
             </button>
           ))}
         </div>
-        <div className="sm:ml-auto flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-1.5 shadow-sm w-full sm:w-72">
-          <IconSearch size={14} className="text-muted-foreground" />
+        <div className="sm:ml-auto flex items-center gap-2 bg-card border border-border rounded-[var(--radius-md)] px-3 py-1.5 w-full sm:w-72">
+          <IconSearch size={14} className="text-muted-foreground" aria-hidden="true" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("seller.orders.searchPlaceholder")}
             className="flex-1 text-sm outline-none bg-transparent"
+            aria-label={t("seller.orders.searchPlaceholder")}
           />
         </div>
       </div>
 
-      {isLoading ? <p className="text-sm text-muted-foreground">{t("seller.orders.loading")}</p> : null}
+      {/* States */}
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">{t("seller.orders.loading")}</p>
+      ) : null}
       {error instanceof ApiError ? (
-        <p className="text-sm text-red-500">
-          {t("seller.orders.loadError", { message: error.message })}
-        </p>
+        <div className="bg-card border border-error/30 rounded-[var(--radius-lg)] p-6 text-center flex flex-col items-center gap-3">
+          <IconAlertCircle size={36} className="text-error" aria-hidden="true" />
+          <p className="text-sm text-error font-medium">
+            {t("seller.orders.loadError", { message: error.message })}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {t("seller.orders.loadErrorHint", { defaultValue: "This may be temporary. Try refreshing." })}
+          </p>
+          {onRetry ? (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-1 px-4 py-2 text-sm font-medium rounded-[var(--radius-md)] bg-primary text-white hover:bg-primary/90 transition-colors"
+            >
+              {t("seller.orders.retry", { defaultValue: "Retry" })}
+            </button>
+          ) : null}
+        </div>
       ) : null}
       {!isLoading && orders.length === 0 && !error ? (
-        <div className="bg-card rounded-2xl p-8 text-center shadow-sm">
-          <IconPackage size={40} className="mx-auto mb-3 text-gray-300" />
+        <div className="bg-card border border-border rounded-[var(--radius-lg)] p-8 text-center">
+          <IconPackage size={40} className="mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
           <p className="text-sm text-muted-foreground">{t("seller.orders.empty")}</p>
         </div>
       ) : null}
-
       {!isLoading && orders.length > 0 && filtered.length === 0 ? (
-        <div className="bg-card rounded-2xl p-6 text-center shadow-sm">
+        <div className="bg-card border border-border rounded-[var(--radius-lg)] p-6 text-center">
           <p className="text-sm text-muted-foreground">{t("seller.orders.filterEmpty")}</p>
         </div>
       ) : null}
 
+      {/* Orders table */}
       {filtered.length > 0 ? (
-        <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
-          <div className="divide-y divide-gray-50">
+        <div className="bg-card border border-border rounded-[var(--radius-lg)] overflow-hidden">
+          {/* Table header */}
+          <div className="grid grid-cols-[1fr_auto] px-5 py-3 border-b border-border">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("seller.orders.colOrder", { defaultValue: "Order" })}
+            </span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("seller.orders.colActions", { defaultValue: "Actions" })}
+            </span>
+          </div>
+          <div className="divide-y divide-border">
             {filtered.map((order) => {
               const status = order.status.toUpperCase();
-              const isPending = status.includes("PENDING") || status.includes("ACCEPT");
+              const isPending = status.includes("PENDING") || (status.includes("ACCEPT") && !status.includes("ACCEPTED"));
               const isAccepted = status.includes("ACCEPTED") || status.includes("PACK");
               return (
-                <div key={order.id} className="p-5 flex items-center justify-between gap-4">
+                <div key={order.id} className="px-5 py-4 flex items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-mono font-bold text-muted-foreground">{order.id}</span>
+                      <span className="text-xs font-mono font-bold text-muted-foreground">
+                        {order.id}
+                      </span>
                       <StatusPill status={order.status} />
                     </div>
-                    <p className="text-sm text-muted-foreground mt-0.5">
+                    <p className="text-sm text-text-secondary">
                       {t("seller.orders.parentOrder", { id: order.orderId })}
                     </p>
                   </div>
@@ -209,17 +244,19 @@ export function SellerOrders({
                     {isPending ? (
                       <>
                         <button
+                          type="button"
                           onClick={() => setConfirmOrderId(order.id)}
                           disabled={accept.isPending}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                          style={{ background: "#00BFB3" }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold bg-primary text-primary-foreground disabled:opacity-50 hover:bg-primary-hover transition-colors"
                         >
-                          <IconCircleCheck size={13} /> {t("seller.orders.accept")}
+                          <IconCircleCheck size={13} aria-hidden="true" />
+                          {t("seller.orders.accept")}
                         </button>
                         <button
+                          type="button"
                           onClick={() => setRejectFor(order.id)}
                           disabled={reject.isPending}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-500 disabled:opacity-50"
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold border border-error/30 text-error disabled:opacity-50 hover:bg-error-light transition-colors"
                         >
                           {t("seller.orders.reject")}
                         </button>
@@ -227,12 +264,13 @@ export function SellerOrders({
                     ) : null}
                     {isAccepted ? (
                       <button
+                        type="button"
                         onClick={() => setShipFor(order.id)}
                         disabled={ship.isPending}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                        style={{ background: "oklch(52% 0.2 270)" }}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold bg-primary text-primary-foreground disabled:opacity-50 hover:bg-primary-hover transition-colors"
                       >
-                        <IconTruck size={13} /> {t("seller.orders.ship")}
+                        <IconTruck size={13} aria-hidden="true" />
+                        {t("seller.orders.ship")}
                       </button>
                     ) : null}
                   </div>

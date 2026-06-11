@@ -1,4 +1,4 @@
-import { IconMail, IconSend, IconChevronRight, IconAlertCircle, IconCircleCheck } from "@tabler/icons-react";
+import { KeyRound, AlertCircle, CheckCircle } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -60,84 +60,93 @@ export function PasswordResetPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-start justify-center p-6 lg:py-16 bg-background">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div
-            className="w-12 h-12 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: "rgba(0,191,179,0.1)" }}
-          >
-            <IconMail size={24} color="#00BFB3" />
-          </div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            {t("passwordReset.title")}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t("passwordReset.subtitle")}</p>
+    <div className="min-h-[80vh] flex items-center justify-center p-6 bg-background">
+      <div className="w-full max-w-[420px] bg-card border border-border rounded-[var(--radius-xl)] p-10 text-center">
+        {/* Icon circle */}
+        <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center mx-auto mb-6">
+          <KeyRound className="w-7 h-7 text-primary" />
         </div>
 
+        <h2 className="text-2xl font-bold text-foreground mb-2">
+          {t("passwordReset.title", { defaultValue: "Reset your password" })}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-8">
+          {t("passwordReset.subtitle", {
+            defaultValue:
+              "Enter your email address and we'll send you a link to reset your password.",
+          })}
+        </p>
+
+        {/* Success message — shown after submit */}
         {submitted ? (
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-100 text-sm text-emerald-800">
-              <IconCircleCheck size={18} className="flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium">{t("passwordReset.successTitle")}</p>
-                <p className="mt-1 text-emerald-700">{t("passwordReset.successBody")}</p>
-              </div>
-            </div>
-            <Link
-              to="/login"
-              className="block w-full text-center px-4 py-2.5 rounded-xl text-white font-medium"
-              style={{ background: "#00BFB3" }}
-            >
-              <IconChevronRight size={16} className="inline mr-1" />
-              {t("passwordReset.backToLogin")}
-            </Link>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <div className="flex items-start gap-3 p-4 rounded-[var(--radius-lg)] bg-green-50 border border-green-200 text-sm text-green-800 text-left mb-6">
+            <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-600" />
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-foreground mb-1.5"
-              >
-                {t("passwordReset.emailLabel")}
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("passwordReset.emailPlaceholder")}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm outline-none focus:border-[#00BFB3] focus:ring-2 focus:ring-[#00BFB3]/20 bg-card"
-              />
+              <p className="font-medium">
+                {t("passwordReset.successTitle", { defaultValue: "Email sent!" })}
+              </p>
+              <p className="mt-1 text-green-700">
+                {t("passwordReset.successBody", {
+                  defaultValue:
+                    "Check your inbox for a reset link. It may take a few minutes to arrive.",
+                })}
+              </p>
             </div>
+          </div>
+        ) : null}
 
-            {error ? (
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-700">
-                <IconAlertCircle size={16} className="flex-shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={submitting || email.trim().length === 0}
-              className="w-full px-4 py-2.5 rounded-xl text-white font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{ background: "#00BFB3" }}
+        <form onSubmit={handleSubmit} className="space-y-4 text-left" noValidate>
+          <div className="mb-4">
+            <label
+              htmlFor="email"
+              className="block text-[13px] font-medium text-foreground mb-1.5"
             >
-              <IconSend size={16} className="inline mr-1.5" />
-              {submitting ? t("passwordReset.submitting") : t("passwordReset.submit")}
-            </button>
+              {t("passwordReset.emailLabel", { defaultValue: "Email address" })}
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("passwordReset.emailPlaceholder", { defaultValue: "your@email.com" })}
+              aria-describedby={error ? "reset-error" : undefined}
+              className="w-full py-3 px-3.5 border-[1.5px] border-border rounded-[var(--radius-lg)] text-sm bg-card text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:shadow-[0_0_0_3px_var(--primary-light)] transition-all"
+            />
+          </div>
 
-            <div className="text-center text-sm text-muted-foreground">
-              <Link to="/login" className="font-medium text-[#00BFB3] hover:underline">
-                {t("passwordReset.backToLogin")}
-              </Link>
+          {error ? (
+            <div
+              id="reset-error"
+              role="alert"
+              className="flex items-start gap-2 p-3 rounded-[var(--radius-lg)] bg-red-50 border border-red-100 text-sm text-red-700"
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
-          </form>
-        )}
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={submitting || email.trim().length === 0}
+            className="w-full py-3.5 rounded-[var(--radius-lg)] text-white font-bold text-[15px] bg-gradient-to-br from-[#4f46e5] to-[#7c3aed] hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {submitting
+              ? t("passwordReset.submitting", { defaultValue: "Sending..." })
+              : t("passwordReset.submit", { defaultValue: "Send Reset Link" })}
+          </button>
+        </form>
+
+        {/* Back to sign in */}
+        <div className="mt-6 text-center">
+          <Link
+            to="/login"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← {t("passwordReset.backToLogin", { defaultValue: "Back to Sign In" })}
+          </Link>
+        </div>
       </div>
     </div>
   );

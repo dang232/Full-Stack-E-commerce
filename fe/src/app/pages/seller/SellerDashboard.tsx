@@ -1,5 +1,12 @@
-import { IconEye, IconShoppingBag, IconStar, IconWallet } from "@tabler/icons-react";
-import { useMemo } from "react";
+import {
+  IconEye,
+  IconShoppingBag,
+  IconStar,
+  IconTrendingUp,
+  IconWallet,
+} from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Area,
@@ -13,13 +20,11 @@ import {
   YAxis,
 } from "recharts";
 
-import { KPICard } from "../../components/kpi-card";
 import { useSellerRevenue } from "../../hooks/use-seller-revenue";
 import { ApiError } from "../../lib/api";
 import type { PendingSubOrder } from "../../lib/api/endpoints/orders";
 import type { SellerRevenuePoint } from "../../lib/api/endpoints/seller-analytics";
 import { formatPrice } from "../../lib/format";
-
 
 interface RevenueChartPoint {
   day: string;
@@ -42,6 +47,40 @@ function toChartData(points: SellerRevenuePoint[]): RevenueChartPoint[] {
   }));
 }
 
+interface KpiCardODProps {
+  icon: typeof IconWallet;
+  label: string;
+  value: string;
+  trend?: string;
+  positive?: boolean;
+}
+
+function KpiCardOD({ icon: Icon, label, value, trend, positive = true }: KpiCardODProps) {
+  return (
+    <div className="bg-card border border-border rounded-[var(--radius-lg)] p-5 flex flex-col">
+      <div className="flex items-start justify-between">
+        <div className="w-10 h-10 bg-primary-light rounded-[var(--radius-md)] flex items-center justify-center shrink-0">
+          <Icon size={20} className="text-primary" aria-hidden="true" />
+        </div>
+        {trend ? (
+          <span
+            className={[
+              "text-[11px] font-semibold px-2 py-0.5 rounded-full",
+              positive
+                ? "bg-success-light text-success"
+                : "bg-error-light text-error",
+            ].join(" ")}
+          >
+            {trend}
+          </span>
+        ) : null}
+      </div>
+      <p className="text-2xl font-bold text-foreground mt-3">{value}</p>
+      <p className="text-sm text-text-secondary mt-1">{label}</p>
+    </div>
+  );
+}
+
 export function SellerDashboard({
   pendingOrders,
   walletBalance,
@@ -53,44 +92,59 @@ export function SellerDashboard({
   const chartData = useMemo(() => toChartData(points), [points]);
   const hasRevenue = chartData.length > 0;
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const retryRevenue = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["seller", "revenue", { days: 30 }] }),
+    [queryClient],
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">{t("seller.dashboard.title")}</h2>
-          <p className="text-sm text-muted-foreground">{t("seller.dashboard.subtitle")}</p>
-        </div>
-      </div>
-
+      {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard
+        <KpiCardOD
           icon={IconWallet}
           label={t("seller.dashboard.kpi.balance")}
           value={walletBalance !== null ? formatPrice(walletBalance) : "—"}
-          color="#00BFB3"
         />
-        <KPICard
+        <KpiCardOD
           icon={IconShoppingBag}
           label={t("seller.dashboard.kpi.pending")}
           value={String(pendingOrders.length)}
-          color="#FF6200"
         />
-        <KPICard icon={IconEye} label={t("seller.dashboard.kpi.views")} value="—" color="#3B82F6" />
-        <KPICard icon={IconStar} label={t("seller.dashboard.kpi.rating")} value="—" color="#F59E0B" />
+        <KpiCardOD
+          icon={IconEye}
+          label={t("seller.dashboard.kpi.views")}
+          value="—"
+        />
+        <KpiCardOD
+          icon={IconStar}
+          label={t("seller.dashboard.kpi.rating")}
+          value="—"
+        />
       </div>
 
-      <div className="bg-card rounded-2xl p-5 shadow-sm">
+      {/* Revenue chart */}
+      <div className="bg-card border border-border rounded-[var(--radius-lg)] p-5">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-bold text-foreground">{t("seller.dashboard.revenue30dTitle")}</h3>
+          <div className="flex items-center gap-2">
+            <IconTrendingUp size={18} className="text-primary" aria-hidden="true" />
+            <h3 className="font-bold text-foreground">{t("seller.dashboard.revenue30dTitle")}</h3>
+          </div>
           <span className="text-[11px] text-muted-foreground">{t("seller.dashboard.revenue30dHint")}</span>
         </div>
         {revenueError instanceof ApiError ? (
-          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 mb-3">
-            {t("seller.dashboard.revenue30dError", { message: revenueError.message })}
+          <div className="rounded-[var(--radius-md)] bg-error-light border border-error/20 px-4 py-3 text-sm text-error">
+            <p>{t("seller.dashboard.revenue30dError", { message: revenueError.message })}</p>
+            <button
+              type="button"
+              onClick={retryRevenue}
+              className="mt-2 text-xs font-medium underline underline-offset-2 hover:text-error/80 transition-colors"
+            >
+              {t("seller.dashboard.revenue30dRetry", { defaultValue: "Thử lại" })}
+            </button>
           </div>
-        ) : null}
-        {revenueLoading ? (
+        ) : revenueLoading ? (
           <p className="text-sm text-muted-foreground py-12 text-center">
             {t("seller.dashboard.revenue30dLoading")}
           </p>
@@ -99,35 +153,37 @@ export function SellerDashboard({
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00BFB3" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#00BFB3" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="day"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#9ca3af", fontSize: 12 }}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#9ca3af", fontSize: 11 }}
-                tickFormatter={(v) => `${(v / 1000000).toFixed(0)}tr`}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                tickFormatter={(v: number) => `${(v / 1000000).toFixed(0)}tr`}
               />
               <Tooltip
                 formatter={(v: number) => formatPrice(v)}
                 contentStyle={{
-                  borderRadius: "12px",
-                  border: "none",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
+                  borderRadius: "var(--radius-lg)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-lg)",
+                  background: "var(--card)",
+                  color: "var(--foreground)",
                 }}
               />
               <Area
                 type="monotone"
                 dataKey="revenue"
-                color="#00BFB3"
+                stroke="var(--primary)"
                 strokeWidth={2.5}
                 fill="url(#revenueGrad)"
               />
@@ -140,7 +196,8 @@ export function SellerDashboard({
         )}
       </div>
 
-      <div className="bg-card rounded-2xl p-5 shadow-sm">
+      {/* Orders chart */}
+      <div className="bg-card border border-border rounded-[var(--radius-lg)] p-5">
         <h3 className="font-bold text-foreground mb-4">{t("seller.dashboard.orders30dTitle")}</h3>
         {revenueLoading ? (
           <p className="text-sm text-muted-foreground py-10 text-center">
@@ -149,22 +206,28 @@ export function SellerDashboard({
         ) : hasRevenue ? (
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="day"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#9ca3af", fontSize: 12 }}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+              />
               <Tooltip
                 contentStyle={{
-                  borderRadius: "12px",
-                  border: "none",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
+                  borderRadius: "var(--radius-lg)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-lg)",
+                  background: "var(--card)",
+                  color: "var(--foreground)",
                 }}
               />
-              <Bar dataKey="orders" fill="#FF6200" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="orders" fill="var(--accent)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (

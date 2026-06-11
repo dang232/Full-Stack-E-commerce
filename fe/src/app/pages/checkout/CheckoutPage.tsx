@@ -1,5 +1,5 @@
-import { IconArrowLeft, IconCircleCheck, IconCreditCard, IconLogin, IconPackage } from "@tabler/icons-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowLeft, CheckCircle, CreditCard, LogIn, Package } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -92,7 +92,7 @@ export function CheckoutPage() {
           codeToFallback[p.code] ?? {
             id: p.code as PaymentOption["id"],
             name: p.name,
-            Icon: IconCreditCard,
+            Icon: CreditCard,
             desc: p.description ?? "",
           },
       );
@@ -336,10 +336,9 @@ export function CheckoutPage() {
         <h2 className="text-xl font-bold text-muted-foreground mb-3">{t("checkout.loginPromptTitle")}</h2>
         <button
           onClick={() => login("/checkout")}
-          className="px-8 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2"
-          style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
+          className="px-8 py-3 rounded-[var(--radius-lg)] bg-primary text-white font-semibold inline-flex items-center gap-2"
         >
-          <IconLogin size={16} /> {t("auth.login")}
+          <LogIn size={16} /> {t("auth.login")}
         </button>
       </div>
     );
@@ -356,12 +355,11 @@ export function CheckoutPage() {
   if (cartItems.length === 0 && step !== "success") {
     return (
       <div className="max-w-3xl mx-auto px-4 py-24 text-center">
-        <IconPackage size={56} className="mx-auto mb-4 text-gray-200" />
+        <Package size={56} className="mx-auto mb-4 text-muted-foreground/30" />
         <h2 className="text-xl font-bold text-muted-foreground mb-3">{t("checkout.emptyCartTitle")}</h2>
         <button
           onClick={() => navigate("/")}
-          className="px-6 py-2.5 rounded-xl text-white font-medium"
-          style={{ background: "#EE4D2D" }}
+          className="px-6 py-2.5 rounded-[var(--radius-lg)] bg-primary text-white font-medium"
         >
           {t("checkout.continueShopping")}
         </button>
@@ -502,7 +500,7 @@ export function CheckoutPage() {
         (selectedPaymentId === "STRIPE" ||
           selectedPaymentId === "PAYPAL" ||
           selectedPaymentId === "VIETQR") ? (
-          <div className="mb-6 rounded-2xl border-2 border-border bg-card p-6">
+          <div className="mb-6 rounded-[var(--radius-xl)] border-2 border-border bg-card p-6">
             <h2 className="text-lg font-bold text-foreground mb-4">
               Hoàn tất thanh toán cho đơn {placedOrderId}
             </h2>
@@ -539,45 +537,53 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-[1100px] mx-auto py-8 px-[var(--content-padding,1.5rem)]">
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={() => (step === "address" ? navigate("/cart") : setStep(stepOrder[stepIdx - 1]))}
-          className="p-2 rounded-xl hover:bg-card text-muted-foreground"
+          className="p-2 rounded-[var(--radius-lg)] hover:bg-card text-muted-foreground"
         >
-          <IconArrowLeft size={20} />
+          <ArrowLeft size={20} />
         </button>
         <h1 className="text-xl font-bold text-foreground">{t("checkout.title")}</h1>
       </div>
 
+      {/* Stepper */}
       <div className="flex items-center justify-center mb-10">
         {STEPS.map((s, i) => {
           const isActive = s.id === step;
           const isDone = stepOrder.indexOf(s.id) < stepIdx;
+          const StepIcon = s.icon;
           return (
             <div key={s.id} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
-                  style={{
-                    background: isDone ? "#EE4D2D" : isActive ? "#FF6200" : "#e5e7eb",
-                    color: isDone || isActive ? "white" : "#9ca3af",
-                  }}
+                  className={[
+                    "w-[34px] h-[34px] rounded-full border-2 flex items-center justify-center transition-all duration-300",
+                    isDone
+                      ? "bg-primary border-primary text-white"
+                      : isActive
+                        ? "border-primary text-primary bg-primary-light scale-110"
+                        : "border-border text-muted-foreground bg-card",
+                  ].join(" ")}
                 >
-                  {isDone ? <IconCircleCheck size={18} /> : <s.icon size={18} />}
+                  {isDone ? <CheckCircle size={16} /> : <StepIcon size={16} />}
                 </div>
                 <span
-                  className={`text-xs mt-1 font-medium ${
-                    isActive ? "text-foreground" : isDone ? "text-[#EE4D2D]" : "text-muted-foreground"
-                  }`}
+                  className={[
+                    "text-xs mt-1 font-medium",
+                    isActive ? "text-foreground" : isDone ? "text-primary" : "text-muted-foreground",
+                  ].join(" ")}
                 >
                   {t(s.labelKey)}
                 </span>
               </div>
               {i < STEPS.length - 1 ? (
                 <div
-                  className="w-16 sm:w-24 h-0.5 mb-5 mx-1 transition-colors"
-                  style={{ background: isDone ? "#EE4D2D" : "#e5e7eb" }}
+                  className={[
+                    "w-12 h-0.5 mb-5 mx-1 transition-colors",
+                    isDone ? "bg-primary" : "bg-border",
+                  ].join(" ")}
                 />
               ) : null}
             </div>
@@ -585,7 +591,7 @@ export function CheckoutPage() {
         })}
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_340px] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}

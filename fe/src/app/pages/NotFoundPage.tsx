@@ -1,4 +1,4 @@
-﻿import { IconHome, IconSearch, IconMoodSad } from "@tabler/icons-react";
+﻿import { Home, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -7,45 +7,41 @@ export function NotFoundPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-16 text-center">
-      <div
-        className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
-        style={{ background: "rgba(238,77,45,0.08)" }}
-      >
-        <IconMoodSad size={48} style={{ color: "oklch(52% 0.2 270)" }} />
-      </div>
-
-      <h1
-        className="text-6xl font-black text-foreground mb-2"
-        style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
+    <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
+      <p
+        className="text-[96px] font-extrabold text-primary opacity-20 leading-none mb-4 select-none"
+        aria-hidden="true"
       >
         404
-      </h1>
-
-      <p className="text-lg font-semibold text-foreground mb-2">
-        {t("notFound.title", "Page not found")}
       </p>
 
-      <p className="text-sm text-muted-foreground max-w-md mb-8">
-        {t("notFound.description", "The page you're looking for doesn't exist or has been moved. Let's get you back on track.")}
+      <h1 className="text-2xl font-bold text-foreground mb-3">
+        {t("notFound.title", "Page not found")}
+      </h1>
+
+      <p className="text-sm text-text-secondary max-w-[400px] mb-8">
+        {t(
+          "notFound.description",
+          "The page you're looking for doesn't exist or has been moved. Let's get you back on track.",
+        )}
       </p>
 
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={() => navigate("/")}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-semibold text-sm shadow-lg hover:opacity-90 transition-opacity"
-          style={{ background: "linear-gradient(135deg, oklch(52% 0.2 270), oklch(48% 0.22 290))" }}
+          className="flex items-center gap-2 px-6 py-3 rounded-[var(--radius-lg)] text-sm font-semibold bg-primary text-white hover:opacity-90 transition-opacity"
         >
-          <IconHome size={16} />
-          {t("notFound.goHome", "Go Home")}
+          <Home size={16} aria-hidden="true" />
+          {t("notFound.goHome", "Back to Home")}
         </button>
 
         <button
+          type="button"
           onClick={() => navigate("/search")}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm border-2 transition-colors hover:bg-[rgba(238,77,45,0.06)]"
-          style={{ borderColor: "oklch(52% 0.2 270)", color: "oklch(52% 0.2 270)" }}
+          className="flex items-center gap-2 px-6 py-3 rounded-[var(--radius-lg)] text-sm font-semibold border border-border bg-transparent text-foreground hover:bg-background transition-colors"
         >
-          <IconSearch size={16} />
+          <Search size={16} aria-hidden="true" />
           {t("notFound.search", "Search Products")}
         </button>
       </div>

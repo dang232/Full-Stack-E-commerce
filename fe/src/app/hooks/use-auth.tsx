@@ -156,6 +156,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("auth:unauthorized", handler);
   }, [applyTokenSet]);
 
+  // Cross-tab / F5 recovery: when a tab regains visibility and we appear
+  // logged out, retry the cookie-based refresh. The httpOnly refresh-token
+  // cookie persists across tabs, so this recovers sessions silently.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden || tokenSet) return;
+      void (async () => {
+        try {
+          const next = await refreshTokens();
+          applyTokenSet(next);
+        } catch {
+          // Cookie expired or missing — stay logged out.
+        }
+      })();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, [tokenSet, applyTokenSet]);
+
   const loginWithCredentials = useCallback(
     async (username: string, password: string) => {
       const next = await passwordLogin(username, password);

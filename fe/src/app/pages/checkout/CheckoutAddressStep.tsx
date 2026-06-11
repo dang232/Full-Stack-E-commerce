@@ -1,13 +1,13 @@
-﻿import { IconAlertCircle, IconPlus } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
+import { AlertCircle, Plus } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-import type { Address } from "../../types/api";
+import { Modal } from "../../components/ui/modal";
 import { ApiError } from "../../lib/api";
 import { addAddress } from "../../lib/api/endpoints/users";
-import { Modal } from "../../components/ui/modal";
+import type { Address } from "../../types/api";
 
 import { formatAddressLine } from "./format";
 
@@ -77,65 +77,70 @@ export function CheckoutAddressStep({
         <p className="text-sm text-muted-foreground">{t("checkout.address.loading")}</p>
       ) : null}
       {!isLoading && addresses.length === 0 ? (
-        <div className="bg-card rounded-2xl p-5 text-sm text-muted-foreground flex items-start gap-3">
-          <IconAlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
+        <div className="bg-card rounded-[var(--radius-lg)] p-5 text-sm text-muted-foreground flex items-start gap-3">
+          <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-foreground">{t("checkout.address.noAddressesTitle")}</p>
             <p className="mt-1">{t("checkout.address.noAddressesSub")}</p>
           </div>
         </div>
       ) : null}
-      <div role="radiogroup" aria-label="Delivery address" className="space-y-4">
-        {addresses.map((addr, i) => (
-          <button
-            key={`${addr.street}|${addr.city}|${String(i)}`}
-            role="radio"
-            aria-checked={selectedAddressIndex === i}
-            onClick={() => setSelectedAddressIndex(i)}
-            className="w-full p-4 rounded-2xl border-2 text-left transition-all"
-            style={{
-              borderColor: selectedAddressIndex === i ? "#00BFB3" : "#e5e7eb",
-              background: selectedAddressIndex === i ? "rgba(0,191,179,0.04)" : "white",
-            }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-foreground">{buyerName}</span>
+      <div role="radiogroup" aria-label="Delivery address" className="space-y-3">
+        {addresses.map((addr, i) => {
+          const isSelected = selectedAddressIndex === i;
+          return (
+            <button
+              key={`${addr.street}|${addr.city}|${String(i)}`}
+              role="radio"
+              aria-checked={isSelected}
+              onClick={() => setSelectedAddressIndex(i)}
+              className={[
+                "w-full flex gap-3 p-4 border-[1.5px] rounded-[var(--radius-lg)] cursor-pointer transition-all text-left",
+                isSelected
+                  ? "border-primary bg-[var(--primary-subtle)] shadow-[0_0_0_3px_oklch(from_var(--primary)_l_c_h_/_0.08)]"
+                  : "border-border hover:border-border-hover hover:shadow-sm",
+              ].join(" ")}
+            >
+              {/* Radio dot */}
+              <div
+                className={[
+                  "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all",
+                  isSelected ? "border-primary" : "border-border",
+                ].join(" ")}
+              >
+                {isSelected ? (
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                ) : null}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center flex-wrap gap-1.5 mb-0.5">
+                  <span className="font-semibold text-foreground text-sm">{buyerName}</span>
                   {addr.phone ? (
                     <>
-                      <span className="text-muted-foreground text-sm">|</span>
-                      <span className="text-muted-foreground text-sm">{addr.phone}</span>
+                      <span className="text-muted-foreground text-xs">|</span>
+                      <span className="text-muted-foreground text-xs">{addr.phone}</span>
                     </>
                   ) : null}
                   {addr.isDefault ? (
-                    <span
-                      className="px-1.5 py-0.5 rounded text-xs font-medium border"
-                      style={{ borderColor: "oklch(52% 0.2 270)", color: "oklch(52% 0.2 270)" }}
-                    >
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium border border-primary text-primary">
                       {t("checkout.address.isDefaultBadge")}
                     </span>
                   ) : null}
                 </div>
-                <p className="text-sm text-muted-foreground">{formatAddressLine(addr)}</p>
+                <p className="text-xs text-muted-foreground">{formatAddressLine(addr)}</p>
               </div>
-              <div
-                className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all"
-                style={{ borderColor: selectedAddressIndex === i ? "#00BFB3" : "#d1d5db" }}
-              >
-                {selectedAddressIndex === i ? (
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#00BFB3" }} />
-                ) : null}
-              </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
+
       <button
         onClick={() => setShowAddModal(true)}
-        className="w-full py-3 rounded-2xl border-2 border-dashed border-border flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:border-[#00BFB3] hover:text-[#00BFB3] transition-colors bg-card"
+        className="w-full flex items-center justify-center gap-2 py-3.5 border-[1.5px] border-dashed border-border rounded-[var(--radius-lg)] text-primary text-sm font-medium hover:border-primary hover:bg-primary-light transition-colors"
       >
-        <IconPlus size={16} /> {t("checkout.address.addNew")}
+        <Plus size={16} /> {t("checkout.address.addNew")}
       </button>
 
       <Modal
@@ -150,7 +155,7 @@ export function CheckoutAddressStep({
               type="button"
               onClick={() => setShowAddModal(false)}
               disabled={addMutation.isPending}
-              className="flex-1 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-[var(--radius-lg)] border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50"
             >
               {t("common.cancel")}
             </button>
@@ -158,8 +163,7 @@ export function CheckoutAddressStep({
               type="submit"
               form="add-address-form"
               disabled={addMutation.isPending}
-              className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity disabled:opacity-60"
-              style={{ background: "#00BFB3" }}
+              className="flex-1 py-2.5 rounded-[var(--radius-lg)] bg-primary text-white text-sm font-semibold transition-opacity disabled:opacity-60"
             >
               {addMutation.isPending ? t("common.saving") : t("common.save")}
             </button>
@@ -176,7 +180,7 @@ export function CheckoutAddressStep({
               value={form.street}
               onChange={setField("street")}
               required
-              className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#00BFB3]"
+              className="w-full px-3 py-2 rounded-[var(--radius-lg)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder={t("checkout.address.form.streetPlaceholder")}
             />
           </div>
@@ -188,7 +192,7 @@ export function CheckoutAddressStep({
               type="text"
               value={form.ward}
               onChange={setField("ward")}
-              className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#00BFB3]"
+              className="w-full px-3 py-2 rounded-[var(--radius-lg)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder={t("checkout.address.form.wardPlaceholder")}
             />
           </div>
@@ -201,7 +205,7 @@ export function CheckoutAddressStep({
               value={form.district}
               onChange={setField("district")}
               required
-              className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#00BFB3]"
+              className="w-full px-3 py-2 rounded-[var(--radius-lg)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder={t("checkout.address.form.districtPlaceholder")}
             />
           </div>
@@ -214,7 +218,7 @@ export function CheckoutAddressStep({
               value={form.city}
               onChange={setField("city")}
               required
-              className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#00BFB3]"
+              className="w-full px-3 py-2 rounded-[var(--radius-lg)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder={t("checkout.address.form.cityPlaceholder")}
             />
           </div>

@@ -1,7 +1,7 @@
-import { IconLoader2, IconMessageCircle, IconSearch, IconSend } from "@tabler/icons-react";
+import { IconLoader2, IconSearch, IconSend } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "../hooks/use-auth";
@@ -56,12 +56,10 @@ function ThreadList({
   }, [threads, filter]);
 
   return (
-    <aside className="flex flex-col w-full md:w-80 border-r border-border bg-card">
+    <aside className="flex flex-col bg-card border-r border-border overflow-y-auto">
       <div className="p-4 border-b border-border">
-        <h2 className="font-bold text-base text-foreground flex items-center gap-2">
-          <IconMessageCircle size={18} style={{ color: "#00BFB3" }} /> {t("messaging.listHeader")}
-        </h2>
-        <label className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-muted border border-border">
+        <h2 className="text-[15px] font-bold text-foreground">{t("messaging.listHeader")}</h2>
+        <label className="mt-3 flex items-center gap-2 px-3 py-2 rounded-[var(--radius-md)] bg-muted border border-border">
           <IconSearch size={14} className="text-muted-foreground" />
           <input
             value={filter}
@@ -82,34 +80,37 @@ function ThreadList({
         ) : (
           filtered.map((thread) => {
             const active = thread.id === selectedId;
+            const name = thread.otherPartyUsername ?? `User ${thread.otherPartyId.slice(0, 8)}`;
+            const initials = name.slice(0, 2).toUpperCase();
             return (
               <button
                 key={thread.id}
                 onClick={() => onSelect(thread.id)}
-                className={`w-full text-left px-4 py-3 border-b border-border transition-colors ${
-                  active ? "bg-[rgba(0,191,179,0.08)]" : "hover:bg-muted"
+                className={`w-full text-left flex gap-2.5 px-4 py-3 cursor-pointer transition-colors ${
+                  active ? "bg-primary-light" : "hover:bg-background"
                 }`}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-sm text-foreground truncate">
-                    {thread.otherPartyUsername ?? `User ${thread.otherPartyId.slice(0, 8)}`}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground shrink-0">
-                    {relativeTime(thread.lastMessageAt)}
-                  </span>
+                {/* Avatar */}
+                <div className="w-10 h-10 rounded-full bg-surface-elevated flex items-center justify-center flex-shrink-0 text-xs font-semibold text-foreground">
+                  {initials}
                 </div>
-                <div className="flex items-center justify-between gap-2 mt-1">
-                  <span className="text-xs text-muted-foreground truncate flex-1">
-                    {thread.lastMessageBody ?? t("messaging.emptyThread")}
-                  </span>
-                  {thread.unreadCount > 0 ? (
-                    <span
-                      className="ml-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
-                      style={{ background: "#FF6200" }}
-                    >
-                      {thread.unreadCount}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] font-semibold text-foreground truncate">{name}</span>
+                    <span className="text-[11px] text-muted-foreground shrink-0">
+                      {relativeTime(thread.lastMessageAt)}
                     </span>
-                  ) : null}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 mt-0.5">
+                    <span className="text-[12px] text-muted-foreground truncate flex-1">
+                      {thread.lastMessageBody ?? t("messaging.emptyThread")}
+                    </span>
+                    {thread.unreadCount > 0 ? (
+                      <span className="ml-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white bg-primary flex items-center justify-center">
+                        {thread.unreadCount}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </button>
             );
@@ -126,13 +127,14 @@ function MessageBubble({ message, isMine }: { message: ChatMessage; isMine: bool
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
-          isMine ? "text-white" : "text-foreground bg-muted"
+        className={`max-w-[70%] px-3.5 py-2.5 text-sm ${
+          isMine
+            ? "bg-primary text-white rounded-[var(--radius-lg)] rounded-br-sm self-end"
+            : "bg-card border border-border text-foreground rounded-[var(--radius-lg)] rounded-bl-sm self-start"
         }`}
-        style={isMine ? { background: "#00BFB3" } : undefined}
       >
         <p className="whitespace-pre-wrap break-words">{message.body}</p>
-        <p className={`text-[10px] mt-1 ${isMine ? "text-white/80" : "text-muted-foreground"}`}>
+        <p className="text-[10px] opacity-70 mt-1">
           {new Date(message.sentAt).toLocaleTimeString(locale, {
             hour: "2-digit",
             minute: "2-digit",
@@ -178,7 +180,7 @@ function MessagePane({
 
   if (!threadId) {
     return (
-      <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm bg-muted">
+      <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm bg-background">
         {t("messaging.selectThreadPrompt")}
       </div>
     );
@@ -201,15 +203,24 @@ function MessagePane({
   const headerThread = headerLatest?.threadId
     ? t("messaging.headerThread", { id: headerLatest.threadId.slice(0, 8) })
     : t("messaging.headerThreadFallback");
+  const headerName = headerThread;
+  const initials = headerName.slice(0, 2).toUpperCase();
 
   return (
-    <section className="flex flex-col flex-1 bg-muted">
-      <div className="px-5 py-3 bg-card border-b border-border">
-        <p className="text-xs text-muted-foreground">{t("messaging.headerWith")}</p>
-        <p className="font-semibold text-sm text-foreground">{headerThread}</p>
+    <section className="flex flex-col flex-1 bg-background">
+      {/* Chat header */}
+      <div className="flex items-center gap-3 px-5 py-3 bg-card border-b border-border">
+        <div className="w-9 h-9 rounded-full bg-surface-elevated flex items-center justify-center text-xs font-semibold text-foreground flex-shrink-0">
+          {initials}
+        </div>
+        <div>
+          <p className="font-semibold text-sm text-foreground">{headerName}</p>
+          <p className="text-[11px] text-success">● Online</p>
+        </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 p-5 overflow-y-auto flex flex-col gap-3">
         {messagesQuery.isLoading ? (
           <p className="text-center text-sm text-muted-foreground">{t("messaging.loadingMessages")}</p>
         ) : ordered.length === 0 ? (
@@ -225,12 +236,13 @@ function MessagePane({
         )}
       </div>
 
+      {/* Input bar */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           submit();
         }}
-        className="px-4 py-3 bg-card border-t border-border flex items-end gap-2"
+        className="flex gap-2 px-5 py-3 bg-card border-t border-border items-end"
       >
         <textarea
           value={draft}
@@ -243,21 +255,20 @@ function MessagePane({
           }}
           rows={1}
           placeholder={t("messaging.composerPlaceholder")}
-          className="flex-1 resize-none rounded-2xl border border-border px-4 py-2 text-sm focus:outline-none focus:border-[#00BFB3]"
+          className="flex-1 resize-none rounded-[var(--radius-lg)] border border-border px-4 py-2 text-sm focus:outline-none focus:border-primary bg-background"
           maxLength={4000}
         />
         <button
           type="submit"
           disabled={!draft.trim() || sendMessage.isPending}
-          className="px-4 py-2 rounded-2xl text-white text-sm font-medium flex items-center gap-2 disabled:opacity-60"
-          style={{ background: "#00BFB3" }}
+          aria-label={t("messaging.send")}
+          className="w-[38px] h-[38px] rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 disabled:opacity-60"
         >
           {sendMessage.isPending ? (
-            <IconLoader2 size={14} className="animate-spin" />
+            <IconLoader2 size={16} className="animate-spin" />
           ) : (
-            <IconSend size={14} />
+            <IconSend size={16} />
           )}
-          {t("messaging.send")}
         </button>
       </form>
     </section>
@@ -265,7 +276,6 @@ function MessagePane({
 }
 
 export function MessagesPage() {
-  const navigate = useNavigate();
   const { ready, authenticated, login, subject } = useAuth();
   const [params, setParams] = useSearchParams();
   const threads = useThreads();
@@ -348,14 +358,9 @@ export function MessagesPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-foreground">{t("messaging.pageTitle")}</h1>
-        <button onClick={() => navigate(-1)} className="text-xs text-muted-foreground hover:text-foreground">
-          {t("messaging.back")}
-        </button>
-      </div>
-      <div className="bg-card rounded-2xl shadow-sm overflow-hidden border border-border flex flex-col md:flex-row min-h-[70vh]">
+    <div className="max-w-[1100px] mx-auto py-8 px-8">
+      <h1 className="text-2xl font-bold text-foreground mb-6">{t("messaging.pageTitle")}</h1>
+      <div className="grid grid-cols-[300px_1fr] border border-border rounded-[var(--radius-xl)] overflow-hidden h-[520px]">
         <ThreadList
           threads={threads.items}
           selectedId={selectedId}

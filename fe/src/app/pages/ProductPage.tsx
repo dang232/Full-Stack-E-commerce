@@ -1,11 +1,12 @@
-import { IconStar, IconTruck, IconShield, IconRefresh, IconChevronRight, IconChevronLeft, IconHeart, IconShare, IconBuildingStore, IconMessage, IconThumbUp } from "@tabler/icons-react";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { ShoppingCart, Zap, Heart, Star, Truck, Shield, RefreshCw, ChevronRight, ChevronLeft, MessageCircle, ThumbsUp } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, Link } from "react-router";
 import { toast } from "sonner";
 
+import { usePageMeta } from "../../utils/meta-tags";
 import { ImageWithFallback } from "../components/image-with-fallback";
 import { useVNShop } from "../components/vnshop-context";
 import { useAuth } from "../hooks/use-auth";
@@ -18,7 +19,6 @@ import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions"
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
 import { formatPrice } from "../lib/format";
-import { usePageMeta } from "../../utils/meta-tags";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {
   return (
@@ -55,12 +55,12 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
 
   if (sellerQuery.isLoading) {
     return (
-      <div className="mt-8 bg-card rounded-2xl p-5 shadow-sm animate-pulse">
+      <div className="mt-8 bg-card rounded-[var(--radius-xl)] p-5 border border-border animate-pulse">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gray-200" />
+          <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-surface-elevated" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-32" />
-            <div className="h-3 bg-muted rounded w-24" />
+            <div className="h-4 bg-surface-elevated rounded w-32" />
+            <div className="h-3 bg-surface-elevated rounded w-24" />
           </div>
         </div>
       </div>
@@ -69,9 +69,9 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
 
   if (sellerQuery.isError || !sellerQuery.data) {
     return (
-      <div className="mt-8 bg-card rounded-2xl p-5 shadow-sm">
+      <div className="mt-8 bg-card rounded-[var(--radius-xl)] p-5 border border-border">
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <IconBuildingStore size={18} className="text-gray-300" />
+          <Shield size={18} className="text-muted-foreground opacity-30" />
           <span>{t("product.seller.comingSoon")}</span>
         </div>
       </div>
@@ -82,9 +82,9 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
   const initial = seller.shopName.charAt(0).toUpperCase();
 
   return (
-    <div className="mt-8 bg-card rounded-2xl p-5 shadow-sm">
+    <div className="mt-8 bg-card rounded-[var(--radius-xl)] p-5 border border-border">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted flex items-center justify-center shrink-0">
+        <div className="w-12 h-12 rounded-[var(--radius-lg)] overflow-hidden bg-surface-elevated flex items-center justify-center shrink-0">
           {seller.logoUrl ? (
             <img src={seller.logoUrl} alt={seller.shopName} className="w-full h-full object-cover" />
           ) : (
@@ -101,7 +101,7 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
           <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground flex-wrap">
             {seller.ratingAvg !== null && seller.ratingAvg !== undefined ? (
               <span className="flex items-center gap-1">
-                <IconStar size={11} fill="#FF6200" color="#FF6200" />
+                <Star size={11} fill="#FF6200" color="#FF6200" />
                 <span className="font-semibold text-foreground">{seller.ratingAvg.toFixed(1)}</span>
               </span>
             ) : null}
@@ -110,8 +110,7 @@ function SellerCard({ sellerId }: { sellerId?: string }) {
         </div>
         <Link
           to={`/sellers/${seller.id}`}
-          className="shrink-0 px-4 py-2 rounded-xl text-sm font-semibold border transition-all hover:bg-muted"
-          style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
+          className="shrink-0 px-4 py-2 rounded-[var(--radius-lg)] text-sm font-semibold border border-primary text-primary transition-all hover:bg-primary-light"
         >
           {t("sellerDetail.visitShop")}
         </Link>
@@ -127,10 +126,6 @@ export function ProductPage() {
   const { t } = useTranslation();
 
   const { data: product } = useSuspenseQuery(productDetailOptions(id ?? ""));
-  // Recommendations come from the recommendations-service (BE) — see
-  // services/recommendations-service. The previous incarnation filtered the
-  // full catalog by category client-side (`useProducts()` -> `.filter(...)`)
-  // which neither scaled nor reflected real co-purchase signal.
   const fbtQuery = useFrequentlyBoughtTogether(id);
   const ymalQuery = useYouMayAlsoLike(id);
   const { authenticated, login } = useAuth();
@@ -182,7 +177,7 @@ export function ProductPage() {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] ?? "");
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] ?? "");
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"desc" | "reviews" | "qa">("desc");
+  const [activeTab, setActiveTab] = useState<"desc" | "specs" | "reviews" | "qa">("desc");
   const loved = isWishlisted(product.id);
 
   usePageMeta({
@@ -202,29 +197,14 @@ export function ProductPage() {
   const savings = product.originalPrice ? product.originalPrice - product.price : 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-        <button onClick={() => navigate("/")} className="hover:text-foreground">
-          {t("product.breadcrumbHome")}
-        </button>
-        <IconChevronRight size={14} />
-        <button
-          onClick={() => navigate(`/search?cat=${product.category}`)}
-          className="hover:text-foreground"
-        >
-          {product.categoryLabel}
-        </button>
-        <IconChevronRight size={14} />
-        <span aria-current="page" className="text-foreground truncate max-w-xs">{product.name}</span>
-      </nav>
-
-      <div className="grid lg:grid-cols-[500px_1fr] gap-8">
-        {/* Image Gallery */}
-        <div className="space-y-3">
+    <div className="max-w-[1200px] mx-auto py-8 px-[var(--content-padding)]">
+      {/* Two-column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* ── A. Left Column — Gallery ── */}
+        <div className="lg:sticky lg:top-[80px] self-start space-y-3">
+          {/* Main image */}
           <div
-            className="relative bg-card rounded-2xl overflow-hidden shadow-sm"
-            style={{ aspectRatio: "1" }}
+            className="relative aspect-square bg-surface-elevated rounded-[var(--radius-xl)] border border-border overflow-hidden group"
             aria-label="Product image gallery"
             role="region"
             tabIndex={images.length > 1 ? 0 : undefined}
@@ -243,17 +223,22 @@ export function ProductPage() {
             }
           >
             <AnimatePresence mode="wait">
-              <motion.img
+              <motion.div
                 key={imageIdx}
-                src={images[imageIdx]}
-                alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full transition-transform duration-300 group-hover:scale-105"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.25 }}
-              />
+              >
+                <ImageWithFallback
+                  src={images[imageIdx]}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </motion.div>
             </AnimatePresence>
+
             {images.length > 1 ? (
               <>
                 <button
@@ -261,17 +246,18 @@ export function ProductPage() {
                   aria-label="Previous image"
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 shadow-md flex items-center justify-center hover:bg-card transition-colors"
                 >
-                  <IconChevronLeft size={18} className="text-foreground" />
+                  <ChevronLeft size={18} className="text-foreground" />
                 </button>
                 <button
                   onClick={() => setImageIdx((i) => (i + 1) % images.length)}
                   aria-label="Next image"
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 shadow-md flex items-center justify-center hover:bg-card transition-colors"
                 >
-                  <IconChevronRight size={18} className="text-foreground" />
+                  <ChevronRight size={18} className="text-foreground" />
                 </button>
               </>
             ) : null}
+
             {product.badge ? (
               <span
                 className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-white text-xs font-bold"
@@ -294,13 +280,20 @@ export function ProductPage() {
               </span>
             ) : null}
           </div>
+
+          {/* Thumbnail strip */}
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {images.map((img, i) => (
               <button
                 key={img}
                 onClick={() => setImageIdx(i)}
-                className="shrink-0 w-18 h-18 w-[72px] h-[72px] rounded-xl overflow-hidden border-2 transition-colors"
-                style={{ borderColor: i === imageIdx ? "#EE4D2D" : "#e5e7eb" }}
+                aria-label={`View image ${i + 1}`}
+                className={[
+                  "shrink-0 w-[72px] h-[72px] rounded-[var(--radius-md)] bg-surface-elevated border-2 overflow-hidden transition-all duration-150",
+                  i === imageIdx
+                    ? "border-primary shadow-[0_0_0_3px_var(--primary-light)]"
+                    : "border-border hover:border-border-hover hover:-translate-y-0.5",
+                ].join(" ")}
               >
                 <ImageWithFallback src={img} alt="" className="w-full h-full object-cover" />
               </button>
@@ -308,98 +301,66 @@ export function ProductPage() {
           </div>
         </div>
 
-        {/* Product Info */}
+        {/* ── B. Right Column — Product Info ── */}
         <div className="space-y-5">
+          {/* Brand / store badge */}
           <div>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">
-                  {product.categoryLabel} · {product.sellerName}
-                </p>
-                <h1
-                  className="text-2xl font-bold text-foreground leading-snug"
-                  style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-                >
-                  {product.name}
-                </h1>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => toggleWishlist(product.id)}
-                  className="p-2.5 rounded-xl border transition-all"
-                  style={{
-                    borderColor: loved ? "#FF6200" : "#e5e7eb",
-                    background: loved ? "#FFF0E6" : "transparent",
-                    color: loved ? "#FF6200" : "#6b7280",
-                  }}
-                >
-                  <IconHeart size={18} fill={loved ? "currentColor" : "none"} />
-                </button>
-                <button
-                  className="p-2.5 rounded-xl border border-border text-muted-foreground hover:bg-muted"
-                  onClick={() => {
-                    void navigator.clipboard.writeText(window.location.href);
-                    toast.success("Link copied!");
-                  }}
-                >
-                  <IconShare size={18} />
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={() => void navigate(`/search?cat=${product.category}`)}
+              className="text-xs text-primary font-medium hover:underline"
+            >
+              {product.sellerName ?? product.categoryLabel}
+            </button>
 
-            {/* Rating */}
-            <div className="flex items-center gap-3 mt-3">
-              <StarRating value={product.rating} />
-              <span className="font-semibold text-foreground">{product.rating}</span>
+            {/* Product name */}
+            <h1 className="text-2xl font-bold text-foreground leading-tight mt-1">
+              {product.name}
+            </h1>
+
+            {/* Rating row */}
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <StarRating value={product.rating} size={14} />
+              <span className="text-sm font-semibold text-foreground">{product.rating}</span>
+              <span className="text-muted-foreground">·</span>
+              <span className="text-sm text-muted-foreground">
+                {t("product.soldCount", { count: product.sold })}
+              </span>
+              <span className="text-muted-foreground">·</span>
               <button
                 className="text-sm text-muted-foreground underline"
                 onClick={() => setActiveTab("reviews")}
               >
                 {t("product.reviewsCount", { count: product.reviewCount })}
               </button>
-              <span className="text-gray-300">·</span>
-              <span className="text-sm text-muted-foreground">
-                {t("product.soldCount", { count: product.sold })}
-              </span>
             </div>
           </div>
 
-          {/* Price */}
-          <div
-            className="rounded-2xl p-5"
-            style={{
-              background: "linear-gradient(135deg, rgba(238,77,45,0.06), rgba(255,98,0,0.04))",
-            }}
-          >
-            <div className="flex items-end gap-3 mb-2">
-              <span className="text-4xl font-black" style={{ color: "#FF6200" }}>
-                {formatPrice(product.price)}
+          {/* Price block */}
+          <div className="flex items-end gap-2 flex-wrap">
+            <span className="text-3xl font-bold text-primary">
+              {formatPrice(product.price)}
+            </span>
+            {product.originalPrice ? (
+              <span className="text-lg line-through text-muted-foreground ml-3">
+                {formatPrice(product.originalPrice)}
               </span>
-              {product.originalPrice ? (
-                <span className="text-lg text-muted-foreground line-through mb-0.5">
-                  {formatPrice(product.originalPrice)}
-                </span>
-              ) : null}
-              {product.discount ? (
-                <span
-                  className="px-2.5 py-0.5 rounded-full text-sm font-bold text-white mb-1"
-                  style={{ background: "#FF6200" }}
-                >
-                  -{product.discount}%
-                </span>
-              ) : null}
-            </div>
-            {savings > 0 ? (
-              <p className="text-sm font-medium" style={{ color: "#EE4D2D" }}>
-                {t("product.savings", { amount: formatPrice(savings) })}
-              </p>
+            ) : null}
+            {product.discount ? (
+              <span className="bg-error text-white text-xs font-semibold px-2 py-0.5 rounded-[var(--radius-sm)] ml-2">
+                -{product.discount}%
+              </span>
             ) : null}
           </div>
+          {savings > 0 ? (
+            <p className="text-sm font-medium text-success -mt-2">
+              {t("product.savings", { amount: formatPrice(savings) })}
+            </p>
+          ) : null}
 
           {/* Colors */}
           {product.colors && product.colors.length > 0 ? (
             <div>
-              <p className="text-sm font-semibold text-foreground mb-2.5">
+              <p className="text-sm font-semibold text-foreground mb-2">
                 {t("product.colorsLabel")}: <span className="font-normal text-muted-foreground">{selectedColor}</span>
               </p>
               <div className="flex flex-wrap gap-2">
@@ -407,12 +368,13 @@ export function ProductPage() {
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className="px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all"
-                    style={{
-                      borderColor: selectedColor === color ? "#EE4D2D" : "#e5e7eb",
-                      background: selectedColor === color ? "rgba(238,77,45,0.08)" : "transparent",
-                      color: selectedColor === color ? "#EE4D2D" : "#374151",
-                    }}
+                    aria-pressed={selectedColor === color}
+                    className={[
+                      "px-3 py-1.5 rounded-[var(--radius-md)] border text-sm font-medium transition-all",
+                      selectedColor === color
+                        ? "bg-primary text-white border-primary"
+                        : "border-border text-foreground hover:border-border-hover",
+                    ].join(" ")}
                   >
                     {color}
                   </button>
@@ -424,13 +386,12 @@ export function ProductPage() {
           {/* Sizes */}
           {product.sizes && product.sizes.length > 0 ? (
             <div>
-              <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-semibold text-foreground">
                   {t("product.sizesLabel")}: <span className="font-normal text-muted-foreground">{selectedSize}</span>
                 </p>
                 <button
-                  className="text-xs font-medium underline opacity-50 cursor-not-allowed"
-                  style={{ color: "#EE4D2D" }}
+                  className="text-xs font-medium text-primary underline opacity-50 cursor-not-allowed"
                   disabled
                   title="Available Q3 2026"
                 >
@@ -442,12 +403,13 @@ export function ProductPage() {
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className="w-12 h-10 rounded-lg border-2 text-sm font-medium transition-all"
-                    style={{
-                      borderColor: selectedSize === size ? "#EE4D2D" : "#e5e7eb",
-                      background: selectedSize === size ? "rgba(238,77,45,0.08)" : "transparent",
-                      color: selectedSize === size ? "#EE4D2D" : "#374151",
-                    }}
+                    aria-pressed={selectedSize === size}
+                    className={[
+                      "px-3 py-1.5 rounded-[var(--radius-md)] border text-sm font-medium transition-all",
+                      selectedSize === size
+                        ? "bg-primary text-white border-primary"
+                        : "border-border text-foreground hover:border-border-hover",
+                    ].join(" ")}
                   >
                     {size}
                   </button>
@@ -456,86 +418,88 @@ export function ProductPage() {
             </div>
           ) : null}
 
-          {/* Quantity */}
+          {/* Quantity stepper */}
           <div>
-            <p className="text-sm font-semibold text-foreground mb-2.5">
-              {t("product.quantityLabel")}{" "}
-              <span className="font-normal text-muted-foreground">
-                {t("product.stockAvailable", { count: product.stock })}
-              </span>
+            <p className="text-sm font-semibold text-foreground mb-2">
+              {t("product.quantityLabel")}
             </p>
             <div className="flex items-center gap-3">
-              <div className="flex items-center border border-border rounded-xl overflow-hidden">
+              <div className="flex items-center border border-border rounded-[var(--radius-md)] overflow-hidden">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-10 h-10 text-muted-foreground hover:bg-muted flex items-center justify-center font-bold transition-colors"
+                  aria-label="Decrease quantity"
+                  className="w-10 h-10 text-muted-foreground hover:bg-surface-elevated flex items-center justify-center font-bold transition-colors"
                 >
                   −
                 </button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
+                <span className="w-12 text-center font-medium text-foreground">{quantity}</span>
                 <button
                   onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                  className="w-10 h-10 text-muted-foreground hover:bg-muted flex items-center justify-center font-bold transition-colors"
+                  aria-label="Increase quantity"
+                  className="w-10 h-10 text-muted-foreground hover:bg-surface-elevated flex items-center justify-center font-bold transition-colors"
                 >
                   +
                 </button>
               </div>
-              <span className="text-sm text-muted-foreground">
-                {t("product.totalLabel")}{" "}
-                <span className="font-bold" style={{ color: "#FF6200" }}>
-                  {formatPrice(product.price * quantity)}
-                </span>
+              <span className="text-xs text-muted-foreground">
+                {t("product.stockAvailable", { count: product.stock })}
               </span>
             </div>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex gap-3">
+          {/* Action buttons */}
+          <div className="flex gap-3 items-center">
             <button
               onClick={handleAddToCart}
-              className="flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition-all hover:bg-[rgba(238,77,45,0.06)]"
-              style={{ borderColor: "#EE4D2D", color: "#EE4D2D" }}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-primary text-white font-bold rounded-[var(--radius-lg)] hover:opacity-90 transition-opacity"
             >
+              <ShoppingCart size={18} />
               {t("product.addToCart")}
             </button>
             <button
               onClick={handleBuyNow}
-              className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white shadow-lg hover:opacity-90 transition-opacity"
-              style={{ background: "linear-gradient(135deg, #EE4D2D, #FF6633)" }}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-accent text-white font-bold rounded-[var(--radius-lg)] hover:opacity-90 transition-opacity"
             >
+              <Zap size={18} />
               {t("product.buyNow")}
+            </button>
+            <button
+              onClick={() => toggleWishlist(product.id)}
+              aria-label={loved ? "Remove from wishlist" : "Add to wishlist"}
+              aria-pressed={loved}
+              className={[
+                "w-12 h-12 flex items-center justify-center border rounded-[var(--radius-lg)] transition-all shrink-0",
+                loved
+                  ? "border-primary bg-primary-light text-primary"
+                  : "border-border text-muted-foreground hover:border-border-hover",
+              ].join(" ")}
+            >
+              <Heart size={20} fill={loved ? "currentColor" : "none"} />
             </button>
           </div>
 
-          {/* Trust indicators */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Trust row */}
+          <div className="flex gap-4 flex-wrap">
             {[
               {
-                icon: IconTruck,
+                icon: Shield,
+                text: t("product.trust.protection"),
+              },
+              {
+                icon: Truck,
                 text:
                   product.shippingFee === 0
                     ? t("product.trust.freeShipping")
                     : t("product.trust.shipFee", { fee: formatPrice(product.shippingFee) }),
-                sub: t("product.trust.shipVia", { method: product.shipping }),
               },
               {
-                icon: IconShield,
-                text: t("product.trust.protection"),
-                sub: t("product.trust.protectionSub"),
-              },
-              {
-                icon: IconRefresh,
+                icon: RefreshCw,
                 text: t("product.trust.returns"),
-                sub: t("product.trust.returnsSub"),
               },
             ].map((item) => (
-              <div
-                key={item.text}
-                className="flex flex-col items-center text-center p-3 rounded-xl bg-muted"
-              >
-                <item.icon size={20} className="mb-1.5" style={{ color: "#EE4D2D" }} />
-                <p className="text-xs font-semibold text-foreground">{item.text}</p>
-                <p className="text-[10px] text-muted-foreground">{item.sub}</p>
+              <div key={item.text} className="flex items-center gap-1.5">
+                <item.icon size={14} className="text-text-secondary shrink-0" />
+                <span className="text-xs text-text-secondary">{item.text}</span>
               </div>
             ))}
           </div>
@@ -545,34 +509,39 @@ export function ProductPage() {
       {/* Seller Info */}
       <SellerCard sellerId={product.sellerId} />
 
-      {/* Tabs */}
-      <div className="mt-8 bg-card rounded-2xl shadow-sm overflow-hidden">
-        <div role="tablist" className="flex border-b border-border">
-          {(["desc", "reviews", "qa"] as const).map((tab) => (
+      {/* ── C. Tabs Section ── */}
+      <div className="mt-10">
+        {/* Tab pills */}
+        <div role="tablist" className="flex gap-2 flex-wrap mb-6">
+          {(["desc", "specs", "reviews", "qa"] as const).map((tab) => (
             <button
               key={tab}
               id={`product-tab-${tab}`}
               role="tab"
               aria-selected={activeTab === tab}
               onClick={() => setActiveTab(tab)}
-              className="flex-1 py-4 text-sm font-semibold transition-colors"
-              style={{
-                color: activeTab === tab ? "#EE4D2D" : "#6b7280",
-                borderBottom: activeTab === tab ? "2px solid #EE4D2D" : "2px solid transparent",
-              }}
+              className={[
+                "px-4 py-2 text-sm font-medium rounded-full transition-colors",
+                activeTab === tab
+                  ? "bg-primary text-white"
+                  : "text-text-secondary hover:bg-surface-elevated",
+              ].join(" ")}
             >
               {tab === "desc"
                 ? t("product.tabs.desc")
-                : tab === "reviews"
-                  ? t("product.tabs.reviews", { count: product.reviewCount })
-                  : t("product.tabs.qa")}
+                : tab === "specs"
+                  ? t("product.tabs.specs", { defaultValue: "Specifications" })
+                  : tab === "reviews"
+                    ? t("product.tabs.reviews", { count: product.reviewCount })
+                    : t("product.tabs.qa")}
             </button>
           ))}
         </div>
 
-        <div role="tabpanel" aria-labelledby={`product-tab-${activeTab}`} className="p-6">
+        <div role="tabpanel" aria-labelledby={`product-tab-${activeTab}`}>
+          {/* Description tab */}
           {activeTab === "desc" ? (
-            <div className="space-y-4">
+            <div className="space-y-4 bg-card rounded-[var(--radius-xl)] border border-border p-6">
               <p className="text-foreground leading-relaxed">{product.description}</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                 {[
@@ -584,7 +553,7 @@ export function ProductPage() {
                     value: t("product.info.stockValue", { count: product.stock }),
                   },
                 ].map((info) => (
-                  <div key={info.label} className="p-3 rounded-xl bg-muted">
+                  <div key={info.label} className="p-3 rounded-[var(--radius-md)] bg-surface-elevated">
                     <p className="text-xs text-muted-foreground mb-0.5">{info.label}</p>
                     <p className="text-sm font-semibold text-foreground">{info.value}</p>
                   </div>
@@ -595,7 +564,7 @@ export function ProductPage() {
                   {product.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1 rounded-full text-xs bg-muted text-muted-foreground"
+                      className="px-3 py-1 rounded-full text-xs bg-surface-elevated text-muted-foreground"
                     >
                       #{tag}
                     </span>
@@ -605,20 +574,37 @@ export function ProductPage() {
             </div>
           ) : null}
 
+          {/* Specifications tab */}
+          {activeTab === "specs" ? (
+            <div className="bg-card rounded-[var(--radius-xl)] border border-border p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { label: t("product.info.category"), value: product.categoryLabel },
+                  { label: t("product.info.origin"), value: product.location },
+                  { label: t("product.info.shipping"), value: product.shipping },
+                  {
+                    label: t("product.info.stockStatus"),
+                    value: t("product.info.stockValue", { count: product.stock }),
+                  },
+                ].map((info) => (
+                  <div key={info.label} className="flex gap-4 py-3 border-b border-border last:border-0">
+                    <span className="text-sm text-muted-foreground w-32 shrink-0">{info.label}</span>
+                    <span className="text-sm font-medium text-foreground">{info.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Reviews tab */}
           {activeTab === "reviews" ? (
             <div className="space-y-6">
-              {/* Rating Summary — only when at least one review exists.
-                  Previously this rendered hardcoded percentages
-                  (68/22/7/2/1), creating a fake histogram on products
-                  with zero reviews. Now we hide it entirely when empty
-                  and derive real per-star percentages otherwise. */}
+              {/* Rating summary */}
               {liveReviewsQuery.data && liveReviewsQuery.data.length > 0 ? (
-                <div className="flex items-center gap-8 p-4 rounded-2xl bg-muted">
-                  <div className="text-center">
-                    <p className="text-5xl font-black" style={{ color: "#FF6200" }}>
-                      {product.rating}
-                    </p>
-                    <StarRating value={product.rating} />
+                <div className="flex items-center gap-8 p-6 rounded-[var(--radius-xl)] bg-card border border-border">
+                  <div className="text-center shrink-0">
+                    <p className="text-5xl font-black text-primary">{product.rating}</p>
+                    <StarRating value={product.rating} size={16} />
                     <p className="text-xs text-muted-foreground mt-1">
                       {t("product.reviewsCount", { count: product.reviewCount })}
                     </p>
@@ -632,11 +618,11 @@ export function ProductPage() {
                       return (
                         <div key={star} className="flex items-center gap-2">
                           <span className="text-xs w-4 text-muted-foreground">{star}</span>
-                          <IconStar size={11} fill="#F59E0B" className="text-amber-400" />
-                          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <Star size={11} fill="#F59E0B" className="text-amber-400" />
+                          <div className="flex-1 h-2 bg-surface-elevated rounded-full overflow-hidden">
                             <div
-                              className="h-full rounded-full"
-                              style={{ width: `${pct}%`, background: "#F59E0B" }}
+                              className="h-full rounded-full bg-primary"
+                              style={{ width: `${pct}%` }}
                             />
                           </div>
                           <span className="text-xs text-muted-foreground w-6">{pct}%</span>
@@ -647,11 +633,10 @@ export function ProductPage() {
                 </div>
               ) : null}
 
-              {/* Empty-state card — leads the tab when no reviews exist
-                  so the form below it is the obvious next action. */}
+              {/* Empty state */}
               {!liveReviewsQuery.isLoading && liveReviewsQuery.data?.length === 0 ? (
-                <div className="py-6 text-center rounded-2xl border border-dashed border-border">
-                  <IconMessage size={36} className="mx-auto mb-2 text-muted-foreground" />
+                <div className="py-8 text-center rounded-[var(--radius-xl)] border border-dashed border-border">
+                  <MessageCircle size={36} className="mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm font-semibold text-foreground">
                     {t("product.reviews.beFirstTitle")}
                   </p>
@@ -663,7 +648,7 @@ export function ProductPage() {
 
               {/* Write review */}
               {authenticated ? (
-                <div className="border border-border rounded-2xl p-4 bg-muted">
+                <div className="border border-border rounded-[var(--radius-xl)] p-5 bg-card">
                   <p className="text-sm font-semibold text-foreground mb-2">
                     {t("product.reviews.writeTitle")}
                   </p>
@@ -673,8 +658,9 @@ export function ProductPage() {
                         key={n}
                         onClick={() => setReviewDraft((d) => ({ ...d, rating: n }))}
                         type="button"
+                        aria-label={`Rate ${n} star${n > 1 ? "s" : ""}`}
                       >
-                        <IconStar
+                        <Star
                           size={20}
                           fill={n <= reviewDraft.rating ? "#F59E0B" : "#e5e7eb"}
                           className={n <= reviewDraft.rating ? "text-amber-400" : "text-gray-200"}
@@ -687,13 +673,12 @@ export function ProductPage() {
                     onChange={(e) => setReviewDraft((d) => ({ ...d, comment: e.target.value }))}
                     rows={3}
                     placeholder={t("product.reviews.placeholder")}
-                    className="w-full px-3 py-2 border border-border rounded-xl text-sm outline-none focus:border-[#EE4D2D] resize-none bg-card"
+                    className="w-full px-3 py-2 border border-border rounded-[var(--radius-md)] text-sm outline-none focus:border-primary resize-none bg-background"
                   />
                   <button
                     onClick={() => submitReview.mutate(reviewDraft)}
                     disabled={submitReview.isPending || reviewDraft.comment.trim().length === 0}
-                    className="mt-3 px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
-                    style={{ background: "#EE4D2D" }}
+                    className="mt-3 px-4 py-2 rounded-[var(--radius-md)] bg-primary text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity"
                   >
                     {submitReview.isPending
                       ? t("product.reviews.submitting")
@@ -703,22 +688,21 @@ export function ProductPage() {
               ) : (
                 <button
                   onClick={() => login(`/product/${id}`)}
-                  className="text-sm font-medium"
-                  style={{ color: "#EE4D2D" }}
+                  className="text-sm font-medium text-primary hover:underline"
                 >
                   {t("product.reviews.loginToWrite")}
                 </button>
               )}
 
-              {/* Live review list */}
+              {/* Review list */}
               {liveReviewsQuery.isLoading ? (
                 <p className="text-sm text-muted-foreground">{t("product.reviews.loading")}</p>
               ) : null}
               {liveReviewsQuery.data && liveReviewsQuery.data.length > 0
                 ? liveReviewsQuery.data.map((review) => (
-                    <div key={review.id} className="border-b border-border pb-5">
+                    <div key={review.id} className="bg-card border border-border rounded-[var(--radius-xl)] p-5">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-muted-foreground">
+                        <div className="w-9 h-9 rounded-full bg-surface-elevated flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
                           {(review.userName ?? "?").charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -745,7 +729,7 @@ export function ProductPage() {
                               key={`${review.id}-${img}`}
                               src={img}
                               alt=""
-                              className="w-16 h-16 rounded-lg object-cover border border-border"
+                              className="w-16 h-16 rounded-[var(--radius-md)] object-cover border border-border"
                               loading="lazy"
                             />
                           ))}
@@ -754,26 +738,27 @@ export function ProductPage() {
                       <button
                         onClick={() => voteHelpful.mutate(review.id)}
                         disabled={voteHelpful.isPending}
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
                       >
-                        <IconThumbUp size={13} />{" "}
+                        <ThumbsUp size={13} />{" "}
                         {t("product.reviews.helpful", { count: review.helpful ?? 0 })}
                       </button>
                     </div>
                   ))
                 : !liveReviewsQuery.isLoading && liveReviewsQuery.data === undefined && (
                     <div className="py-8 text-center">
-                      <IconMessage size={40} className="mx-auto mb-3 text-gray-300" />
+                      <MessageCircle size={40} className="mx-auto mb-3 text-muted-foreground opacity-30" />
                       <p className="text-muted-foreground">{t("product.reviews.empty")}</p>
                     </div>
                   )}
             </div>
           ) : null}
 
+          {/* Q&A tab */}
           {activeTab === "qa" ? (
             <div className="space-y-5">
               {authenticated ? (
-                <div className="border border-border rounded-2xl p-4 bg-muted">
+                <div className="border border-border rounded-[var(--radius-xl)] p-5 bg-card">
                   <p className="text-sm font-semibold text-foreground mb-2">
                     {t("product.qa.askTitle")}
                   </p>
@@ -782,13 +767,12 @@ export function ProductPage() {
                     onChange={(e) => setQuestionDraft(e.target.value)}
                     rows={3}
                     placeholder={t("product.qa.placeholder")}
-                    className="w-full px-3 py-2 border border-border rounded-xl text-sm outline-none focus:border-[#EE4D2D] resize-none bg-card"
+                    className="w-full px-3 py-2 border border-border rounded-[var(--radius-md)] text-sm outline-none focus:border-primary resize-none bg-background"
                   />
                   <button
                     onClick={() => submitQuestion.mutate(questionDraft.trim())}
                     disabled={submitQuestion.isPending || questionDraft.trim().length === 0}
-                    className="mt-3 px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-50"
-                    style={{ background: "#EE4D2D" }}
+                    className="mt-3 px-4 py-2 rounded-[var(--radius-md)] bg-primary text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity"
                   >
                     {submitQuestion.isPending ? t("product.qa.submitting") : t("product.qa.submit")}
                   </button>
@@ -796,8 +780,7 @@ export function ProductPage() {
               ) : (
                 <button
                   onClick={() => login(`/product/${id}`)}
-                  className="text-sm font-medium"
-                  style={{ color: "#EE4D2D" }}
+                  className="text-sm font-medium text-primary hover:underline"
                 >
                   {t("product.qa.loginToAsk")}
                 </button>
@@ -810,18 +793,22 @@ export function ProductPage() {
               {liveQuestionsQuery.data && liveQuestionsQuery.data.length > 0 ? (
                 <div className="space-y-4">
                   {liveQuestionsQuery.data.map((q) => (
-                    <div key={q.id} className="border border-border rounded-2xl p-4">
-                      <p className="text-sm font-medium text-foreground">
-                        {t("product.qa.qPrefix")}
-                        {q.question}
-                      </p>
+                    <div key={q.id} className="bg-card border border-border rounded-[var(--radius-xl)] p-5">
+                      <div className="flex gap-3 mb-2">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                          Q
+                        </span>
+                        <p className="text-sm font-medium text-foreground">{q.question}</p>
+                      </div>
                       {q.answer ? (
-                        <p className="mt-2 text-sm text-muted-foreground pl-3 border-l-2 border-[#EE4D2D]">
-                          {t("product.qa.aPrefix")}
-                          {q.answer}
-                        </p>
+                        <div className="flex gap-3 mt-3">
+                          <span className="shrink-0 w-6 h-6 rounded-full bg-accent text-white text-xs font-bold flex items-center justify-center">
+                            A
+                          </span>
+                          <p className="text-sm text-muted-foreground">{q.answer}</p>
+                        </div>
                       ) : (
-                        <p className="mt-2 text-xs text-muted-foreground italic">
+                        <p className="mt-2 text-xs text-muted-foreground italic pl-9">
                           {t("product.qa.noAnswer")}
                         </p>
                       )}
@@ -830,7 +817,7 @@ export function ProductPage() {
                 </div>
               ) : (
                 !liveQuestionsQuery.isLoading && (
-                  <div className="text-center py-6 text-sm text-muted-foreground">
+                  <div className="text-center py-8 text-sm text-muted-foreground">
                     {t("product.qa.empty")}
                   </div>
                 )
@@ -840,7 +827,7 @@ export function ProductPage() {
         </div>
       </div>
 
-      {/* Frequently bought together — co-purchase aggregate from recommendations-service. */}
+      {/* ── D. Related Products ── */}
       {fbtQuery.data && fbtQuery.data.length > 0 ? (
         <RecommendationGrid
           title={t("product.frequentlyBoughtTogether")}
@@ -849,7 +836,6 @@ export function ProductPage() {
         />
       ) : null}
 
-      {/* You may also like — same-category, ±30% price proximity from recommendations-service. */}
       {ymalQuery.data && ymalQuery.data.length > 0 ? (
         <RecommendationGrid
           title={t("product.youMayAlsoLike")}
@@ -871,14 +857,9 @@ function RecommendationGrid({
   onSelect: (productId: string) => void;
 }) {
   return (
-    <div className="mt-10">
-      <h2
-        className="text-xl font-bold text-foreground mb-5"
-        style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
-      >
-        {title}
-      </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    <div className="mt-12">
+      <h2 className="text-xl font-bold text-foreground mb-5">{title}</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {items.map((p) => {
           const discount =
             p.originalPrice && p.price && p.originalPrice > p.price
@@ -889,29 +870,26 @@ function RecommendationGrid({
             <button
               key={p.id}
               type="button"
-              className="bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer group transition-all text-left block w-full p-0 border-0"
+              className="bg-card rounded-[var(--radius-xl)] border border-border overflow-hidden hover:shadow-md cursor-pointer group transition-all text-left w-full p-0"
               onClick={() => onSelect(p.id)}
             >
-              <div className="relative overflow-hidden" style={{ aspectRatio: "1" }}>
+              <div className="relative overflow-hidden aspect-square">
                 <ImageWithFallback
                   src={p.image ?? ""}
                   alt={displayName}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 {discount ? (
-                  <span
-                    className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white text-[10px] font-bold"
-                    style={{ background: "#FF6200" }}
-                  >
+                  <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-error text-white text-[10px] font-bold">
                     -{discount}%
                   </span>
                 ) : null}
               </div>
-              <div className="p-2.5">
-                <p className="text-xs text-muted-foreground font-medium line-clamp-2 mb-1">
-                  {displayName.split(" ").slice(0, 5).join(" ")}
+              <div className="p-3">
+                <p className="text-xs text-text-secondary font-medium line-clamp-2 mb-1">
+                  {displayName}
                 </p>
-                <p className="font-bold text-sm" style={{ color: "#FF6200" }}>
+                <p className="font-bold text-sm text-primary">
                   {p.price != null ? formatPrice(p.price) : ""}
                 </p>
               </div>

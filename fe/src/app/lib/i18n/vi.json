@@ -22,7 +22,9 @@
     "myOrders": "Đơn mua",
     "wishlist": "Yêu thích",
     "notifications": "Thông báo",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "loginRequired": "Vui lòng đăng nhập để tiếp tục",
+    "noAccess": "Bạn không có quyền truy cập trang này"
   },
   "cart": {
     "title": "Giỏ hàng",
@@ -109,7 +111,15 @@
     "emptyTitle": "Không tìm thấy sản phẩm",
     "emptySub": "Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm",
     "emptyClear": "Xóa bộ lọc",
-    "loadMore": "Xem thêm {{count}} sản phẩm"
+    "loadMore": "Xem thêm {{count}} sản phẩm",
+    "noResultsFor": "Không tìm thấy kết quả cho '{{query}}'",
+    "showingRange": "Hiển thị {{start}}–{{end}} trong {{total}} kết quả cho '{{query}}'",
+    "andUp": "trở lên",
+    "verifiedOnly": "Đã xác minh",
+    "officialStores": "Shop chính hãng",
+    "shippingHeader": "Vận chuyển",
+    "freeShippingTag": "Miễn phí vận chuyển",
+    "sameDayDelivery": "Giao trong ngày"
   },
   "flashSale": {
     "title": "⚡ FLASH SALE",
@@ -221,6 +231,8 @@
     "suggestionsSubtitle": "Được cá nhân hóa dựa trên sở thích mua sắm",
     "viewAll": "Xem tất cả",
     "trending": "Đang Hot",
+    "sellerShowcase": "Shop Nổi Bật",
+    "viewAllSellers": "Xem tất cả",
     "categories": "Danh Mục Sản Phẩm",
     "allCategoriesLabel": "Tất cả danh mục",
     "trustedSellers": "Shop Uy Tín",
@@ -513,7 +525,10 @@
       "coupons": "Coupon",
       "disputes": "Khiếu nại",
       "payouts": "Rút tiền",
-      "ariaLabelWithBadge": "{{label}}, còn {{count}} chờ xử lý"
+      "ariaLabelWithBadge": "{{label}}, còn {{count}} chờ xử lý",
+      "users": "Người dùng",
+      "orders": "Đơn hàng",
+      "health": "Tình trạng hệ thống"
     },
     "dashboard": {
       "title": "Admin Dashboard",

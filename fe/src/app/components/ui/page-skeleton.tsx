@@ -1,13 +1,21 @@
 export function PageSkeleton() {
   return (
-    <div className="animate-pulse space-y-4 p-6" aria-busy="true" aria-label="Loading content">
-      <div className="h-8 bg-muted rounded w-1/3" />
-      <div className="h-4 bg-muted rounded w-2/3" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-48 bg-muted rounded" />
-        ))}
-      </div>
+    <div
+      className="grid grid-cols-4 gap-4 p-6"
+      aria-busy="true"
+      aria-label="Loading content"
+    >
+      {(["a", "b", "c", "d"] as const).map((id) => (
+        <div
+          key={id}
+          className="bg-card border border-border rounded-[var(--radius-lg)] p-3"
+        >
+          <div className="aspect-square rounded-[var(--radius-md)] bg-surface-elevated animate-pulse mb-3" />
+          <div className="h-3 rounded-md bg-surface-elevated animate-pulse mb-2 w-3/4" />
+          <div className="h-3 rounded-md bg-surface-elevated animate-pulse mb-2 w-1/2" />
+          <div className="h-3 rounded-md bg-surface-elevated animate-pulse w-[30%]" />
+        </div>
+      ))}
     </div>
   );
 }

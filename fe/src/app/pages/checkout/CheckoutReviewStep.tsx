@@ -1,4 +1,4 @@
-﻿import { IconCreditCard, IconMapPin, IconPackage, IconTruck } from "@tabler/icons-react";
+import { CreditCard, MapPin, Package, Truck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { formatPrice } from "../../lib/format";
@@ -36,17 +36,17 @@ export function CheckoutReviewStep({
     <div className="space-y-4">
       <h2 className="font-bold text-foreground text-lg mb-4">{t("checkout.review.header")}</h2>
 
-      <div className="bg-card rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-foreground flex items-center gap-2">
-            <IconMapPin size={15} style={{ color: "#00BFB3" }} />{" "}
+      {/* Address */}
+      <div className="p-3.5 border border-border rounded-[var(--radius-lg)] bg-background">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <MapPin size={14} className="text-primary" />
             {t("checkout.review.shippingAddress")}
           </h3>
           <button
             onClick={() => setStep("address")}
             disabled={isProcessing}
-            className="text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ color: "#00BFB3" }}
+            className="text-xs text-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {t("checkout.review.change")}
           </button>
@@ -56,10 +56,10 @@ export function CheckoutReviewStep({
             <p className="font-semibold text-foreground">
               {buyerName}
               {addresses[selectedAddressIndex].phone ? (
-                <> Â· {addresses[selectedAddressIndex].phone}</>
+                <> · {addresses[selectedAddressIndex].phone}</>
               ) : null}
             </p>
-            <p className="text-muted-foreground mt-0.5">
+            <p className="text-muted-foreground text-xs mt-0.5">
               {formatAddressLine(addresses[selectedAddressIndex])}
             </p>
           </div>
@@ -68,17 +68,17 @@ export function CheckoutReviewStep({
         )}
       </div>
 
-      <div className="bg-card rounded-2xl p-4 shadow-sm">
+      {/* Shipping */}
+      <div className="p-3.5 border border-border rounded-[var(--radius-lg)] bg-background">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-foreground flex items-center gap-2">
-            <IconTruck size={15} style={{ color: "#00BFB3" }} />{" "}
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <Truck size={14} className="text-primary" />
             {t("checkout.review.shippingMethod")}
           </h3>
           <button
             onClick={() => setStep("shipping")}
             disabled={isProcessing}
-            className="text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ color: "#00BFB3" }}
+            className="text-xs text-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {t("checkout.review.change")}
           </button>
@@ -89,17 +89,17 @@ export function CheckoutReviewStep({
         </p>
       </div>
 
-      <div className="bg-card rounded-2xl p-4 shadow-sm">
+      {/* Payment */}
+      <div className="p-3.5 border border-border rounded-[var(--radius-lg)] bg-background">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-foreground flex items-center gap-2">
-            <IconCreditCard size={15} style={{ color: "#00BFB3" }} />{" "}
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <CreditCard size={14} className="text-primary" />
             {t("checkout.review.paymentMethod")}
           </h3>
           <button
             onClick={() => setStep("payment")}
             disabled={isProcessing}
-            className="text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ color: "#00BFB3" }}
+            className="text-xs text-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {t("checkout.review.change")}
           </button>
@@ -109,9 +109,10 @@ export function CheckoutReviewStep({
         </p>
       </div>
 
-      <div className="bg-card rounded-2xl p-4 shadow-sm">
-        <h3 className="font-semibold text-foreground flex items-center gap-2 mb-3">
-          <IconPackage size={15} style={{ color: "#00BFB3" }} />{" "}
+      {/* Items */}
+      <div className="p-3.5 border border-border rounded-[var(--radius-lg)] bg-background">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-3">
+          <Package size={14} className="text-primary" />
           {t("checkout.review.productsCount", { count: cartItems.length })}
         </h3>
         <div className="space-y-3">
@@ -121,11 +122,11 @@ export function CheckoutReviewStep({
                 <img
                   src={item.image}
                   alt={item.name ?? ""}
-                  className="w-12 h-12 rounded-lg object-cover"
+                  className="w-14 h-14 rounded-lg object-cover shrink-0"
                   loading="lazy"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-lg bg-muted" />
+                <div className="w-14 h-14 rounded-lg bg-muted shrink-0" />
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">
@@ -133,7 +134,7 @@ export function CheckoutReviewStep({
                 </p>
                 <p className="text-xs text-muted-foreground">x{item.quantity}</p>
               </div>
-              <span className="text-sm font-bold" style={{ color: "oklch(52% 0.2 270)" }}>
+              <span className="text-sm font-bold text-primary shrink-0">
                 {formatPrice(item.price * item.quantity)}
               </span>
             </div>

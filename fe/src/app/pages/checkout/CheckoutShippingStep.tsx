@@ -1,4 +1,4 @@
-import { IconLoader2, IconTruck } from "@tabler/icons-react";
+import { Clock, Loader2, Package, Truck, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { FREE_SHIPPING_THRESHOLD } from "../../lib/domain-constants";
@@ -14,6 +14,16 @@ interface Props {
   setNote: (note: string) => void;
   isLoadingRates?: boolean;
   subtotal?: number;
+}
+
+const SHIPPING_ICONS: Record<string, typeof Truck> = {
+  EXPRESS: Zap,
+  STANDARD: Truck,
+  ECONOMY: Package,
+};
+
+function getShippingIcon(id: string): typeof Truck {
+  return SHIPPING_ICONS[id.toUpperCase()] ?? Truck;
 }
 
 export function CheckoutShippingStep({
@@ -32,61 +42,63 @@ export function CheckoutShippingStep({
     <div>
       <h2 className="font-bold text-foreground text-lg mb-4">{t("checkout.shipping.header")}</h2>
 
-      {freeShipping && (
-        <div
-          className="mb-4 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2"
-          style={{ background: "rgba(0,191,179,0.08)", color: "#00877f" }}
-        >
-          <IconTruck size={16} />
+      {freeShipping ? (
+        <div className="mb-4 px-4 py-3 rounded-[var(--radius-lg)] text-sm font-medium flex items-center gap-2 bg-primary-light text-primary">
+          <Truck size={16} />
           {t("checkout.shipping.freeShippingBanner")}
         </div>
-      )}
+      ) : null}
 
       {isLoadingRates ? (
         <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-          <IconLoader2 size={16} className="animate-spin" />
+          <Loader2 size={16} className="animate-spin" />
           {t("checkout.shipping.loadingRates")}
         </div>
       ) : (
         <div role="radiogroup" aria-label="Shipping method" className="space-y-3">
-          {shippingOptions.map((method) => (
-            <button
-              key={method.id}
-              role="radio"
-              aria-checked={selectedShippingId === method.id}
-              onClick={() => setShippingChoice(method.id)}
-              className="w-full p-4 rounded-2xl border-2 text-left transition-all bg-card"
-              style={{
-                borderColor: selectedShippingId === method.id ? "#00BFB3" : "#e5e7eb",
-                background: selectedShippingId === method.id ? "rgba(0,191,179,0.04)" : "white",
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <IconTruck
+          {shippingOptions.map((method) => {
+            const isSelected = selectedShippingId === method.id;
+            const ShipIcon = getShippingIcon(method.id);
+            return (
+              <button
+                key={method.id}
+                role="radio"
+                aria-checked={isSelected}
+                onClick={() => setShippingChoice(method.id)}
+                className={[
+                  "w-full flex items-center gap-4 p-4 border-[1.5px] rounded-[var(--radius-lg)] cursor-pointer transition-all text-left",
+                  isSelected
+                    ? "border-primary bg-[var(--primary-subtle)] shadow-[0_0_0_3px_oklch(from_var(--primary)_l_c_h_/_0.08)]"
+                    : "border-border hover:border-border-hover hover:shadow-sm",
+                ].join(" ")}
+              >
+                {/* Icon box */}
+                <span className="w-10 h-10 rounded-md bg-surface-elevated flex items-center justify-center shrink-0">
+                  <ShipIcon
                     size={20}
-                    style={{
-                      color: selectedShippingId === method.id ? "#00BFB3" : "#6b7280",
-                    }}
+                    className={isSelected ? "text-primary" : "text-muted-foreground"}
                   />
-                  <div>
-                    <p className="font-semibold text-sm text-foreground">{method.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {method.desc} · {t("checkout.shipping.etaPrefix", { eta: method.eta })}
-                    </p>
-                  </div>
+                </span>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-foreground">{method.name}</p>
+                  <p className="text-xs text-muted-foreground">{method.desc}</p>
+                  <p className="text-xs text-success flex items-center gap-1 mt-0.5">
+                    <Clock size={11} />
+                    {t("checkout.shipping.etaPrefix", { eta: method.eta })}
+                  </p>
                 </div>
-                <div className="text-right">
-                  <p
-                    className="font-bold text-sm"
-                    style={{ color: method.fee === 0 ? "#00BFB3" : "#374151" }}
-                  >
+
+                {/* Price */}
+                <div className="text-right shrink-0">
+                  <p className={["font-bold text-sm", method.fee === 0 ? "text-success" : "text-foreground"].join(" ")}>
                     {method.fee === 0 ? t("checkout.shipping.free") : formatPrice(method.fee)}
                   </p>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -103,7 +115,7 @@ export function CheckoutShippingStep({
           onChange={(e) => setNote(e.target.value)}
           rows={3}
           placeholder={t("checkout.shipping.notePlaceholder")}
-          className="w-full px-4 py-3 border border-border rounded-xl text-sm outline-none focus:border-[#00BFB3] resize-none bg-card"
+          className="w-full px-4 py-3 border border-border rounded-[var(--radius-lg)] text-sm outline-none focus:border-primary resize-none bg-card transition-colors"
         />
       </div>
     </div>
