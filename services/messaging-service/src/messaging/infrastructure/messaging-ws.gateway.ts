@@ -8,7 +8,7 @@ import {
 import { IncomingMessage } from "node:http";
 import { URL } from "node:url";
 import { WebSocket, WebSocketServer as WsServer } from "ws";
-import { WsJwtVerifier } from "./auth/ws-jwt.verifier";
+import { TokenExpiredError, WsJwtVerifier } from "./auth/ws-jwt.verifier";
 
 /**
  * `ws`-backed gateway. Each socket is bound to one user (Keycloak `sub`)
@@ -44,10 +44,11 @@ export class MessagingWsGateway
     client: WebSocket,
     request: IncomingMessage,
   ): Promise<void> {
+    const clientIp = this.extractClientIp(request);
     try {
       const token = this.extractToken(request);
       if (!token) {
-        this.refuse(client, "missing_token");
+        this.refuse(client, 4401, "missing_token");
         return;
       }
       const payload = await this.verifier.verify(token);
@@ -57,8 +58,13 @@ export class MessagingWsGateway
         JSON.stringify({ type: "hello", userId, ts: new Date().toISOString() }),
       );
     } catch (err) {
-      this.logger.warn(`WS handshake rejected: ${(err as Error).message}`);
-      this.refuse(client, "invalid_token");
+      if (err instanceof TokenExpiredError) {
+        this.verifier.logRejection(clientIp, (err as Error).message);
+        this.refuse(client, 4001, "token_expired");
+      } else {
+        this.verifier.logRejection(clientIp, (err as Error).message);
+        this.refuse(client, 4401, "invalid_token");
+      }
     }
   }
 
@@ -102,6 +108,12 @@ export class MessagingWsGateway
     return fromQuery ? fromQuery.trim() : null;
   }
 
+  private extractClientIp(request: IncomingMessage): string {
+    const forwarded = request.headers["x-forwarded-for"];
+    if (typeof forwarded === "string") return forwarded.split(",")[0].trim();
+    return request.socket.remoteAddress ?? "unknown";
+  }
+
   private bind(client: WebSocket, userId: string): void {
     let set = this.socketsByUser.get(userId);
     if (!set) {
@@ -112,12 +124,12 @@ export class MessagingWsGateway
     this.userBySocket.set(client, userId);
   }
 
-  private refuse(client: WebSocket, reason: string): void {
+  private refuse(client: WebSocket, code: number, reason: string): void {
     try {
       client.send(JSON.stringify({ type: "error", reason }));
     } catch {
       // Ignore — client may already be in CLOSING.
     }
-    client.close(4401, reason);
+    client.close(code, reason);
   }
 }

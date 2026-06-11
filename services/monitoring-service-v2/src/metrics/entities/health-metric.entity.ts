@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity('health_metrics')
-@Index(['service_id', 'time'])
+@Index(['serviceId', 'time'])
 export class HealthMetric {
   @PrimaryGeneratedColumn('increment')
   id!: number;
@@ -15,7 +15,7 @@ export class HealthMetric {
   @Column()
   status!: string;
 
-  @Column({ name: 'response_ms', nullable: true })
+  @Column({ name: 'response_ms', type: 'integer', nullable: true })
   responseMs!: number | null;
 
   @Column({ type: 'jsonb', nullable: true })

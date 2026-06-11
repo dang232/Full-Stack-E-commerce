@@ -6,6 +6,8 @@ export const appConfig = registerAs('app', () => ({
   gatewayActuatorUrl:
     process.env.GATEWAY_ACTUATOR_URL ??
     'http://localhost:8080/actuator/gateway/routes',
+  /** 'auto' (try gateway, fallback to static) | 'static' (skip gateway entirely) */
+  discoveryMode: process.env.DISCOVERY_MODE ?? 'static',
   discoveryIntervalMs: parseInt(process.env.DISCOVERY_INTERVAL_MS ?? '300000', 10),
   healthPollIntervalMs: parseInt(process.env.HEALTH_POLL_INTERVAL_MS ?? '10000', 10),
   keycloak: {
