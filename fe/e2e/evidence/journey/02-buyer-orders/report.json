@@ -28,43 +28,23 @@
       "acCode": "AC-2.1",
       "outcome": "Predecessor chapter has published a coupon (state.json check)",
       "slug": "01-ac-2-1-predecessor-chapter-has-published-a-coupon-state-json.png",
-      "status": "PASS"
-    },
-    {
-      "index": 2,
-      "acCode": "AC-2.1",
-      "outcome": "Visitor lands on the public store home page",
-      "slug": "02-ac-2-1-visitor-lands-on-the-public-store-home-page.png",
-      "status": "PASS"
-    },
-    {
-      "index": 3,
-      "acCode": "AC-2.1",
-      "outcome": "Visitor registers a fresh buyer account and is signed in",
-      "slug": "03-ac-2-1-visitor-registers-a-fresh-buyer-account-and-is-signed.png",
-      "status": "PASS"
-    },
-    {
-      "index": 4,
-      "acCode": "AC-2.1",
-      "outcome": "Buyer opens a real seeded product and adds it to their cart",
-      "slug": "04-ac-2-1-buyer-opens-a-real-seeded-product-and-adds-it-to-thei.png",
-      "status": "PASS"
-    },
-    {
-      "index": 5,
-      "acCode": "AC-2.4",
-      "outcome": "Product is discoverable via /search within 30 s of being browsable on /products",
-      "slug": "05-ac-2-4-product-is-discoverable-via-search-within-30-s-of-bei.png",
-      "status": "FAIL",
-      "errorMessage": "expected /search?q=Tai nghe Sony WH-1000XM5 to surface productId=2b0a8522-4310-4665-9874-bf37a5481667 within 30 s — search-index projection may be stale or kafka consumer disconnected\n\nexpected /search?q=Tai nghe Sony WH-1000XM5 to surface productId=2b0a8522-4310-4665-9874-bf37a5481667 within 30 s — search-index projection may be stale or kafka consumer disconnected\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m\"2b0a8522-4310-4665-9874-bf37a5481667\"\u001b[39m\nReceived array: \u001b[31m[]\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
+      "status": "BLOCKED",
+      "errorMessage": "journey state missing required keys: couponCode, couponDiscountVnd — a previous chapter must run first"
     }
   ],
   "acStatuses": [
     {
       "code": "AC-2.1",
       "outcome": "A new visitor can register and start shopping in a single browser session",
-      "status": "PASS"
+      "status": "BLOCKED",
+      "failingStep": {
+        "index": 1,
+        "acCode": "AC-2.1",
+        "outcome": "Predecessor chapter has published a coupon (state.json check)",
+        "slug": "01-ac-2-1-predecessor-chapter-has-published-a-coupon-state-json.png",
+        "status": "BLOCKED",
+        "errorMessage": "journey state missing required keys: couponCode, couponDiscountVnd — a previous chapter must run first"
+      }
     },
     {
       "code": "AC-2.2",
@@ -79,17 +59,9 @@
     {
       "code": "AC-2.4",
       "outcome": "A product the buyer can browse via /products is also discoverable via /search within 30 s — proves the kafka product-event → search-index projection is live",
-      "status": "FAIL",
-      "failingStep": {
-        "index": 5,
-        "acCode": "AC-2.4",
-        "outcome": "Product is discoverable via /search within 30 s of being browsable on /products",
-        "slug": "05-ac-2-4-product-is-discoverable-via-search-within-30-s-of-bei.png",
-        "status": "FAIL",
-        "errorMessage": "expected /search?q=Tai nghe Sony WH-1000XM5 to surface productId=2b0a8522-4310-4665-9874-bf37a5481667 within 30 s — search-index projection may be stale or kafka consumer disconnected\n\nexpected /search?q=Tai nghe Sony WH-1000XM5 to surface productId=2b0a8522-4310-4665-9874-bf37a5481667 within 30 s — search-index projection may be stale or kafka consumer disconnected\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m\"2b0a8522-4310-4665-9874-bf37a5481667\"\u001b[39m\nReceived array: \u001b[31m[]\u001b[39m\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
-      }
+      "status": "NOT_RUN"
     }
   ],
-  "verdict": "FAIL",
-  "generatedAt": "2026-05-31T12:20:23.093Z"
+  "verdict": "BLOCKED",
+  "generatedAt": "2026-06-09T19:03:59.157Z"
 }

@@ -2,7 +2,7 @@
 
 **Persona:** seller
 **Verdict:** BLOCKED
-**Generated:** 2026-05-31T12:20:27.777Z
+**Generated:** 2026-06-09T19:04:04.375Z
 
 ## Business outcomes verified
 
