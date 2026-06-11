@@ -10,10 +10,7 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.annotation.RetryableTopic;
-import org.springframework.kafka.retrytopic.DltStrategy;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -37,12 +34,6 @@ public class ProductEventConsumer {
         this.productElasticsearchRepository = productElasticsearchRepository;
     }
 
-    @RetryableTopic(
-            attempts = "3",
-            dltStrategy = DltStrategy.FAIL_ON_ERROR,
-            dltTopicSuffix = ".DLT",
-            retryTopicSuffix = ".retry"
-    )
     @Transactional
     @KafkaListener(topics = "product-events", groupId = "search-service", concurrency = "12")
     public void consume(ProductEvent event) {
@@ -100,8 +91,4 @@ public class ProductEventConsumer {
         }
     }
 
-    @DltHandler
-    public void handleDlt(ProductEvent message) {
-        LOGGER.error("Message sent to DLT after retries exhausted: {}", message);
-    }
 }

@@ -13,5 +13,5 @@ COPY --from=builder /workspace/target/app.jar app.jar
 RUN chown -R vnshop:vnshop /app
 USER vnshop
 EXPOSE 8086
-HEALTHCHECK --interval=30s --timeout=20s --start-period=30s --retries=3 CMD curl -f http://localhost:8086/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=20s --start-period=30s --retries=3 CMD curl -f http://localhost:8086/actuator/health/readiness || exit 1
 ENTRYPOINT ["java", "-jar", "app.jar"]
