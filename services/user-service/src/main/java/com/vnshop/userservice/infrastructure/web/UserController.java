@@ -10,6 +10,7 @@ import com.vnshop.userservice.application.avatar.AvatarUploadRequest;
 import com.vnshop.userservice.application.avatar.AvatarUploadResponse;
 import com.vnshop.userservice.application.avatar.AvatarUploadService;
 import com.vnshop.userservice.infrastructure.config.JwtPrincipalUtil;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,38 +39,45 @@ public class UserController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<BuyerProfileResponse> getMyProfile() {
         return ApiResponse.ok(BuyerProfileResponse.fromDomain(viewBuyerProfileUseCase.view(JwtPrincipalUtil.currentUserId())));
     }
 
     @PutMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<BuyerProfileResponse> upsertMyProfile(@RequestBody BuyerProfileRequest request) {
         return ApiResponse.ok(BuyerProfileResponse.fromDomain(upsertBuyerProfileUseCase.upsert(new UpsertBuyerProfileCommand(JwtPrincipalUtil.currentUserId(), request.name(), request.phone(), request.avatarUrl()))));
     }
 
     @PostMapping("/me/avatar/upload")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<AvatarUploadHttpResponse> createAvatarUpload(@RequestBody AvatarUploadRequest request) {
         AvatarUploadResponse response = avatarUploadService.createUpload(JwtPrincipalUtil.currentUserId(), request);
         return ApiResponse.ok(AvatarUploadHttpResponse.fromDomain(response));
     }
 
     @PostMapping("/me/avatar/activate")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<BuyerProfileResponse> activateAvatar(@RequestBody AvatarActivationRequest request) {
         AvatarActivationResponse response = avatarUploadService.activate(JwtPrincipalUtil.currentUserId(), request);
         return ApiResponse.ok(BuyerProfileResponse.fromDomain(response.profile()));
     }
 
     @PostMapping("/me/addresses")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<BuyerProfileResponse> addAddress(@RequestBody AddressRequest request) {
         return ApiResponse.ok(BuyerProfileResponse.fromDomain(manageAddressUseCase.addAddress(JwtPrincipalUtil.currentUserId(), request.toDomain())));
     }
 
     @DeleteMapping("/me/addresses/{index}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<BuyerProfileResponse> removeAddress(@PathVariable int index) {
         return ApiResponse.ok(BuyerProfileResponse.fromDomain(manageAddressUseCase.removeAddress(JwtPrincipalUtil.currentUserId(), index)));
     }
 
     @PutMapping("/me/addresses/{index}/default")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<BuyerProfileResponse> setDefaultAddress(@PathVariable int index) {
         return ApiResponse.ok(BuyerProfileResponse.fromDomain(manageAddressUseCase.setDefaultAddress(JwtPrincipalUtil.currentUserId(), index)));
     }

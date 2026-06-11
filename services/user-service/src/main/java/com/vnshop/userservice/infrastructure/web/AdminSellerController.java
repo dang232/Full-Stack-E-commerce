@@ -2,6 +2,7 @@ package com.vnshop.userservice.infrastructure.web;
 
 import com.vnshop.userservice.application.ApproveSellerUseCase;
 import com.vnshop.userservice.application.ListPendingSellersUseCase;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/sellers")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminSellerController {
     private final ListPendingSellersUseCase listPendingSellersUseCase;
     private final ApproveSellerUseCase approveSellerUseCase;

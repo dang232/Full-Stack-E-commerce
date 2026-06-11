@@ -10,6 +10,7 @@ import com.vnshop.productservice.domain.review.SellerReviewSummary;
 import com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,6 +56,7 @@ public class ReviewController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<ReviewResponse> create(@Valid @RequestBody CreateReviewRequest request) {
         // buyerId always comes from the JWT — never trust a body field for identity.
         // orderId is optional; the use case validates it when present.
@@ -69,6 +71,7 @@ public class ReviewController {
     }
 
     @PutMapping("/{id}/helpful")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<ReviewResponse> voteHelpful(@PathVariable UUID id) {
         String voterId = JwtPrincipalUtil.currentUserId();
         return ApiResponse.ok(ReviewResponse.fromDomain(voteHelpfulUseCase.vote(id, voterId)));

@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,6 +48,7 @@ public class ProductController {
 
     @PostMapping("/sellers/me/products")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
     public ApiResponse<ProductResponse> create(@RequestBody ProductRequest request) {
         CreateProductCommand command = new CreateProductCommand(
                 JwtPrincipalUtil.currentSellerId(),
@@ -61,6 +63,7 @@ public class ProductController {
     }
 
     @PutMapping("/sellers/me/products/{id}")
+    @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
     public ApiResponse<ProductResponse> update(@PathVariable UUID id, @RequestBody ProductRequest request) {
         return ApiResponse.ok(updateProductUseCase.update(
                 JwtPrincipalUtil.currentSellerId(),
@@ -76,6 +79,7 @@ public class ProductController {
 
     @DeleteMapping("/sellers/me/products/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
     public void delete(@PathVariable UUID id) {
         deleteProductUseCase.delete(id, JwtPrincipalUtil.currentSellerId());
     }

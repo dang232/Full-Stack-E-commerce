@@ -8,6 +8,7 @@ import com.vnshop.inventoryservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +29,7 @@ public class FlashSaleController {
 	}
 
 	@PostMapping("/reserve")
+	@PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
 	public ApiResponse<ReserveFlashSaleResponse> reserve(@Valid @RequestBody ReserveFlashSaleRequest request) {
 		ReserveFlashSaleResult result = reserveFlashSaleUseCase.reserve(
 				new ReserveFlashSaleCommand(request.productId(), JwtPrincipalUtil.currentUserId(), request.quantity()));
@@ -43,6 +45,7 @@ public class FlashSaleController {
 	}
 
 	@PostMapping("/release/{reservationId}")
+	@PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
 	public ApiResponse<Void> release(@PathVariable String reservationId) {
 		reserveFlashSaleUseCase.release(UUID.fromString(reservationId), JwtPrincipalUtil.currentUserId());
 		return ApiResponse.ok(null);
