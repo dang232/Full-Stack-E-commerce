@@ -111,13 +111,19 @@ public class SecurityConfig {
                     "script-src 'self' https://js.stripe.com https://www.paypal.com; " +
                     "style-src 'self' 'unsafe-inline'; " +
                     "img-src 'self' data: https://*.r2.dev; " +
-                    "connect-src 'self' https://api.stripe.com https://www.paypal.com; " +
+                    "connect-src 'self' wss: https://api.stripe.com https://www.paypal.com; " +
                     "frame-src https://js.stripe.com https://www.paypal.com; " +
+                    "font-src 'self'; " +
                     "object-src 'none'; " +
-                    "base-uri 'self'"
+                    "base-uri 'self'; " +
+                    "form-action 'self'; " +
+                    "frame-ancestors 'none'; " +
+                    "upgrade-insecure-requests"
                 ))
                 .referrerPolicy(referrer -> referrer.policy(
                     org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .permissionsPolicy(permissions -> permissions.policy(
+                    "camera=(), microphone=(), geolocation=()"))
             )
             .build();
     }
