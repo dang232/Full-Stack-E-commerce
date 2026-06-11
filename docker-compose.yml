@@ -7,7 +7,7 @@ services:
     container_name: vnshop-postgres-legacy
     environment:
       POSTGRES_DB: vnshop
-      POSTGRES_USER: vnshop
+      POSTGRES_USER: ${POSTGRES_USER:-vnshop}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5432:5432"
@@ -29,7 +29,7 @@ services:
     container_name: vnshop-postgres-keycloak
     environment:
       POSTGRES_DB: vnshop_keycloak
-      POSTGRES_USER: vnshop
+      POSTGRES_USER: ${POSTGRES_USER:-vnshop}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     volumes:
       - postgres-keycloak-data:/var/lib/postgresql/data
@@ -50,7 +50,7 @@ services:
     container_name: vnshop-postgres-user
     environment:
       POSTGRES_DB: vnshop_user
-      POSTGRES_USER: vnshop
+      POSTGRES_USER: ${POSTGRES_USER:-vnshop}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5433:5432"
@@ -73,7 +73,7 @@ services:
     container_name: vnshop-postgres-product
     environment:
       POSTGRES_DB: vnshop_product
-      POSTGRES_USER: vnshop
+      POSTGRES_USER: ${POSTGRES_USER:-vnshop}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5434:5432"
@@ -96,7 +96,7 @@ services:
     container_name: vnshop-postgres-order
     environment:
       POSTGRES_DB: vnshop_order
-      POSTGRES_USER: vnshop
+      POSTGRES_USER: ${POSTGRES_USER:-vnshop}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5435:5432"
@@ -119,7 +119,7 @@ services:
     container_name: vnshop-postgres-payment
     environment:
       POSTGRES_DB: vnshop_payment
-      POSTGRES_USER: vnshop
+      POSTGRES_USER: ${POSTGRES_USER:-vnshop}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5436:5432"
@@ -142,7 +142,7 @@ services:
     container_name: vnshop-postgres-inventory
     environment:
       POSTGRES_DB: vnshop_inventory
-      POSTGRES_USER: vnshop
+      POSTGRES_USER: ${POSTGRES_USER:-vnshop}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vnshop}
     ports:
       - "5437:5432"
@@ -342,7 +342,7 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: vnshop
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-vnshop}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-vnshop123}
       MONGO_INITDB_DATABASE: notification_db
     volumes:
@@ -442,8 +442,8 @@ services:
     container_name: vnshop-keycloak
     command: ["start-dev", "--import-realm"]
     environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:-admin}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/vnshop_keycloak
       KC_DB_SCHEMA: keycloak
@@ -585,7 +585,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-vnshop123}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_ROOT_URL: http://localhost:3001
@@ -1328,8 +1328,8 @@ services:
     environment:
       DATABASE_URL: postgres://unleash:${UNLEASH_DB_PASSWORD:-unleash123}@postgres-unleash:5432/unleash
       DATABASE_SSL: "false"
-      INIT_ADMIN_API_TOKENS: "*:*.unleash-insecure-admin-api-token"
-      INIT_CLIENT_API_TOKENS: "default:development.unleash-insecure-client-token"
+      INIT_ADMIN_API_TOKENS: ${UNLEASH_ADMIN_API_TOKEN:-*:*.unleash-insecure-admin-api-token}
+      INIT_CLIENT_API_TOKENS: ${UNLEASH_CLIENT_API_TOKEN:-default:development.unleash-insecure-client-token}
     depends_on:
       postgres-unleash:
         condition: service_healthy
