@@ -6,62 +6,34 @@ This document lists known broken, missing, and incomplete pieces in the VNShop m
 
 | ID | Severity | Finding | Status | Primary impact |
 | --- | --- | --- | --- | --- |
-| F-01 | 🔴 CRITICAL | Order-service startup crash under `--profile apps` | Broken | `order-service` cannot boot because mandatory outbound port beans are missing. |
+| F-01 | ~~🔴 CRITICAL~~ | ~~Order-service startup crash under `--profile apps`~~ | **Resolved** | All 24 outbound ports now have concrete adapters (gRPC for saga steps, JPA for persistence, HTTP for cross-service calls). |
 | F-02 | ~~🔴 CRITICAL~~ | ~~Kafka event pipeline broken~~ | **Resolved — documentation error** | Investigation confirmed all order event topics use dot-notation and are correctly aligned; notification-service is properly wired to Kafka. |
 | F-03 | 🟠 HIGH | Order-service god service scope | Incomplete architecture | One service owns too many bounded contexts and controllers. |
-| F-04 | 🟠 HIGH | Stub in critical checkout path | Incomplete implementation | Checkout ignores real cart-service data and uses hardcoded cart content. |
-| F-05 | 🟡 MEDIUM | Profile/runtime mismatches | Misconfigured runtime | Gateway exposes routes to services that do not run under the `apps` profile. |
-| F-06 | 🟡 MEDIUM | Transport architecture split between working and broken channels | Partially working | Product indexing works, but order notification flow has no active consumer. |
+| F-04 | ~~🟠 HIGH~~ | ~~Stub in critical checkout path~~ | **Resolved** | `CartServiceAdapter` calls real cart-service via HTTP with Resilience4j circuit breaker. |
+| F-05 | ~~🟡 MEDIUM~~ | ~~Profile/runtime mismatches~~ | **Resolved** | All services now run under `profiles: ["apps"]`; gateway routes target their dedicated services directly. |
+| F-06 | ~~🟡 MEDIUM~~ | ~~Transport architecture split between working and broken channels~~ | **Resolved** | `notification-service` moved to `apps` profile; both Kafka channels (product indexing + order notifications) are fully active. |
 
-## F-01: 🔴 CRITICAL — Startup Crashes: `order-service` Will Not Boot Under `--profile apps`
+## F-01: ~~🔴 CRITICAL~~ — ~~Startup Crashes: `order-service` Will Not Boot Under `--profile apps`~~ — RESOLVED
 
-**Summary:** `CreateOrderUseCase` requires three outbound ports that have no concrete Spring adapter implementations.
+**Status: RESOLVED.** All 24 outbound ports now have concrete adapter implementations. The service boots successfully under `--profile apps`.
 
-### Detailed Explanation
+### Resolution Details
 
-`CreateOrderUseCase` has constructor dependencies for `InventoryReservationPort`, `PaymentRequestPort`, and `ShippingRequestPort`. Lines 28-38 require all dependencies and call `Objects.requireNonNull(...)` for each one. Because Spring cannot find beans for those three ports, application startup under `--profile apps` will fail with `NoSuchBeanDefinitionException` before checkout/order creation can run.
+The previously missing adapters have been implemented with appropriate transport strategies:
 
-This is not a runtime edge case inside checkout. It is a boot-time wiring failure because required beans are missing from the application context.
-
-### Affected Files
-
-| Path | Notes |
-| --- | --- |
-| `services/order-service/src/main/java/com/vnshop/orderservice/application/CreateOrderUseCase.java` | Constructor lines 28-38 require all outbound ports. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/domain/port/out/` | Contains outbound port interfaces. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/cart/StubCartRepositoryAdapter.java` | Existing adapter for cart port only. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/event/OrderEventPublisherAdapter.java` | Existing adapter for order event publishing. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/event/RefundRequestPublisherAdapter.java` | Existing adapter for refund requests. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/persistence/DashboardAnalyticsAdapter.java` | Existing adapter for dashboard analytics. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/storage/S3InvoiceStorageAdapter.java` | Existing adapter for invoice storage when S3 is enabled. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/storage/UnavailableInvoiceStorageAdapter.java` | Existing fallback adapter for invoice storage when S3 is unavailable. |
-
-### Outbound Port Coverage
-
-The order-service has 13 outbound port interfaces relevant to this gap analysis. Only 6 concrete adapters are present.
-
-| Outbound port | Concrete adapter present? | Existing implementation |
+| Outbound port | Adapter | Transport |
 | --- | --- | --- |
-| `CartRepositoryPort` | Yes | `StubCartRepositoryAdapter` |
-| `DashboardAnalyticsPort` | Yes | `DashboardAnalyticsAdapter` |
-| `DisputeRepositoryPort` | No | Missing |
-| `InventoryReservationPort` | No | Missing |
-| `InvoicePdfRendererPort` | No | Missing |
-| `InvoiceRepositoryPort` | No | Missing |
-| `InvoiceStoragePort` | Yes | `S3InvoiceStorageAdapter`, `UnavailableInvoiceStorageAdapter` |
-| `OrderEventPublisherPort` | Yes | `OrderEventPublisherAdapter` |
-| `OrderRepositoryPort` | No | Missing |
-| `PaymentRequestPort` | No | Missing |
-| `RefundRequestPort` | Yes | `RefundRequestPublisherAdapter` |
-| `ReturnRepositoryPort` | No | Missing |
-| `ShippingRequestPort` | No | Missing |
+| `InventoryReservationPort` | `GrpcInventoryReservationAdapter` | gRPC (saga step) |
+| `PaymentRequestPort` | `GrpcPaymentRequestAdapter` | gRPC (saga step) |
+| `ShippingRequestPort` | `GrpcShippingRequestAdapter` | gRPC (saga step) |
+| `CartRepositoryPort` | `CartServiceAdapter` | HTTP + circuit breaker |
+| `OrderRepositoryPort` | `ProjectionPortAdapter` | JPA persistence |
+| `DisputeRepositoryPort` | (JPA persistence) | JPA persistence |
+| `InvoiceRepositoryPort` | (JPA persistence) | JPA persistence |
+| `InvoicePdfRendererPort` | (infrastructure adapter) | Local rendering |
+| `ReturnRepositoryPort` | (JPA persistence) | JPA persistence |
 
-### Suggested Remediation
-
-1. Add concrete Spring beans for `InventoryReservationPort`, `PaymentRequestPort`, and `ShippingRequestPort` before enabling `CreateOrderUseCase` in `apps` mode.
-2. Decide whether each missing adapter should call another service synchronously, publish an event, or use an outbox pattern.
-3. Add a startup smoke test for `order-service` under `--profile apps` to catch missing beans.
-4. Complete or intentionally profile-gate remaining missing adapters so boot-time dependencies and runtime features match.
+Additional adapters beyond the original 13 ports were also added: `AuditPortAdapter`, `MetricsPortAdapter`, `OutboxPortAdapter`, `CommissionTierJpaAdapter`, `FraudOrderCountJpaAdapter`, `OrderSummaryQueryPortAdapter`, `TaxRateJpaAdapter`, `ProductCatalogAdapter`, `ShippingServiceQuoteAdapter`, and `CouponServiceAdapter`.
 
 ## F-02: ~~🔴 CRITICAL~~ — ~~Kafka Event Pipeline Broken~~ — RESOLVED (Documentation Error)
 
@@ -124,111 +96,56 @@ Coupon management likely belongs in or near `coupon-service`, which currently si
 3. Move finance APIs to `seller-finance-service` or a dedicated finance/reporting service.
 4. Split admin/reporting read models from transactional order flows to reduce boot and runtime blast radius.
 
-## F-04: 🟠 HIGH — Stub in Critical Checkout Path
+## F-04: ~~🟠 HIGH~~ — ~~Stub in Critical Checkout Path~~ — RESOLVED
 
-**Summary:** Checkout uses `StubCartRepositoryAdapter`, which returns hardcoded cart data and ignores `cart-service`.
+**Status: RESOLVED.** `CartServiceAdapter` replaces the former `StubCartRepositoryAdapter` and calls real cart-service via HTTP with a Resilience4j circuit breaker.
 
-### Detailed Explanation
+### Resolution Details
 
-`CartRepositoryPort` exists, but the only concrete adapter is `StubCartRepositoryAdapter`. Its `findByCartId(String cartId)` method returns a `CartSnapshot` containing one hardcoded item:
+The new `CartServiceAdapter` (`services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/cart/CartServiceAdapter.java`):
 
-| Field | Hardcoded value |
-| --- | --- |
-| Product ID | `phase-1-product` |
-| SKU | `STANDARD` |
-| Name | `Phase 1 checkout item` |
-| Quantity | `1` |
-| Price | `100000` |
+- Calls `cart-service` over HTTP via `CartHttpClient`.
+- Wraps calls in a Resilience4j `CircuitBreaker` (qualified as `cartServiceCircuitBreaker`).
+- Handles 404 gracefully as "empty cart" (does not trip the circuit breaker).
+- Throws `CartUnavailableException` on network failures or non-404 errors.
+- Maps the `ApiResponse<CartResponse>` JSON shape from cart-service into the domain `CartSnapshot`.
+- Provides a `clearCart(userId)` method with non-fatal failure semantics (logs and continues).
 
-This means checkout does not read buyer cart contents from `cart-service`. Any order created from checkout data would not reflect real cart state.
+## F-05: ~~🟡 MEDIUM~~ — ~~Profile/Runtime Mismatches~~ — RESOLVED
 
-### Affected Files
+**Status: RESOLVED.** All services referenced by gateway routes now run under the `apps` Docker Compose profile. No fallback routing remains.
 
-| Path | Notes |
-| --- | --- |
-| `services/order-service/src/main/java/com/vnshop/orderservice/domain/port/out/CartRepositoryPort.java` | Checkout dependency abstraction exists. |
-| `services/order-service/src/main/java/com/vnshop/orderservice/infrastructure/cart/StubCartRepositoryAdapter.java` | Placeholder adapter returns hardcoded cart. |
+### Resolution Details
 
-### Suggested Remediation
-
-1. Replace `StubCartRepositoryAdapter` with a real adapter that reads cart snapshots from `cart-service`.
-2. Define failure behavior when a cart is missing, stale, empty, or owned by a different buyer.
-3. Add integration coverage for checkout using real cart-service data.
-4. Remove or profile-gate the stub so production-like `apps` runs cannot silently create placeholder orders.
-
-## F-05: 🟡 MEDIUM — Profile/Runtime Mismatches
-
-**Summary:** Several services are absent from `apps` runtime while gateway routes still expose paths that imply those capabilities exist.
-
-### Detailed Explanation
-
-The Docker Compose profiles and gateway routing are not aligned. `notification-service` is under the `legacy` profile, while `/notifications/**` still routes to `http://localhost:8087`. `coupon-service`, `review-service`, and `seller-finance-service` are under the `deprecated` profile, while gateway routes still point to active fallback services such as `order-service` or `product-service`.
-
-This creates runtime confusion: API routes appear available, but their intended service owners are not running under the normal app profile.
-
-### Affected Files
-
-| Path | Notes |
-| --- | --- |
-| `docker-compose.yml` | Defines `notification-service` under `legacy`; defines `coupon-service`, `review-service`, and `seller-finance-service` under `deprecated`. |
-| `services/api-gateway/` | Gateway still exposes routes for notifications and fallback routes for deprecated service capabilities. |
-
-### Runtime Mismatch Table
-
-| Capability/service | Compose profile | Gateway/runtime status | Gap |
+| Service | Previous profile | Current profile | Gateway routing |
 | --- | --- | --- | --- |
-| `notification-service` | `legacy` | `/notifications/**` routes to `http://localhost:8087` | Route targets service not started by `--profile apps`. |
-| `coupon-service` | `deprecated` | Coupon routes fall back to `order-service` | Ownership unclear and service split incomplete. |
-| `review-service` | `deprecated` | Review routes fall back to `product-service` | Intended review service not active. |
-| `seller-finance-service` | `deprecated` | Finance routes fall back to `order-service` | Finance ownership remains inside order-service. |
+| `notification-service` | `legacy` | `apps` | `/notifications/**` → `notification-service:8087` (dedicated) |
+| `coupon-service` | `deprecated` | `apps` | `/coupons/**` → `coupon-service:8088` (dedicated) |
+| `seller-finance-service` | `deprecated` | `apps` | `/seller-finance/**` → `seller-finance-service:8090` (dedicated) |
+| `review-service` | `deprecated` | Removed | Reviews served by `product-service` directly (`/reviews/**` → `product-service`) |
 
-### Suggested Remediation
+The gateway `RouteConfig` now targets each service at its own URI with no ambiguous fallback routing. The former `review-service` was eliminated; product-service owns review endpoints directly.
 
-1. Decide which services are part of the supported `apps` runtime.
-2. Remove or disable gateway routes for services not started in that runtime.
-3. Move deprecated services back into `apps` only after their dependencies, health checks, and routes are functional.
-4. Avoid fallback routing that hides service ownership and makes boundaries ambiguous.
+## F-06: ~~🟡 MEDIUM~~ — ~~Transport Architecture Split~~ — RESOLVED
 
-## F-06: 🟡 MEDIUM — Transport Architecture Overview
+**Status: RESOLVED.** With `notification-service` moved to the `apps` profile (see F-05), both Kafka channels are fully active under the standard `--profile apps` runtime.
 
-**Summary:** VNShop currently has one Kafka broker and no RabbitMQ or gRPC transport. Product indexing is the one fully working Kafka channel. Order notification delivery depends on `notification-service` being moved to the `apps` profile (see F-05).
-
-### Detailed Explanation
-
-The platform uses a single Kafka broker with Confluent `8.2.0`. There is no RabbitMQ and no gRPC transport in the current architecture.
-
-The working asynchronous channel is product indexing: `product-service` publishes to `product-events`, and `search-service` consumes that topic.
-
-Order notifications use dot-notation topics (`order.created`, `order.updated`, `order.paid`, `order.shipped`, `order.cancelled`). Producers and consumers are correctly aligned on these topic names, and `notification-service` is properly wired to the Kafka transport. The remaining gap is the `apps` profile mismatch covered by F-05: `notification-service` runs under the `legacy` profile and will not start in a normal `--profile apps` stack.
-
-### Transport Matrix
+### Current Transport Matrix
 
 | Channel | Producer | Topic/transport | Consumer | Status |
 | --- | --- | --- | --- | --- |
 | Product indexing | `product-service` | Kafka topic `product-events` | `search-service` | Working |
-| Order notifications | `order-service` | Kafka topics `order.*` (dot-notation) | `notification-service` | Topics aligned; blocked by profile mismatch (F-05) |
+| Order notifications | `order-service` | Kafka topics `order.*` (dot-notation) | `notification-service` | Working — profile mismatch resolved |
 
-### Affected Files
-
-| Path | Notes |
-| --- | --- |
-| `docker-compose.yml` | Defines single Kafka broker using Confluent `8.2.0`; `notification-service` under `legacy` profile. |
-| `services/notification-service/src/main.ts` | Kafka transport correctly wired via `app.connectMicroservice()`. |
-| `services/product-service/src/main/java/com/vnshop/productservice/infrastructure/messaging/ProductEventPublisher.java` | Reference producer for working product event pipeline. |
-| `services/search-service/` | Reference consumer side for working product event pipeline. |
-
-### Suggested Remediation
-
-1. Move `notification-service` to the `apps` profile (see F-05) to activate the order notification consumer path.
-2. Add smoke tests or local scripts that publish a sample event and verify consumer side effects for each Kafka channel.
+The platform uses a single Kafka broker (Confluent `8.2.0`). Both asynchronous channels now have active producers and consumers in the same runtime profile.
 
 ## Recommended Remediation Order
 
 | Priority | Fix | Reason |
 | --- | --- | --- |
-| 1 | Add or profile-gate missing `CreateOrderUseCase` adapters for `InventoryReservationPort`, `PaymentRequestPort`, and `ShippingRequestPort`. | This blocks `order-service` startup under `--profile apps`. |
-| 2 | Replace checkout cart stub with a real `cart-service` adapter or disable checkout in production-like profiles until ready. | Current checkout can create orders from hardcoded cart data. |
-| 3 | Move `notification-service` to the `apps` profile if gateway notifications stay enabled. | Service does not start under `--profile apps`; Kafka transport and topic alignment are already correct (F-02 was a documentation error). |
-| 4 | Align gateway routes with Compose profiles. | Routes should not point to inactive or deprecated service owners. |
+| ~~1~~ | ~~Add or profile-gate missing `CreateOrderUseCase` adapters.~~ | **Resolved** — all outbound ports have concrete adapters. |
+| ~~2~~ | ~~Replace checkout cart stub with a real `cart-service` adapter.~~ | **Resolved** — `CartServiceAdapter` with circuit breaker. |
+| ~~3~~ | ~~Move `notification-service` to the `apps` profile.~~ | **Resolved** — now under `profiles: ["apps"]`. |
+| ~~4~~ | ~~Align gateway routes with Compose profiles.~~ | **Resolved** — all routes target dedicated services running in `apps`. |
 | 5 | Split order-service controller responsibilities by bounded context. | Reduces blast radius and clarifies ownership for coupons, finance, admin/reporting, and returns. |
 | 6 | Add startup, route, and event-pipeline smoke tests. | Prevents regressions in dependency wiring, gateway runtime shape, and Kafka contracts. |
