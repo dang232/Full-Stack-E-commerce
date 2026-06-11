@@ -2,6 +2,11 @@ server:
   port: 8094
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAdminAutoConfiguration
   threads:
     virtual:
       enabled: true
@@ -29,12 +34,14 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     properties:
-      security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_SSL}
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
       sasl.mechanism: PLAIN
       sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-recommendations}" password="${KAFKA_SASL_PASSWORD:recommendations-secret-change-me}";
-      ssl.truststore.location: ${KAFKA_SSL_TRUSTSTORE_LOCATION:/etc/kafka/secrets/kafka.truststore.jks}
-      ssl.truststore.password: ${KAFKA_SSL_TRUSTSTORE_PASSWORD:kafka-ssl-dev-password}
-      ssl.endpoint.identification.algorithm: https
+    admin:
+      properties:
+        security.protocol: ${KAFKA_SECURITY_PROTOCOL:SASL_PLAINTEXT}
+        sasl.mechanism: PLAIN
+        sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:svc-recommendations}" password="${KAFKA_SASL_PASSWORD:recommendations-secret-change-me}";
     consumer:
       group-id: recommendations-service
       auto-offset-reset: latest
@@ -58,11 +65,19 @@ vnshop:
 kafka:
   health:
     consumer:
-      enabled: true
+      enabled: false
       lag-threshold: 1000
       group-id: recommendations-service
 
+logging:
+  level:
+    org.apache.kafka.clients.admin: OFF
+    org.apache.kafka.clients.NetworkClient: WARN
+
 management:
+  health:
+    kafka:
+      enabled: false
   endpoints:
     web:
       exposure:
@@ -72,8 +87,9 @@ management:
       probes:
         enabled: true
       show-details: when_authorized
+      validate-group-membership: false
       group:
         readiness:
-          include: readinessState,db,kafka
+          include: readinessState,db
         liveness:
           include: livenessState
