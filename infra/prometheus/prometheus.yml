@@ -34,22 +34,22 @@ scrape_configs:
   - job_name: 'vnshop-search-service'
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ['search-service:8084']
+      - targets: ['search-service:8086']
 
   - job_name: 'vnshop-order-service'
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ['order-service:8086']
+      - targets: ['order-service:8091']
 
   - job_name: 'vnshop-payment-service'
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ['payment-service:8087']
+      - targets: ['payment-service:8092']
 
   - job_name: 'vnshop-shipping-service'
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ['shipping-service:8089']
+      - targets: ['shipping-service:8093']
 
   - job_name: 'vnshop-seller-finance-service'
     metrics_path: /actuator/prometheus

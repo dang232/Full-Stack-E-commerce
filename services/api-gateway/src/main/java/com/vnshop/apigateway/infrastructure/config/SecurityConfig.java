@@ -15,8 +15,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -75,10 +73,7 @@ public class SecurityConfig {
             // the security chain explicitly makes that filter contribute
             // its headers before the chain finishes.
             .cors(org.springframework.security.config.Customizer.withDefaults())
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-                .requireCsrfProtectionMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, "/auth/refresh"))
-            )
+            .csrf(csrf -> csrf.disable())
             .authorizeExchange(exchanges -> exchanges
                 // Browsers send a no-auth OPTIONS preflight before any
                 // cross-origin POST/PUT — permit it on every path so the
@@ -97,7 +92,7 @@ public class SecurityConfig {
                 // downstream messaging-service verifies the token itself via
                 // WsJwtVerifier before binding the socket to a user.
                 .pathMatchers("/ws/messaging").permitAll()
-                .pathMatchers("/actuator/health", "/actuator/info").permitAll()
+                .pathMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                 .pathMatchers("/admin/**").hasRole("ADMIN")
                 .pathMatchers("/seller/**", "/sellers/me/**").hasRole("SELLER")
                 .anyExchange().authenticated()
@@ -147,7 +142,7 @@ public class SecurityConfig {
         return roles.stream()
             .filter(String.class::isInstance)
             .map(String.class::cast)
-            .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+            .map(role -> role.startsWith("ROLE_") ? role.toUpperCase() : ("ROLE_" + role).toUpperCase())
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toSet());
     }
