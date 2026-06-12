@@ -10,24 +10,29 @@ import java.util.UUID;
 
 @Repository
 public class ReturnJpaRepository implements ReturnRepositoryPort {
-    private final ReturnJpaSpringDataRepository springDataRepository;
+ private final ReturnJpaSpringDataRepository springDataRepository;
 
-    public ReturnJpaRepository(ReturnJpaSpringDataRepository springDataRepository) {
-        this.springDataRepository = springDataRepository;
-    }
+ public ReturnJpaRepository(ReturnJpaSpringDataRepository springDataRepository) {
+ this.springDataRepository = springDataRepository;
+  }
 
-    @Override
-    public Return save(Return orderReturn) {
-        return springDataRepository.save(ReturnJpaEntity.fromDomain(orderReturn)).toDomain();
-    }
+ @Override
+ public Return save(Return orderReturn) {
+ return springDataRepository.save(ReturnJpaEntity.fromDomain(orderReturn)).toDomain();
+ }
 
-    @Override
-    public Optional<Return> findById(UUID returnId) {
-        return springDataRepository.findById(returnId).map(ReturnJpaEntity::toDomain);
-    }
+ @Override
+ public Optional<Return> findById(UUID returnId) {
+ return springDataRepository.findById(returnId).map(ReturnJpaEntity::toDomain);
+ }
 
-    @Override
-    public List<Return> findByBuyerId(String buyerId) {
-        return springDataRepository.findByBuyerId(buyerId).stream().map(ReturnJpaEntity::toDomain).toList();
-    }
+ @Override
+  public List<Return> findByBuyerId(String buyerId) {
+ return springDataRepository.findByBuyerId(buyerId).stream().map(ReturnJpaEntity::toDomain).toList();
+ }
+
+ @Override
+ public Optional<Return> findBySubOrderId(Long subOrderId) {
+ return springDataRepository.findBySubOrderId(subOrderId).map(ReturnJpaEntity::toDomain);
+ }
 }

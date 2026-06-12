@@ -7,7 +7,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 
 /**
  * Resolves a rate-limit key from the incoming exchange.
@@ -45,13 +44,8 @@ public class TieredKeyResolver implements KeyResolver {
     }
 
     private String resolveClientIp(ServerWebExchange exchange) {
-        List<String> forwarded = exchange.getRequest().getHeaders().get("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isEmpty()) {
-            String first = forwarded.get(0);
-            // X-Forwarded-For may be "client, proxy1, proxy2" — take the leftmost value
-            int comma = first.indexOf(',');
-            return (comma > 0 ? first.substring(0, comma) : first).trim();
-        }
+        // Use the actual TCP connection IP — never trust X-Forwarded-For from clients
+        // as it is trivially spoofable and enables rate-limit bypass.
         InetSocketAddress remote = exchange.getRequest().getRemoteAddress();
         return remote != null ? remote.getAddress().getHostAddress() : "unknown";
     }

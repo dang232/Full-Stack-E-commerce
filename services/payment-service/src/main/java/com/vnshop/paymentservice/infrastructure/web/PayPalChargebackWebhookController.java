@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
@@ -30,6 +32,9 @@ public class PayPalChargebackWebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(PayPalChargebackWebhookController.class);
     private static final String DISPUTE_CREATED = "CUSTOMER.DISPUTE.CREATED";
+
+    @Value("${payment.paypal.webhook-id:}")
+    private String paypalWebhookId;
 
     private final ChargebackService chargebackService;
     private final WebhookIdempotencyService webhookIdempotencyService;
@@ -49,6 +54,17 @@ public class PayPalChargebackWebhookController {
             log.warn("paypal-chargeback-webhook-missing-auth-algo");
             return ResponseEntity.badRequest().body(ApiResponse.error("missing auth header", "BAD_SIGNATURE"));
         }
+
+        // Fail closed: reject all webhooks if webhook-id is not configured
+        if (paypalWebhookId == null || paypalWebhookId.isBlank()) {
+            log.error("PayPal webhook-id not configured — rejecting all chargeback webhooks. Set payment.paypal.webhook-id property.");
+            return ResponseEntity.status(503).body(ApiResponse.error("webhook verification unavailable", "CONFIG_ERROR"));
+        }
+
+        // TODO: Implement full signature verification via PayPal Notifications Verify Webhook Signature API
+        // (POST https://api-m.paypal.com/v1/notifications/verify-webhook-signature)
+        // For now, log a warning that signature is not cryptographically verified
+        log.warn("paypal-chargeback-webhook: signature present but not cryptographically verified — implement full verification");
 
         String eventType = payload.getOrDefault("event_type", "").toString();
         String eventId = Objects.toString(payload.get("id"), "");

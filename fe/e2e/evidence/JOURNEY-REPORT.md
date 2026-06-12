@@ -1,15 +1,14 @@
 # VNShop Journey — End-to-End Business Outcome Report
 
-**Generated:** 2026-06-09T18:58:24.040Z
+**Generated:** 2026-06-11T23:57:22.536Z
 
 This report aggregates every chapter of the BA-grade persona journey. Each row is a single business outcome the platform must support; columns map to the chapter and persona that exercises it.
 
-## Journey verdict: FAIL
+## Journey verdict: BLOCKED
 
-- **Acceptance criteria passed:** 4 / 18
+- **Acceptance criteria passed:** 3 / 18
 - **Chapters run:** 6 of 6
-- **Failed:** AC-2.4 (A product the buyer can browse via /products is also discoverable via /search within 30 s — proves the kafka product-event → search-index projection is live)
-- **Blocked:** AC-3.1, AC-4.1, AC-5.1, AC-6.1
+- **Blocked:** AC-2.1, AC-3.1, AC-4.1, AC-5.1, AC-6.1
 
 ## Chapter 1 — Admin onboards the marketplace — PASS
 
@@ -21,16 +20,16 @@ Persona: admin. Detail: [`journey/01-admin-onboards/REPORT.md`](journey/01-admin
 | AC-1.2 | An approved seller appears in the public sellers list within 30 s | PASS |
 | AC-1.3 | Admin can publish a fixed-discount coupon that is immediately redeemable at checkout | PASS |
 
-## Chapter 2 — Buyer discovers and orders — FAIL
+## Chapter 2 — Buyer discovers and orders — BLOCKED
 
 Persona: buyer. Detail: [`journey/02-buyer-orders/REPORT.md`](journey/02-buyer-orders/REPORT.md).
 
 | AC | Outcome | Status |
 |---|---|---|
-| AC-2.1 | A new visitor can register and start shopping in a single browser session | PASS |
+| AC-2.1 | A new visitor can register and start shopping in a single browser session | BLOCKED |
 | AC-2.2 | A coupon applied at checkout reduces the order total by exactly the published discount | NOT_RUN |
 | AC-2.3 | A placed COD order is visible in the buyer's order history within 30 s | NOT_RUN |
-| AC-2.4 | A product the buyer can browse via /products is also discoverable via /search within 30 s — proves the kafka product-event → search-index projection is live | FAIL |
+| AC-2.4 | A product the buyer can browse via /products is also discoverable via /search within 30 s — proves the kafka product-event → search-index projection is live | NOT_RUN |
 
 ## Chapter 3 — Seller fulfills the order — BLOCKED
 

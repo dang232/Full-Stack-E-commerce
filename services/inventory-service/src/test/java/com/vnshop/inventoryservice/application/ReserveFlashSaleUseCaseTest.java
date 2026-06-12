@@ -8,6 +8,7 @@ import com.vnshop.inventoryservice.domain.port.out.FlashSaleReservationPort;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
@@ -76,11 +77,33 @@ class ReserveFlashSaleUseCaseTest {
 		assertThat(port.released).isEmpty();
 	}
 
+	@Test
+	void throwsDuplicateExceptionWhenBuyerAlreadyHasActiveReservation() {
+		var port = new InMemoryFlashSaleReservationPort(true, 5);
+		port.activeReservations.add("product-1:buyer-1");
+		var useCase = new ReserveFlashSaleUseCase(port);
+
+		assertThatThrownBy(() -> useCase.reserveReservation(new ReserveFlashSaleCommand("product-1", "buyer-1", 1)))
+				.isInstanceOf(DuplicateFlashSaleReservationException.class);
+	}
+
+	@Test
+	void allowsReservationWhenBuyerHasNoActiveReservationForProduct() {
+		var port = new InMemoryFlashSaleReservationPort(true, 5);
+		port.activeReservations.add("product-1:buyer-2");
+		var useCase = new ReserveFlashSaleUseCase(port);
+
+		FlashSaleReservation reservation = useCase.reserveReservation(new ReserveFlashSaleCommand("product-1", "buyer-1", 1));
+
+		assertThat(reservation.getStatus()).isEqualTo(FlashSaleReservation.Status.RESERVED);
+	}
+
 	private static final class InMemoryFlashSaleReservationPort implements FlashSaleReservationPort {
 		private final boolean reserveResult;
 		private final long stock;
 		private final Map<UUID, FlashSaleReservation> reservations = new ConcurrentHashMap<>();
 		final java.util.List<UUID> released = new java.util.ArrayList<>();
+		final Set<String> activeReservations = ConcurrentHashMap.newKeySet();
 
 		private InMemoryFlashSaleReservationPort(boolean reserveResult, long stock) {
 			this.reserveResult = reserveResult;
@@ -110,6 +133,11 @@ class ReserveFlashSaleUseCaseTest {
 		@Override
 		public long getStock(String productId) {
 			return stock;
+		}
+
+		@Override
+		public boolean hasActiveReservation(String productId, String buyerId) {
+			return activeReservations.contains(productId + ":" + buyerId);
 		}
 	}
 }

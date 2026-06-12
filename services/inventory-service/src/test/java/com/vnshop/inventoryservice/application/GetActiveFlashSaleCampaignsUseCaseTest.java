@@ -138,5 +138,10 @@ class GetActiveFlashSaleCampaignsUseCaseTest {
         public long getStock(String productId) {
             return stockByProduct.getOrDefault(productId, 0L);
         }
+
+        @Override
+        public boolean hasActiveReservation(String productId, String buyerId) {
+            return false;
+        }
     }
 }

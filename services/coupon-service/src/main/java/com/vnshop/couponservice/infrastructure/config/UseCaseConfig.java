@@ -7,6 +7,7 @@ import com.vnshop.couponservice.application.ListCouponsUseCase;
 import com.vnshop.couponservice.application.UpdateCouponUseCase;
 import com.vnshop.couponservice.application.ValidateCouponUseCase;
 import com.vnshop.couponservice.domain.port.out.CouponRepository;
+import com.vnshop.couponservice.domain.port.out.CouponUsagePort;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,8 +47,8 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public ApplyCouponUseCase applyCouponUseCase(CouponRepository repository) {
-        return new ApplyCouponUseCase(repository);
+    public ApplyCouponUseCase applyCouponUseCase(CouponRepository repository, CouponUsagePort usagePort) {
+        return new ApplyCouponUseCase(repository, usagePort);
     }
 
     @Bean

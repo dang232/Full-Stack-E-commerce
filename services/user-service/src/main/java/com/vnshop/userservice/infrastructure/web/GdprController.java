@@ -24,7 +24,7 @@ public class GdprController {
     }
 
     @PostMapping("/export/{userId}")
-    @PreAuthorize("#userId == authentication.name or hasRole('admin')")
+    @PreAuthorize("#userId == authentication.name or hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> requestExport(@PathVariable String userId) {
         try {
             String requestId = exportUseCase.initiateExport(userId);
@@ -38,7 +38,7 @@ public class GdprController {
     }
 
     @GetMapping("/export/{userId}/status/{requestId}")
-    @PreAuthorize("#userId == authentication.name or hasRole('admin')")
+    @PreAuthorize("#userId == authentication.name or hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getExportStatus(
             @PathVariable String userId, @PathVariable String requestId) {
         try {
@@ -56,7 +56,7 @@ public class GdprController {
     }
 
     @DeleteMapping("/delete/{userId}")
-    @PreAuthorize("#userId == authentication.name or hasRole('admin')")
+    @PreAuthorize("#userId == authentication.name or hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> requestDeletion(@PathVariable String userId) {
         try {
             String requestId = deleteUseCase.initiateDelete(userId);

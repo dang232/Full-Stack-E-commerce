@@ -103,6 +103,11 @@ public class RedisLuaFlashSaleGateway implements FlashSaleReservationPort {
 		return stock == null ? 0 : Long.parseLong(stock);
 	}
 
+	@Override
+	public boolean hasActiveReservation(String productId, String buyerId) {
+		return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(waitingSetKey(productId), buyerId));
+	}
+
 	@Scheduled(fixedDelayString = "PT1M")
 	public void releaseExpiredReservations() {
 		var dueReservations = redisTemplate.opsForZSet().rangeByScore(EXPIRATION_INDEX, 0, Instant.now().toEpochMilli());

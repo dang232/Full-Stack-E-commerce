@@ -19,6 +19,7 @@ import com.vnshop.userservice.domain.port.out.ObjectStoragePort;
 import com.vnshop.userservice.domain.port.out.SellerStatsPort;
 import com.vnshop.userservice.domain.port.out.UserRepositoryPort;
 import com.vnshop.userservice.domain.port.out.WishlistRepositoryPort;
+import com.vnshop.userservice.infrastructure.keycloak.KeycloakAdminClient;
 import com.vnshop.userservice.infrastructure.keycloak.KeycloakTokenClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +27,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class UseCaseConfig {
     @Bean
-    AdminUserUseCase adminUserUseCase(UserRepositoryPort userRepositoryPort) {
-        return new AdminUserUseCase(userRepositoryPort);
+    AdminUserUseCase adminUserUseCase(UserRepositoryPort userRepositoryPort, KeycloakAdminClient keycloakAdminClient) {
+        return new AdminUserUseCase(userRepositoryPort, keycloakAdminClient);
     }
 
     @Bean

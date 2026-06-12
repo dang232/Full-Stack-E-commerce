@@ -119,6 +119,7 @@ class ReviewImageUploadServiceTest {
         @Override public List<Review> findByProductId(String productId) { return List.of(); }
         @Override public List<Review> findByBuyerId(String buyerId) { return List.of(); }
         @Override public List<Review> findByStatus(ReviewStatus status) { return List.of(); }
+        @Override public boolean existsByProductIdAndBuyerId(String productId, String buyerId) { return false; }
         @Override public Review moderate(UUID reviewId, ReviewStatus status) { return reviews.get(reviewId).withStatus(status); }
         @Override public ProductQuestion saveQuestion(ProductQuestion question) { return question; }
         @Override public List<ProductQuestion> findQuestionsByProductId(String productId) { return List.of(); }

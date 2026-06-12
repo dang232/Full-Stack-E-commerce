@@ -132,6 +132,40 @@ public class KeycloakAdminClient {
     }
 
     /**
+     * Disable a user in Keycloak (sets enabled=false). Used when an admin
+     * bans a buyer — the user can no longer obtain tokens until re-enabled.
+     */
+    public void disableUser(String userId) {
+        setUserEnabled(userId, false);
+    }
+
+    /**
+     * Re-enable a user in Keycloak (sets enabled=true). Used when an admin
+     * unbans a buyer.
+     */
+    public void enableUser(String userId) {
+        setUserEnabled(userId, true);
+    }
+
+    private void setUserEnabled(String userId, boolean enabled) {
+        String token = adminToken();
+        ObjectNode payload = MAPPER.createObjectNode();
+        payload.put("enabled", enabled);
+        try {
+            http.put()
+                    .uri(baseUrl + "/admin/realms/" + realm + "/users/" + userId)
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(payload.toString())
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpStatusCodeException e) {
+            throw new KeycloakAdminException(e.getStatusCode().value(), "user_update_failed",
+                    parseError(e.getResponseBodyAsString(), "Couldn't update user enabled status"));
+        }
+    }
+
+    /**
      * Trigger Keycloak's standard password-reset email. Resolves the user
      * by email first (Keycloak's execute-actions-email is keyed by user id,
      * not email) and asks Keycloak to email an UPDATE_PASSWORD action token.

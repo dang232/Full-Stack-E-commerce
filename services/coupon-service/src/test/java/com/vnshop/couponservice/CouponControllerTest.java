@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -32,14 +33,17 @@ import org.springframework.test.web.servlet.MvcResult;
  * regardless of which ClientHttpRequestFactoryBuilder variant is on the classpath.
  */
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
+@WithMockUser(roles = "ADMIN")
 @TestPropertySource(properties = {
         "spring.datasource.url=jdbc:h2:mem:coupon_service;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;INIT=CREATE SCHEMA IF NOT EXISTS coupon_svc",
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.flyway.enabled=false"
+        "spring.flyway.enabled=false",
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8085/realms/vnshop",
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration"
 })
 class CouponControllerTest {
     @Autowired
@@ -148,7 +152,7 @@ class CouponControllerTest {
         mockMvc.perform(post("/checkout/apply-coupon")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                Map.of("code", "APPLY-OK", "orderAmount", BigDecimal.valueOf(200)))))
+                                Map.of("code", "APPLY-OK", "orderAmount", BigDecimal.valueOf(200), "userId", "test-user-1"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.code").value("APPLY-OK"))
                 .andExpect(jsonPath("$.data.discount").value(20.0))
@@ -177,7 +181,7 @@ class CouponControllerTest {
         MvcResult result = mockMvc.perform(post("/checkout/apply-coupon")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                Map.of("code", "APPLY-FULL", "orderAmount", BigDecimal.valueOf(200)))))
+                                Map.of("code", "APPLY-FULL", "orderAmount", BigDecimal.valueOf(200), "userId", "test-user-2"))))
                 .andExpect(status().isUnprocessableEntity())
                 .andReturn();
 

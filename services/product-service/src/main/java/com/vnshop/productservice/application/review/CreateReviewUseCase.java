@@ -16,7 +16,13 @@ public class CreateReviewUseCase {
     }
 
     public Review create(CreateReviewCommand command) {
-        boolean verifiedPurchase = buyerIdMatchesOrderHistory(command.buyerId(), command.orderId());
+        if (reviewRepositoryPort.existsByProductIdAndBuyerId(command.productId(), command.buyerId())) {
+            throw new IllegalStateException("You have already reviewed this product");
+        }
+
+        // TODO: Call order-service to verify buyer purchased this product
+        // For now, mark as unverified until cross-service check is implemented
+        boolean verifiedPurchase = false;
         return reviewRepositoryPort.save(Review.pending(
                 command.productId(),
                 command.buyerId(),
@@ -29,6 +35,6 @@ public class CreateReviewUseCase {
     }
 
     private boolean buyerIdMatchesOrderHistory(String buyerId, String orderId) {
-        return true;
+        return false;
     }
 }

@@ -3,6 +3,23 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as Handlebars from 'handlebars';
 
+function escapeHtml(str: string | undefined | null): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sanitizeUrl(url: string | undefined | null): string {
+  if (!url) return '#';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) return trimmed;
+  return '#';
+}
+
 export interface TemplateContext {
   title: string;
   body: string;
@@ -75,12 +92,12 @@ export class TemplateService {
 
   private fallbackHtml(ctx: TemplateContext): string {
     const deepLink = ctx.deepLink
-      ? `<p><a href="${ctx.deepLink}">Xem chi tiết / View details</a></p>`
+      ? `<p><a href="${sanitizeUrl(ctx.deepLink)}">Xem chi tiết / View details</a></p>`
       : '';
     return `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">${ctx.title}</h2>
-        <p style="color: #555; line-height: 1.6;">${ctx.body}</p>
+        <h2 style="color: #333;">${escapeHtml(ctx.title)}</h2>
+        <p style="color: #555; line-height: 1.6;">${escapeHtml(ctx.body)}</p>
         ${deepLink}
         <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
         <p style="color: #999; font-size: 12px;">

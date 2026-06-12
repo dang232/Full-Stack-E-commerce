@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface ReviewRepositoryPort {
     Review save(Review review);
 
+    boolean existsByProductIdAndBuyerId(String productId, String buyerId);
+
     List<Review> findByProductId(String productId);
 
     List<Review> findByBuyerId(String buyerId);

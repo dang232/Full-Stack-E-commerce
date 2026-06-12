@@ -33,6 +33,9 @@ public class ReserveFlashSaleUseCase {
 	}
 
 	FlashSaleReservation reserveReservation(ReserveFlashSaleCommand command) {
+		if (reservationPort.hasActiveReservation(command.productId(), command.buyerId())) {
+			throw new DuplicateFlashSaleReservationException(command.productId(), command.buyerId());
+		}
 		Instant reservedAt = clock.instant();
 		UUID reservationId = UUID.randomUUID();
 		boolean reserved = reservationPort.reserve(command.productId(), command.buyerId(), command.quantity(), reservationId);

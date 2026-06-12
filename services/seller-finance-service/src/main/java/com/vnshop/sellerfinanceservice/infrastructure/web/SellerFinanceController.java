@@ -6,6 +6,7 @@ import com.vnshop.sellerfinanceservice.application.ViewWalletUseCase;
 import com.vnshop.sellerfinanceservice.infrastructure.config.JwtPrincipalUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +27,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/sellers/me/finance")
+@PreAuthorize("hasRole('SELLER')")
 public class SellerFinanceController {
     private final ViewWalletUseCase viewWalletUseCase;
     private final ListPayoutsUseCase listPayoutsUseCase;

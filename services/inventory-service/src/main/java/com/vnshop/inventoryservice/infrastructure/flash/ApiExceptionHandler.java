@@ -1,5 +1,6 @@
 package com.vnshop.inventoryservice.infrastructure.flash;
 
+import com.vnshop.inventoryservice.application.DuplicateFlashSaleReservationException;
 import com.vnshop.inventoryservice.application.FlashSaleAccessDeniedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,12 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> badRequest(IllegalArgumentException exception) {
         return ApiResponse.error(exception.getMessage(), "BAD_REQUEST");
+    }
+
+    @ExceptionHandler(DuplicateFlashSaleReservationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiResponse<Void> duplicateFlashSaleReservation(DuplicateFlashSaleReservationException exception) {
+        return ApiResponse.error(exception.getMessage(), "CONFLICT");
     }
 
     @ExceptionHandler(FlashSaleAccessDeniedException.class)

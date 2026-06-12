@@ -18,4 +18,6 @@ public interface FlashSaleReservationPort {
 	void release(UUID reservationId);
 
 	long getStock(String productId);
+
+	boolean hasActiveReservation(String productId, String buyerId);
 }

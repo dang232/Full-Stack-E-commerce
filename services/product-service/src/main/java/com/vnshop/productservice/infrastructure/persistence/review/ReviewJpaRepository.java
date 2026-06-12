@@ -32,6 +32,11 @@ public class ReviewJpaRepository implements ReviewRepositoryPort {
     }
 
     @Override
+    public boolean existsByProductIdAndBuyerId(String productId, String buyerId) {
+        return reviewRepository.existsByProductIdAndBuyerId(productId, buyerId);
+    }
+
+    @Override
     public List<Review> findByProductId(String productId) {
         return reviewRepository.findByProductId(productId).stream().map(ReviewJpaEntity::toDomain).toList();
     }

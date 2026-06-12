@@ -23,12 +23,14 @@ interface ProductJpaSpringDataRepository extends JpaRepository<ProductJpaEntity,
      * Paged catalog query. Both filters are optional — pass null to skip.
      * The {@code :q} clause uses the same lower-LIKE pattern as searchByName so
      * the matching semantics stay consistent.
+     * DELETED products are excluded from catalog results.
      */
     @Query("""
             select product from ProductJpaEntity product
             where (:categoryId is null or product.categoryId = cast(:categoryId as string))
               and (:q is null or lower(product.name) like lower(concat('%', cast(:q as string), '%')))
               and (:sellerId is null or product.sellerId = cast(:sellerId as string))
+              and product.status <> 'DELETED'
             """)
     Page<ProductJpaEntity> findCatalog(
             @Param("categoryId") String categoryId,

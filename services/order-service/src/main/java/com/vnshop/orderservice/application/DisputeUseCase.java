@@ -34,6 +34,12 @@ public class DisputeUseCase {
             throw new OrderAccessDeniedException(
                     "buyer " + buyerId + " does not own return " + returnId);
         }
+
+        // BIZ-09: Prevent duplicate disputes for the same return.
+        disputeRepository.findByReturnId(orderReturn.returnId().toString()).ifPresent(existing -> {
+            throw new IllegalStateException("a dispute already exists for return " + returnId);
+        });
+
         return disputeRepository.save(new Dispute(UUID.randomUUID(), orderReturn.returnId().toString(), buyerReason, sellerResponse));
     }
 

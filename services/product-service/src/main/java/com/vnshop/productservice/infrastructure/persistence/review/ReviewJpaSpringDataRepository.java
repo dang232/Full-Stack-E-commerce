@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 interface ReviewJpaSpringDataRepository extends JpaRepository<ReviewJpaEntity, UUID> {
+    boolean existsByProductIdAndBuyerId(String productId, String buyerId);
+
     List<ReviewJpaEntity> findByProductId(String productId);
 
     List<ReviewJpaEntity> findByBuyerId(String buyerId);

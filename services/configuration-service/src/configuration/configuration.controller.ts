@@ -1,11 +1,14 @@
 import { Controller, Get, Param, Post } from '@nestjs/common';
 import { ConfigurationService } from './configuration.service.js';
 import { AppConfigDto } from './dto/app-config.dto.js';
+import { Public } from '../common/decorators/public.decorator.js';
+import { Roles } from '../common/decorators/roles.decorator.js';
 
 @Controller('api')
 export class ConfigurationController {
   constructor(private readonly configurationService: ConfigurationService) {}
 
+  @Public()
   @Get('config')
   getConfig(): AppConfigDto {
     return this.configurationService.getConfig();
@@ -26,6 +29,7 @@ export class ConfigurationController {
     return this.configurationService.getGlobalConfig();
   }
 
+  @Roles('ADMIN')
   @Post('config/reload')
   reloadConfigs(): { status: string } {
     this.configurationService.reloadConfigs();

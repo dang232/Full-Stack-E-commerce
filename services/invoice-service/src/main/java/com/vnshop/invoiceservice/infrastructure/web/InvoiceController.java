@@ -10,6 +10,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ public class InvoiceController {
      * Returns the invoice for the given orderId.
      */
     @GetMapping("/{orderId}")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ResponseEntity<Invoice> getByOrderId(@PathVariable UUID orderId) {
         return invoiceService.findByOrderId(orderId)
                 .map(ResponseEntity::ok)
@@ -39,6 +41,7 @@ public class InvoiceController {
      * Lists invoices filtered by sellerId and optional status.
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ResponseEntity<List<Invoice>> list(
             @RequestParam String sellerId,
             @RequestParam(required = false) InvoiceStatus status) {
@@ -53,6 +56,7 @@ public class InvoiceController {
      * POST /api/v1/invoices/{orderId}/xml
      */
     @PostMapping(value = "/{orderId}/xml", produces = MediaType.APPLICATION_XML_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> generateXml(@PathVariable UUID orderId) {
         String xml = invoiceService.generateXml(orderId);
         return ResponseEntity.ok(xml);
@@ -65,6 +69,7 @@ public class InvoiceController {
      * POST /api/v1/invoices/{orderId}/submit
      */
     @PostMapping("/{orderId}/submit")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> submit(@PathVariable UUID orderId) {
         Invoice invoice = invoiceSubmissionService.submitToGdt(orderId);
         return ResponseEntity.ok(invoice);
@@ -76,6 +81,7 @@ public class InvoiceController {
      * GET /api/v1/invoices/{orderId}/gdt-status
      */
     @GetMapping("/{orderId}/gdt-status")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ResponseEntity<Map<String, Object>> gdtStatus(@PathVariable UUID orderId) {
         return invoiceService.findByOrderId(orderId)
                 .map(inv -> ResponseEntity.ok(Map.<String, Object>of(
@@ -95,6 +101,7 @@ public class InvoiceController {
      * POST /api/v1/invoices/{orderId}/resubmit
      */
     @PostMapping("/{orderId}/resubmit")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> resubmit(@PathVariable UUID orderId) {
         Invoice invoice = invoiceSubmissionService.resubmitToGdt(orderId);
         return ResponseEntity.ok(invoice);

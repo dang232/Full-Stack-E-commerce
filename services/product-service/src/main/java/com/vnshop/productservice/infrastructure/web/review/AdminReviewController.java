@@ -2,6 +2,7 @@ package com.vnshop.productservice.infrastructure.web.review;
 
 import com.vnshop.productservice.infrastructure.web.ApiResponse;
 import com.vnshop.productservice.application.review.ModerateReviewUseCase;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/admin/reviews")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminReviewController {
     private final ModerateReviewUseCase moderateReviewUseCase;
 

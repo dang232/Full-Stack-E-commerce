@@ -12,4 +12,6 @@ public interface DisputeRepositoryPort {
     Optional<Dispute> findById(UUID disputeId);
 
     List<Dispute> findByStatus(String status);
+
+    Optional<Dispute> findByReturnId(String returnId);
 }

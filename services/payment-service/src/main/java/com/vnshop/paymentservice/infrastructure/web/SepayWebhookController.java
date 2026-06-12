@@ -172,15 +172,15 @@ public class SepayWebhookController {
 
     /**
      * Verifies the {@code Authorization: Apikey <secret>} header SePay sends.
-     * Falls back to allow-all when {@code webhookSecret} is not configured (dev mode).
+     * Rejects all callbacks when {@code webhookSecret} is not configured (fail closed).
      * Uses constant-time comparison to resist timing attacks.
      */
     private boolean verifySignature(String authHeader) {
         String secret = properties.webhookSecret();
         if (secret == null || secret.isBlank()) {
-            // No secret configured — allow all (dev/sandbox mode). Log a warning so ops can see it.
-            log.warn("sepay-webhook-secret-not-configured all-callbacks-accepted");
-            return true;
+            // Fail closed: reject all webhooks when secret is not configured
+            log.error("SePay webhook secret not configured — rejecting callback for security. Set payment.sepay.webhook-secret property.");
+            return false;
         }
         if (authHeader == null || authHeader.isBlank()) {
             return false;

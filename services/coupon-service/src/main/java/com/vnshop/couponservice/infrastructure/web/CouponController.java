@@ -9,6 +9,7 @@ import com.vnshop.couponservice.application.UpdateCouponUseCase;
 import com.vnshop.couponservice.application.ValidateCouponUseCase;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,6 +48,7 @@ public class CouponController {
         this.listCouponsUseCase = listCouponsUseCase;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping({"/coupons", "/admin/coupons"})
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CouponResponse> createCoupon(@RequestBody CreateCouponRequest request) {
@@ -65,11 +67,13 @@ public class CouponController {
                 listCouponsUseCase.all().stream().map(CouponResponse::from).toList());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/coupons/{id}")
     public ApiResponse<CouponResponse> updateCoupon(@PathVariable Long id, @RequestBody CreateCouponRequest request) {
         return ApiResponse.ok(CouponResponse.from(updateCouponUseCase.update(id, toCommand(request))));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/coupons/{id}/deactivate")
     public ApiResponse<CouponResponse> deactivateCoupon(@PathVariable Long id) {
         return ApiResponse.ok(CouponResponse.from(deactivateCouponUseCase.deactivate(id)));
@@ -84,7 +88,7 @@ public class CouponController {
     @PostMapping("/checkout/apply-coupon")
     public ApiResponse<ApplyCouponResponse> applyCoupon(@RequestBody ApplyCouponRequest request) {
         return ApiResponse.ok(ApplyCouponResponse.from(
-                applyCouponUseCase.apply(request.code(), request.effectiveOrderAmount())));
+                applyCouponUseCase.apply(request.code(), request.effectiveOrderAmount(), request.userId())));
     }
 
     private static CouponTermsCommand toCommand(CreateCouponRequest request) {

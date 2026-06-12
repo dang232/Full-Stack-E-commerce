@@ -7,6 +7,7 @@ import com.vnshop.productservice.application.review.AskQuestionUseCase;
 import com.vnshop.productservice.application.review.GetQuestionsUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,11 +41,13 @@ public class QuestionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<QuestionResponse> ask(@Valid @RequestBody AskQuestionRequest request) {
         return ApiResponse.ok(QuestionResponse.fromDomain(askQuestionUseCase.ask(new AskQuestionCommand(request.productId(), com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil.currentUserId(), request.question()))));
     }
 
     @PutMapping("/{id}/answer")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ApiResponse<QuestionResponse> answer(@PathVariable UUID id, @Valid @RequestBody AnswerQuestionRequest request) {
         String sellerId = com.vnshop.productservice.infrastructure.config.JwtPrincipalUtil.currentSellerId();
         return ApiResponse.ok(QuestionResponse.fromDomain(answerQuestionUseCase.answer(id, sellerId, request.answer())));

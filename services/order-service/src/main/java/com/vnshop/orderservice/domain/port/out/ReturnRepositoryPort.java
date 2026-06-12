@@ -12,4 +12,6 @@ public interface ReturnRepositoryPort {
     Optional<Return> findById(UUID returnId);
 
     List<Return> findByBuyerId(String buyerId);
+
+    Optional<Return> findBySubOrderId(Long subOrderId);
 }

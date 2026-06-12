@@ -32,7 +32,7 @@ class TieredKeyResolverTest {
     }
 
     @Test
-    void anonymous_request_prefers_x_forwarded_for_header() {
+    void anonymous_request_uses_remote_address_ignoring_x_forwarded_for() {
         MockServerHttpRequest request = MockServerHttpRequest
             .get("/payment/create")
             .header("X-Forwarded-For", "198.51.100.7, 10.0.0.1")
@@ -41,7 +41,7 @@ class TieredKeyResolverTest {
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
         StepVerifier.create(resolver.resolve(exchange))
-            .expectNext("anon:198.51.100.7")
+            .expectNext("anon:10.0.0.1")
             .verifyComplete();
     }
 

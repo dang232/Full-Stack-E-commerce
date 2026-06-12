@@ -41,6 +41,12 @@ public class RequestReturnUseCase {
         if (subOrder.carrier() == null || subOrder.trackingNumber() == null) {
             throw new IllegalStateException("return can be requested after shipment");
         }
+
+        // BIZ-09: Prevent duplicate return requests for the same sub-order.
+        returnRepository.findBySubOrderId(subOrderId).ifPresent(existing -> {
+            throw new IllegalStateException("a return already exists for sub-order " + subOrderId);
+        });
+
         return returnRepository.save(new Return(UUID.randomUUID(), order.id().toString(), subOrderId, buyerId, reason));
     }
 

@@ -14,13 +14,14 @@ import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useSearchParams } from "react-router";
 
 import { useAuth } from "../hooks/use-auth";
+import { sanitizeRedirect } from "../lib/auth/sanitize-redirect";
 
 export function LoginPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { ready, authenticated, loginWithCredentials } = useAuth();
   const { t } = useTranslation();
-  const next = params.get("next") ?? "/";
+  const next = sanitizeRedirect(params.get("next"));
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");

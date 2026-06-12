@@ -3,6 +3,7 @@ package com.vnshop.sellerfinanceservice;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vnshop.sellerfinanceservice.domain.port.out.PayoutRepositoryPort;
 import com.vnshop.sellerfinanceservice.domain.port.out.SellerWalletRepositoryPort;
+import com.vnshop.sellerfinanceservice.infrastructure.persistence.ProcessedOrderEventRepository;
 import com.vnshop.sellerfinanceservice.infrastructure.persistence.ProcessedRefundRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +22,9 @@ class SellerFinanceServiceApplicationTests {
 
 	@MockitoBean
 	private ProcessedRefundRepository processedRefundRepository;
+
+	@MockitoBean
+	private ProcessedOrderEventRepository processedOrderEventRepository;
 
 	@MockitoBean
 	private ObjectMapper objectMapper;

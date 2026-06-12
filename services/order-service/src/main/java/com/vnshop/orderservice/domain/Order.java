@@ -3,15 +3,12 @@ package com.vnshop.orderservice.domain;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Order {
-    private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
     private static final DateTimeFormatter ORDER_DATE_FORMAT = DateTimeFormatter.BASIC_ISO_DATE;
 
     private final UUID id;
@@ -93,15 +90,12 @@ public class Order {
     }
 
     public static String generateOrderNumber() {
-        // The in-memory counter resets to 0 on every restart, which means the
-        // first order created after a restart collides with the prior day's
-        // VNS-...-00001 row and the unique constraint trips. Stamping the
-        // millisecond-of-day onto the sequence makes a same-second collision
-        // require both the same wall-clock millisecond and the same in-process
-        // sequence — extremely unlikely under any realistic load.
-        int sequence = ORDER_COUNTER.updateAndGet(current -> current >= 99999 ? 1 : current + 1);
-        long millis = LocalTime.now().toNanoOfDay() / 1_000_000;
-        return "VNS-" + LocalDate.now().format(ORDER_DATE_FORMAT) + "-" + String.format("%08d", millis) + "-" + String.format("%05d", sequence);
+        // BIZ-10: UUID-based generation eliminates cross-instance collisions.
+        // The old AtomicInteger counter reset on every restart, causing duplicate
+        // order numbers when multiple instances were running or after restarts.
+        String datePart = LocalDate.now().format(ORDER_DATE_FORMAT);
+        String uniquePart = UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        return "VNS-" + datePart + "-" + uniquePart;
     }
 
     public UUID id() {

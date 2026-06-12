@@ -1,16 +1,24 @@
 package com.vnshop.orderservice.application;
 
+import com.vnshop.orderservice.domain.FulfillmentStatus;
 import com.vnshop.orderservice.domain.Order;
+import com.vnshop.orderservice.domain.SubOrder;
 import com.vnshop.orderservice.domain.port.out.InventoryReservationPort;
 import com.vnshop.orderservice.domain.port.out.OrderEventPublisherPort;
 import com.vnshop.orderservice.domain.port.out.OrderRepositoryPort;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import com.vnshop.orderservice.domain.annotation.Audited;
 
 public class CancelOrderUseCase {
+    private static final Set<FulfillmentStatus> CANCELLABLE_STATUSES = Set.of(
+            FulfillmentStatus.PENDING_ACCEPTANCE,
+            FulfillmentStatus.ACCEPTED
+    );
+
     private final OrderRepositoryPort orderRepository;
     private final InventoryReservationPort inventoryReservationPort;
     private final OrderEventPublisherPort orderEventPublisherPort;
@@ -34,9 +42,18 @@ public class CancelOrderUseCase {
         if (!order.buyerId().equals(command.buyerId())) {
             throw new IllegalArgumentException("order does not belong to buyer: " + command.buyerId());
         }
+
+        // BIZ-08: Guard cancellation by fulfillment status — reject if any sub-order
+        // has already been shipped or delivered.
+        boolean anyShippedOrDelivered = order.subOrders().stream()
+                .anyMatch(sub -> sub.fulfillmentStatus() == FulfillmentStatus.SHIPPED
+                        || sub.fulfillmentStatus() == FulfillmentStatus.DELIVERED);
+        if (anyShippedOrDelivered) {
+            throw new IllegalStateException("Cannot cancel — order already shipped/delivered");
+        }
+
         order.subOrders().forEach(subOrder -> {
-            if (subOrder.fulfillmentStatus().name().equals("PENDING_ACCEPTANCE")
-                    || subOrder.fulfillmentStatus().name().equals("ACCEPTED")) {
+            if (CANCELLABLE_STATUSES.contains(subOrder.fulfillmentStatus())) {
                 subOrder.cancel();
             }
         });

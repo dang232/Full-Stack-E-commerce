@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useSearchParams } from "react-router";
 
 import { useAuth } from "../hooks/use-auth";
+import { sanitizeRedirect } from "../lib/auth/sanitize-redirect";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -13,7 +14,7 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const { ready, authenticated, register } = useAuth();
   const { t } = useTranslation();
-  const next = params.get("next") ?? "/";
+  const next = sanitizeRedirect(params.get("next"));
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
