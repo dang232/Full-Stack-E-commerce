@@ -43,6 +43,9 @@ export function LoginPage() {
       try {
         await loginWithCredentials(identifier.trim(), password);
         if (rememberMe) localStorage.setItem("rememberMe", "true");
+        // Wait a tick so AuthProvider re-renders with authenticated=true before
+        // navigation triggers route guards that depend on auth state.
+        await new Promise((resolve) => setTimeout(resolve, 0));
         void navigate(next, { replace: true });
       } catch (err) {
         const errorCode =
