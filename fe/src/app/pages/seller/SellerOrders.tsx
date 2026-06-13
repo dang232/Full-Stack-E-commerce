@@ -19,8 +19,8 @@ import { ShipDialog } from "./ShipDialog";
 const STATUS_TABS = [
   { id: "all", match: () => true },
   { id: "pending", match: (s: string) => s.toUpperCase().includes("PENDING") || (s.toUpperCase().includes("ACCEPT") && !s.toUpperCase().includes("ACCEPTED")) },
-  { id: "accepted", match: (s: string) => s.toUpperCase().includes("ACCEPTED") },
-  { id: "packed", match: (s: string) => s.toUpperCase().includes("PACKED") || (s.toUpperCase().includes("PACK") && !s.toUpperCase().includes("PACKED")) },
+  { id: "accepted", match: (s: string) => s.toUpperCase().includes("ACCEPTED") && !s.toUpperCase().includes("PACKED") },
+  { id: "packed", match: (s: string) => s.toUpperCase().includes("PACKED") },
   { id: "shipped", match: (s: string) => s.toUpperCase().includes("SHIPPED") },
   { id: "cancelled", match: (s: string) => s.toUpperCase().includes("CANCEL") || s.toUpperCase().includes("REJECT") },
 ] as const;
@@ -226,7 +226,7 @@ export function SellerOrders({
             {filtered.map((order) => {
               const status = order.status.toUpperCase();
               const isPending = status.includes("PENDING") || (status.includes("ACCEPT") && !status.includes("ACCEPTED"));
-              const isAccepted = status.includes("ACCEPTED") || status.includes("PACK");
+              const isAccepted = status.includes("ACCEPTED") || (status.includes("PACK") && !status.includes("PACKED"));
               return (
                 <div key={order.id} className="px-5 py-4 flex items-center justify-between gap-4">
                   <div>
