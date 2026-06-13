@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 
 import type { Notification } from "../../types/api/notification";
+
 import { NotificationIcon } from "./notification-icon";
 
 function relativeTime(iso: string): string {

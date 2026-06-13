@@ -41,6 +41,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 import { ErrorBoundary } from "../components/error-boundary";
+
 import { ProfilePage } from "./ProfilePage";
 
 const ADDRESS_1 = {

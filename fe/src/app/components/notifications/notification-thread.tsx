@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { getThreadNotifications } from "../../lib/api/endpoints/notifications";
 import type { NotificationThread as ThreadType } from "../../types/api/notification";
+
 import { NotificationItem } from "./notification-item";
 
 interface NotificationThreadProps {

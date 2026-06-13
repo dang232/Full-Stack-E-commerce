@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Navigate, useLocation } from "react-router";
 import { toast } from "sonner";
-import { useTranslation } from "react-i18next";
 
 import { useAuth, type Role } from "../../hooks/use-auth";
 

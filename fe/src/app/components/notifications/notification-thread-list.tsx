@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
 
 import { listThreads } from "../../lib/api/endpoints/notifications";
+
 import { NotificationPagination } from "./notification-pagination";
 import { NotificationThread } from "./notification-thread";
 

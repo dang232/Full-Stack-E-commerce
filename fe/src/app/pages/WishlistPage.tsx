@@ -1,5 +1,5 @@
-﻿import { Heart, ShoppingCart, Star, Trash2, Share2 } from "lucide-react";
-import { useQueries } from "@tanstack/react-query";
+﻿import { useQueries } from "@tanstack/react-query";
+import { Heart, ShoppingCart, Star, Trash2, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";

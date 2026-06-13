@@ -105,7 +105,8 @@ describe("useCart", () => {
     const { Wrapper } = makeWrapper();
     const { result } = renderHook(() => useCart(), { wrapper: Wrapper });
 
-    await waitFor(() => expect(result.current.items).toEqual([]));
+    // Wait for query to succeed (isReady gate) before attempting mutation
+    await waitFor(() => expect(result.current.isReady).toBe(true));
 
     await act(async () => {
       await result.current.addItemAsync({ productId: "p1", quantity: 1 });

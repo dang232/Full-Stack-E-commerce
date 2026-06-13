@@ -184,10 +184,10 @@ export function CheckoutPage() {
     ],
     queryFn: () =>
       fetchShippingRates({
-        street: selectedAddress!.street,
-        ward: selectedAddress!.ward ?? undefined,
-        district: selectedAddress!.district ?? "",
-        province: selectedAddress!.city,
+        street: selectedAddress.street,
+        ward: selectedAddress.ward ?? undefined,
+        district: selectedAddress.district ?? "",
+        province: selectedAddress.city,
         orderTotalVnd: totalAmount,
       }),
     enabled: !!selectedAddress && cartItems.length > 0,

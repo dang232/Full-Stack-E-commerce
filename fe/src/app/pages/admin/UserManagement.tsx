@@ -14,7 +14,7 @@ import {
 import type { AdminUser, AdminOrderSummary } from "../../types/api";
 
 export function UserManagement() {
-  const qc = useQueryClient();
+  const _qc = useQueryClient();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");

@@ -21,7 +21,6 @@ import { useNavigate } from "react-router";
 import { useCart } from "../hooks/use-cart";
 import { useSearchSuggestions } from "../hooks/use-search-suggestions";
 import { useWishlist } from "../hooks/use-wishlist";
-
 import { comingSoon } from "../lib/ui/coming-soon";
 
 import { ImageWithFallback } from "./image-with-fallback";

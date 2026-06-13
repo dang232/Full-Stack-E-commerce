@@ -31,9 +31,9 @@ import {
   setDefaultAddress,
   removeAddress,
 } from "../lib/api/endpoints/users";
+import { comingSoon } from "../lib/ui/coming-soon";
 import type { Address, UserProfile } from "../types/api";
 
-import { comingSoon } from "../lib/ui/coming-soon";
 
 type ProfileTab = "info" | "addresses" | "notifications" | "reviews" | "payment" | "security";
 
@@ -262,7 +262,7 @@ export function ProfilePage() {
           </div>
 
           {/* Nav items */}
-          <nav role="tablist" aria-label="Profile sections" className="flex flex-col gap-0.5 mt-5">
+          <div role="tablist" aria-label="Profile sections" className="flex flex-col gap-0.5 mt-5">
             {NAV_ITEMS.map((item) => {
               const isActive = activeTab === item.id;
               return (
@@ -274,7 +274,7 @@ export function ProfilePage() {
                   aria-controls={`profile-tabpanel-${item.id}`}
                   onClick={() => {
                     if (item.id === "notifications") {
-                      navigate("/notifications");
+                      void navigate("/notifications");
                       return;
                     }
                     if (item.id === "reviews") {
@@ -302,7 +302,7 @@ export function ProfilePage() {
               <Store size={16} />
               Become a Seller
             </button>
-          </nav>
+          </div>
 
           {/* Logout */}
           <button

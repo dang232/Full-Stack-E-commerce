@@ -8,6 +8,7 @@ import type {
   NotificationPreferences,
   TypePreference,
 } from "../types/api/notification-preferences";
+
 import { useAuth } from "./use-auth";
 
 const PREFERENCES_KEY = ["notifications", "preferences"] as const;

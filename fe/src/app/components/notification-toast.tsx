@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 
 import type { Notification } from "../types/api/notification";
+
 import { NotificationIcon } from "./notifications/notification-icon";
 
 interface NotificationToastProps {

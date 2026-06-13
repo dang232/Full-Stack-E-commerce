@@ -55,12 +55,10 @@ export function SellerProducts() {
       </div>
 
       {/* Info banner – dev only */}
-      {import.meta.env.DEV && (
-        <div className="rounded-[var(--radius-md)] bg-warning/10 border border-warning/30 p-3 text-xs text-foreground flex items-start gap-2">
+      {import.meta.env.DEV ? <div className="rounded-[var(--radius-md)] bg-warning/10 border border-warning/30 p-3 text-xs text-foreground flex items-start gap-2">
           <IconAlertCircle size={14} className="shrink-0 mt-0.5 text-warning" aria-hidden="true" />
           <p>{t("seller.products.fallbackBanner")}</p>
-        </div>
-      )}
+        </div> : null}
 
       {/* Search + filter row */}
       <div className="flex gap-3">

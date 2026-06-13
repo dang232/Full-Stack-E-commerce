@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   ChevronRight,
   Star,
@@ -15,7 +16,6 @@ import {
   Code,
   Dumbbell,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
