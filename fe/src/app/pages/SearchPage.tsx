@@ -129,12 +129,28 @@ export function SearchPage() {
 
   const [localPriceMin, setLocalPriceMin] = useState(priceMin);
   const [localPriceMax, setLocalPriceMax] = useState(priceMax);
-  const [minRating, setMinRating] = useState(0);
-  const [freeShipOnly, setFreeShipOnly] = useState(false);
+  const [minRating, setMinRating] = useState(() => {
+    const v = searchParams.get("minRating");
+    return v ? Number(v) : 0;
+  });
+  const [freeShipOnly, setFreeShipOnly] = useState(() => searchParams.get("freeShip") === "true");
   const [sameDay, setSameDay] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [officialOnly, setOfficialOnly] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState(() => searchParams.get("brand") ?? "");
+
+  // Sync filter state to URL params so deep-links and browser back work correctly.
+  useEffect(() => {
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (minRating > 0) p.set("minRating", String(minRating)); else p.delete("minRating");
+      if (freeShipOnly) p.set("freeShip", "true"); else p.delete("freeShip");
+      if (selectedBrand) p.set("brand", selectedBrand); else p.delete("brand");
+      // Only update if actually different to avoid infinite loop
+      if (p.toString() === prev.toString()) return prev;
+      return p;
+    }, { replace: true });
+  }, [minRating, freeShipOnly, selectedBrand, setSearchParams]);
 
   // Current page for pagination
   const filterSignature = `${query}|${selectedCat}|${selectedBrand}|${priceMin}|${priceMax}|${minRating}|${freeShipOnly}|${sortBy}|${isFlash}`;
