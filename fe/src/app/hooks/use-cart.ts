@@ -340,6 +340,7 @@ export function useCart() {
     isGuest,
     isHydrating,
     isLoading: isGuest ? false : query.isLoading,
+    isReady: isGuest ? true : query.isSuccess,
     error: isGuest ? null : query.error,
     addItem: (
       input: { productId: string; quantity: number },
@@ -349,6 +350,7 @@ export function useCart() {
         guestAdd(input.productId, input.quantity);
         return;
       }
+      if (!query.isSuccess) return;
       return addItem.mutate(input, options);
     },
     addItemAsync: async (input: { productId: string; quantity: number }) => {
@@ -356,6 +358,7 @@ export function useCart() {
         guestAdd(input.productId, input.quantity);
         return;
       }
+      if (!query.isSuccess) return;
       await addItem.mutateAsync(input);
     },
     updateItem: (
@@ -366,6 +369,7 @@ export function useCart() {
         guestUpdate(input.productId, input.quantity);
         return;
       }
+      if (!query.isSuccess) return;
       return updateItem.mutate(input, options);
     },
     removeItem: (productId: string, options?: Parameters<typeof removeItem.mutate>[1]) => {
@@ -373,6 +377,7 @@ export function useCart() {
         guestRemove(productId);
         return;
       }
+      if (!query.isSuccess) return;
       return removeItem.mutate(productId, options);
     },
     clear: (options?: Parameters<typeof clear.mutate>[1]) => {
@@ -380,6 +385,7 @@ export function useCart() {
         guestClear();
         return;
       }
+      if (!query.isSuccess) return;
       return clear.mutate(undefined, options);
     },
     refetch: query.refetch,
