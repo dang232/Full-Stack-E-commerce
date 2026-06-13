@@ -420,14 +420,23 @@ export function CheckoutPage() {
             return;
           }
           // Gateway didn't return a redirect URL — payment creation failed silently.
-          toast.error(t("checkout.payment.initFailedShort"));
+          // Stay on review step so the buyer can retry instead of landing on success.
+          toast.error(t("checkout.payment.initFailedShort"), {
+            description: t("checkout.payment.retryHint", {
+              defaultValue: "Your order was placed. You can retry payment or pay later from Orders.",
+            }),
+          });
+          setPlacedOrderId(order.id);
+          return;
         } catch (err) {
           toast.error(
             err instanceof ApiError
               ? t("checkout.payment.initFailedPrefix", { message: err.message })
               : t("checkout.payment.initFailedShort"),
           );
-          // Fall through to success screen — order exists; buyer can pay later.
+          // Order exists but payment init failed — stay on review with retry option.
+          setPlacedOrderId(order.id);
+          return;
         }
       } else if (selectedPaymentId === "COD") {
         try {
@@ -463,7 +472,7 @@ export function CheckoutPage() {
 
   const handleNext = () => {
     if (step === "address") {
-      if (addresses.length === 0) {
+      if (addresses.length === 0 || selectedAddressIndex < 0 || selectedAddressIndex >= addresses.length) {
         toast.error(t("checkout.address.missingValidation"), {
           description: t("checkout.address.addAddressHint"),
           action: {
@@ -557,18 +566,23 @@ export function CheckoutPage() {
           return (
             <div key={s.id} className="flex items-center">
               <div className="flex flex-col items-center">
-                <div
+                <button
+                  type="button"
+                  onClick={() => { if (isDone) setStep(s.id); }}
+                  disabled={!isDone}
+                  aria-label={t(s.labelKey)}
                   className={[
                     "w-[34px] h-[34px] rounded-full border-2 flex items-center justify-center transition-all duration-300",
                     isDone
-                      ? "bg-primary border-primary text-white"
+                      ? "bg-primary border-primary text-white cursor-pointer hover:opacity-80"
                       : isActive
                         ? "border-primary text-primary bg-primary-light scale-110"
                         : "border-border text-muted-foreground bg-card",
+                    !isDone ? "cursor-default" : "",
                   ].join(" ")}
                 >
                   {isDone ? <CheckCircle size={16} /> : <StepIcon size={16} />}
-                </div>
+                </button>
                 <span
                   className={[
                     "text-xs mt-1 font-medium",
