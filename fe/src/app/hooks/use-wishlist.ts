@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 import {
   addWishlistItem,
@@ -64,17 +65,27 @@ export function useWishlist() {
       const current = qc.getQueryData<WishlistResponse>(WISHLIST_KEY) ?? EMPTY;
       const knownIds = new Set(current.productIds);
       const missing = legacyIds.filter((id) => !knownIds.has(id as ProductId));
+      const failedIds: string[] = [];
       for (const id of missing) {
         try {
           await addWishlistItem(id);
         } catch (err) {
           console.warn("wishlist migration: failed to add", id, err);
+          failedIds.push(id);
         }
       }
-      try {
-        localStorage.removeItem(LEGACY_STORAGE_KEY);
-      } catch {
-        /* ignore */
+      if (failedIds.length > 0) {
+        // Keep failed items in localStorage so they can be retried next session.
+        try {
+          localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(failedIds));
+        } catch { /* ignore */ }
+        toast.error(
+          `Không thể chuyển ${failedIds.length} sản phẩm yêu thích. Sẽ thử lại lần sau.`,
+        );
+      } else {
+        try {
+          localStorage.removeItem(LEGACY_STORAGE_KEY);
+        } catch { /* ignore */ }
       }
       void qc.invalidateQueries({ queryKey: WISHLIST_KEY });
     })();
