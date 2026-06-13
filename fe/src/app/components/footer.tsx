@@ -87,7 +87,7 @@ export function Footer() {
               ].map((link) => (
                 <li key={link.label}>
                   <button
-                    onClick={() => comingSoon(link.label)}
+                    onClick={() => comingSoon(link.label, t)}
                     className="text-sm text-text-secondary hover:text-primary hover:translate-x-0.5 transition-all inline-block"
                   >
                     {link.label}
@@ -111,7 +111,7 @@ export function Footer() {
               ].map((link) => (
                 <li key={link.label}>
                   <button
-                    onClick={() => comingSoon(link.label)}
+                    onClick={() => comingSoon(link.label, t)}
                     className="text-sm text-text-secondary hover:text-primary hover:translate-x-0.5 transition-all inline-block"
                   >
                     {link.label}
@@ -126,11 +126,11 @@ export function Footer() {
         <div className="pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-muted-foreground">
           <span>{t("footer.copyright")}</span>
           <div className="flex items-center gap-4">
-            <button onClick={() => comingSoon("Privacy policy")} className="hover:text-primary transition-colors">
+            <button onClick={() => comingSoon("Privacy policy", t)} className="hover:text-primary transition-colors">
               {t("footer.privacy", { defaultValue: "Privacy" })}
             </button>
             <span>·</span>
-            <button onClick={() => comingSoon("Terms of service")} className="hover:text-primary transition-colors">
+            <button onClick={() => comingSoon("Terms of service", t)} className="hover:text-primary transition-colors">
               {t("footer.terms", { defaultValue: "Terms" })}
             </button>
             <span>·</span>

@@ -74,7 +74,7 @@ export function SellerProducts() {
         </div>
         <button
           type="button"
-          onClick={() => comingSoon("Filtering")}
+          onClick={() => comingSoon("Filtering", t)}
           className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-[var(--radius-md)] bg-card text-sm text-muted-foreground hover:bg-muted transition-colors"
         >
           <IconFilter size={15} aria-hidden="true" />

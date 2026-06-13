@@ -61,7 +61,7 @@ export function AdminDashboard() {
           <p className="text-sm text-muted-foreground">{t("admin.dashboard.subtitle")}</p>
         </div>
         <button
-          onClick={() => comingSoon("Export")}
+          onClick={() => comingSoon("Export", t)}
           className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card text-sm text-muted-foreground hover:bg-muted transition-colors"
         >
           <IconChartBar size={15} /> {t("admin.dashboard.exportReport")}

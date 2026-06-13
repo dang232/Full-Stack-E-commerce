@@ -156,6 +156,7 @@
     },
     "reviewsCount": "{{count}} đánh giá",
     "soldCount": "{{count}} đã bán",
+    "soldCountShort": "{{count}} đã bán",
     "quantityLabel": "Số lượng:",
     "stockAvailable": "({{count}} sản phẩm có sẵn)",
     "totalLabel": "Tổng:",
@@ -986,6 +987,7 @@
     }
   },
   "wishlist": {
+    "migrationFailed": "Không thể chuyển {{count}} sản phẩm yêu thích. Sẽ thử lại lần sau.",
     "pageTitle": "Yêu thích của tôi",
     "countLabel": "{{count}} sản phẩm",
     "emptyTitle": "Chưa có sản phẩm yêu thích",
@@ -1092,7 +1094,8 @@
     "daysAgo": "{{d}} ngày trước"
   },
   "common": {
-    "loading": "Đang tải..."
+    "loading": "Đang tải...",
+    "comingSoon": "{{feature}} sắp ra mắt!"
   },
   "sellerDetail": {
     "notFound": "Không tìm thấy shop",

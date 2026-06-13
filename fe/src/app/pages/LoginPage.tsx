@@ -43,8 +43,9 @@ export function LoginPage() {
       try {
         await loginWithCredentials(identifier.trim(), password);
         if (rememberMe) localStorage.setItem("rememberMe", "true");
-        // Wait a tick so AuthProvider re-renders with authenticated=true before
-        // navigation triggers route guards that depend on auth state.
+        // Yield one macrotask so React can flush the AuthProvider state update.
+        // Route guards read `authenticated` from context — navigating synchronously
+        // would hit them before the provider re-renders.
         await new Promise((resolve) => setTimeout(resolve, 0));
         void navigate(next, { replace: true });
       } catch (err) {

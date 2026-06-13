@@ -19,6 +19,7 @@ const getScrollKey = () => `scroll:${window.location.pathname}${window.location.
 
 function ProductCard({ product, index }: { product: Product; index: number }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { toggleWishlist, isWishlisted } = useVNShop();
   const [hovered, setHovered] = useState(false);
   const loved = isWishlisted(product.id);
@@ -98,7 +99,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           <span className="text-xs text-foreground">{product.rating}</span>
           <span className="text-xs text-muted-foreground">·</span>
           <span className="text-xs text-muted-foreground">
-            {(() => { const s: number = product.sold ?? 0; return s > 999 ? `${(s / 1000).toFixed(1)}k sold` : `${s} sold`; })()}
+            {(() => { const s: number = product.sold ?? 0; const formatted = s > 999 ? `${(s / 1000).toFixed(1)}k` : `${s}`; return t("product.soldCountShort", { count: formatted }); })()}
           </span>
         </div>
         <div className="flex items-end gap-1.5">

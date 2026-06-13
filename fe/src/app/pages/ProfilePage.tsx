@@ -270,21 +270,24 @@ export function ProfilePage() {
           {/* Nav items */}
           <div role="tablist" aria-label="Profile sections" className="flex flex-col gap-0.5 mt-5">
             {NAV_ITEMS.map((item) => {
+              const isNav = item.id === "notifications" || item.id === "reviews";
               const isActive = activeTab === item.id;
               return (
                 <button
                   key={item.id}
                   id={`profile-tab-${item.id}`}
-                  role="tab"
-                  aria-selected={isActive}
-                  aria-controls={`profile-tabpanel-${item.id}`}
+                  {...(!isNav && {
+                    role: "tab" as const,
+                    "aria-selected": isActive,
+                    "aria-controls": `profile-tabpanel-${item.id}`,
+                  })}
                   onClick={() => {
                     if (item.id === "notifications") {
                       void navigate("/notifications");
                       return;
                     }
                     if (item.id === "reviews") {
-                      comingSoon("Reviews");
+                      comingSoon("Reviews", t);
                       return;
                     }
                     setActiveTab(item.id);

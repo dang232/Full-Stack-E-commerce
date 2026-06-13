@@ -393,7 +393,7 @@ export function ProductPage() {
                 </p>
                 <button
                   className="text-xs font-medium text-primary underline"
-                  onClick={() => comingSoon("Size guide")}
+                  onClick={() => comingSoon("Size guide", t)}
                 >
                   {t("product.sizeGuide")}
                 </button>

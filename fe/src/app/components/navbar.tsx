@@ -303,7 +303,7 @@ export function Navbar() {
                       { icon: Package, label: t("auth.myOrders"), action: () => void navigate("/orders") },
                       { icon: Heart, label: t("auth.wishlist"), action: () => void navigate("/wishlist") },
                       { icon: Bell, label: t("auth.notifications"), action: () => void navigate("/notifications") },
-                      { icon: Settings, label: t("auth.settings"), action: () => comingSoon("Settings") },
+                      { icon: Settings, label: t("auth.settings"), action: () => comingSoon("Settings", t) },
                     ].map((item) => (
                       <button
                         key={item.label}

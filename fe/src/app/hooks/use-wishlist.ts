@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
@@ -27,6 +28,7 @@ const EMPTY: WishlistResponse = { productIds: [], items: [] };
 export function useWishlist() {
   const { ready, authenticated } = useAuth();
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const migrationAttempted = useRef(false);
 
   const query = useQuery<WishlistResponse>({
@@ -80,7 +82,7 @@ export function useWishlist() {
           localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(failedIds));
         } catch { /* ignore */ }
         toast.error(
-          `Không thể chuyển ${failedIds.length} sản phẩm yêu thích. Sẽ thử lại lần sau.`,
+          t("wishlist.migrationFailed", { count: failedIds.length }),
         );
       } else {
         try {
@@ -89,7 +91,7 @@ export function useWishlist() {
       }
       void qc.invalidateQueries({ queryKey: WISHLIST_KEY });
     })();
-  }, [ready, authenticated, qc]);
+  }, [ready, authenticated, qc, t]);
 
   const data = query.data ?? EMPTY;
 

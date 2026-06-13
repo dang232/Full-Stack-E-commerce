@@ -1,5 +1,5 @@
 import { IconSearch, IconUserOff, IconUserCheck } from "@tabler/icons-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -14,7 +14,6 @@ import {
 import type { AdminUser, AdminOrderSummary } from "../../types/api";
 
 export function UserManagement() {
-  const _qc = useQueryClient();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");

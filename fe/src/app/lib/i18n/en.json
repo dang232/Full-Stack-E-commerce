@@ -156,6 +156,7 @@
     },
     "reviewsCount": "{{count}} reviews",
     "soldCount": "{{count}} sold",
+    "soldCountShort": "{{count}} sold",
     "quantityLabel": "Quantity:",
     "stockAvailable": "({{count}} in stock)",
     "totalLabel": "Total:",
@@ -986,6 +987,7 @@
     }
   },
   "wishlist": {
+    "migrationFailed": "Couldn't migrate {{count}} wishlist items. Will retry next session.",
     "pageTitle": "My Wishlist",
     "countLabel": "{{count}} items",
     "emptyTitle": "No favourites yet",
@@ -1092,7 +1094,8 @@
     "daysAgo": "{{d}} days ago"
   },
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "comingSoon": "{{feature}} is coming soon!"
   },
   "sellerDetail": {
     "notFound": "Shop not found",
