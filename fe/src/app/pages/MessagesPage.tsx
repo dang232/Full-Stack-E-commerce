@@ -188,7 +188,7 @@ function MessagePane({
 
   const submit = () => {
     const trimmed = draft.trim();
-    if (!trimmed) return;
+    if (!trimmed || !threadId) return;
     setDraft("");
     sendMessage.mutate(
       { body: trimmed },
@@ -199,7 +199,7 @@ function MessagePane({
     );
   };
 
-  const headerLatest = messagesQuery.data?.content[0];
+  const headerLatest = messagesQuery.data?.content?.[0];
   const headerThread = headerLatest?.threadId
     ? t("messaging.headerThread", { id: headerLatest.threadId.slice(0, 8) })
     : t("messaging.headerThreadFallback");
