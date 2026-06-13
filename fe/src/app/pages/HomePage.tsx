@@ -103,7 +103,7 @@ function ProductCard({ product, index = 0 }: { product: Product; index?: number 
         ) : null}
         {/* Wishlist */}
         <button
-          className={`absolute top-2 right-2 w-8 h-8 rounded-full border flex items-center justify-center opacity-0 group-hover:opacity-100 scale-80 group-hover:scale-100 transition-all duration-[var(--duration-base)] ${
+          className={`absolute top-2 right-2 w-8 h-8 rounded-full border flex items-center justify-center opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 scale-80 group-hover:scale-100 [@media(hover:none)]:scale-100 transition-all duration-[var(--duration-base)] ${
             loved
               ? "bg-error-light border-error text-error"
               : "bg-card border-border text-muted-foreground hover:text-error hover:border-error hover:bg-error-light"
