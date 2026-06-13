@@ -79,7 +79,7 @@ export function SystemHealth() {
 
   useEffect(() => {
     void runChecks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const upCount = results.filter((r) => r.status === "up").length;

@@ -4,6 +4,7 @@ import { io, type Socket } from "socket.io-client";
 
 import { showNotificationToast } from "../components/notification-toast";
 import { notificationSchema, type Notification } from "../types/api/notification";
+
 import { useAuth } from "./use-auth";
 
 const BASE_URL = (

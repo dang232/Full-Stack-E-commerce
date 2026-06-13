@@ -1,13 +1,13 @@
 ﻿import { IconBell } from "@tabler/icons-react";
-import { useEffect, useRef, useState } from "react";
-
 import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
 import { useAuth } from "../hooks/use-auth";
 import { useNotifications } from "../hooks/use-notifications";
 import type { Notification } from "../types/api/notification";
+
 import { NotificationIcon } from "./notifications/notification-icon";
 
 function relativeTime(iso: string | null | undefined, t: (key: string, opts?: Record<string, unknown>) => string): string {

@@ -14,6 +14,7 @@ import { SellerProductModal } from "../../components/seller-product-modal";
 import { useAuth } from "../../hooks/use-auth";
 import { useProducts } from "../../hooks/use-products";
 import { formatPrice } from "../../lib/format";
+import { comingSoon } from "../../lib/ui/coming-soon";
 import { type Product } from "../../types/ui";
 
 const PAGE_SIZE = 24;
@@ -54,12 +55,10 @@ export function SellerProducts() {
       </div>
 
       {/* Info banner – dev only */}
-      {import.meta.env.DEV && (
-        <div className="rounded-[var(--radius-md)] bg-warning/10 border border-warning/30 p-3 text-xs text-foreground flex items-start gap-2">
+      {import.meta.env.DEV ? <div className="rounded-[var(--radius-md)] bg-warning/10 border border-warning/30 p-3 text-xs text-foreground flex items-start gap-2">
           <IconAlertCircle size={14} className="shrink-0 mt-0.5 text-warning" aria-hidden="true" />
           <p>{t("seller.products.fallbackBanner")}</p>
-        </div>
-      )}
+        </div> : null}
 
       {/* Search + filter row */}
       <div className="flex gap-3">
@@ -75,9 +74,8 @@ export function SellerProducts() {
         </div>
         <button
           type="button"
-          disabled
-          title="Available Q3 2026"
-          className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-[var(--radius-md)] bg-card text-sm text-muted-foreground opacity-50 cursor-not-allowed"
+          onClick={() => comingSoon("Filtering")}
+          className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-[var(--radius-md)] bg-card text-sm text-muted-foreground hover:bg-muted transition-colors"
         >
           <IconFilter size={15} aria-hidden="true" />
           {t("seller.products.filter")}

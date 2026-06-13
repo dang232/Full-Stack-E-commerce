@@ -98,7 +98,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           <span className="text-xs text-foreground">{product.rating}</span>
           <span className="text-xs text-muted-foreground">·</span>
           <span className="text-xs text-muted-foreground">
-            {product.sold > 999 ? `${(product.sold / 1000).toFixed(1)}k` : product.sold} {t("product.sold", { defaultValue: "sold" })}
+            {(() => { const s: number = product.sold ?? 0; return s > 999 ? `${(s / 1000).toFixed(1)}k sold` : `${s} sold`; })()}
           </span>
         </div>
         <div className="flex items-end gap-1.5">

@@ -28,7 +28,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem("rememberMe") === "true");
 
   if (ready && authenticated) {
     return <Navigate to={next} replace />;
@@ -200,7 +200,14 @@ export function LoginPage() {
                   type="checkbox"
                   className="rounded accent-primary"
                   checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+                  onChange={(e) => {
+                    setRememberMe(e.target.checked);
+                    if (e.target.checked) {
+                      localStorage.setItem("rememberMe", "true");
+                    } else {
+                      localStorage.removeItem("rememberMe");
+                    }
+                  }}
                 />
                 {t("login.form.remember", { defaultValue: "Remember me" })}
               </label>

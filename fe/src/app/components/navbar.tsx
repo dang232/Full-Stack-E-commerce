@@ -21,6 +21,7 @@ import { useNavigate } from "react-router";
 import { useCart } from "../hooks/use-cart";
 import { useSearchSuggestions } from "../hooks/use-search-suggestions";
 import { useWishlist } from "../hooks/use-wishlist";
+import { comingSoon } from "../lib/ui/coming-soon";
 
 import { ImageWithFallback } from "./image-with-fallback";
 import { LanguageSwitcher } from "./language-switcher";
@@ -298,17 +299,17 @@ export function Navbar() {
                       <p className="text-xs mt-0.5 text-muted-foreground">{user?.email}</p>
                     </div>
                     {[
-                      { icon: User, label: t("auth.myAccount"), path: "/profile" },
-                      { icon: Package, label: t("auth.myOrders"), path: "/orders" },
-                      { icon: Heart, label: t("auth.wishlist"), path: "/wishlist" },
-                      { icon: Bell, label: t("auth.notifications"), path: "/notifications" },
-                      { icon: Settings, label: t("auth.settings"), path: "/profile" },
+                      { icon: User, label: t("auth.myAccount"), action: () => void navigate("/profile") },
+                      { icon: Package, label: t("auth.myOrders"), action: () => void navigate("/orders") },
+                      { icon: Heart, label: t("auth.wishlist"), action: () => void navigate("/wishlist") },
+                      { icon: Bell, label: t("auth.notifications"), action: () => void navigate("/notifications") },
+                      { icon: Settings, label: t("auth.settings"), action: () => comingSoon("Settings") },
                     ].map((item) => (
                       <button
                         key={item.label}
                         role="menuitem"
                         onClick={() => {
-                          void navigate(item.path);
+                          item.action();
                           setUserMenuOpen(false);
                         }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted transition-colors text-left text-foreground"

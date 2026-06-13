@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { ShoppingCart, Zap, Heart, Star, Truck, Shield, RefreshCw, ChevronRight, ChevronLeft, MessageCircle, ThumbsUp } from "lucide-react";
+import { ShoppingCart, Zap, Heart, Star, Truck, Shield, RefreshCw, ChevronRight, ChevronLeft, MessageCircle, ThumbsUp, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,6 +19,7 @@ import { askQuestion, questionsByProduct } from "../lib/api/endpoints/questions"
 import type { RecommendationItem } from "../lib/api/endpoints/recommendations";
 import { createReview, voteReviewHelpful } from "../lib/api/endpoints/reviews";
 import { formatPrice } from "../lib/format";
+import { comingSoon } from "../lib/ui/coming-soon";
 
 function StarRating({ value, max = 5, size = 16 }: { value: number; max?: number; size?: number }) {
   return (
@@ -391,9 +392,8 @@ export function ProductPage() {
                   {t("product.sizesLabel")}: <span className="font-normal text-muted-foreground">{selectedSize}</span>
                 </p>
                 <button
-                  className="text-xs font-medium text-primary underline opacity-50 cursor-not-allowed"
-                  disabled
-                  title="Available Q3 2026"
+                  className="text-xs font-medium text-primary underline"
+                  onClick={() => comingSoon("Size guide")}
                 >
                   {t("product.sizeGuide")}
                 </button>
@@ -475,6 +475,17 @@ export function ProductPage() {
               ].join(" ")}
             >
               <Heart size={20} fill={loved ? "currentColor" : "none"} />
+            </button>
+            <button
+              onClick={() => {
+                void navigator.clipboard.writeText(window.location.href).then(() =>
+                  toast.success("Link copied!")
+                );
+              }}
+              aria-label="Share product"
+              className="w-12 h-12 flex items-center justify-center border border-border rounded-[var(--radius-lg)] transition-all shrink-0 text-muted-foreground hover:border-border-hover"
+            >
+              <Share2 size={20} />
             </button>
           </div>
 
