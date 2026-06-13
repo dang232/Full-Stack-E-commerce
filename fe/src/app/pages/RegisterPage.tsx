@@ -138,10 +138,11 @@ export function RegisterPage() {
                 required
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
+                aria-describedby={errors.firstName ? "register-error-firstName" : undefined}
                 className={errors.firstName ? inputErrorClass : inputClass}
               />
               {errors.firstName ? (
-                <p className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
+                <p id="register-error-firstName" role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
                   <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>{errors.firstName}</span>
                 </p>
@@ -161,10 +162,11 @@ export function RegisterPage() {
                 required
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                aria-describedby={errors.lastName ? "register-error-lastName" : undefined}
                 className={errors.lastName ? inputErrorClass : inputClass}
               />
               {errors.lastName ? (
-                <p className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
+                <p id="register-error-lastName" role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
                   <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>{errors.lastName}</span>
                 </p>
@@ -191,7 +193,7 @@ export function RegisterPage() {
               className={errors.email ? inputErrorClass : inputClass}
             />
             {errors.email ? (
-              <p id="register-error-email" className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
+              <p id="register-error-email" role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
                 <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>{errors.email}</span>
               </p>
@@ -236,6 +238,7 @@ export function RegisterPage() {
                 onFocus={() => setPwFocused(true)}
                 onBlur={() => setPwFocused(false)}
                 placeholder={t("register.form.passwordHint", { defaultValue: "At least 8 characters" })}
+                aria-describedby={errors.password ? "register-error-password" : undefined}
                 className={`${errors.password ? inputErrorClass : inputClass} pr-11`}
               />
               <button
@@ -248,7 +251,7 @@ export function RegisterPage() {
               </button>
             </div>
             {errors.password ? (
-              <p className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
+              <p id="register-error-password" role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
                 <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>{errors.password}</span>
               </p>
@@ -274,10 +277,11 @@ export function RegisterPage() {
               required
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
+              aria-describedby={errors.confirm ? "register-error-confirm" : undefined}
               className={errors.confirm ? inputErrorClass : inputClass}
             />
             {errors.confirm ? (
-              <p className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
+              <p id="register-error-confirm" role="alert" className="flex items-center gap-1 mt-1.5 text-xs text-red-600">
                 <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>{errors.confirm}</span>
               </p>

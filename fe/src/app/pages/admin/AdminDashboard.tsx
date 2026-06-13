@@ -23,6 +23,7 @@ import {
   dashboardTopSellers,
 } from "../../lib/api/endpoints/admin";
 import { formatPrice } from "../../lib/format";
+import { comingSoon } from "../../lib/ui/coming-soon";
 
 
 export function AdminDashboard() {
@@ -61,9 +62,8 @@ export function AdminDashboard() {
           <p className="text-sm text-muted-foreground">{t("admin.dashboard.subtitle")}</p>
         </div>
         <button
-          disabled
-          title="Available Q3 2026"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card text-sm text-muted-foreground opacity-50 cursor-not-allowed"
+          onClick={() => comingSoon("Export")}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-card text-sm text-muted-foreground hover:bg-muted transition-colors"
         >
           <IconChartBar size={15} /> {t("admin.dashboard.exportReport")}
         </button>
