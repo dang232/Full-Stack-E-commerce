@@ -2,6 +2,8 @@ import { Palette } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
+import { comingSoon } from "../lib/ui/coming-soon";
+
 // ─── Footer ────────────────────────────────────────────────────────────────────
 export function Footer() {
   const navigate = useNavigate();
@@ -78,14 +80,14 @@ export function Footer() {
             </h4>
             <ul className="space-y-2">
               {[
-                { label: t("footer.helpCenter", { defaultValue: "Help Center" }), path: "#" },
-                { label: t("footer.returns", { defaultValue: "Returns" }), path: "#" },
-                { label: t("footer.shipping", { defaultValue: "Shipping & Delivery" }), path: "#" },
-                { label: t("footer.contactUs", { defaultValue: "Contact Us" }), path: "#" },
+                { label: t("footer.helpCenter", { defaultValue: "Help Center" }) },
+                { label: t("footer.returns", { defaultValue: "Returns" }) },
+                { label: t("footer.shipping", { defaultValue: "Shipping & Delivery" }) },
+                { label: t("footer.contactUs", { defaultValue: "Contact Us" }) },
               ].map((link) => (
                 <li key={link.label}>
                   <button
-                    onClick={() => navigate(link.path)}
+                    onClick={() => comingSoon(link.label)}
                     className="text-sm text-text-secondary hover:text-primary hover:translate-x-0.5 transition-all inline-block"
                   >
                     {link.label}
@@ -102,14 +104,14 @@ export function Footer() {
             </h4>
             <ul className="space-y-2">
               {[
-                { label: t("footer.about", { defaultValue: "About" }), path: "#" },
-                { label: t("footer.careers", { defaultValue: "Careers" }), path: "#" },
-                { label: t("footer.blog", { defaultValue: "Blog & News" }), path: "#" },
-                { label: t("footer.press", { defaultValue: "Press" }), path: "#" },
+                { label: t("footer.about", { defaultValue: "About" }) },
+                { label: t("footer.careers", { defaultValue: "Careers" }) },
+                { label: t("footer.blog", { defaultValue: "Blog & News" }) },
+                { label: t("footer.press", { defaultValue: "Press" }) },
               ].map((link) => (
                 <li key={link.label}>
                   <button
-                    onClick={() => navigate(link.path)}
+                    onClick={() => comingSoon(link.label)}
                     className="text-sm text-text-secondary hover:text-primary hover:translate-x-0.5 transition-all inline-block"
                   >
                     {link.label}
@@ -124,9 +126,13 @@ export function Footer() {
         <div className="pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-muted-foreground">
           <span>{t("footer.copyright")}</span>
           <div className="flex items-center gap-4">
-            <span>{t("footer.privacy", { defaultValue: "Privacy" })}</span>
+            <button onClick={() => comingSoon("Privacy policy")} className="hover:text-primary transition-colors">
+              {t("footer.privacy", { defaultValue: "Privacy" })}
+            </button>
             <span>·</span>
-            <span>{t("footer.terms", { defaultValue: "Terms" })}</span>
+            <button onClick={() => comingSoon("Terms of service")} className="hover:text-primary transition-colors">
+              {t("footer.terms", { defaultValue: "Terms" })}
+            </button>
             <span>·</span>
             <button
               onClick={() => navigate("/design-system")}
