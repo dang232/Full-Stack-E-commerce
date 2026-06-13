@@ -478,8 +478,9 @@ export function ProductPage() {
             </button>
             <button
               onClick={() => {
-                void navigator.clipboard.writeText(window.location.href).then(() =>
-                  toast.success("Link copied!")
+                void navigator.clipboard.writeText(window.location.href).then(
+                  () => toast.success("Link copied!"),
+                  () => toast.error("Failed to copy link"),
                 );
               }}
               aria-label="Share product"

@@ -155,7 +155,10 @@ export function ProfilePage() {
   // the key and the current address list so it can resolve the index
 // against the live data right before the request.
   const setDefaultMutation = useMutation({
-    mutationFn: (key: string) => setDefaultAddress(key, addresses),
+    mutationFn: (key: string) => {
+      const fresh = qc.getQueryData<UserProfile>(["users", "me"])?.addresses ?? [];
+      return setDefaultAddress(key, fresh);
+    },
     onSuccess: (next) => {
       qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
         prev ? { ...prev, addresses: next.addresses ?? [] } : next,
@@ -167,7 +170,10 @@ export function ProfilePage() {
   });
 
   const removeAddressMutation = useMutation({
-    mutationFn: (key: string) => removeAddress(key, addresses),
+    mutationFn: (key: string) => {
+      const fresh = qc.getQueryData<UserProfile>(["users", "me"])?.addresses ?? [];
+      return removeAddress(key, fresh);
+    },
     onSuccess: (next) => {
       qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
         prev ? { ...prev, addresses: next.addresses ?? [] } : next,

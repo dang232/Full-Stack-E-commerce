@@ -23,10 +23,12 @@ export const addAddress = (body: Address) =>
   api.post("/users/me/addresses", userProfileSchema, body);
 export const setDefaultAddress = (key: string, addresses: readonly Address[]) => {
   const index = findAddressIndexByKey(addresses, key);
+  if (index === -1) return Promise.reject(new Error("Address not found"));
   return api.put(`/users/me/addresses/${index}/default`, userProfileSchema);
 };
 export const removeAddress = (key: string, addresses: readonly Address[]) => {
   const index = findAddressIndexByKey(addresses, key);
+  if (index === -1) return Promise.reject(new Error("Address not found"));
   return api.delete(`/users/me/addresses/${index}`, userProfileSchema);
 };
 
