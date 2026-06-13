@@ -12,6 +12,8 @@ import {
   AlertCircle,
   Save,
   Store,
+  Bell,
+  MessageSquare,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,7 +33,9 @@ import {
 } from "../lib/api/endpoints/users";
 import type { Address, UserProfile } from "../types/api";
 
-type ProfileTab = "info" | "addresses" | "payment" | "security";
+import { comingSoon } from "../lib/ui/coming-soon";
+
+type ProfileTab = "info" | "addresses" | "notifications" | "reviews" | "payment" | "security";
 
 const EMPTY_ADDRESS: Address = {
   street: "",
@@ -206,6 +210,8 @@ export function ProfilePage() {
   const NAV_ITEMS: { id: ProfileTab; labelKey: string; icon: typeof User }[] = [
     { id: "info", labelKey: "profile.tabs.info", icon: User },
     { id: "addresses", labelKey: "profile.tabs.addresses", icon: MapPin },
+    { id: "notifications", labelKey: "profile.tabs.notifications", icon: Bell },
+    { id: "reviews", labelKey: "profile.tabs.reviews", icon: MessageSquare },
     { id: "payment", labelKey: "profile.tabs.payment", icon: CreditCard },
     { id: "security", labelKey: "profile.tabs.security", icon: Shield },
   ];
@@ -256,13 +262,27 @@ export function ProfilePage() {
           </div>
 
           {/* Nav items */}
-          <nav className="flex flex-col gap-0.5 mt-5">
+          <nav role="tablist" aria-label="Profile sections" className="flex flex-col gap-0.5 mt-5">
             {NAV_ITEMS.map((item) => {
               const isActive = activeTab === item.id;
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  id={`profile-tab-${item.id}`}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={`profile-tabpanel-${item.id}`}
+                  onClick={() => {
+                    if (item.id === "notifications") {
+                      navigate("/notifications");
+                      return;
+                    }
+                    if (item.id === "reviews") {
+                      comingSoon("Reviews");
+                      return;
+                    }
+                    setActiveTab(item.id);
+                  }}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[var(--radius-md)] text-[13px] font-medium cursor-pointer transition-colors w-full text-left ${
                     isActive
                       ? "bg-primary-light text-primary"
@@ -294,7 +314,12 @@ export function ProfilePage() {
         </div>
 
         {/* Right content */}
-        <div className="bg-card border border-border rounded-[var(--radius-xl)] p-8">
+        <div
+          id={`profile-tabpanel-${activeTab}`}
+          role="tabpanel"
+          aria-labelledby={`profile-tab-${activeTab}`}
+          className="bg-card border border-border rounded-[var(--radius-xl)] p-8"
+        >
           {activeTab === "info" ? (
             <div>
               <div className="flex items-center justify-between mb-6">
