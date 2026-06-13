@@ -40,6 +40,9 @@ let crossTabRefreshPromise: Promise<boolean> | null = null;
 let crossTabRefreshResolve: ((success: boolean) => void) | null = null;
 /** True while this tab owns the in-flight refresh. */
 let thisTabRefreshing = false;
+/** Epoch-ms timestamp when this tab claimed the refresh lock. Used to detect stale locks. */
+let refreshLockTimestamp = 0;
+const REFRESH_LOCK_TIMEOUT_MS = 15_000;
 
 if (REFRESH_CHANNEL) {
   REFRESH_CHANNEL.onmessage = (ev: MessageEvent<RefreshMessage>) => {
@@ -50,6 +53,16 @@ if (REFRESH_CHANNEL) {
         crossTabRefreshPromise = new Promise<boolean>((resolve) => {
           crossTabRefreshResolve = resolve;
         });
+        // Safety timeout: if the owning tab crashes or hangs and never sends
+        // "refresh-complete", release parked tabs after REFRESH_LOCK_TIMEOUT_MS
+        // so they can attempt their own refresh instead of blocking forever.
+        setTimeout(() => {
+          if (crossTabRefreshPromise) {
+            crossTabRefreshResolve?.(false);
+            crossTabRefreshResolve = null;
+            crossTabRefreshPromise = null;
+          }
+        }, REFRESH_LOCK_TIMEOUT_MS);
       }
     } else if (msg.type === "refresh-complete") {
       crossTabRefreshResolve?.(msg.success);
@@ -195,9 +208,11 @@ export async function request<TSchema extends z.ZodType>(
         meta: { auth, idempotencyKey: opts.idempotencyKey, hasBody },
       });
       response = await fetch(retryCtx.url, retryCtx.init);
-    } else {
-      // This tab owns the refresh.
+    } else if (!thisTabRefreshing) {
+      // This tab owns the refresh. Guard with !thisTabRefreshing so a second
+      // 401 arriving while we already hold the lock doesn't start a duplicate.
       thisTabRefreshing = true;
+      refreshLockTimestamp = Date.now();
       REFRESH_CHANNEL?.postMessage({ type: "refresh-started" } satisfies RefreshMessage);
       let refreshSucceeded = false;
       try {
@@ -216,6 +231,13 @@ export async function request<TSchema extends z.ZodType>(
         window.dispatchEvent(new Event("auth:unauthorized"));
         throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
       }
+    } else {
+      // thisTabRefreshing is already true — a concurrent request hit 401 while
+      // this tab's refresh is in-flight. The token will be updated once the
+      // in-flight refresh resolves; treat this as an auth failure since the
+      // original token was already invalid.
+      window.dispatchEvent(new Event("auth:unauthorized"));
+      throw new ApiError(401, "UNAUTHORIZED", "Authentication required", correlationId);
     }
   }
 
