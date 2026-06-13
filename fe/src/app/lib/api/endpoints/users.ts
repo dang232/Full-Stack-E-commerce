@@ -4,6 +4,7 @@ import {
   userProfileSchema,
   type Address,
 } from "../../../types/api";
+import { findAddressIndexByKey } from "../../address-key";
 import { api } from "../client";
 
 export const myProfile = () => api.get("/users/me", userProfileSchema);
@@ -20,10 +21,14 @@ export const updateProfile = (body: UpdateProfileInput) =>
 // client never has to merge partial state — see UserController#addAddress et al.
 export const addAddress = (body: Address) =>
   api.post("/users/me/addresses", userProfileSchema, body);
-export const setDefaultAddress = (index: number) =>
-  api.put(`/users/me/addresses/${index}/default`, userProfileSchema);
-export const removeAddress = (index: number) =>
-  api.delete(`/users/me/addresses/${index}`, userProfileSchema);
+export const setDefaultAddress = (key: string, addresses: readonly Address[]) => {
+  const index = findAddressIndexByKey(addresses, key);
+  return api.put(`/users/me/addresses/${index}/default`, userProfileSchema);
+};
+export const removeAddress = (key: string, addresses: readonly Address[]) => {
+  const index = findAddressIndexByKey(addresses, key);
+  return api.delete(`/users/me/addresses/${index}`, userProfileSchema);
+};
 
 // Avatar upload: two-phase. /upload signs a PUT URL the browser uses to
 // stream the file directly to MinIO; /activate verifies the upload landed

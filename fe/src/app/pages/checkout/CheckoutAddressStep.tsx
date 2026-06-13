@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Modal } from "../../components/ui/modal";
+import { addressKey } from "../../lib/address-key";
 import { ApiError } from "../../lib/api";
 import { addAddress } from "../../lib/api/endpoints/users";
 import type { Address } from "../../types/api";
@@ -90,7 +91,7 @@ export function CheckoutAddressStep({
           const isSelected = selectedAddressIndex === i;
           return (
             <button
-              key={`${addr.street}|${addr.city}|${String(i)}`}
+              key={addressKey(addr)}
               role="radio"
               aria-checked={isSelected}
               onClick={() => setSelectedAddressIndex(i)}

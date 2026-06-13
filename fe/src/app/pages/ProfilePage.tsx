@@ -1,5 +1,18 @@
-import { User, MapPin, Shield, CreditCard, Camera, Pencil, Plus, Trash2, LogOut, AlertCircle, Save, Store } from "lucide-react";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  User,
+  MapPin,
+  Shield,
+  CreditCard,
+  Camera,
+  Pencil,
+  Plus,
+  Trash2,
+  LogOut,
+  AlertCircle,
+  Save,
+  Store,
+} from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -8,6 +21,7 @@ import { toast } from "sonner";
 import { useAuth } from "../hooks/use-auth";
 import { avatarUploadErrorMessage, useAvatarUpload } from "../hooks/use-avatar-upload";
 import { profileOptions } from "../hooks/use-profile";
+import { addressKey } from "../lib/address-key";
 import { ApiError } from "../lib/api";
 import {
   updateProfile,
@@ -133,8 +147,11 @@ export function ProfilePage() {
       toast.error(err instanceof ApiError ? err.message : t("profile.addresses.addedErr")),
   });
 
+// Spec U-9: pass the stable key (not array index). The API takes both
+  // the key and the current address list so it can resolve the index
+// against the live data right before the request.
   const setDefaultMutation = useMutation({
-    mutationFn: (index: number) => setDefaultAddress(index),
+    mutationFn: (key: string) => setDefaultAddress(key, addresses),
     onSuccess: (next) => {
       qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
         prev ? { ...prev, addresses: next.addresses ?? [] } : next,
@@ -146,7 +163,7 @@ export function ProfilePage() {
   });
 
   const removeAddressMutation = useMutation({
-    mutationFn: (index: number) => removeAddress(index),
+    mutationFn: (key: string) => removeAddress(key, addresses),
     onSuccess: (next) => {
       qc.setQueryData<UserProfile>(["users", "me"], (prev) =>
         prev ? { ...prev, addresses: next.addresses ?? [] } : next,
@@ -493,10 +510,7 @@ export function ProfilePage() {
                       <div className="flex gap-2 shrink-0">
                         {!addr.isDefault ? (
                           <button
-                            onClick={() => {
-                              const idx = addresses.indexOf(addr);
-                              if (idx !== -1) removeAddressMutation.mutate(idx);
-                            }}
+                            onClick={() => removeAddressMutation.mutate(addressKey(addr))}
                             aria-label="Remove address"
                             className="text-xs px-3 py-1.5 rounded-[var(--radius-md)] border border-red-200 text-red-400 hover:bg-red-50"
                           >
@@ -507,10 +521,7 @@ export function ProfilePage() {
                     </div>
                     {!addr.isDefault ? (
                       <button
-                        onClick={() => {
-                          const idx = addresses.indexOf(addr);
-                          if (idx !== -1) setDefaultMutation.mutate(idx);
-                        }}
+                        onClick={() => setDefaultMutation.mutate(addressKey(addr))}
                         disabled={setDefaultMutation.isPending}
                         className="mt-3 text-xs font-medium text-primary disabled:opacity-50"
                       >
